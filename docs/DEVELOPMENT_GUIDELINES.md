@@ -80,6 +80,8 @@ Component Structure:
 
 7. **CSS co-located with components**: Place CSS files in the same directory as the component that uses them. Global CSS should be in the layouts directory and imported in Layout.astro. All CSS files should be in the src directory and imported where needed.
 
+8. **Global CSS only for truly global styles**: The global.css file should only contain CSS variables, base element styles, and utility classes. Component-specific styles should be in the component's CSS file, not in global.css.
+
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 
 9. **Inline class names in Astro**: Don't use array join for class names. Use template literals directly in the class attribute for better readability.
