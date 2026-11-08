@@ -67,6 +67,19 @@ Component Structure:
 
 5. **No global script loading**: Do NOT load Web Component scripts in Layout.astro or other global files. Load them in the Astro component that uses them, so they're only loaded when needed.
 
+6. **No global CSS imports**: Do NOT import CSS files in Layout.astro or other global files. Each component should import its own CSS in its Astro file. This ensures CSS is only loaded when the component is used.
+
+   ```astro
+   <!-- Button.astro -->
+   ---
+   import './Button.css';
+   ---
+   
+   <button class="button">...</button>
+   ```
+
+7. **Global CSS only for truly global styles**: Only use global.css for styles that apply to the entire application (CSS variables, base styles, etc.). Component-specific styles should be in the component's CSS file.
+
    ```
    ✅ Good:
    components/
