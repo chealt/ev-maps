@@ -4,16 +4,31 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/dev-config/**"
-      - ".github/workflows/dev-config.yml"
+      - 'packages/dev-config/**'
+      - '.github/workflows/dev-config.yml'
   pull_request:
     branches: [main]
     paths:
-      - "packages/dev-config/**"
-      - ".github/workflows/dev-config.yml"
+      - 'packages/dev-config/**'
+      - '.github/workflows/dev-config.yml'
 
 jobs:
-  test:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dev-config dependencies only
+        run: cd packages/dev-config && bun install
+
+  lint:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,6 +44,21 @@ jobs:
 
       - name: Run lint
         run: cd packages/dev-config && bun run lint
+
+  format:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dev-config dependencies only
+        run: cd packages/dev-config && bun install
 
       - name: Check formatting
         run: cd packages/dev-config && bun run format:check

@@ -4,16 +4,31 @@ on:
   push:
     branches: [main]
     paths:
-      - "packages/app/**"
-      - ".github/workflows/app.yml"
+      - 'packages/app/**'
+      - '.github/workflows/app.yml'
   pull_request:
     branches: [main]
     paths:
-      - "packages/app/**"
-      - ".github/workflows/app.yml"
+      - 'packages/app/**'
+      - '.github/workflows/app.yml'
 
 jobs:
-  test:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install app dependencies only
+        run: cd packages/app && bun install
+
+  lint:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,8 +45,38 @@ jobs:
       - name: Run lint
         run: cd packages/app && bun run lint
 
+  format:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install app dependencies only
+        run: cd packages/app && bun install
+
       - name: Check formatting
         run: cd packages/app && bun run format
+
+  build:
+    needs: [lint, format]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install app dependencies only
+        run: cd packages/app && bun install
 
       - name: Build app
         run: cd packages/app && bun run build
