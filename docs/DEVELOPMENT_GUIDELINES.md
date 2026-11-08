@@ -471,20 +471,25 @@ Use slots for composable components:
 
 ### Linting Rules
 
-This project uses [oxlint](https://github.com/oxc-project/oxlint) for linting.
+This project uses [oxlint](https://github.com/oxc-project/oxlint) for JavaScript/TypeScript linting and [lightningcss](https://github.com/parcel-bundler/lightningcss) for CSS linting.
 
-**Key Rules:**
-- `curly: error` - Always use curly braces `{}` for all blocks (if, else, for, while, etc.)
+**JavaScript Linting:**
+- Uses oxlint (Rust-based, very fast)
+- Key rule: `curly: error` - Always use curly braces `{}` for all blocks
 - Full configuration in `packages/dev-config/oxlint.json`
 
-Run linting from the app package:
+**CSS Linting:**
+- Uses lightningcss (Rust-based, very fast)
+- Run with: `bun run lint:css` from dev-config package
+
+Run JavaScript linting from the app package:
 ```bash
 cd packages/app && bun run lint
 ```
 
-Or from the root:
+Run CSS linting:
 ```bash
-cd packages/app && bun run --cwd . lint
+cd packages/dev-config && bun run lint:css
 ```
 
 ### Formatting Rules

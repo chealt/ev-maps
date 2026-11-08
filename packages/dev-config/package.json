@@ -5,10 +5,12 @@
   "description": "Shared dev configs for linting, formatting, and building",
   "scripts": {
     "lint": "echo 'dev-config: No JavaScript files to lint (only JSON configs)'",
+    "lint:css": "lightningcss --lint **/*.css",
     "format": "echo 'dev-config: No supported files to format (JSON not supported by oxfmt)'",
     "format:check": "echo 'dev-config: No supported files to format check'"
   },
   "devDependencies": {
+    "lightningcss": "^1.33.0",
     "oxfmt": "^0.4.0",
     "oxlint": "^0.4.0"
   },
