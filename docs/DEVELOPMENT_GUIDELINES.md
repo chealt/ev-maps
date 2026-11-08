@@ -80,6 +80,28 @@ Component Structure:
 
 7. **Global CSS only for truly global styles**: Only use global.css for styles that apply to the entire application (CSS variables, base styles, etc.). Component-specific styles should be in the component's CSS file.
 
+8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
+
+   ```javascript
+   // ✅ Good - self-documenting
+   handleLocationFound(statusEl, event) {
+     if (statusEl && event.detail) {
+       statusEl.textContent = `Location: ${event.detail.lat}, ${event.detail.lng}`;
+     }
+   }
+   
+   // ❌ Bad - redundant comment
+   /**
+    * Handles location found event
+    * Updates status element with location
+    */
+   handleLocationFound(statusEl, event) {
+     if (statusEl && event.detail) {
+       statusEl.textContent = `Location: ${event.detail.lat}, ${event.detail.lng}`;
+     }
+   }
+   ```
+
    ```
    ✅ Good:
    components/

@@ -1,7 +1,6 @@
 /**
  * Map Web Component
  * Manages status display for map-related events
- * Does NOT render HTML - only adds behavior to Astro-rendered HTML
  */
 export class MapElement extends HTMLElement {
   connectedCallback() {

@@ -1,7 +1,6 @@
 /**
  * LocateButton Web Component
  * Handles geolocation functionality for a button
- * Does NOT render HTML - only adds behavior to Astro-rendered button
  */
 export class LocateButtonElement extends HTMLElement {
   connectedCallback() {

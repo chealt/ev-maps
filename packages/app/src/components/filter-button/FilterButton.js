@@ -1,7 +1,6 @@
 /**
  * FilterButton Web Component
  * Handles filter toggle functionality for a button
- * Does NOT render HTML - only adds behavior to Astro-rendered button
  */
 export class FilterButtonElement extends HTMLElement {
   connectedCallback() {
