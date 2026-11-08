@@ -1,27 +1,6 @@
 ---
-interface Props {
-  title?: string;
-  subtitle?: string;
-}
-
-const { title = 'EV Charging Stations Map', subtitle = 'EV charging stations will appear here' } = Astro.props;
-
-import LocateButton from '../locate-button/LocateButton.astro';
-import FilterButton from '../filter-button/FilterButton.astro';
+import GoogleMap from '../google-map/GoogleMap.astro';
 import './Map.css';
 ---
 
-<ev-map>
-  <div class="map-container">
-    <div class="map-placeholder">
-      <h2>{title}</h2>
-      <p>{subtitle}</p>
-    </div>
-    <div class="controls">
-      <LocateButton />
-      <FilterButton />
-    </div>
-    <div class="status"></div>
-  </div>
-  <script src="/src/components/map/Map.js"></script>
-</ev-map>
+<GoogleMap />

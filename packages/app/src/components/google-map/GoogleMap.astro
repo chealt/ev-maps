@@ -1,0 +1,31 @@
+---
+interface Props {
+  apiKey?: string;
+  center?: { lat: number; lng: number };
+  zoom?: number;
+  showEvChargers?: boolean;
+}
+
+const { 
+  apiKey = import.meta.env.GOOGLE_MAPS_API_KEY,
+  center = { lat: 0, lng: 0 },
+  zoom = 12,
+  showEvChargers = true
+} = Astro.props;
+
+import LocateButton from '../locate-button/LocateButton.astro';
+import FilterButton from '../filter-button/FilterButton.astro';
+import './GoogleMap.css';
+---
+
+<ev-google-map data-api-key={apiKey} data-center-lat={center.lat} data-center-lng={center.lng} data-zoom={zoom} data-show-ev-chargers={showEvChargers}>
+  <div class="google-map-container">
+    <div class="google-map" id="map"></div>
+    <div class="map-controls">
+      <LocateButton />
+      <FilterButton />
+    </div>
+    <div class="map-status"></div>
+  </div>
+  <script src="/src/components/google-map/GoogleMap.js"></script>
+</ev-google-map>
