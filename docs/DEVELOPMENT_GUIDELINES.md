@@ -43,6 +43,30 @@ Component Structure:
 
 2. **Naming convention**: Use simple, descriptive names for Web Component files. Do NOT use `.element.js` suffix - it's redundant. Use `ComponentName.js` directly.
 
+3. **Self-contained components**: Each Web Component should be wrapped in an Astro component that includes its script via `<script src="...">`. This makes components composable and ensures scripts are only loaded when the component is used.
+
+   ```astro
+   <!-- LocateButton.astro -->
+   <ev-locate-button>
+     <Button variant="primary">Locate Me</Button>
+     <script src="/src/components/locate-button/LocateButton.js"></script>
+   </ev-locate-button>
+   ```
+
+4. **Use `<script src="...">` not module imports**: For Web Component scripts, use regular script tags with src attributes. Astro will handle them as modules automatically. This is simpler and more reliable than using `import` statements in script tags.
+
+   ```astro
+   <!-- ✅ Good -->
+   <script src="/src/components/map/Map.js"></script>
+   
+   <!-- ❌ Bad -->
+   <script type="module">
+     import '../components/map/Map.js';
+   </script>
+   ```
+
+5. **No global script loading**: Do NOT load Web Component scripts in Layout.astro or other global files. Load them in the Astro component that uses them, so they're only loaded when needed.
+
    ```
    ✅ Good:
    components/

@@ -6,8 +6,9 @@ interface Props {
 
 const { title = 'EV Charging Stations Map', subtitle = 'EV charging stations will appear here' } = Astro.props;
 
-// Import Button component
-import Button from '../button/Button.astro';
+// Import the button components
+import LocateButton from '../locate-button/LocateButton.astro';
+import FilterButton from '../filter-button/FilterButton.astro';
 ---
 
 <ev-map>
@@ -17,13 +18,10 @@ import Button from '../button/Button.astro';
       <p>{subtitle}</p>
     </div>
     <div class="controls">
-      <ev-locate-button>
-        <Button variant="primary">Locate Me</Button>
-      </ev-locate-button>
-      <ev-filter-button>
-        <Button variant="secondary">Filters</Button>
-      </ev-filter-button>
+      <LocateButton />
+      <FilterButton />
     </div>
     <div class="status"></div>
   </div>
+  <script src="/src/components/map/Map.js"></script>
 </ev-map>
