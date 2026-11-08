@@ -82,6 +82,20 @@ Component Structure:
 
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 
+9. **Inline class names in Astro**: Don't use array join for class names. Use template literals directly in the class attribute for better readability.
+
+   ```astro
+   <!-- ✅ Good - inline template literal -->
+   <button class={`button button--${variant} button--${size}${disabled ? ' button--disabled' : ''}`}>
+     <slot />
+   </button>
+   
+   <!-- ❌ Bad - array join -->
+   <button class={['button', `button--${variant}`, `button--${size}`, disabled ? 'button--disabled' : ''].filter(Boolean).join(' ')}>
+     <slot />
+   </button>
+   ```
+
    ```javascript
    // ✅ Good - self-documenting
    handleLocationFound(statusEl, event) {

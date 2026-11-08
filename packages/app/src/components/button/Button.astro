@@ -12,17 +12,10 @@ const {
   size = 'medium', 
   disabled = false
 } = Astro.props;
-
-const buttonClasses = [
-  'button',
-  `button--${variant}`,
-  `button--${size}`,
-  disabled ? 'button--disabled' : ''
-].filter(Boolean).join(' ');
 ---
 
 <button 
-  class={buttonClasses}
+  class={`button button--${variant} button--${size}${disabled ? ' button--disabled' : ''}`}
   ?disabled={disabled}
 >
   <slot />
