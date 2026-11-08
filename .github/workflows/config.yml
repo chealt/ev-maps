@@ -1,0 +1,58 @@
+name: Config CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/config/**'
+      - '.github/workflows/config.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/config/**'
+      - '.github/workflows/config.yml'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Run lint
+        run: bun run --cwd packages/config lint
+
+  format:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Check formatting
+        run: bun run --cwd packages/config format:check
