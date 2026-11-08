@@ -47,44 +47,20 @@ ev-maps/
 └── README.md
 ```
 
-## Important Development Guidelines
+## Development Guidelines
 
-⚠️ **DO NOT** inline HTML or CSS in JavaScript files.
+For detailed development guidelines, best practices, and coding standards, please see:
 
-✅ **DO** this:
+📖 **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)**
 
-```javascript
-// MapApp.js
-import template from "./MapApp.html?raw";
-import "./MapApp.css";
-
-export class MapApp extends HTMLElement {
-  render() {
-    this.shadowRoot.innerHTML = template;
-  }
-}
-```
-
-❌ **DO NOT** do this:
-
-```javascript
-// BAD - Inline HTML and CSS
-render() {
-  this.shadowRoot.innerHTML = `
-    <style>
-      /* CSS here */
-    </style>
-    <div>...</div>
-  `;
-}
-```
-
-**Always keep:**
-
-- HTML in `.html` files
-- CSS in `.css` files
-- JavaScript in `.js` files
-
+This includes:
+- Component architecture patterns
+- File organization standards
+- Code quality requirements
+- Performance considerations
+- Accessibility guidelines
+- Commit message conventions
+- Pull request guidelines
 ## Getting Started
 
 ### Prerequisites

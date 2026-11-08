@@ -19,6 +19,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Bun installation
+        uses: actions/cache@v3
+        id: bun-cache
+        with:
+          path: ~/.bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/dev-config.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -28,9 +37,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: packages/dev-config/node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/dev-config/bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-bun-deps-
 
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
@@ -42,6 +51,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Bun installation
+        uses: actions/cache@v3
+        id: bun-cache
+        with:
+          path: ~/.bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/dev-config.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -51,9 +69,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: packages/dev-config/node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/dev-config/bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-bun-deps-
 
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
@@ -68,6 +86,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Bun installation
+        uses: actions/cache@v3
+        id: bun-cache
+        with:
+          path: ~/.bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/dev-config.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
@@ -77,9 +104,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: packages/dev-config/node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/dev-config/bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun-
+            ${{ runner.os }}-bun-deps-
 
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
