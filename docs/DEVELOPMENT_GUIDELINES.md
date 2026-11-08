@@ -82,7 +82,7 @@ Component Structure:
 
 8. **Global CSS only for truly global styles**: The global.css file should only contain CSS variables, base element styles, and utility classes. Component-specific styles should be in the component's CSS file, not in global.css.
 
-9. **Use CSS variables for all values**: All colors, fonts, font sizes, widths, heights, gaps, borders, z-indexes, and other style values should be defined as CSS variables in global.css and used throughout the application. This ensures consistency and makes theming easier.
+9. **Use CSS variables for all values**: All colors, fonts, font sizes, widths, heights, gaps, borders, z-indexes, opacity, transitions, and other style values should be defined as CSS variables in global.css and used throughout the application. This ensures consistency and makes theming easier. **No hardcoded values allowed in component CSS files.**
 
    ```css
    /* global.css */
@@ -92,6 +92,8 @@ Component Structure:
      --spacing-md: 1rem;
      --border-radius-sm: 4px;
      --z-dropdown: 100;
+     --opacity-disabled: 0.6;
+     --transition-fast: 0.2s ease;
    }
    
    /* Component CSS */
@@ -99,6 +101,8 @@ Component Structure:
      background-color: var(--color-primary);
      padding: var(--spacing-sm) var(--spacing-md);
      border-radius: var(--border-radius-sm);
+     opacity: var(--opacity-disabled);
+     transition: all var(--transition-fast);
    }
    ```
 
@@ -109,7 +113,9 @@ Component Structure:
    - Borders: `--border-radius-*`, `--border-width`
    - Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
    - Z-indexes: `--z-dropdown`, `--z-sticky`, `--z-fixed`, `--z-modal`
-   - Layout: `--container-max-width`, `--container-padding`
+   - Opacity: `--opacity-disabled`, `--opacity-background`, etc.
+   - Transitions: `--transition-fast`, etc.
+   - Layout: `--container-max-width`, `--container-padding`, `--map-height`, etc.
 
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 

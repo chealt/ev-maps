@@ -79,6 +79,41 @@ jobs:
       - name: Run lint
         run: cd packages/app && bun run lint
 
+  lint:css:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Bun installation
+        uses: actions/cache@v3
+        id: bun-cache
+        with:
+          path: ~/.bun
+          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: packages/dev-config/node_modules
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/dev-config/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-deps-
+
+      - name: Install dev-config dependencies only
+        run: cd packages/dev-config && bun install
+
+      - name: Run CSS lint
+        run: cd packages/dev-config && bun run lint:css
+
   format:
     needs: setup
     runs-on: ubuntu-latest
