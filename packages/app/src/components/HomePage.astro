@@ -1,10 +1,17 @@
 ---
-import Map from './Map.astro';
+import Map from './map/Map.astro';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+}
+
+const { title = 'EV Maps', subtitle = 'Find electric vehicle charging stations near you' } = Astro.props;
 ---
 
 <main class="container">
-  <h1>EV Maps</h1>
-  <p class="subtitle">Find electric vehicle charging stations near you</p>
+  <h1>{title}</h1>
+  <p class="subtitle">{subtitle}</p>
   
-  <Map />
+  <Map title="EV Charging Stations" subtitle="Find stations near you" />
 </main>

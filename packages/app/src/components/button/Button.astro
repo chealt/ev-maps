@@ -1,0 +1,30 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'danger';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
+}
+
+const { 
+  variant = 'primary', 
+  size = 'medium', 
+  disabled = false
+} = Astro.props;
+
+const buttonId = Astro.id;
+
+const buttonClasses = [
+  'button',
+  `button--${variant}`,
+  `button--${size}`,
+  disabled ? 'button--disabled' : ''
+].filter(Boolean).join(' ');
+---
+
+<button 
+  class={buttonClasses}
+  id={buttonId}
+  ?disabled={disabled}
+>
+  <slot />
+</button>
