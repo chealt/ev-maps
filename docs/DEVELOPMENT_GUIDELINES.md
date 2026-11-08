@@ -82,6 +82,35 @@ Component Structure:
 
 8. **Global CSS only for truly global styles**: The global.css file should only contain CSS variables, base element styles, and utility classes. Component-specific styles should be in the component's CSS file, not in global.css.
 
+9. **Use CSS variables for all values**: All colors, fonts, font sizes, widths, heights, gaps, borders, z-indexes, and other style values should be defined as CSS variables in global.css and used throughout the application. This ensures consistency and makes theming easier.
+
+   ```css
+   /* global.css */
+   :root {
+     --color-primary: #2563eb;
+     --font-size-base: 1rem;
+     --spacing-md: 1rem;
+     --border-radius-sm: 4px;
+     --z-dropdown: 100;
+   }
+   
+   /* Component CSS */
+   .button {
+     background-color: var(--color-primary);
+     padding: var(--spacing-sm) var(--spacing-md);
+     border-radius: var(--border-radius-sm);
+   }
+   ```
+
+   **Categories of variables:**
+   - Colors: `--color-primary`, `--color-text`, `--color-background`, etc.
+   - Typography: `--font-family`, `--font-size-*`, `--font-weight-*`, `--line-height-*`
+   - Spacing: `--spacing-xs`, `--spacing-sm`, `--spacing-md`, etc.
+   - Borders: `--border-radius-*`, `--border-width`
+   - Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
+   - Z-indexes: `--z-dropdown`, `--z-sticky`, `--z-fixed`, `--z-modal`
+   - Layout: `--container-max-width`, `--container-padding`
+
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 
 9. **Inline class names in Astro**: Don't use array join for class names. Use template literals directly in the class attribute for better readability.
