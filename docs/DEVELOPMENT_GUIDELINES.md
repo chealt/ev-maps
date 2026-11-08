@@ -41,28 +41,7 @@ Component Structure:
 
 1. **Omit unnecessary constructor**: If your constructor only calls `super()`, remove it entirely. The default constructor from `HTMLElement` is sufficient.
 
-   ```javascript
-   // ✅ Good - No constructor needed
-   export class MyElement extends HTMLElement {
-     connectedCallback() {
-       // Setup logic here
-     }
-   }
-   
-   // ❌ Bad - Unnecessary constructor
-   export class MyElement extends HTMLElement {
-     constructor() {
-       super();
-     }
-     connectedCallback() {
-       // Setup logic here
-     }
-   }
-   ```
-
 2. **Use `connectedCallback()` for initialization**: This is where you should set up event listeners and DOM references.
-
-3. **Avoid `constructor` for DOM manipulation**: The element's DOM is not ready in the constructor. Use `connectedCallback()` instead.
 
 ---
 
