@@ -4,17 +4,17 @@
   "private": true,
   "description": "Shared dev configs for linting, formatting, and building",
   "scripts": {
-    "lint": "echo 'No JavaScript files to lint in dev-config'",
-    "format": "echo 'No files to format in dev-config'",
-    "format:check": "echo 'No files to format check in dev-config'"
+    "lint": "echo 'dev-config: No JavaScript files to lint (only JSON configs)'",
+    "format": "echo 'dev-config: No supported files to format (JSON not supported by oxfmt)'",
+    "format:check": "echo 'dev-config: No supported files to format check'"
   },
   "devDependencies": {
     "oxfmt": "^0.4.0",
     "oxlint": "^0.4.0"
   },
-  "packageManager": "bun@1.0.0",
   "engines": {
     "bun": ">=1.0.0",
     "node": ">=22.0.0"
-  }
+  },
+  "packageManager": "bun@1.0.0"
 }
