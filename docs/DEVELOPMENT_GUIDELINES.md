@@ -39,7 +39,21 @@ Component Structure:
 
 ### Web Component Best Practices
 
-1. **Omit unnecessary constructor**: If your constructor only calls `super()`, remove it entirely. The default constructor from `HTMLElement` is sufficient.
+1. **Omit unnecessary constructor**: If your constructor only calls `super()`, remove it entirely.
+
+2. **Naming convention**: Use simple, descriptive names for Web Component files. Do NOT use `.element.js` suffix - it's redundant. Use `ComponentName.js` directly.
+
+   ```
+   ✅ Good:
+   components/
+   └── locate-button/
+       └── LocateButton.js
+   
+   ❌ Bad:
+   components/
+   └── locate-button/
+       └── LocateButton.element.js  # Redundant suffix
+   ``` The default constructor from `HTMLElement` is sufficient.
 
 2. **Use `connectedCallback()` for initialization**: This is where you should set up event listeners and DOM references.
 
@@ -345,6 +359,42 @@ Use slots for composable components:
   <p>Content goes here</p>
   <button slot="footer">Action</button>
 </Card>
+```
+
+---
+
+## Code Quality
+
+### Linting Rules
+
+This project uses [oxlint](https://github.com/oxc-project/oxlint) for linting.
+
+**Key Rules:**
+- `curly: error` - Always use curly braces `{}` for all blocks (if, else, for, while, etc.)
+- Full configuration in `packages/dev-config/oxlint.json`
+
+Run linting from the app package:
+```bash
+cd packages/app && bun run lint
+```
+
+Or from the root:
+```bash
+cd packages/app && bun run --cwd . lint
+```
+
+### Formatting Rules
+
+This project uses [oxfmt](https://github.com/oxc-project/oxfmt) for code formatting.
+
+Run formatting from the app package:
+```bash
+cd packages/app && bun run format
+```
+
+Or from the root:
+```bash
+cd packages/app && bun run --cwd . format
 ```
 
 ---
