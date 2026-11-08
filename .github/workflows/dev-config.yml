@@ -24,6 +24,14 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: packages/dev-config/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
 
@@ -38,6 +46,14 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: packages/dev-config/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
@@ -56,6 +72,14 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: packages/dev-config/node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('packages/dev-config/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
