@@ -52,10 +52,11 @@ ev-maps/
 ⚠️ **DO NOT** inline HTML or CSS in JavaScript files.
 
 ✅ **DO** this:
+
 ```javascript
 // MapApp.js
-import template from './MapApp.html?raw';
-import './MapApp.css';
+import template from "./MapApp.html?raw";
+import "./MapApp.css";
 
 export class MapApp extends HTMLElement {
   render() {
@@ -65,6 +66,7 @@ export class MapApp extends HTMLElement {
 ```
 
 ❌ **DO NOT** do this:
+
 ```javascript
 // BAD - Inline HTML and CSS
 render() {
@@ -78,8 +80,9 @@ render() {
 ```
 
 **Always keep:**
+
 - HTML in `.html` files
-- CSS in `.css` files  
+- CSS in `.css` files
 - JavaScript in `.js` files
 
 ## Getting Started
@@ -87,11 +90,13 @@ render() {
 ### Prerequisites
 
 1. Install [Bun](https://bun.sh/):
+
    ```bash
    curl -fsSL https://bun.sh/install | bash
    ```
 
 2. Install [Node.js LTS](https://nodejs.org/) (v20+):
+
    ```bash
    # Using nvm
    nvm install 20
@@ -140,14 +145,14 @@ bun run format
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `bun run dev` | Start development server |
-| `bun run build` | Build for production |
-| `bun run preview` | Preview production build |
-| `bun run lint` | Run linter |
-| `bun run format` | Format code |
-| `bun run format:check` | Check formatting |
+| Script                 | Description              |
+| ---------------------- | ------------------------ |
+| `bun run dev`          | Start development server |
+| `bun run build`        | Build for production     |
+| `bun run preview`      | Preview production build |
+| `bun run lint`         | Run linter               |
+| `bun run format`       | Format code              |
+| `bun run format:check` | Check formatting         |
 
 ## Deployment
 

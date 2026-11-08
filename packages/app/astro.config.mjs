@@ -1,11 +1,11 @@
-import { defineConfig } from 'astro/config';
+import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  output: 'static',
-  srcDir: './src',
-  publicDir: './public',
+  output: "static",
+  srcDir: "./src",
+  publicDir: "./public",
   build: {
-    outDir: './dist',
+    outDir: "./dist",
   },
   vite: {
     define: {
@@ -13,9 +13,9 @@ export default defineConfig({
     },
     esbuild: {
       define: {
-        HTMLElement: 'HTMLElement',
-        customElements: 'customElements',
-        ShadowRoot: 'ShadowRoot',
+        HTMLElement: "HTMLElement",
+        customElements: "customElements",
+        ShadowRoot: "ShadowRoot",
       },
     },
   },
