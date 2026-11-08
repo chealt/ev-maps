@@ -10,8 +10,8 @@
     "preview": "astro preview",
     "lint": "bun run --cwd ../dev-config lint:js",
     "lint:css": "bun run --cwd ../dev-config lint:css",
-    "format": "oxfmt src/**/*.{js,ts,astro}",
-    "format:check": "oxfmt --check src/**/*.{js,ts,astro}"
+    "format": "bunx oxfmt src/**/*.{js,ts,astro}",
+    "format:check": "bunx oxfmt --check src/**/*.{js,ts,astro}"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",

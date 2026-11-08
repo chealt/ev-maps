@@ -4,16 +4,16 @@
  */
 export class MapElement extends HTMLElement {
   connectedCallback() {
-    const statusEl = this.querySelector('.status');
-    
-    this.addEventListener('locate-start', () => this.handleLocateStart(statusEl));
-    this.addEventListener('location-found', (event) => this.handleLocationFound(statusEl, event));
-    this.addEventListener('location-error', (event) => this.handleLocationError(statusEl, event));
-    this.addEventListener('toggle-filters', () => this.handleToggleFilters(statusEl));
+    const statusEl = this.querySelector(".status");
+
+    this.addEventListener("locate-start", () => this.handleLocateStart(statusEl));
+    this.addEventListener("location-found", (event) => this.handleLocationFound(statusEl, event));
+    this.addEventListener("location-error", (event) => this.handleLocationError(statusEl, event));
+    this.addEventListener("toggle-filters", () => this.handleToggleFilters(statusEl));
   }
 
   handleLocateStart(statusEl) {
-    if (statusEl) statusEl.textContent = 'Locating...';
+    if (statusEl) statusEl.textContent = "Locating...";
   }
 
   handleLocationFound(statusEl, event) {
@@ -24,13 +24,13 @@ export class MapElement extends HTMLElement {
 
   handleLocationError(statusEl, event) {
     if (statusEl) {
-      statusEl.textContent = event.detail?.message || 'Error locating';
+      statusEl.textContent = event.detail?.message || "Error locating";
     }
   }
 
   handleToggleFilters(statusEl) {
-    if (statusEl) statusEl.textContent = 'Filters clicked';
+    if (statusEl) statusEl.textContent = "Filters clicked";
   }
 }
 
-customElements.define('ev-map', MapElement);
+customElements.define("ev-map", MapElement);
