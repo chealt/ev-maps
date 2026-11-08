@@ -18,75 +18,101 @@ This document outlines the coding standards and best practices for the EV Maps p
 
 ### Architecture Pattern
 
+**Create Web Components ONLY for specific custom functionality, not for generic abstractions.**
+
 ```
 Component Structure:
-├── MyComponent.astro      # Renders HTML + imports CSS
-├── MyComponent.css        # Styles only
-└── MyComponent.element.js # Web Component wrapper - behavior only
+├── button/
+│   ├── Button.astro      # Renders HTML + imports CSS (generic, reusable)
+│   └── Button.css        # Styles only
+└── map/
+    ├── Map.astro         # Renders HTML + imports CSS
+    ├── Map.css           # Styles only
+    └── Map.element.js    # Web Component - specific functionality only
 ```
 
 **How it works:**
 1. Astro renders the HTML template with CSS
-2. Web Component wrapper (`*.element.js`) enhances the rendered HTML with client-side functionality
-3. Web Component does NOT create any HTML - it only adds event handlers and behavior
+2. Web Component (`*.element.js`) adds **specific** client-side functionality
+3. Web Component does NOT create any HTML - it only adds behavior to existing HTML
+4. **Do NOT create Web Components for generic elements like buttons** - only for components with specific functionality
 
-### ✅ Example: Button Component
+### ✅ Example: Map Component with Geolocation
 
-**Button.astro** (HTML template):
+**Button.astro** (Generic reusable button - NO Web Component):
 ```astro
 ---
 interface Props {
   variant?: 'primary' | 'secondary';
+  dataAction?: string;  // For event delegation
 }
-const { variant = 'primary' } = Astro.props;
+const { variant = 'primary', dataAction } = Astro.props;
 ---
 
-<button class:list={['button', `button--${variant}`]}>
+<button 
+  class:list={['button', `button--${variant}`]}
+  ?data-action={dataAction}
+>
   <slot />
 </button>
 ```
 
-**Button.css** (Styles):
-```css
-.button {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-}
-.button--primary {
-  background: #2563eb;
-  color: white;
-}
+**Map.astro** (Renders HTML):
+```astro
+---
+import Button from '../button/Button.astro';
+---
+
+<ev-map>
+  <div class="map-container">
+    <div class="map-placeholder">
+      <h2>EV Charging Stations</h2>
+    </div>
+    <div class="controls">
+      <Button variant="primary" dataAction="locate">Locate Me</Button>
+      <Button variant="secondary" dataAction="filters">Filters</Button>
+    </div>
+    <div class="status"></div>
+  </div>
+</ev-map>
 ```
 
-**Button.element.js** (Behavior wrapper):
+**Map.element.js** (Specific functionality - geolocation):
 ```javascript
-// Web Component that wraps existing button HTML
-export class ButtonElement extends HTMLElement {
+// Web Component with SPECIFIC functionality
+export class MapElement extends HTMLElement {
   connectedCallback() {
-    const button = this.querySelector('button');
-    if (button) {
-      button.addEventListener('click', () => {
-        this.dispatchEvent(new CustomEvent('button-click', {
-          bubbles: true,
-          composed: true
-        }));
-      });
-    }
+    const locateBtn = this.querySelector('[data-action="locate"]');
+    const filterBtn = this.querySelector('[data-action="filters"]');
+    const statusEl = this.querySelector('.status');
+    
+    // Specific: Handle geolocation
+    locateBtn?.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            statusEl.textContent = `Lat: ${position.coords.latitude}`;
+          },
+          (error) => {
+            statusEl.textContent = `Error: ${error.message}`;
+          }
+        );
+      }
+    });
+    
+    // Specific: Handle filters
+    filterBtn?.addEventListener('click', () => {
+      statusEl.textContent = 'Showing filters';
+    });
   }
 }
-customElements.define('ev-button', ButtonElement);
-```
-
-**Usage in Astro:**
-```astro
-<ev-button>
-  <Button variant="primary">Click Me</Button>
-</ev-button>
+customElements.define('ev-map', MapElement);
 ```
 
 **Result:**
-- Astro renders: `<button class="button button--primary">Click Me</button>`
-- Web Component adds: click handler that dispatches `button-click` event
+- Astro renders all HTML and CSS
+- `ev-map` Web Component adds **specific** geolocation functionality
+- Buttons are just Astro components - no generic Web Component wrapper needed
 - No HTML/CSS in JavaScript!
 
 ---

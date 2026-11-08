@@ -20,9 +20,8 @@ const { title = 'EV Maps' } = Astro.props;
 <body>
   <slot />
   
-  <!-- Load Web Component wrappers -->
+  <!-- Load Map Web Component -->
   <script type="module">
-    import '../components/button/Button.element.js';
     import '../components/map/Map.element.js';
   </script>
 </body>
