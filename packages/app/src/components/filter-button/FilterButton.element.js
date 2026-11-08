@@ -1,6 +1,6 @@
 /**
  * FilterButton Web Component
- * Adds filter toggle functionality to a button
+ * Handles filter toggle functionality for a button
  * Does NOT render HTML - only adds behavior to Astro-rendered button
  */
 export class FilterButtonElement extends HTMLElement {
@@ -9,7 +9,7 @@ export class FilterButtonElement extends HTMLElement {
     
     if (button) {
       button.addEventListener('click', () => {
-        this.dispatchEvent(new CustomEvent('filter-click', {
+        this.dispatchEvent(new CustomEvent('toggle-filters', {
           bubbles: true,
           composed: true
         }));

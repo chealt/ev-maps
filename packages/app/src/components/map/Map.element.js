@@ -1,70 +1,33 @@
 /**
  * Map Web Component
- * Handles map-specific functionality:
- * - Listens to button clicks
- * - Manages status display
- * - Handles geolocation
+ * Manages status display for map-related events
  * Does NOT render HTML - only adds behavior to Astro-rendered HTML
  */
 export class MapElement extends HTMLElement {
   connectedCallback() {
     const statusEl = this.querySelector('.status');
     
-    // Listen for locate button clicks
-    this.addEventListener('locate-click', () => {
-      this.handleLocate(statusEl);
+    // Listen for location events from locate button
+    this.addEventListener('locate-start', () => {
+      if (statusEl) statusEl.textContent = 'Locating...';
     });
     
-    // Listen for filter button clicks
-    this.addEventListener('filter-click', () => {
-      this.handleFilters(statusEl);
+    this.addEventListener('location-found', (event) => {
+      if (statusEl && event.detail) {
+        statusEl.textContent = `Location: ${event.detail.lat.toFixed(4)}, ${event.detail.lng.toFixed(4)}`;
+      }
     });
-  }
-
-  handleLocate(statusEl) {
-    if (statusEl) {
-      statusEl.textContent = 'Locating...';
-    }
     
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coords = position.coords;
-          if (statusEl) {
-            statusEl.textContent = `Location: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
-          }
-          
-          this.dispatchEvent(new CustomEvent('location-found', {
-            detail: { lat: coords.latitude, lng: coords.longitude },
-            bubbles: true,
-            composed: true
-          }));
-        },
-        (error) => {
-          if (statusEl) {
-            statusEl.textContent = `Error: ${error.message}`;
-          }
-          this.dispatchEvent(new CustomEvent('location-error', {
-            detail: error,
-            bubbles: true,
-            composed: true
-          }));
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    } else if (statusEl) {
-      statusEl.textContent = 'Geolocation not supported';
-    }
-  }
-
-  handleFilters(statusEl) {
-    if (statusEl) {
-      statusEl.textContent = 'Filters clicked';
-    }
-    this.dispatchEvent(new CustomEvent('toggle-filters', {
-      bubbles: true,
-      composed: true
-    }));
+    this.addEventListener('location-error', (event) => {
+      if (statusEl) {
+        statusEl.textContent = event.detail?.message || 'Error locating';
+      }
+    });
+    
+    // Listen for filter events from filter button
+    this.addEventListener('toggle-filters', () => {
+      if (statusEl) statusEl.textContent = 'Filters clicked';
+    });
   }
 }
 
