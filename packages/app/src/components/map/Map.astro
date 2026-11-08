@@ -10,18 +10,20 @@ const { title = 'EV Charging Stations Map', subtitle = 'EV charging stations wil
 import Button from '../button/Button.astro';
 ---
 
-<div class="map-container" data-status>
-  <div class="map-placeholder">
-    <h2>{title}</h2>
-    <p>{subtitle}</p>
+<ev-map>
+  <div class="map-container">
+    <div class="map-placeholder">
+      <h2>{title}</h2>
+      <p>{subtitle}</p>
+    </div>
+    <div class="controls">
+      <ev-locate-button>
+        <Button variant="primary">Locate Me</Button>
+      </ev-locate-button>
+      <ev-filter-button>
+        <Button variant="secondary">Filters</Button>
+      </ev-filter-button>
+    </div>
+    <div class="status"></div>
   </div>
-  <div class="controls">
-    <ev-locate-button>
-      <Button variant="primary">Locate Me</Button>
-    </ev-locate-button>
-    <ev-filter-button>
-      <Button variant="secondary">Filters</Button>
-    </ev-filter-button>
-  </div>
-  <div class="status"></div>
-</div>
+</ev-map>

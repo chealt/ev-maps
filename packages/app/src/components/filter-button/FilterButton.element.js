@@ -6,13 +6,10 @@
 export class FilterButtonElement extends HTMLElement {
   connectedCallback() {
     const button = this.querySelector('button');
-    const statusEl = this.closest('[data-status]')?.querySelector('.status');
     
-    if (button && statusEl) {
+    if (button) {
       button.addEventListener('click', () => {
-        statusEl.textContent = 'Filters clicked';
-        
-        this.dispatchEvent(new CustomEvent('toggle-filters', {
+        this.dispatchEvent(new CustomEvent('filter-click', {
           bubbles: true,
           composed: true
         }));
