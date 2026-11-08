@@ -9,7 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "oxlint src/**/*.{js,ts,astro}",
-    "lint:css": "biome lint src/components/button/Button.css src/components/map/Map.css src/layouts/global.css",
+    "lint:css": "biome lint src",
     "format": "oxfmt src/**/*.{js,ts,astro}",
     "format:check": "oxfmt --check src/**/*.{js,ts,astro}"
   },
