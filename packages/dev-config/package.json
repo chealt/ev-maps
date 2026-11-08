@@ -4,10 +4,7 @@
   "private": true,
   "description": "Shared dev configs for linting, formatting, and building",
   "scripts": {
-    "lint": "echo 'dev-config: No JavaScript files to lint (only JSON configs)'",
-    "lint:js": "oxlint **/*.{js,ts,astro}",
-    "lint:css": "biome lint packages/app/src/components/button/Button.css packages/app/src/components/map/Map.css packages/app/src/layouts/global.css",
-    "format": "echo 'dev-config: Run formatting from app package'"
+    "lint": "oxlint *.json"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",

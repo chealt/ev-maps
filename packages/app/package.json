@@ -8,17 +8,20 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "lint": "bun run --cwd ../dev-config lint:js",
-    "lint:css": "bun run --cwd ../dev-config lint:css",
-    "format": "bunx oxfmt src/**/*.{js,ts,astro}",
-    "format:check": "bunx oxfmt --check src/**/*.{js,ts,astro}"
+    "lint": "oxlint src/**/*.{js,ts,astro}",
+    "lint:css": "biome lint src/**/*.css src/components/**/*.css",
+    "format": "oxfmt src/**/*.{js,ts,astro}",
+    "format:check": "oxfmt --check src/**/*.{js,ts,astro}"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
     "astro": "^4.16.19"
   },
   "devDependencies": {
-    "@astrojs/cloudflare": "^10.0.0"
+    "@astrojs/cloudflare": "^10.0.0",
+    "@biomejs/biome": "^2.6.6",
+    "oxfmt": "^0.4.0",
+    "oxlint": "^0.4.0"
   },
   "engines": {
     "bun": ">=1.4.4",
