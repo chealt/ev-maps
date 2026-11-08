@@ -8,13 +8,15 @@ export class FilterButtonElement extends HTMLElement {
     const button = this.querySelector('button');
     
     if (button) {
-      button.addEventListener('click', () => {
-        this.dispatchEvent(new CustomEvent('toggle-filters', {
-          bubbles: true,
-          composed: true
-        }));
-      });
+      button.addEventListener('click', () => this.handleClick());
     }
+  }
+
+  handleClick() {
+    this.dispatchEvent(new CustomEvent('toggle-filters', {
+      bubbles: true,
+      composed: true
+    }));
   }
 }
 
