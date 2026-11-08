@@ -78,7 +78,7 @@ Component Structure:
    <button class="button">...</button>
    ```
 
-7. **Global CSS in src/styles**: Place global.css in `src/styles/` and import it in Layout.astro. Do NOT place it in public/styles. All CSS files should be in the src directory and imported where needed.
+7. **CSS co-located with components**: Place CSS files in the same directory as the component that uses them. Global CSS should be in the layouts directory and imported in Layout.astro. All CSS files should be in the src directory and imported where needed.
 
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 
