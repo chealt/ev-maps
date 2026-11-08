@@ -5,13 +5,13 @@ on:
     branches: [main]
     paths:
       - 'packages/app/**'
-      - 'packages/config/**'
+      - 'packages/dev-config/**'
       - '.github/workflows/app.yml'
   pull_request:
     branches: [main]
     paths:
       - 'packages/app/**'
-      - 'packages/config/**'
+      - 'packages/dev-config/**'
       - '.github/workflows/app.yml'
 
 jobs:
@@ -41,8 +41,11 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Run lint
-        run: bun run --cwd packages/app lint
+        run: bunx oxlint --config packages/dev-config/oxlint.json packages/app
 
   format:
     needs: setup
@@ -56,8 +59,11 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Check formatting
-        run: bun run --cwd packages/app format
+        run: bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/app
 
   build:
     needs: [lint, format]

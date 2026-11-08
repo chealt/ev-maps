@@ -6,13 +6,13 @@ on:
     paths-ignore:
       - 'packages/**'
       - '.github/workflows/app.yml'
-      - '.github/workflows/config.yml'
+      - '.github/workflows/dev-config.yml'
   pull_request:
     branches: [main]
     paths-ignore:
       - 'packages/**'
       - '.github/workflows/app.yml'
-      - '.github/workflows/config.yml'
+      - '.github/workflows/dev-config.yml'
 
 jobs:
   setup:
@@ -41,10 +41,13 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Run lint in all workspaces
         run: |
-          bun run --cwd packages/config lint
-          bun run --cwd packages/app lint
+          bunx oxlint --config packages/dev-config/oxlint.json packages/dev-config
+          bunx oxlint --config packages/dev-config/oxlint.json packages/app
 
   format-all:
     needs: setup
@@ -58,10 +61,13 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Check formatting in all workspaces
         run: |
-          bun run --cwd packages/config format:check
-          bun run --cwd packages/app format
+          bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/dev-config
+          bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/app
 
   build-all:
     needs: [lint-all, format-all]
@@ -74,6 +80,9 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
 
       - name: Build all apps
         run: bun run build

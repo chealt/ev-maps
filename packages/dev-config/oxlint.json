@@ -1,0 +1,27 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxlint/main/schemas/oxlint.config.schema.json",
+  "rules": {
+    "no-unused-vars": "error",
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-imports": "error",
+    "no-empty": "warn",
+    "no-extra-semi": "error",
+    "no-missing-import": "error",
+    "no-self-assign": "error",
+    "no-unreachable": "error",
+    "no-unsafe-negation": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "globals": {
+    "customElements": "readonly",
+    "HTMLElement": "readonly",
+    "ShadowRoot": "readonly"
+  }
+}

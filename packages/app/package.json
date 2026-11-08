@@ -3,21 +3,21 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "EV Maps - Vanilla JS + Web Components",
+  "description": "EV Maps - Astro + Web Components",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "bun run --cwd ../config lint",
-    "format": "bun run --cwd ../config format",
-    "typecheck": "bun run --cwd ../config typecheck"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "bun run --cwd ../dev-config lint",
+    "format": "bun run --cwd ../dev-config format",
+    "typecheck": "bun run --cwd ../dev-config typecheck"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0"
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "astro": "^4.0.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "@vitejs/plugin-basic-ssl": "^1.0.1"
+    "@astrojs/cloudflare": "^10.0.0"
   },
   "packageManager": "bun@1.0.0",
   "engines": {

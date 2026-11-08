@@ -1,16 +1,16 @@
-name: Config CI
+name: Dev-Config CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'packages/config/**'
-      - '.github/workflows/config.yml'
+      - 'packages/dev-config/**'
+      - '.github/workflows/dev-config.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'packages/config/**'
-      - '.github/workflows/config.yml'
+      - 'packages/dev-config/**'
+      - '.github/workflows/dev-config.yml'
 
 jobs:
   setup:
@@ -39,8 +39,11 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Run lint
-        run: bun run --cwd packages/config lint
+        run: bunx oxlint --config packages/dev-config/oxlint.json packages/dev-config
 
   format:
     needs: setup
@@ -54,5 +57,8 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Install dependencies
+        run: bun install
+
       - name: Check formatting
-        run: bun run --cwd packages/config format:check
+        run: bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/dev-config
