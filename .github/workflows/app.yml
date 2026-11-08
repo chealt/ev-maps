@@ -114,6 +114,19 @@ jobs:
       - name: Run CSS lint
         run: cd packages/dev-config && bun run lint:css
 
+      - name: Check for hardcoded CSS values
+        run: |
+          # Check for hardcoded hex colors in component CSS (excluding global.css where variables are defined)
+          if grep -r "#[0-9a-f]\{3,8\}" packages/app/src/components/ --include="*.css" 2>/dev/null; then
+            echo "::error::Hardcoded hex colors found in component CSS. Use CSS variables from global.css instead."
+            exit 1
+          fi
+          # Check for hardcoded px/rem values in component CSS
+          if grep -rE "[0-9]+(px|rem)" packages/app/src/components/ --include="*.css" 2>/dev/null; then
+            echo "::error::Hardcoded px/rem values found in component CSS. Use CSS variables from global.css instead."
+            exit 1
+          fi
+
   format:
     needs: setup
     runs-on: ubuntu-latest
