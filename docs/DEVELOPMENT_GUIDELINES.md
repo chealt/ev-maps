@@ -117,6 +117,34 @@ Component Structure:
    - Transitions: `--transition-fast`, etc.
    - Layout: `--container-max-width`, `--container-padding`, `--map-height`, etc.
 
+10. **Use CSS nesting**: Use CSS nesting (native browser feature) to organize related styles and reduce repetition. This makes CSS more maintainable and easier to read.
+
+   ```css
+   /* ✅ Good - nested selectors */
+   .button {
+     background: var(--color-primary);
+     
+     &:hover {
+       background: var(--color-primary-dark);
+     }
+     
+     &--disabled {
+       opacity: var(--opacity-disabled);
+     }
+   }
+   
+   /* ❌ Bad - flat selectors */
+   .button {
+     background: var(--color-primary);
+   }
+   .button:hover {
+     background: var(--color-primary-dark);
+   }
+   .button--disabled {
+     opacity: var(--opacity-disabled);
+   }
+   ```
+
 8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
 
 9. **Inline class names in Astro**: Don't use array join for class names. Use template literals directly in the class attribute for better readability.

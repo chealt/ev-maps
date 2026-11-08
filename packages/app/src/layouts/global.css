@@ -56,13 +56,6 @@
   /* Transitions */
   --transition-fast: 0.2s ease;
   
-  /* Z-indexes */
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-fixed: 300;
-  --z-modal-backdrop: 400;
-  --z-modal: 500;
-  
   /* Layout */
   --container-max-width: 1200px;
   --container-padding: 2rem;
@@ -70,6 +63,13 @@
   /* Map dimensions */
   --map-max-width: 800px;
   --map-height: 500px;
+  
+  /* Z-indexes */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
 }
 
 * {
@@ -91,10 +91,10 @@ body {
 a {
   color: var(--color-primary);
   text-decoration: none;
-}
 
-a:hover {
-  text-decoration: underline;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 img {
