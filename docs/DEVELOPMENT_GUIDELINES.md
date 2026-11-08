@@ -37,6 +37,35 @@ Component Structure:
 3. Web Component does NOT create any HTML - it only adds behavior to existing HTML
 4. **Do NOT create Web Components for generic elements like buttons** - only for components with specific functionality
 
+### Web Component Best Practices
+
+1. **Omit unnecessary constructor**: If your constructor only calls `super()`, remove it entirely. The default constructor from `HTMLElement` is sufficient.
+
+   ```javascript
+   // ✅ Good - No constructor needed
+   export class MyElement extends HTMLElement {
+     connectedCallback() {
+       // Setup logic here
+     }
+   }
+   
+   // ❌ Bad - Unnecessary constructor
+   export class MyElement extends HTMLElement {
+     constructor() {
+       super();
+     }
+     connectedCallback() {
+       // Setup logic here
+     }
+   }
+   ```
+
+2. **Use `connectedCallback()` for initialization**: This is where you should set up event listeners and DOM references.
+
+3. **Avoid `constructor` for DOM manipulation**: The element's DOM is not ready in the constructor. Use `connectedCallback()` instead.
+
+---
+
 ### ✅ Example: Map Component with Geolocation
 
 **Button.astro** (Generic reusable button - NO Web Component):
