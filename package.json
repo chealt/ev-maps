@@ -1,16 +1,15 @@
 {
-  "name": "ev-maps",
+  "name": "@ev-maps/monorepo",
   "version": "0.0.1",
   "private": true,
   "description": "EV Maps - Vanilla JS + Web Components + Cloudflare",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --cwd apps/ev-maps dev",
-    "build": "bun run --cwd apps/ev-maps build",
-    "preview": "bun run --cwd apps/ev-maps preview",
+    "dev": "bun run --cwd packages/app dev",
+    "build": "bun run --cwd packages/app build",
+    "preview": "bun run --cwd packages/app preview",
     "lint": "bun run --cwd packages/config lint",
     "format": "bun run --cwd packages/config format",
     "format:check": "bun run --cwd packages/config format:check"

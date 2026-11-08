@@ -17,8 +17,11 @@ A vanilla JavaScript + Web Components application for displaying EV charging sta
 
 ```
 ev-maps/
-├── apps/
-│   └── ev-maps/           # Main application
+├── packages/
+│   ├── config/            # Shared configs
+│   │   ├── oxlint.json    # Linting config
+│   │   └── oxfmt.json     # Formatting config
+│   └── app/              # Main application (@ev-maps/app)
 │       ├── src/           # Source files
 │       │   ├── components/ # Web Components
 │       │   ├── styles.css # Global styles
@@ -27,10 +30,6 @@ ev-maps/
 │       ├── index.html     # HTML entry
 │       ├── vite.config.js # Vite config
 │       └── wrangler.toml  # Cloudflare config
-├── packages/
-│   └── config/            # Shared configs
-│       ├── oxlint.json    # Linting config
-│       └── oxfmt.json     # Formatting config
 ├── .github/
 │   └── workflows/
 │       └── ci.yml         # GitHub Actions
@@ -97,7 +96,7 @@ bun run format
 ### Manual Deployment
 
 ```bash
-cd apps/ev-maps
+cd packages/app
 bun run build
 # Upload the dist/ folder to your hosting provider
 ```

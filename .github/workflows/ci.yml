@@ -68,10 +68,10 @@ jobs:
 
       - name: Build app
         run: bun run build
-        working-directory: apps/ev-maps
+        working-directory: packages/app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ev-maps-dist
-          path: apps/ev-maps/dist
+          path: packages/app/dist

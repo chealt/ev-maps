@@ -1,5 +1,5 @@
 {
-  "name": "ev-maps-app",
+  "name": "@ev-maps/app",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -8,8 +8,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "bun run --cwd ../../packages/config lint",
-    "format": "bun run --cwd ../../packages/config format"
+    "lint": "bun run --cwd ../config lint",
+    "format": "bun run --cwd ../config format",
+    "typecheck": "bun run --cwd ../config typecheck"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0"
