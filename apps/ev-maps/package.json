@@ -1,0 +1,25 @@
+{
+  "name": "ev-maps-app",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "EV Maps - Vanilla JS + Web Components",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "bun run --cwd ../../packages/config lint",
+    "format": "bun run --cwd ../../packages/config format"
+  },
+  "dependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-basic-ssl": "^1.0.1"
+  },
+  "packageManager": "bun@1.0.0",
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

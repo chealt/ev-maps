@@ -1,0 +1,25 @@
+{
+  "name": "ev-maps",
+  "version": "0.0.1",
+  "private": true,
+  "description": "EV Maps - Vanilla JS + Web Components + Cloudflare",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd apps/ev-maps dev",
+    "build": "bun run --cwd apps/ev-maps build",
+    "preview": "bun run --cwd apps/ev-maps preview",
+    "lint": "bun run --cwd packages/config lint",
+    "format": "bun run --cwd packages/config format",
+    "format:check": "bun run --cwd packages/config format:check"
+  },
+  "devDependencies": {
+    "bun": "^1.0.0"
+  },
+  "packageManager": "bun@1.0.0",
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}

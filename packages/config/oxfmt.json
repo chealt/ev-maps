@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxfmt/main/schemas/oxfmt.config.schema.json",
+  "formatter": {
+    "indent": 2,
+    "quoteStyle": "double",
+    "semicolons": "always",
+    "trailingCommas": "es5",
+    "lineWidth": 100
+  },
+  "files": {
+    "include": ["**/*.{js,json,html,css}"],
+    "exclude": ["node_modules/**", ".git/**"]
+  }
+}
