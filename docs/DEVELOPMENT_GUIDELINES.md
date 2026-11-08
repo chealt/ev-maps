@@ -6,16 +6,88 @@ This document outlines the coding standards and best practices for the EV Maps p
 
 ### 🚨 CRITICAL RULES
 
-**❌ NEVER create Web Components with shadow DOM and HTML/CSS in JavaScript files.**
+**✅ DO use Web Components as behavior wrappers for Astro-rendered HTML.**
 
-**✅ ALWAYS use Astro components with separate files:**
-- HTML in `.astro` files
-- CSS in `.css` files  
-- JavaScript (for custom functionality only) in `.js` files or inline scripts
+**✅ Astro renders HTML/CSS, Web Components add client-side behavior only.**
+
+**❌ NEVER create HTML or CSS inside Web Component JavaScript files.**
 
 **❌ NEVER inline HTML or CSS in JavaScript files.**
 
-**❌ NEVER put HTML templates or CSS styles inside JavaScript `.js` files.**
+**❌ NEVER use shadow DOM in Web Components (unless explicitly approved).**
+
+### Architecture Pattern
+
+```
+Component Structure:
+├── MyComponent.astro      # Renders HTML + imports CSS
+├── MyComponent.css        # Styles only
+└── MyComponent.element.js # Web Component wrapper - behavior only
+```
+
+**How it works:**
+1. Astro renders the HTML template with CSS
+2. Web Component wrapper (`*.element.js`) enhances the rendered HTML with client-side functionality
+3. Web Component does NOT create any HTML - it only adds event handlers and behavior
+
+### ✅ Example: Button Component
+
+**Button.astro** (HTML template):
+```astro
+---
+interface Props {
+  variant?: 'primary' | 'secondary';
+}
+const { variant = 'primary' } = Astro.props;
+---
+
+<button class:list={['button', `button--${variant}`]}>
+  <slot />
+</button>
+```
+
+**Button.css** (Styles):
+```css
+.button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+.button--primary {
+  background: #2563eb;
+  color: white;
+}
+```
+
+**Button.element.js** (Behavior wrapper):
+```javascript
+// Web Component that wraps existing button HTML
+export class ButtonElement extends HTMLElement {
+  connectedCallback() {
+    const button = this.querySelector('button');
+    if (button) {
+      button.addEventListener('click', () => {
+        this.dispatchEvent(new CustomEvent('button-click', {
+          bubbles: true,
+          composed: true
+        }));
+      });
+    }
+  }
+}
+customElements.define('ev-button', ButtonElement);
+```
+
+**Usage in Astro:**
+```astro
+<ev-button>
+  <Button variant="primary">Click Me</Button>
+</ev-button>
+```
+
+**Result:**
+- Astro renders: `<button class="button button--primary">Click Me</button>`
+- Web Component adds: click handler that dispatches `button-click` event
+- No HTML/CSS in JavaScript!
 
 ---
 

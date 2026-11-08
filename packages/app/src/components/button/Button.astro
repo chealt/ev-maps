@@ -11,8 +11,6 @@ const {
   disabled = false
 } = Astro.props;
 
-const buttonId = Astro.id;
-
 const buttonClasses = [
   'button',
   `button--${variant}`,
@@ -23,7 +21,6 @@ const buttonClasses = [
 
 <button 
   class={buttonClasses}
-  id={buttonId}
   ?disabled={disabled}
 >
   <slot />

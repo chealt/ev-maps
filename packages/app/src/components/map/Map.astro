@@ -16,58 +16,13 @@ import Button from '../button/Button.astro';
     <p>{subtitle}</p>
   </div>
   <div class="controls">
-    <Button variant="primary" data-action="locate">Locate Me</Button>
-    <Button variant="secondary" data-action="filters">Filters</Button>
+    <!-- Buttons will be enhanced by Web Components -->
+    <ev-button data-action="locate">
+      <Button variant="primary">Locate Me</Button>
+    </ev-button>
+    <ev-button data-action="filters">
+      <Button variant="secondary">Filters</Button>
+    </ev-button>
   </div>
   <div class="status"></div>
 </div>
-
-<!-- Client-side interactivity -->
-<script is:inline>
-  (function() {
-    const mapContainer = document.querySelector('.map-container');
-    const locateBtn = mapContainer?.querySelector('[data-action="locate"]');
-    const filterBtn = mapContainer?.querySelector('[data-action="filters"]');
-    const statusEl = mapContainer?.querySelector('.status');
-    
-    if (locateBtn && statusEl) {
-      locateBtn.addEventListener('click', () => {
-        statusEl.textContent = 'Locating...';
-        
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const coords = position.coords;
-              statusEl.textContent = `Location: ${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`;
-              
-              // Dispatch custom event
-              mapContainer.dispatchEvent(new CustomEvent('location-found', {
-                detail: { lat: coords.latitude, lng: coords.longitude },
-                bubbles: true
-              }));
-            },
-            (error) => {
-              statusEl.textContent = `Error: ${error.message}`;
-              mapContainer.dispatchEvent(new CustomEvent('location-error', {
-                detail: error,
-                bubbles: true
-              }));
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-          );
-        } else {
-          statusEl.textContent = 'Geolocation not supported';
-        }
-      });
-    }
-    
-    if (filterBtn && statusEl) {
-      filterBtn.addEventListener('click', () => {
-        statusEl.textContent = 'Filters clicked';
-        mapContainer.dispatchEvent(new CustomEvent('toggle-filters', {
-          bubbles: true
-        }));
-      });
-    }
-  })();
-</script>

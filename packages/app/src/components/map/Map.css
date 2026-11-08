@@ -47,3 +47,8 @@
   color: #475569;
   z-index: 100;
 }
+
+/* Button wrapper styles */
+ev-button {
+  display: inline-block;
+}

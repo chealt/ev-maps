@@ -19,5 +19,11 @@ const { title = 'EV Maps' } = Astro.props;
 </head>
 <body>
   <slot />
+  
+  <!-- Load Web Component wrappers -->
+  <script type="module">
+    import '../components/button/Button.element.js';
+    import '../components/map/Map.element.js';
+  </script>
 </body>
 </html>
