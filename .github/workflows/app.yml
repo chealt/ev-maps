@@ -103,16 +103,16 @@ jobs:
       - name: Cache Bun dependencies
         uses: actions/cache@v3
         with:
-          path: packages/dev-config/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/dev-config/bun.lock') }}
+          path: packages/app/node_modules
+          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
           restore-keys: |
             ${{ runner.os }}-bun-deps-
 
-      - name: Install dev-config dependencies only
-        run: cd packages/dev-config && bun install
+      - name: Install app dependencies only
+        run: cd packages/app && bun install
 
       - name: Run CSS lint with biome
-        run: cd packages/dev-config && bun run lint:css
+        run: cd packages/app && bun run lint:css
 
       - name: Check for hardcoded CSS values
         run: |
