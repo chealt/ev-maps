@@ -88,7 +88,7 @@ jobs:
         run: cd packages/app && bun run format
 
   build:
-    needs: [lint, format]
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
