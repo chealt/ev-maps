@@ -1,4 +1,4 @@
-name: Dev-Config CI
+name: Dev-Config
 
 on:
   push:
