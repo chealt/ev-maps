@@ -1,17 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import './_index.css';
+import HomePage from '../components/pages/HomePage.astro';
 ---
 
 <Layout title="EV Maps - Electric Vehicle Charging Stations">
-  <main class="container">
-    <h1>EV Maps</h1>
-    <p class="subtitle">Find electric vehicle charging stations near you</p>
-    
-    <map-app></map-app>
-  </main>
+  <HomePage />
 </Layout>
-
-<script client:load>
-  import './../components/register.js';
-</script>
