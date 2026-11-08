@@ -111,7 +111,7 @@ jobs:
       - name: Install dev-config dependencies only
         run: cd packages/dev-config && bun install
 
-      - name: Run CSS lint
+      - name: Run CSS lint with biome
         run: cd packages/dev-config && bun run lint:css
 
       - name: Check for hardcoded CSS values

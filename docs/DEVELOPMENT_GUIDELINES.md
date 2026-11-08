@@ -513,8 +513,12 @@ This project uses [oxlint](https://github.com/oxc-project/oxlint) for JavaScript
 - Full configuration in `packages/dev-config/oxlint.json`
 
 **CSS Linting:**
-- Uses lightningcss (Rust-based, very fast)
+- Uses biome (Rust-based, very fast)
 - Run with: `bun run lint:css` from dev-config package
+
+**JavaScript Formatting:**
+- Uses oxfmt (Rust-based, very fast)
+- Run with: `bun run format` from dev-config package
 
 Run JavaScript linting from the app package:
 ```bash
@@ -524,6 +528,11 @@ cd packages/app && bun run lint
 Run CSS linting:
 ```bash
 cd packages/dev-config && bun run lint:css
+```
+
+Run JavaScript formatting:
+```bash
+cd packages/dev-config && bun run format
 ```
 
 ### Formatting Rules

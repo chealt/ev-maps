@@ -5,12 +5,13 @@
   "description": "Shared dev configs for linting, formatting, and building",
   "scripts": {
     "lint": "echo 'dev-config: No JavaScript files to lint (only JSON configs)'",
-    "lint:css": "lightningcss --lint **/*.css",
-    "format": "echo 'dev-config: No supported files to format (JSON not supported by oxfmt)'",
-    "format:check": "echo 'dev-config: No supported files to format check'"
+    "lint:js": "oxlint **/*.{js,ts,astro}",
+    "lint:css": "biome lint packages/app/src/components/button/Button.css packages/app/src/components/map/Map.css packages/app/src/layouts/global.css",
+    "format": "oxfmt **/*.{js,ts,astro}",
+    "format:check": "oxfmt --check **/*.{js,ts,astro}"
   },
   "devDependencies": {
-    "lightningcss": "^1.33.0",
+    "@biomejs/biome": "^2.6.6",
     "oxfmt": "^0.4.0",
     "oxlint": "^0.4.0"
   },
