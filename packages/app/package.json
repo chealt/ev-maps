@@ -10,8 +10,8 @@
     "preview": "astro preview",
     "lint": "oxlint src/**/*.{js,ts,astro}",
     "lint:css": "biome lint src",
-    "format": "oxfmt src/**/*.{js,ts,astro}",
-    "format:check": "oxfmt --check src/**/*.{js,ts,astro}"
+    "format": "oxfmt src/components src/layouts src/pages",
+    "format:check": "oxfmt --check src/components src/layouts src/pages"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
