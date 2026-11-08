@@ -1,14 +1,22 @@
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  output: 'server',
-  adapter: cloudflare({
-    mode: 'directory',
-  }),
+  output: 'static',
   srcDir: './src',
   publicDir: './public',
   build: {
     outDir: './dist',
+  },
+  vite: {
+    define: {
+      global: {},
+    },
+    esbuild: {
+      define: {
+        HTMLElement: 'HTMLElement',
+        customElements: 'customElements',
+        ShadowRoot: 'ShadowRoot',
+      },
+    },
   },
 });

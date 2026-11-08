@@ -1,5 +1,5 @@
 {
-  "name": "@ev-maps/app",
+  "name": "app",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -22,6 +22,6 @@
   "packageManager": "bun@1.0.0",
   "engines": {
     "bun": ">=1.0.0",
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }

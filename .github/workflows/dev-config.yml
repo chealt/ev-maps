@@ -13,67 +13,22 @@ on:
       - '.github/workflows/dev-config.yml'
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: bun install
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+      - name: Install dev-config dependencies only
+        run: cd packages/dev-config && bun install
 
       - name: Run lint
-        run: bunx oxlint --config packages/dev-config/oxlint.json packages/dev-config
-
-  format:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+        run: cd packages/dev-config && bun run lint
 
       - name: Check formatting
-        run: bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/dev-config
+        run: cd packages/dev-config && bun run format:check

@@ -5,106 +5,39 @@ on:
     branches: [main]
     paths:
       - 'packages/app/**'
-      - 'packages/dev-config/**'
       - '.github/workflows/app.yml'
   pull_request:
     branches: [main]
     paths:
       - 'packages/app/**'
-      - 'packages/dev-config/**'
       - '.github/workflows/app.yml'
 
 jobs:
-  setup:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: bun install
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+      - name: Install app dependencies only
+        run: cd packages/app && bun install
 
       - name: Run lint
-        run: bunx oxlint --config packages/dev-config/oxlint.json packages/app
-
-  format:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+        run: cd packages/app && bun run lint
 
       - name: Check formatting
-        run: bunx oxfmt --config packages/dev-config/oxfmt.json --check packages/app
-
-  build:
-    needs: [lint, format]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install
+        run: cd packages/app && bun run format
 
       - name: Build app
-        run: bun run --cwd packages/app build
+        run: cd packages/app && bun run build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ev-maps-app-dist
+          name: ev-maps-dist
           path: packages/app/dist
