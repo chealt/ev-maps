@@ -6,12 +6,6 @@
  * Does NOT render HTML - only adds behavior to Astro-rendered HTML
  */
 export class MapElement extends HTMLElement {
-  constructor() {
-    super();
-    // This element wraps existing HTML from Astro
-    // It does NOT create any HTML itself
-  }
-
   connectedCallback() {
     const mapContainer = this.querySelector('.map-container');
     const statusEl = this.querySelector('.status');
