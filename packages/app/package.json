@@ -14,13 +14,14 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
-    "astro": "^4.0.0"
+    "astro": "^4.16.19"
   },
   "devDependencies": {
     "@astrojs/cloudflare": "^10.0.0"
   },
   "packageManager": "bun@1.0.0",
   "engines": {
-    "bun": ">=1.0.0"
+    "bun": ">=1.0.0",
+    "node": ">=20.0.0"
   }
 }

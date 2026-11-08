@@ -8,7 +8,7 @@
     "lineWidth": 100
   },
   "files": {
-    "include": ["**/*.{js,json,html,css}"],
-    "exclude": ["node_modules/**", ".git/**"]
+    "include": ["**/*.{js,json,astro,css}"],
+    "exclude": ["node_modules/**", ".git/**", ".astro/**"]
   }
 }
