@@ -79,7 +79,7 @@ jobs:
       - name: Run lint
         run: cd packages/app && bun run lint
 
-  lint:css:
+  lint-css:
     needs: setup
     runs-on: ubuntu-latest
     steps:
