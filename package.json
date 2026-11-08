@@ -1,5 +1,5 @@
 {
-  "name": "ev-maps",
+  "name": "@ev-maps/monorepo",
   "version": "0.0.1",
   "private": true,
   "description": "EV Maps - Astro + Web Components + Cloudflare",

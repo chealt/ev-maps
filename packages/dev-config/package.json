@@ -1,5 +1,5 @@
 {
-  "name": "dev-config",
+  "name": "@ev-maps/dev-config",
   "version": "0.0.1",
   "private": true,
   "description": "Shared dev configs for linting, formatting, and building",
