@@ -1,6 +1,7 @@
 # Development Guidelines
 
-This document outlines the coding standards and best practices for the EV Maps project.
+This document outlines the coding standards and best practices for the EV Maps
+project.
 
 ## Core Principles
 
@@ -18,9 +19,10 @@ This document outlines the coding standards and best practices for the EV Maps p
 
 ### Architecture Pattern
 
-**Create Web Components ONLY for specific custom functionality, not for generic abstractions.**
+**Create Web Components ONLY for specific custom functionality,
+not for generic abstractions.**
 
-```
+```text
 Component Structure:
 ├── button/
 │   ├── Button.astro      # Renders HTML + imports CSS (generic, reusable)
@@ -28,22 +30,30 @@ Component Structure:
 └── map/
     ├── Map.astro         # Renders HTML + imports CSS
     ├── Map.css           # Styles only
-    └── Map.element.js    # Web Component - specific functionality only
+    └── Map.js    # Web Component - specific functionality only
 ```
 
 **How it works:**
+
 1. Astro renders the HTML template with CSS
-2. Web Component (`*.element.js`) adds **specific** client-side functionality
-3. Web Component does NOT create any HTML - it only adds behavior to existing HTML
-4. **Do NOT create Web Components for generic elements like buttons** - only for components with specific functionality
+2. Web Component adds **specific** client-side functionality
+3. Web Component does NOT create any HTML - it only adds behavior
+4. **Do NOT create Web Components for generic elements like buttons** -
+   only for components with specific functionality
 
 ### Web Component Best Practices
 
-1. **Omit unnecessary constructor**: If your constructor only calls `super()`, remove it entirely.
+1. **Omit unnecessary constructor**: If your constructor only calls `super()`,
+   remove it entirely.
 
-2. **Naming convention**: Use simple, descriptive names for Web Component files. Do NOT use `.element.js` suffix - it's redundant. Use `ComponentName.js` directly.
+2. **Naming convention**: Use simple, descriptive names for Web Component files.
+   Do NOT use `.element.js` suffix - it's redundant. Use `ComponentName.js`
+   directly.
 
-3. **Self-contained components**: Each Web Component should be wrapped in an Astro component that includes its script via `<script src="...">`. This makes components composable and ensures scripts are only loaded when the component is used.
+3. **Self-contained components**: Each Web Component should be wrapped in an
+   Astro component that includes its script via `<script src="...">`. This
+   makes components composable and ensures scripts are only loaded when the
+   component is used.
 
    ```astro
    <!-- LocateButton.astro -->
@@ -53,7 +63,10 @@ Component Structure:
    </ev-locate-button>
    ```
 
-4. **Use `<script src="...">` not module imports**: For Web Component scripts, use regular script tags with src attributes. Astro will handle them as modules automatically. This is simpler and more reliable than using `import` statements in script tags.
+4. **Use `<script src="...">` not module imports**: For Web Component scripts,
+   use regular script tags with src attributes. Astro will handle them as
+   modules automatically. This is simpler and more reliable than using
+   `import` statements in script tags.
 
    ```astro
    <!-- ✅ Good -->
@@ -65,9 +78,13 @@ Component Structure:
    </script>
    ```
 
-5. **No global script loading**: Do NOT load Web Component scripts in Layout.astro or other global files. Load them in the Astro component that uses them, so they're only loaded when needed.
+5. **No global script loading**: Do NOT load Web Component scripts in
+   Layout.astro or other global files. Load them in the Astro component that
+   uses them, so they're only loaded when needed.
 
-6. **No global CSS imports**: Do NOT import CSS files in Layout.astro or other global files. Each component should import its own CSS in its Astro file. This ensures CSS is only loaded when the component is used.
+6. **No global CSS imports**: Do NOT import CSS files in Layout.astro or other
+   global files. Each component should import its own CSS in its Astro file.
+   This ensures CSS is only loaded when the component is used.
 
    ```astro
    <!-- Button.astro -->
@@ -78,11 +95,21 @@ Component Structure:
    <button class="button">...</button>
    ```
 
-7. **CSS co-located with components**: Place CSS files in the same directory as the component that uses them. Global CSS should be in the layouts directory and imported in Layout.astro. All CSS files should be in the src directory and imported where needed.
+7. **CSS co-located with components**: Place CSS files in the same directory
+   as the component that uses them. Global CSS should be in the layouts
+   directory and imported in Layout.astro. All CSS files should be in the
+   src directory and imported where needed.
 
-8. **Global CSS only for truly global styles**: The global.css file should only contain CSS variables, base element styles, and utility classes. Component-specific styles should be in the component's CSS file, not in global.css.
+8. **Global CSS only for truly global styles**: The global.css file should
+   only contain CSS variables, base element styles, and utility classes.
+   Component-specific styles should be in the component's CSS file,
+   not in global.css.
 
-9. **Use CSS variables for all values**: All colors, fonts, font sizes, widths, heights, gaps, borders, z-indexes, opacity, transitions, and other style values should be defined as CSS variables in global.css and used throughout the application. This ensures consistency and makes theming easier. **No hardcoded values allowed in component CSS files.**
+9. **Use CSS variables for all values**: All colors, fonts, font sizes,
+   widths, heights, gaps, borders, z-indexes, opacity, transitions, and other
+   style values should be defined as CSS variables in global.css and used
+   throughout the application. This ensures consistency and makes theming
+   easier. **No hardcoded values allowed in component CSS files.**
 
    ```css
    /* global.css */
@@ -107,99 +134,119 @@ Component Structure:
    ```
 
    **Categories of variables:**
+
    - Colors: `--color-primary`, `--color-text`, `--color-background`, etc.
-   - Typography: `--font-family`, `--font-size-*`, `--font-weight-*`, `--line-height-*`
+   - Typography: `--font-family`, `--font-size-*`, `--font-weight-*`,
+     `--line-height-*`
    - Spacing: `--spacing-xs`, `--spacing-sm`, `--spacing-md`, etc.
    - Borders: `--border-radius-*`, `--border-width`
    - Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
    - Z-indexes: `--z-dropdown`, `--z-sticky`, `--z-fixed`, `--z-modal`
    - Opacity: `--opacity-disabled`, `--opacity-background`, etc.
    - Transitions: `--transition-fast`, etc.
-   - Layout: `--container-max-width`, `--container-padding`, `--map-height`, etc.
+   - Layout: `--container-max-width`, `--container-padding`, `--map-height`,
+     etc.
 
-10. **Use CSS nesting**: Use CSS nesting (native browser feature) to organize related styles and reduce repetition. This makes CSS more maintainable and easier to read.
+10. **Use CSS nesting**: Use CSS nesting (native browser feature) to organize
+    related styles and reduce repetition. This makes CSS more maintainable
+    and easier to read.
 
-   ```css
-   /* ✅ Good - nested selectors */
-   .button {
-     background: var(--color-primary);
-     
-     &:hover {
-       background: var(--color-primary-dark);
-     }
-     
-     &--disabled {
-       opacity: var(--opacity-disabled);
-     }
-   }
-   
-   /* ❌ Bad - flat selectors */
-   .button {
-     background: var(--color-primary);
-   }
-   .button:hover {
-     background: var(--color-primary-dark);
-   }
-   .button--disabled {
-     opacity: var(--opacity-disabled);
-   }
-   ```
+    ```css
+    /* ✅ Good - nested selectors */
+    .button {
+      background: var(--color-primary);
+      
+      &:hover {
+        background: var(--color-primary-dark);
+      }
+      
+      &--disabled {
+        opacity: var(--opacity-disabled);
+      }
+    }
+    
+    /* ❌ Bad - flat selectors */
+    .button {
+      background: var(--color-primary);
+    }
+    .button:hover {
+      background: var(--color-primary-dark);
+    }
+    .button--disabled {
+      opacity: var(--opacity-disabled);
+    }
+    ```
 
-8. **Minimal comments**: Write self-documenting code. Avoid comments that just repeat what the code does. Use descriptive names for functions, variables, and classes instead of adding comments.
+11. **Minimal comments**: Write self-documenting code. Avoid comments that
+    just repeat what the code does. Use descriptive names for functions,
+    variables, and classes instead of adding comments.
 
-9. **Inline class names in Astro**: Don't use array join for class names. Use template literals directly in the class attribute for better readability.
+    ```astro
+    <!-- ✅ Good - inline template literal -->
+    <button
+      class={`button button--${variant} button--${size}${
+        disabled ? ' button--disabled' : ''
+      }`}
+    >
+      <slot />
+    </button>
+    
+    <!-- ❌ Bad - array join -->
+    <button
+      class={[
+        'button',
+        `button--${variant}`,
+        `button--${size}`,
+        disabled ? 'button--disabled' : ''
+      ].filter(Boolean).join(' ')}
+    >
+      <slot />
+    </button>
+    ```
 
-   ```astro
-   <!-- ✅ Good - inline template literal -->
-   <button class={`button button--${variant} button--${size}${disabled ? ' button--disabled' : ''}`}>
-     <slot />
-   </button>
-   
-   <!-- ❌ Bad - array join -->
-   <button class={['button', `button--${variant}`, `button--${size}`, disabled ? 'button--disabled' : ''].filter(Boolean).join(' ')}>
-     <slot />
-   </button>
-   ```
+    ```javascript
+    // ✅ Good - self-documenting
+    handleLocationFound(statusEl, event) {
+      if (statusEl && event.detail) {
+        statusEl.textContent = `Location: ${event.detail.lat},
+          ${event.detail.lng}`;
+      }
+    }
+    
+    // ❌ Bad - redundant comment
+    /**
+     * Handles location found event
+     * Updates status element with location
+     */
+    handleLocationFound(statusEl, event) {
+      if (statusEl && event.detail) {
+        statusEl.textContent = `Location: ${event.detail.lat},
+          ${event.detail.lng}`;
+      }
+    }
+    ```
 
-   ```javascript
-   // ✅ Good - self-documenting
-   handleLocationFound(statusEl, event) {
-     if (statusEl && event.detail) {
-       statusEl.textContent = `Location: ${event.detail.lat}, ${event.detail.lng}`;
-     }
-   }
-   
-   // ❌ Bad - redundant comment
-   /**
-    * Handles location found event
-    * Updates status element with location
-    */
-   handleLocationFound(statusEl, event) {
-     if (statusEl && event.detail) {
-       statusEl.textContent = `Location: ${event.detail.lat}, ${event.detail.lng}`;
-     }
-   }
-   ```
+    ```text
+    ✅ Good:
+    components/
+    └── locate-button/
+        └── LocateButton.js
+    
+    ❌ Bad:
+    components/
+    └── locate-button/
+        └── LocateButton.element.js  # Redundant suffix
+    ```
 
-   ```
-   ✅ Good:
-   components/
-   └── locate-button/
-       └── LocateButton.js
-   
-   ❌ Bad:
-   components/
-   └── locate-button/
-       └── LocateButton.element.js  # Redundant suffix
-   ``` The default constructor from `HTMLElement` is sufficient.
+    The default constructor from `HTMLElement` is sufficient.
 
-2. **Use `connectedCallback()` for initialization**: This is where you should set up event listeners and DOM references.
-
----
+12. **Use `connectedCallback()` for initialization**: This is where you should
+    set up event listeners and DOM references.
 
 ### ✅ Example: Map Component with Geolocation
 
 **Button.astro** (Generic reusable button - NO Web Component):
+
 ```astro
 ---
 interface Props {
@@ -209,7 +256,7 @@ interface Props {
 const { variant = 'primary', dataAction } = Astro.props;
 ---
 
-<button 
+<button
   class:list={['button', `button--${variant}`]}
   ?data-action={dataAction}
 >
@@ -218,6 +265,7 @@ const { variant = 'primary', dataAction } = Astro.props;
 ```
 
 **Map.astro** (Renders HTML):
+
 ```astro
 ---
 import Button from '../button/Button.astro';
@@ -237,7 +285,8 @@ import Button from '../button/Button.astro';
 </ev-map>
 ```
 
-**Map.element.js** (Specific functionality - geolocation):
+**Map.js** (Specific functionality - geolocation):
+
 ```javascript
 // Web Component with SPECIFIC functionality
 export class MapElement extends HTMLElement {
@@ -270,20 +319,20 @@ customElements.define('ev-map', MapElement);
 ```
 
 **Result:**
+
 - Astro renders all HTML and CSS
 - `ev-map` Web Component adds **specific** geolocation functionality
 - Buttons are just Astro components - no generic Web Component wrapper needed
 - No HTML/CSS in JavaScript!
 
----
-
 ## Component Architecture
 
 ### ✅ Recommended Pattern (Astro Components)
 
-This project uses **Astro components**, not Web Components. Each component should have:
+This project uses **Astro components**, not Web Components. Each component
+should have:
 
-```
+```text
 components/
 └── button/
     ├── Button.astro      # HTML template + Astro logic
@@ -291,6 +340,7 @@ components/
 ```
 
 **Button.astro:**
+
 ```astro
 ---
 // Frontmatter: TypeScript/JavaScript logic
@@ -303,8 +353,12 @@ const buttonId = Astro.id;
 ---
 
 <!-- HTML Template -->
-<button 
-  class:list={['button', `button--${variant}`, disabled && 'button--disabled']}
+<button
+  class:list={[
+    'button',
+    `button--${variant}`,
+    disabled && 'button--disabled'
+  ]}
   id={buttonId}
   disabled={disabled}
 >
@@ -323,6 +377,7 @@ const buttonId = Astro.id;
 ```
 
 **Button.css:**
+
 ```css
 /* Only CSS styles here */
 .button {
@@ -350,6 +405,7 @@ const buttonId = Astro.id;
 ### ❌ Anti-Patterns (DO NOT DO)
 
 #### 1. Web Components with HTML/CSS in JS
+
 ```javascript
 // ❌ BAD - Never do this!
 class Button extends HTMLElement {
@@ -366,6 +422,7 @@ customElements.define('my-button', Button);
 ```
 
 #### 2. Inline HTML/CSS in JavaScript
+
 ```javascript
 // ❌ BAD - Never do this!
 function renderButton() {
@@ -381,6 +438,7 @@ function renderButton() {
 ```
 
 #### 3. Inline styles in Astro templates
+
 ```astro
 <!-- ❌ BAD - Avoid inline styles -->
 <button style="padding: 0.5rem; background: blue; color: white;">
@@ -388,15 +446,13 @@ function renderButton() {
 </button>
 ```
 
----
-
 ## File Organization
 
 ### Component Structure
 
 Each Astro component should have its own directory:
 
-```
+```text
 components/
 ├── button/
 │   ├── Button.astro      # Template + logic
@@ -413,11 +469,10 @@ components/
 
 - **Components**: PascalCase (e.g., `Button.astro`, `Map.astro`, `Card.astro`)
 - **CSS files**: Match component name (e.g., `Button.css`, `Map.css`)
-- **CSS classes**: kebab-case (e.g., `.button`, `.button--primary`, `.map-container`)
+- **CSS classes**: kebab-case (e.g., `.button`, `.button--primary`,
+  `.map-container`)
 - **Variables**: camelCase (e.g., `buttonId`, `currentPosition`)
 - **Props**: camelCase (e.g., `variant`, `disabled`, `onClick`)
-
----
 
 ## Astro-Specific Guidelines
 
@@ -442,11 +497,13 @@ const { title = 'Default', count, isActive = false } = Astro.props;
 Use Astro's `class:list` directive:
 
 ```astro
-<div class:list={[
-  'container',
-  isActive && 'container--active',
-  size === 'large' && 'container--large'
-]}>
+<div
+  class:list={[
+    'container',
+    isActive && 'container--active',
+    size === 'large' && 'container--large'
+  ]}
+>
 </div>
 ```
 
@@ -499,63 +556,72 @@ Use slots for composable components:
 </Card>
 ```
 
----
-
 ## Code Quality
 
 ### Linting Rules
 
-This project uses [oxlint](https://github.com/oxc-project/oxlint) for JavaScript/TypeScript linting and [lightningcss](https://github.com/parcel-bundler/lightningcss) for CSS linting.
+This project uses [oxlint](https://github.com/oxc-project/oxlint) for
+JavaScript/TypeScript linting and
+[lightningcss](https://github.com/parcel-bundler/lightningcss) for CSS
+linting.
 
 **JavaScript Linting:**
+
 - Uses oxlint (Rust-based, very fast)
 - Key rule: `curly: error` - Always use curly braces `{}` for all blocks
 - Full configuration in `packages/dev-config/oxlint.json`
 
 **CSS Linting:**
+
 - Uses biome (Rust-based, very fast)
 - Run with: `bun run lint:css` from dev-config package
 
 **JavaScript Formatting:**
+
 - Uses oxfmt (Rust-based, very fast)
 - Run with: `bun run format` from dev-config package
 
 Run JavaScript linting from the app package:
+
 ```bash
 cd packages/app && bun run lint
 ```
 
 Run CSS linting:
+
 ```bash
 cd packages/dev-config && bun run lint:css
 ```
 
 Run JavaScript formatting:
+
 ```bash
 cd packages/dev-config && bun run format
 ```
 
 ### Formatting Rules
 
-This project uses [oxfmt](https://github.com/oxc-project/oxfmt) for code formatting.
+This project uses [oxfmt](https://github.com/oxc-project/oxfmt) for code
+formatting.
 
 Run formatting from the app package:
+
 ```bash
 cd packages/app && bun run format
 ```
 
 Or from the root:
+
 ```bash
 cd packages/app && bun run --cwd . format
 ```
-
----
 
 ## JavaScript Guidelines
 
 ### When to Use JavaScript
 
 **✅ Use JavaScript for:**
+
 - Event handlers
 - DOM manipulation (when necessary)
 - API calls
@@ -563,6 +629,7 @@ cd packages/app && bun run --cwd . format
 - Complex calculations
 
 **❌ Do NOT use JavaScript for:**
+
 - HTML templates
 - CSS styles
 - Static content
@@ -602,8 +669,6 @@ Dispatch custom events for component communication:
 </script>
 ```
 
----
-
 ## CSS Guidelines
 
 ### Global vs Component Styles
@@ -614,6 +679,7 @@ Dispatch custom events for component communication:
 ### CSS Best Practices
 
 1. **Use CSS variables** for colors and common values:
+
    ```css
    :root {
      --primary: #2563eb;
@@ -623,6 +689,7 @@ Dispatch custom events for component communication:
    ```
 
 2. **Use BEM-like naming**:
+
    ```css
    .button {}              /* Block */
    .button--primary {}     /* Modifier */
@@ -630,6 +697,7 @@ Dispatch custom events for component communication:
    ```
 
 3. **Avoid deep nesting**:
+
    ```css
    /* ❌ Bad */
    .parent .child .grandchild {}
@@ -639,13 +707,12 @@ Dispatch custom events for component communication:
    ```
 
 4. **Use utility classes** for common patterns:
+
    ```css
    .text-center { text-align: center; }
    .mt-4 { margin-top: 1.5rem; }
    .flex { display: flex; }
    ```
-
----
 
 ## Performance Considerations
 
@@ -664,7 +731,13 @@ const Module = await import('../heavy-module.js');
 Use Astro's Image component or optimize images manually:
 
 ```astro
-<img src={image} width="800" height="600" alt="Description" loading="lazy" />
+<img
+  src={image}
+  width="800"
+  height="600"
+  alt="Description"
+  loading="lazy"
+/>
 ```
 
 ### Minimize Client-Side JavaScript
@@ -673,8 +746,6 @@ Use Astro's Image component or optimize images manually:
 - Only hydrate what's necessary
 - Use `is:inline` for small scripts
 - Use `is:load` for scripts that can wait
-
----
 
 ## Accessibility
 
@@ -696,13 +767,12 @@ Use Astro's Image component or optimize images manually:
 - Provide text alternatives for visual content
 - Test with screen reader software
 
----
-
 ## Commit Messages
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+Follow [Conventional Commits](https://www.conventionalcommits.org/)
+format:
 
-```
+```text
 type(scope): description
 
 body
@@ -725,7 +795,7 @@ footer
 
 ### Examples
 
-```
+```text
 feat(map): add location search functionality
 
 - Add search input component
@@ -735,13 +805,11 @@ feat(map): add location search functionality
 Closes #123
 ```
 
-```
+```text
 fix(button): correct disabled state styling
 
 Button was not showing disabled cursor properly.
 ```
-
----
 
 ## Pull Request Guidelines
 
@@ -750,13 +818,12 @@ Button was not showing disabled cursor properly.
 3. **Scope**: Keep PRs focused and small
 4. **Testing**: Include screenshots or videos if UI changes
 5. **Checklist**:
+
    - [ ] Code follows guidelines
    - [ ] Lint passes (`bun run lint`)
    - [ ] Formatting is correct (`bun run format`)
    - [ ] Tests pass
    - [ ] Documentation updated
-
----
 
 ## Additional Resources
 

@@ -11,7 +11,10 @@
     "lint": "oxlint src/**/*.{js,ts,astro}",
     "lint:css": "biome lint src",
     "format": "oxfmt src",
-    "format:check": "oxfmt --check src"
+    "format:check": "oxfmt --check src",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",

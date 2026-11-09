@@ -1,6 +1,7 @@
 # EV Maps
 
-A modern web application for displaying EV charging stations, built with **Astro** for templating and **Web Components** for interactivity.
+A modern web application for displaying EV charging stations, built with
+**Astro** for templating and **Web Components** for interactivity.
 
 ## Tech Stack
 
@@ -15,45 +16,47 @@ A modern web application for displaying EV charging stations, built with **Astro
 
 ## Project Structure
 
-```
+```text
 ev-maps/
 ├── packages/
-│   ├── dev-config/           # Shared development configs
-│   │   ├── oxlint.json        # Linting configuration
-│   │   ├── oxfmt.json         # Formatting configuration
+│   ├── dev-config/              # Shared development configs
+│   │   ├── oxlint.json           # Linting configuration
+│   │   ├── oxfmt.json            # Formatting configuration
 │   │   └── package.json
-│   └── app/                   # Main application
-│       ├── astro.config.mjs   # Astro configuration
-│       ├── wrangler.toml      # Cloudflare configuration
+│   └── app/                      # Main application
+│       ├── astro.config.mjs      # Astro configuration
+│       ├── wrangler.toml         # Cloudflare configuration
 │       ├── src/
 │       │   ├── components/
-│       │   │   ├── MapApp.js      # Web Component logic
-│       │   │   ├── MapApp.html    # Web Component HTML template
-│       │   │   └── MapApp.css     # Web Component styles
+│       │   │   ├── MapApp.js     # Web Component logic
+│       │   │   ├── MapApp.html   # Web Component HTML template
+│       │   │   └── MapApp.css    # Web Component styles
 │       │   ├── layouts/
-│       │   │   └── Layout.astro   # Base layout template
+│       │   │   └── Layout.astro  # Base layout template
 │       │   ├── pages/
-│       │   │   ├── index.astro    # Main page
-│       │   │   └── index.css      # Page-specific styles
+│       │   │   ├── index.astro   # Main page
+│       │   │   └── index.css     # Page-specific styles
 │       │   └── styles/
-│       │       └── global.css     # Global styles
+│       │       └── global.css    # Global styles
 │       └── package.json
 ├── .github/
 │   └── workflows/
-│       ├── dev-config.yml     # CI for dev-config package
-│       ├── app.yml             # CI for app package
-│       └── monorepo.yml        # Root-level CI
-├── package.json               # Root workspace
+│       ├── dev-config.yml        # CI for dev-config package
+│       ├── app.yml              # CI for app package
+│       └── monorepo.yml         # Root-level CI
+├── package.json                  # Root workspace
 └── README.md
 ```
 
 ## Development Guidelines
 
-For detailed development guidelines, best practices, and coding standards, please see:
+For detailed development guidelines, best practices, and coding standards,
+please see:
 
 📖 **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)**
 
 This includes:
+
 - Component architecture patterns
 - File organization standards
 - Code quality requirements
@@ -61,6 +64,24 @@ This includes:
 - Accessibility guidelines
 - Commit message conventions
 - Pull request guidelines
+
+## Setup
+
+1. Clone the repository
+2. Install dependencies with `bun install`
+3. Create a `.env` file in the root directory and add your Google Maps API
+   key:
+
+   ```bash
+   GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+4. Run the development server with `bun run dev`
+
+## Testing
+
+Run tests with `bun run test`
+
 ## Getting Started
 
 ### Prerequisites
@@ -80,6 +101,7 @@ This includes:
    ```
 
 3. Clone the repository:
+
    ```bash
    git clone git@github.com:chealt/ev-maps.git
    cd ev-maps

@@ -1,4 +1,4 @@
-/**
+/*
  * GoogleMap Web Component
  * Handles Google Maps integration with:
  * - Map initialization
@@ -6,6 +6,7 @@
  * - Google Sign-In for saved maps
  * - EV charger display and filtering
  */
+
 export class GoogleMapElement extends HTMLElement {
   connectedCallback() {
     this.loadGoogleMapsAPI();
@@ -135,10 +136,58 @@ export class GoogleMapElement extends HTMLElement {
     ];
   }
 
-  loadEvChargers() {
-    // Load EV charging stations from a data source
-    // This would typically be from an API
-    console.log('Loading EV chargers...');
+  async loadEvChargers() {
+    try {
+      const centerLat = parseFloat(this.dataset.centerLat || '0');
+      const centerLng = parseFloat(this.dataset.centerLng || '0');
+      const evChargers = await fetchEvChargers(centerLat, centerLng);
+      this.displayEvChargers(evChargers);
+    } catch (error) {
+      console.error('Error loading EV chargers:', error);
+    }
+  }
+
+  displayEvChargers(evChargers) {
+    if (!window.googleMap) return;
+
+    evChargers.forEach(charger => {
+      const marker = new window.google.maps.Marker({
+        position: {
+          lat: charger.geometry.location.lat,
+          lng: charger.geometry.location.lng
+        },
+        map: window.googleMap,
+        title: charger.name
+      });
+
+      // Add click event to show details
+      marker.addListener('click', () => {
+        this.showChargerDetails(charger.place_id);
+      });
+    });
+  }
+
+  async showChargerDetails(placeId) {
+    try {
+      const details = await fetchEvChargerDetails(placeId);
+      this.displayChargerDetails(details);
+    } catch (error) {
+      console.error('Error fetching charger details:', error);
+    }
+  }
+
+  displayChargerDetails(details) {
+    // Display charger details in a panel
+    const detailsPanel = this.querySelector('.charger-details');
+    if (detailsPanel) {
+      detailsPanel.innerHTML = `
+        <h3>${details.name}</h3>
+        <p>${details.formatted_address}</p>
+        ${details.opening_hours ? `<p>Hours: ${details.opening_hours.weekday_text.join('<br>')}</p>` : ''}
+        ${details.photos ? `<img src="https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${details.photos[0].photo_reference}&key=${this.getAttribute('data-api-key')}" alt="${details.name}">` : ''}
+      `;
+      detailsPanel.classList.add('visible');
+    }
   }
 
   setupGoogleSignIn() {
