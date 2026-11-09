@@ -9,6 +9,15 @@
 
 import { fetchEvChargers, fetchEvChargerDetails } from './api.js';
 
+// Global callback for Google Maps API
+// Must be defined before any Google Maps API script is loaded
+window.initMap = function() {
+  const mapElement = document.querySelector('ev-google-map');
+  if (mapElement && typeof mapElement.initMap === 'function') {
+    mapElement.initMap();
+  }
+};
+
 export class GoogleMapElement extends HTMLElement {
   connectedCallback() {
     this.loadGoogleMapsAPI();
@@ -27,18 +36,18 @@ export class GoogleMapElement extends HTMLElement {
     const zoom = parseInt(this.getAttribute('data-zoom') || '12');
     const showEvChargers = this.getAttribute('data-show-ev-chargers') === 'true';
 
+    // Store configuration on the element
+    this.dataset.centerLat = centerLat;
+    this.dataset.centerLng = centerLng;
+    this.dataset.zoom = zoom;
+    this.dataset.showEvChargers = showEvChargers;
+
     // Load Google Maps API
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
     script.async = true;
     script.defer = true;
     document.head.appendChild(script);
-
-    // Store configuration on the element
-    this.dataset.centerLat = centerLat;
-    this.dataset.centerLng = centerLng;
-    this.dataset.zoom = zoom;
-    this.dataset.showEvChargers = showEvChargers;
   }
 
   setupEventListeners() {
@@ -259,11 +268,3 @@ export class GoogleMapElement extends HTMLElement {
 }
 
 customElements.define('ev-google-map', GoogleMapElement);
-
-// Global callback for Google Maps API
-window.initMap = function() {
-  const mapElement = document.querySelector('ev-google-map');
-  if (mapElement && typeof mapElement.initMap === 'function') {
-    mapElement.initMap();
-  }
-};
