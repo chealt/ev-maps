@@ -12,6 +12,7 @@ interface Props {
   centerLng?: number;
   zoom?: number;
   locatedZoom?: number;
+  autoLocate?: boolean;
   searchRadius?: number;
   showEvChargers?: boolean;
 }
@@ -24,6 +25,7 @@ const {
   centerLng = 0,
   zoom = 12,
   locatedZoom = 14,
+  autoLocate = true,
   searchRadius = 5000,
   showEvChargers = true,
 } = Astro.props;
@@ -55,7 +57,7 @@ const radiusOptions = [1000, 5000, 10000, 25000];
       <Button variant="secondary" class="search-area-button">
         Search this area
       </Button>
-      <LocateButton />
+      <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
     </div>
 

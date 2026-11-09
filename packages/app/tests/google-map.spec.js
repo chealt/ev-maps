@@ -50,23 +50,103 @@ test("renders charger data as text, not HTML", async ({ page }) => {
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
 });
 
+const USER_LOCATION = { lat: 47.4979, lng: 19.0402 };
+
+async function mapState(page) {
+  return page.evaluate(() => ({
+    center: window.__fakeMap.center,
+    zoom: window.__fakeMap.zoom,
+    lastSearchCenter: window.__searchRequests.at(-1).locationRestriction.center,
+  }));
+}
+
 test.describe("with geolocation", () => {
+  test.use({
+    geolocation: { latitude: USER_LOCATION.lat, longitude: USER_LOCATION.lng },
+    permissions: ["geolocation"],
+  });
+
+  test("locates the user on load when permission is already granted", async ({ page }) => {
+    await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+    await expect
+      .poll(() => mapState(page))
+      .toEqual({ center: USER_LOCATION, zoom: 14, lastSearchCenter: USER_LOCATION });
+  });
+
+  test("centers the map on the user and searches there", async ({ page }) => {
+    await expect.poll(() => mapState(page)).toMatchObject({ center: USER_LOCATION });
+    await page.evaluate(() => window.__fakeMap.setCenter({ lat: 0, lng: 0 }));
+
+    await page.getByRole("button", { name: "Locate Me" }).click();
+
+    await expect
+      .poll(() => mapState(page))
+      .toEqual({ center: USER_LOCATION, zoom: 14, lastSearchCenter: USER_LOCATION });
+    await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+  });
+
+  test("remembers the last location", async ({ page }) => {
+    await expect
+      .poll(() => page.evaluate(() => localStorage.getItem("ev-maps:last-location")))
+      .toBe(JSON.stringify(USER_LOCATION));
+  });
+});
+
+test("does not locate automatically without permission", async ({ page }) => {
+  await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+  expect(await mapState(page)).toEqual({
+    center: { lat: 40.7128, lng: -74.006 },
+    zoom: 12,
+    lastSearchCenter: { lat: 40.7128, lng: -74.006 },
+  });
+});
+
+test("opens at the last known location", async ({ page }) => {
+  await page.addInitScript((location) => {
+    localStorage.setItem("ev-maps:last-location", JSON.stringify(location));
+  }, USER_LOCATION);
+  await page.reload();
+
+  await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+  expect(await mapState(page)).toEqual({
+    center: USER_LOCATION,
+    zoom: 14,
+    lastSearchCenter: USER_LOCATION,
+  });
+});
+
+test.describe("with geolocation before the map is ready", () => {
   test.use({
     geolocation: { latitude: 47.4979, longitude: 19.0402 },
     permissions: ["geolocation"],
   });
 
-  test("centers the map on the user and searches there", async ({ page }) => {
-    await expect(page.locator(".fake-marker")).toHaveCount(2);
-    await page.getByRole("button", { name: "Locate Me" }).click();
+  test("applies the location once the map initializes", async ({ page }) => {
+    let releaseMapsScript;
+    const mapsScriptReleased = new Promise((resolve) => {
+      releaseMapsScript = resolve;
+    });
+    await page.unroute("https://maps.googleapis.com/maps/api/js?**");
+    await page.route("https://maps.googleapis.com/maps/api/js?**", async (route) => {
+      await mapsScriptReleased;
+      await route.fulfill({ contentType: "text/javascript", body: fakeGoogleMaps });
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
 
-    await expect.poll(() => page.evaluate(() => window.__searchRequests.length)).toBe(2);
+    await page.getByRole("button", { name: "Locate Me" }).click();
+    await expect(page.locator(".map-status")).toHaveText("Location: 47.4979, 19.0402");
+    expect(await page.evaluate(() => window.__fakeMap)).toBeUndefined();
+
+    releaseMapsScript();
+
     await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
     const map = await page.evaluate(() => ({
       center: window.__fakeMap.center,
       zoom: window.__fakeMap.zoom,
     }));
     expect(map).toEqual({ center: { lat: 47.4979, lng: 19.0402 }, zoom: 14 });
+    const requests = await page.evaluate(() => window.__searchRequests);
+    expect(requests.at(-1).locationRestriction.center).toEqual({ lat: 47.4979, lng: 19.0402 });
   });
 });
 

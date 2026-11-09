@@ -6,6 +6,7 @@ export const appConfig = {
     defaultCenter: { lat: 40.7128, lng: -74.006 },
     defaultZoom: 12,
     locatedZoom: 14,
+    autoLocate: true,
   },
   evChargers: {
     enabled: true,

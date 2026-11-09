@@ -2,6 +2,24 @@ import { loadGoogleIdentity, loadGoogleMaps } from "./loader.js";
 import { fetchChargerDetails, searchEvChargers } from "./places.js";
 
 const PHOTO_MAX_WIDTH = 400;
+const LAST_LOCATION_KEY = "ev-maps:last-location";
+
+function readLastLocation() {
+  try {
+    const { lat, lng } = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY));
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLastLocation(location) {
+  try {
+    localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify(location));
+  } catch {
+    // Storage can be unavailable (private mode, blocked cookies).
+  }
+}
 
 function formatConnector({ type, count, availableCount, maxChargeRateKw }) {
   const name = String(type ?? "Unknown")
@@ -23,6 +41,9 @@ export class GoogleMapElement extends HTMLElement {
   maps = null;
   markers = [];
   searchId = 0;
+  mapReady = new Promise((resolve) => {
+    this.resolveMapReady = resolve;
+  });
 
   connectedCallback() {
     this.statusEl = this.querySelector(".map-status");
@@ -53,6 +74,10 @@ export class GoogleMapElement extends HTMLElement {
 
   get showEvChargers() {
     return this.dataset.showEvChargers === "true";
+  }
+
+  get locatedZoom() {
+    return Number(this.dataset.locatedZoom) || 14;
   }
 
   get searchRadius() {
@@ -86,32 +111,34 @@ export class GoogleMapElement extends HTMLElement {
   async initMap(maps) {
     const { Map } = await maps.importLibrary("maps");
     this.maps = maps;
+    const lastLocation = readLastLocation();
     this.map = new Map(this.mapEl, {
-      center: {
+      center: lastLocation ?? {
         lat: Number(this.dataset.centerLat) || 0,
         lng: Number(this.dataset.centerLng) || 0,
       },
-      zoom: Number(this.dataset.zoom) || 12,
+      zoom: lastLocation ? this.locatedZoom : Number(this.dataset.zoom) || 12,
       mapId: this.dataset.mapId || "DEMO_MAP_ID",
       gestureHandling: "greedy",
       fullscreenControl: false,
       streetViewControl: false,
     });
+    this.resolveMapReady();
 
     if (this.showEvChargers) {
       await this.loadEvChargers();
     }
   }
 
-  handleLocationFound(event) {
+  async handleLocationFound(event) {
     const { lat, lng } = event.detail;
     this.setStatus(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    saveLastLocation({ lat, lng });
 
-    if (this.map) {
-      this.map.setCenter({ lat, lng });
-      this.map.setZoom(Number(this.dataset.locatedZoom) || 14);
-      this.loadEvChargers();
-    }
+    await this.mapReady;
+    this.map.setCenter({ lat, lng });
+    this.map.setZoom(this.locatedZoom);
+    this.loadEvChargers();
   }
 
   toggleFilters() {
