@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240117.0",
-    "astro": "^4.16.19"
+    "astro": "^4.16.19",
+    "dotenv": "^18.0.10"
   },
   "devDependencies": {
     "@astrojs/cloudflare": "^10.0.0",

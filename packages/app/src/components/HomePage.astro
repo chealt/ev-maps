@@ -1,5 +1,6 @@
 ---
 import Map from './map/Map.astro';
+import { GOOGLE_MAPS_API_KEY } from '../env';
 
 interface Props {
   title?: string;
@@ -13,5 +14,5 @@ const { title = 'EV Maps', subtitle = 'Find electric vehicle charging stations n
   <h1>{title}</h1>
   <p class="subtitle">{subtitle}</p>
   
-  <Map apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY} />
+  <Map apiKey={GOOGLE_MAPS_API_KEY} />
 </main>
