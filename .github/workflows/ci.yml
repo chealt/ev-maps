@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint JavaScript
+        run: bun run --cwd packages/app lint
+
+      - name: Lint CSS
+        run: bun run --cwd packages/app lint:css
+
+      - name: Check for hardcoded CSS values
+        run: |
+          # Design tokens live in global.css; component CSS must use variables.
+          if grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9.]+(px|rem)\b" packages/app/src/components --include="*.css"; then
+            echo "::error::Hardcoded colors or px/rem values found in component CSS. Use CSS variables from global.css instead."
+            exit 1
+          fi
+
+      - name: Lint Markdown
+        run: bun run lint:md
+
+      - name: Check formatting
+        run: bun run format:check
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build app
+        run: bun run build
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ev-maps-dist
+          path: packages/app/dist
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps chromium
+        working-directory: packages/app
+
+      - name: Run tests
+        run: bun run test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: packages/app/test-results
