@@ -1,224 +1,109 @@
 name: App
 
+# Everything packages/app needs from CI. Runs when the app or anything it
+# depends on changes: shared tool configs, root tooling and the lockfile.
 on:
   push:
     branches: [main]
     paths:
-      - 'packages/app/**'
-      - '.github/workflows/app.yml'
+      - "packages/app/**"
+      - "packages/dev-config/**"
+      - "package.json"
+      - "bun.lock"
+      - ".gitignore"
+      - ".github/workflows/app.yml"
   pull_request:
     branches: [main]
     paths:
-      - 'packages/app/**'
-      - '.github/workflows/app.yml'
+      - "packages/app/**"
+      - "packages/dev-config/**"
+      - "package.json"
+      - "bun.lock"
+      - ".gitignore"
+      - ".github/workflows/app.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages/app
 
 jobs:
-  setup:
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Cache Bun installation
-        uses: actions/cache@v3
-        id: bun-cache
+      - uses: oven-sh/setup-bun@v2
         with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
+          bun-version-file: package.json
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Cache Bun dependencies
-        uses: actions/cache@v3
-        with:
-          path: packages/app/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-deps-
+      - name: Lint JavaScript
+        run: bun run lint
 
-      - name: Install app dependencies only
-        run: cd packages/app && bun install
-
-  lint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Cache Bun installation
-        uses: actions/cache@v3
-        id: bun-cache
-        with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v3
-        with:
-          path: packages/app/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-deps-
-
-      - name: Install app dependencies only
-        run: cd packages/app && bun install
-
-      - name: Run lint
-        run: cd packages/app && bun run lint
-
-  lint-css:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Cache Bun installation
-        uses: actions/cache@v3
-        id: bun-cache
-        with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v3
-        with:
-          path: packages/app/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-deps-
-
-      - name: Install app dependencies only
-        run: cd packages/app && bun install
-
-      - name: Run CSS lint with biome
-        run: cd packages/app && bun run lint:css
+      - name: Lint CSS
+        run: bun run lint:css
 
       - name: Check for hardcoded CSS values
         run: |
-          # Check for hardcoded hex colors in component CSS (excluding global.css where variables are defined)
-          if grep -r "#[0-9a-f]\{3,8\}" packages/app/src/components/ --include="*.css" 2>/dev/null; then
-            echo "::error::Hardcoded hex colors found in component CSS. Use CSS variables from global.css instead."
+          # Design tokens live in global.css; component CSS must use variables.
+          if grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9.]+(px|rem)\b" src/components --include="*.css"; then
+            echo "::error::Hardcoded colors or px/rem values found in component CSS. Use CSS variables from global.css instead."
             exit 1
           fi
-          # Check for hardcoded px/rem values in component CSS
-          if grep -rE "[0-9]+(px|rem)" packages/app/src/components/ --include="*.css" 2>/dev/null; then
-            echo "::error::Hardcoded px/rem values found in component CSS. Use CSS variables from global.css instead."
-            exit 1
-          fi
-
-  format:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Cache Bun installation
-        uses: actions/cache@v3
-        id: bun-cache
-        with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v3
-        with:
-          path: packages/app/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-deps-
-
-      - name: Install app dependencies only
-        run: cd packages/app && bun install
 
       - name: Check formatting
-        run: cd packages/app && bun run format
-
-  markdownlint:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install markdownlint
-        run: bun add -g markdownlint-cli
-
-      - name: Run markdownlint
-        run: |
-          markdownlint README.md
-          markdownlint docs/DEVELOPMENT_GUIDELINES.md
+        run: bun run format:check
 
   build:
-    needs: setup
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Cache Bun installation
-        uses: actions/cache@v3
-        id: bun-cache
+      - uses: oven-sh/setup-bun@v2
         with:
-          path: ~/.bun
-          key: ${{ runner.os }}-bun-${{ hashFiles('.github/workflows/app.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
+          bun-version-file: package.json
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Cache Bun dependencies
-        uses: actions/cache@v3
-        with:
-          path: packages/app/node_modules
-          key: ${{ runner.os }}-bun-deps-${{ hashFiles('packages/app/bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-deps-
+      - name: Build
+        run: bun run build
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
-      - name: Install app dependencies only
-        run: cd packages/app && bun install
-
-      - name: Build app
-        run: cd packages/app && bun run build
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: ev-maps-dist
           path: packages/app/dist
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: bun run test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: packages/app/test-results

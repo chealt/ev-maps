@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Astro generated types
+.astro/
+
 # Bun
 bun.lockb
 
@@ -26,5 +29,11 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Test coverage
+# Test output
 coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Cloudflare
+.wrangler/

@@ -1,5 +1,3 @@
-/* Google Map component styles */
-
 .google-map-container {
   width: 100%;
   max-width: var(--map-max-width);
@@ -7,12 +5,13 @@
   margin: var(--spacing-lg) 0;
   position: relative;
   overflow: hidden;
+  border-radius: var(--border-radius-lg);
+  border: var(--border-width) solid var(--color-border);
 }
 
 .google-map {
   width: 100%;
   height: 100%;
-  min-height: var(--map-height);
 }
 
 .map-controls {
@@ -28,10 +27,93 @@
   position: absolute;
   top: var(--spacing-md);
   left: var(--spacing-md);
-  background: rgba(255, 255, 255, var(--opacity-background));
+  background: var(--color-surface-translucent);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   z-index: var(--z-dropdown);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.google-signin-button {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: var(--z-dropdown);
+}
+
+.filter-panel {
+  position: absolute;
+  bottom: var(--map-overlay-offset);
+  right: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.filter-panel__field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.charger-details {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  bottom: var(--map-overlay-offset);
+  width: var(--panel-width);
+  max-width: calc(100% - 2 * var(--spacing-md));
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-fixed);
+  font-size: var(--font-size-sm);
+
+  &[hidden] {
+    display: none;
+  }
+
+  ul {
+    list-style: none;
+    margin-top: var(--spacing-sm);
+  }
+
+  ul:empty {
+    display: none;
+  }
+}
+
+.charger-details__close {
+  float: right;
+}
+
+.charger-details__name {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
+}
+
+.charger-details__address {
+  color: var(--color-text-muted);
+}
+
+.charger-details__photo {
+  margin-top: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
 }

@@ -59,7 +59,7 @@ Component Structure:
    <!-- LocateButton.astro -->
    <ev-locate-button>
      <Button variant="primary">Locate Me</Button>
-     <script src="/src/components/locate-button/LocateButton.js"></script>
+     <script src="./LocateButton.js"></script>
    </ev-locate-button>
    ```
 
@@ -70,11 +70,11 @@ Component Structure:
 
    ```astro
    <!-- ✅ Good -->
-   <script src="/src/components/map/Map.js"></script>
-   
+   <script src="./Map.js"></script>
+
    <!-- ❌ Bad -->
    <script type="module">
-     import '../components/map/Map.js';
+     import "../components/map/Map.js";
    </script>
    ```
 
@@ -91,7 +91,7 @@ Component Structure:
    ---
    import './Button.css';
    ---
-   
+
    <button class="button">...</button>
    ```
 
@@ -122,7 +122,7 @@ Component Structure:
      --opacity-disabled: 0.6;
      --transition-fast: 0.2s ease;
    }
-   
+
    /* Component CSS */
    .button {
      background-color: var(--color-primary);
@@ -155,16 +155,16 @@ Component Structure:
     /* ✅ Good - nested selectors */
     .button {
       background: var(--color-primary);
-      
+
       &:hover {
         background: var(--color-primary-dark);
       }
-      
+
       &--disabled {
         opacity: var(--opacity-disabled);
       }
     }
-    
+
     /* ❌ Bad - flat selectors */
     .button {
       background: var(--color-primary);
@@ -182,23 +182,16 @@ Component Structure:
     variables, and classes instead of adding comments.
 
     ```astro
-    <!-- ✅ Good - inline template literal -->
-    <button
-      class={`button button--${variant} button--${size}${
-        disabled ? ' button--disabled' : ''
-      }`}
-    >
+    <!-- ✅ Good - Astro's class:list -->
+    <button class:list={["button", `button--${variant}`, `button--${size}`]}>
       <slot />
     </button>
-    
-    <!-- ❌ Bad - array join -->
+
+    <!-- ❌ Bad - manual array join -->
     <button
-      class={[
-        'button',
-        `button--${variant}`,
-        `button--${size}`,
-        disabled ? 'button--disabled' : ''
-      ].filter(Boolean).join(' ')}
+      class={["button", `button--${variant}`, `button--${size}`]
+        .filter(Boolean)
+        .join(" ")}
     >
       <slot />
     </button>
@@ -212,7 +205,7 @@ Component Structure:
           ${event.detail.lng}`;
       }
     }
-    
+
     // ❌ Bad - redundant comment
     /**
      * Handles location found event
@@ -231,7 +224,7 @@ Component Structure:
     components/
     └── locate-button/
         └── LocateButton.js
-    
+
     ❌ Bad:
     components/
     └── locate-button/
@@ -250,16 +243,13 @@ Component Structure:
 ```astro
 ---
 interface Props {
-  variant?: 'primary' | 'secondary';
-  dataAction?: string;  // For event delegation
+  variant?: "primary" | "secondary";
+  dataAction?: string; // For event delegation
 }
-const { variant = 'primary', dataAction } = Astro.props;
+const { variant = "primary", dataAction } = Astro.props;
 ---
 
-<button
-  class:list={['button', `button--${variant}`]}
-  ?data-action={dataAction}
->
+<button class:list={["button", `button--${variant}`]} data-action={dataAction}>
   <slot />
 </button>
 ```
@@ -268,7 +258,7 @@ const { variant = 'primary', dataAction } = Astro.props;
 
 ```astro
 ---
-import Button from '../button/Button.astro';
+import Button from "../button/Button.astro";
 ---
 
 <ev-map>
@@ -277,8 +267,12 @@ import Button from '../button/Button.astro';
       <h2>EV Charging Stations</h2>
     </div>
     <div class="controls">
-      <Button variant="primary" dataAction="locate">Locate Me</Button>
-      <Button variant="secondary" dataAction="filters">Filters</Button>
+      <Button variant="primary" dataAction="locate">
+        Locate Me
+      </Button>
+      <Button variant="secondary" dataAction="filters">
+        Filters
+      </Button>
     </div>
     <div class="status"></div>
   </div>
@@ -293,10 +287,10 @@ export class MapElement extends HTMLElement {
   connectedCallback() {
     const locateBtn = this.querySelector('[data-action="locate"]');
     const filterBtn = this.querySelector('[data-action="filters"]');
-    const statusEl = this.querySelector('.status');
-    
+    const statusEl = this.querySelector(".status");
+
     // Specific: Handle geolocation
-    locateBtn?.addEventListener('click', () => {
+    locateBtn?.addEventListener("click", () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -308,14 +302,14 @@ export class MapElement extends HTMLElement {
         );
       }
     });
-    
+
     // Specific: Handle filters
-    filterBtn?.addEventListener('click', () => {
-      statusEl.textContent = 'Showing filters';
+    filterBtn?.addEventListener("click", () => {
+      statusEl.textContent = "Showing filters";
     });
   }
 }
-customElements.define('ev-map', MapElement);
+customElements.define("ev-map", MapElement);
 ```
 
 **Result:**
@@ -327,123 +321,83 @@ customElements.define('ev-map', MapElement);
 
 ## Component Architecture
 
-### ✅ Recommended Pattern (Astro Components)
+### ✅ Recommended Pattern
 
-This project uses **Astro components**, not Web Components. Each component
-should have:
+Every component is an Astro component. Add a Web Component only when the
+component needs specific client-side behavior:
 
 ```text
 components/
-└── button/
-    ├── Button.astro      # HTML template + Astro logic
-    └── Button.css        # Styles only
+├── button/
+│   ├── Button.astro      # HTML template + props (no JavaScript)
+│   └── Button.css        # Styles only
+└── locate-button/
+    ├── LocateButton.astro  # Renders <ev-locate-button> + loads its script
+    └── LocateButton.js     # Behavior only
 ```
 
 **Button.astro:**
 
 ```astro
 ---
-// Frontmatter: TypeScript/JavaScript logic
-interface Props {
-  variant?: 'primary' | 'secondary';
-  disabled?: boolean;
+import type { HTMLAttributes } from "astro/types";
+import "./Button.css";
+
+interface Props extends HTMLAttributes<"button"> {
+  variant?: "primary" | "secondary";
 }
-const { variant = 'primary', disabled = false } = Astro.props;
-const buttonId = Astro.id;
+
+const {
+  variant = "primary",
+  type = "button",
+  class: className,
+  ...attrs
+} = Astro.props;
 ---
 
-<!-- HTML Template -->
 <button
-  class:list={[
-    'button',
-    `button--${variant}`,
-    disabled && 'button--disabled'
-  ]}
-  id={buttonId}
-  disabled={disabled}
+  type={type}
+  class:list={["button", `button--${variant}`, className]}
+  {...attrs}
 >
   <slot />
 </button>
-
-<!-- Client-side JavaScript (ONLY if needed) -->
-<script is:inline>
-  // ONLY custom functionality here
-  // NO HTML or CSS!
-  const btn = document.getElementById('<?= buttonId ?>');
-  btn?.addEventListener('click', () => {
-    console.log('Button clicked');
-  });
-</script>
 ```
 
 **Button.css:**
 
 ```css
-/* Only CSS styles here */
 .button {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
-}
 
-.button--primary {
-  background: #2563eb;
-  color: white;
-}
-
-.button--secondary {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.button--disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-```
-
-### ❌ Anti-Patterns (DO NOT DO)
-
-#### 1. Web Components with HTML/CSS in JS
-
-```javascript
-// ❌ BAD - Never do this!
-class Button extends HTMLElement {
-  render() {
-    this.shadowRoot.innerHTML = `
-      <style>
-        button { padding: 0.5rem 1rem; }
-      </style>
-      <button><slot></slot></button>
-    `;
+  &:disabled {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
   }
 }
-customElements.define('my-button', Button);
 ```
 
-#### 2. Inline HTML/CSS in JavaScript
+### Rendering Dynamic Content
 
-```javascript
-// ❌ BAD - Never do this!
-function renderButton() {
-  const div = document.createElement('div');
-  div.innerHTML = `
-    <style>
-      .btn { color: red; }
-    </style>
-    <button class="btn">Click</button>
-  `;
-  return div;
-}
-```
-
-#### 3. Inline styles in Astro templates
+When a Web Component must show data (for example, details from an API),
+render the markup in Astro and only fill in text from JavaScript. Use
+`textContent` (never `innerHTML`) so data can't inject HTML. For repeated
+items, render a `<template>` in Astro and clone it.
 
 ```astro
-<!-- ❌ BAD - Avoid inline styles -->
-<button style="padding: 0.5rem; background: blue; color: white;">
-  Click
-</button>
+<aside class="details" hidden>
+  <h2 class="details__name"></h2>
+  <ul class="details__list"></ul>
+</aside>
+<template class="details__item-template">
+  <li></li>
+</template>
+```
+
+```javascript
+panel.querySelector(".details__name").textContent = place.name;
 ```
 
 ## File Organization
@@ -488,7 +442,7 @@ interface Props {
   isActive?: boolean;
 }
 
-const { title = 'Default', count, isActive = false } = Astro.props;
+const { title = "Default", count, isActive = false } = Astro.props;
 ---
 ```
 
@@ -499,36 +453,28 @@ Use Astro's `class:list` directive:
 ```astro
 <div
   class:list={[
-    'container',
-    isActive && 'container--active',
-    size === 'large' && 'container--large'
+    "container",
+    isActive && "container--active",
+    size === "large" && "container--large",
   ]}
->
-</div>
+></div>
 ```
 
 ### Client-Side Interactivity
 
-Use `is:inline` scripts for client-side functionality:
+Put client-side code in a Web Component file next to the Astro component and
+load it with a `<script src>` tag. Astro bundles it as a module and includes
+it only once, even if the component is used several times:
 
 ```astro
-<script is:inline>
-  // This runs in the browser
-  const element = document.getElementById('my-element');
-  element.addEventListener('click', () => {
-    console.log('Clicked');
-  });
-</script>
+<ev-locate-button>
+  <Button variant="primary">Locate Me</Button>
+  <script src="./LocateButton.js"></script>
+</ev-locate-button>
 ```
 
-For reusable client-side code, create separate `.js` files and import them:
-
-```astro
-<script is:inline>
-  import { initMap } from '../utils/map.js';
-  initMap();
-</script>
-```
+Avoid `is:inline` scripts: they are not bundled, can't `import` other
+modules, and are repeated for every component instance.
 
 ### Slots
 
@@ -560,60 +506,35 @@ Use slots for composable components:
 
 ### Linting Rules
 
-This project uses [oxlint](https://github.com/oxc-project/oxlint) for
-JavaScript/TypeScript linting and
-[lightningcss](https://github.com/parcel-bundler/lightningcss) for CSS
-linting.
+All linting and formatting tools are written in Rust. Shared configs live in
+`packages/dev-config`; the tools are installed at the workspace root.
 
-**JavaScript Linting:**
+- **JavaScript**: [oxlint](https://oxc.rs/docs/guide/usage/linter)
+  (`packages/dev-config/oxlint.json`). Key rule: `curly: error` - always use
+  curly braces for all blocks.
+- **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
+  CI also rejects hardcoded colors and px/rem values in component CSS.
+- **Markdown**: [rumdl](https://rumdl.dev/)
+  (`packages/dev-config/.rumdl.toml`), which uses markdownlint-compatible
+  rules.
 
-- Uses oxlint (Rust-based, very fast)
-- Key rule: `curly: error` - Always use curly braces `{}` for all blocks
-- Full configuration in `packages/dev-config/oxlint.json`
-
-**CSS Linting:**
-
-- Uses biome (Rust-based, very fast)
-- Run with: `bun run lint:css` from dev-config package
-
-**JavaScript Formatting:**
-
-- Uses oxfmt (Rust-based, very fast)
-- Run with: `bun run format` from dev-config package
-
-Run JavaScript linting from the app package:
+Run all linters from the repository root:
 
 ```bash
-cd packages/app && bun run lint
-```
-
-Run CSS linting:
-
-```bash
-cd packages/dev-config && bun run lint:css
-```
-
-Run JavaScript formatting:
-
-```bash
-cd packages/dev-config && bun run format
+bun run lint
 ```
 
 ### Formatting Rules
 
-This project uses [oxfmt](https://github.com/oxc-project/oxfmt) for code
-formatting.
-
-Run formatting from the app package:
-
-```bash
-cd packages/app && bun run format
-```
-
-Or from the root:
+This project uses [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
+(`packages/dev-config/.oxfmtrc.json`) for every file type in the repo:
+Astro, JavaScript/TypeScript, CSS, JSON, Markdown and YAML. Astro support
+needs `@astrojs/compiler-rs` (Astro's Rust compiler), which is a root dev
+dependency. From the repository root:
 
 ```bash
-cd packages/app && bun run --cwd . format
+bun run format        # write changes
+bun run format:check  # verify only (used in CI)
 ```
 
 ## JavaScript Guidelines
@@ -637,43 +558,43 @@ cd packages/app && bun run --cwd . format
 
 ### Event Handling
 
-```astro
-<script is:inline>
-  const button = document.getElementById('my-button');
-  
-  button.addEventListener('click', (event) => {
-    event.preventDefault();
-    // Handle click
-    console.log('Button clicked');
-  });
-</script>
+Attach listeners in `connectedCallback()` and scope DOM queries to the
+component with `this.querySelector()`:
+
+```javascript
+connectedCallback() {
+  this.querySelector('button')?.addEventListener('click', () =>
+    this.handleClick()
+  );
+}
 ```
 
 ### Custom Events
 
-Dispatch custom events for component communication:
+Components communicate through bubbling custom events. Child components
+dispatch, parent components listen:
 
-```astro
-<script is:inline>
-  const container = document.getElementById('my-container');
-  
-  container.addEventListener('custom-event', (event) => {
-    console.log('Received:', event.detail);
-  });
-  
-  // Dispatch event
-  container.dispatchEvent(new CustomEvent('custom-event', {
-    detail: { data: 'value' },
-    bubbles: true
-  }));
-</script>
+```javascript
+// Child (e.g. <ev-locate-button>)
+this.dispatchEvent(
+  new CustomEvent("location-found", {
+    detail: { lat, lng },
+    bubbles: true,
+    composed: true,
+  })
+);
+
+// Parent (e.g. <ev-google-map>)
+this.addEventListener("location-found", (event) => {
+  this.map.setCenter(event.detail);
+});
 ```
 
 ## CSS Guidelines
 
 ### Global vs Component Styles
 
-- **Global styles**: Place in `src/styles/global.css`
+- **Global styles**: Place in `src/layouts/global.css`
 - **Component styles**: Place in component-specific `.css` files
 
 ### CSS Best Practices
@@ -691,61 +612,56 @@ Dispatch custom events for component communication:
 2. **Use BEM-like naming**:
 
    ```css
-   .button {}              /* Block */
-   .button--primary {}     /* Modifier */
-   .button__icon {}        /* Element */
+   .button {
+   } /* Block */
+   .button--primary {
+   } /* Modifier */
+   .button__icon {
+   } /* Element */
    ```
 
 3. **Avoid deep nesting**:
 
    ```css
    /* ❌ Bad */
-   .parent .child .grandchild {}
-   
+   .parent .child .grandchild {
+   }
+
    /* ✅ Good */
-   .grandchild {}
+   .grandchild {
+   }
    ```
 
 4. **Use utility classes** for common patterns:
 
    ```css
-   .text-center { text-align: center; }
-   .mt-4 { margin-top: 1.5rem; }
-   .flex { display: flex; }
+   .text-center {
+     text-align: center;
+   }
+   .mt-4 {
+     margin-top: 1.5rem;
+   }
+   .flex {
+     display: flex;
+   }
    ```
 
 ## Performance Considerations
-
-### Lazy Loading
-
-Use Astro's dynamic imports for code splitting:
-
-```astro
----
-const Module = await import('../heavy-module.js');
----
-```
 
 ### Image Optimization
 
 Use Astro's Image component or optimize images manually:
 
 ```astro
-<img
-  src={image}
-  width="800"
-  height="600"
-  alt="Description"
-  loading="lazy"
-/>
+<img src={image} width="800" height="600" alt="Description" loading="lazy" />
 ```
 
 ### Minimize Client-Side JavaScript
 
 - Use Astro for static content
-- Only hydrate what's necessary
-- Use `is:inline` for small scripts
-- Use `is:load` for scripts that can wait
+- Only add Web Components where behavior is needed
+- Load third-party scripts (e.g. Google Maps) on demand from the component
+  that needs them
 
 ## Accessibility
 

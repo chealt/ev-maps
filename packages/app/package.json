@@ -8,28 +8,23 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "lint": "oxlint src/**/*.{js,ts,astro}",
-    "lint:css": "biome lint src",
-    "format": "oxfmt src",
-    "format:check": "oxfmt --check src",
+    "lint": "oxlint -c ../dev-config/oxlint.json src tests",
+    "lint:css": "biome lint --config-path=../dev-config src",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check .",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20240117.0",
-    "astro": "^4.16.19",
-    "dotenv": "^18.0.10"
+    "astro": "^4.16.19"
   },
   "devDependencies": {
-    "@astrojs/cloudflare": "^10.0.0",
-    "@biomejs/biome": "^2.6.6",
-    "oxfmt": "^0.4.0",
-    "oxlint": "^0.4.0"
+    "@ev-maps/dev-config": "workspace:*",
+    "@playwright/test": "^1.65.0"
   },
   "engines": {
     "bun": ">=1.4.4",
     "node": ">=22.0.0"
-  },
-  "packageManager": "bun@1.4.4"
+  }
 }

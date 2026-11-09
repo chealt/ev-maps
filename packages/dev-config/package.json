@@ -2,18 +2,10 @@
   "name": "@ev-maps/dev-config",
   "version": "0.0.1",
   "private": true,
-  "description": "Shared dev configs for linting, formatting, and building",
+  "description": "Shared lint and format configuration (oxlint, oxfmt, Biome, rumdl)",
   "scripts": {
-    "lint": "oxlint *.json"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.6.6",
-    "oxfmt": "^0.4.0",
-    "oxlint": "^0.4.0"
-  },
-  "engines": {
-    "bun": ">=1.4.4",
-    "node": ">=22.0.0"
-  },
-  "packageManager": "bun@1.4.4"
+    "lint": "oxlint -c oxlint.json --no-error-on-unmatched-pattern . && biome lint --config-path=. . && rumdl check --deny-config-warnings --config .rumdl.toml .",
+    "format": "oxfmt -c .oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c .oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  }
 }

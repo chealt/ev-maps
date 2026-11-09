@@ -1,15 +1,16 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
-	"formatter": {
-		"enabled": false
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"preset": "recommended"
-		}
-	},
-	"files": {
-		"includes": ["**/*.css"]
-	}
+  "$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
+  "root": true,
+  "formatter": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "files": {
+    "includes": ["**/*.css"]
+  }
 }

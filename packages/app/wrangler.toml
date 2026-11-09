@@ -1,13 +1,5 @@
+# Cloudflare Pages project (static site). Deploy with:
+#   bunx wrangler pages deploy
 name = "ev-maps"
-compatibility_date = "2024-01-01"
-
-[site]
-bucket = "./dist"
-entry-point = "workers-types"
-
-[build]
-command = "bun run build"
-watch = { pattern = "**/*.{astro,js,css}", command = "bun run build" }
-
-[build.upload]
-format = "service-worker"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./dist"

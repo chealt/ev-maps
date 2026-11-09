@@ -10,12 +10,20 @@
     "dev": "bun run --cwd packages/app dev",
     "build": "bun run --cwd packages/app build",
     "preview": "bun run --cwd packages/app preview",
-    "lint": "bun run --cwd packages/dev-config lint",
-    "format": "bun run --cwd packages/dev-config format",
-    "format:check": "bun run --cwd packages/dev-config format:check"
+    "test": "bun run --cwd packages/app test",
+    "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run lint:md",
+    "lint:md": "rumdl check --deny-config-warnings --config packages/dev-config/.rumdl.toml .",
+    "format": "oxfmt -c packages/dev-config/.oxfmtrc.json .",
+    "format:check": "oxfmt -c packages/dev-config/.oxfmtrc.json --check .",
+    "format:md": "oxfmt -c packages/dev-config/.oxfmtrc.json \"**/*.md\"",
+    "format:md:check": "oxfmt -c packages/dev-config/.oxfmtrc.json --check \"**/*.md\""
   },
   "devDependencies": {
-    "bun": "^1.4.4"
+    "@astrojs/compiler-rs": "^0.5.3",
+    "@biomejs/biome": "^2.6.6",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "rumdl": "^0.3.2"
   },
   "engines": {
     "bun": ">=1.4.4",

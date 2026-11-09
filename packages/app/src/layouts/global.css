@@ -15,9 +15,11 @@
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-border: #e2e8f0;
-  
+  --color-surface-translucent: rgba(255, 255, 255, 0.9);
+
   /* Typography */
-  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -29,7 +31,7 @@
   --font-weight-medium: 500;
   --font-weight-bold: 700;
   --line-height-base: 1.6;
-  
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -37,33 +39,34 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-2xl: 3rem;
-  
+
   /* Borders */
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
   --border-width: 1px;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
+
   /* Opacity */
   --opacity-disabled: 0.6;
-  --opacity-background: 0.9;
-  
+
   /* Transitions */
   --transition-fast: 0.2s ease;
-  
+
   /* Layout */
   --container-max-width: 1200px;
   --container-padding: 2rem;
-  
+
   /* Map dimensions */
   --map-max-width: 800px;
   --map-height: 500px;
-  
+  --map-overlay-offset: 4rem;
+  --panel-width: 20rem;
+
   /* Z-indexes */
   --z-dropdown: 100;
   --z-sticky: 200;
