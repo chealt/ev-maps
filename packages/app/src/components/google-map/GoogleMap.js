@@ -7,6 +7,8 @@
  * - EV charger display and filtering
  */
 
+import { fetchEvChargers, fetchEvChargerDetails } from './api.js';
+
 export class GoogleMapElement extends HTMLElement {
   connectedCallback() {
     this.loadGoogleMapsAPI();
@@ -140,7 +142,8 @@ export class GoogleMapElement extends HTMLElement {
     try {
       const centerLat = parseFloat(this.dataset.centerLat || '0');
       const centerLng = parseFloat(this.dataset.centerLng || '0');
-      const evChargers = await fetchEvChargers(centerLat, centerLng);
+      const apiKey = this.getAttribute('data-api-key') || '';
+      const evChargers = await fetchEvChargers(centerLat, centerLng, apiKey);
       this.displayEvChargers(evChargers);
     } catch (error) {
       console.error('Error loading EV chargers:', error);
@@ -169,7 +172,8 @@ export class GoogleMapElement extends HTMLElement {
 
   async showChargerDetails(placeId) {
     try {
-      const details = await fetchEvChargerDetails(placeId);
+      const apiKey = this.getAttribute('data-api-key') || '';
+      const details = await fetchEvChargerDetails(placeId, apiKey);
       this.displayChargerDetails(details);
     } catch (error) {
       console.error('Error fetching charger details:', error);
