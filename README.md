@@ -173,6 +173,10 @@ rules.
 
 ## Contributing
 
+**Always create a pull request with your changes.** Never commit or push
+directly to `main`, even for small fixes or documentation updates, so every
+change can be reviewed before it's merged.
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes (following the guidelines above)
