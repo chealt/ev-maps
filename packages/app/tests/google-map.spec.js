@@ -1,33 +1,100 @@
-import { test, expect } from '@playwright/test';
+import { readFile } from "node:fs/promises";
+import { expect, test } from "@playwright/test";
 
-// Test GoogleMap component
+const fakeGoogleMaps = await readFile(new URL("./fixtures/fake-google-maps.js", import.meta.url));
 
-test('GoogleMap component loads', async ({ page }) => {
-  await page.goto('/');
-  const map = page.locator('ev-google-map');
-  await expect(map).toBeVisible();
+test.beforeEach(async ({ page }) => {
+  await page.route("https://maps.googleapis.com/maps/api/js?**", (route) =>
+    route.fulfill({ contentType: "text/javascript", body: fakeGoogleMaps })
+  );
+  await page.goto("/");
 });
 
-test('GoogleMap shows user location', async ({ page }) => {
-  await page.goto('/');
-  const locateButton = page.locator('.locate-button');
-  await locateButton.click();
-  const status = page.locator('.map-status');
-  await expect(status).toContainText('Location:');
+test("initializes the map with the configured center and map ID", async ({ page }) => {
+  await expect(page.locator("ev-google-map")).toBeVisible();
+  await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+
+  const options = await page.evaluate(() => window.__fakeMap.options);
+  expect(options.center).toEqual({ lat: 40.7128, lng: -74.006 });
+  expect(options.mapId).toBe("TEST_MAP_ID");
 });
 
-test('GoogleMap shows EV chargers', async ({ page }) => {
-  await page.goto('/');
-  const map = page.locator('ev-google-map');
-  await expect(map).toHaveAttribute('data-show-ev-chargers', 'true');
-  const markers = page.locator('.gm-marker');
-  await expect(markers).toHaveCountGreaterThan(0);
+test("shows EV charger markers", async ({ page }) => {
+  await expect(page.locator(".fake-marker")).toHaveCount(2);
+  const [request] = await page.evaluate(() => window.__searchRequests);
+  expect(request.includedTypes).toEqual(["electric_vehicle_charging_station"]);
+  expect(request.locationRestriction.radius).toBe(5000);
 });
 
-test('GoogleMap shows charger details', async ({ page }) => {
-  await page.goto('/');
-  const marker = page.locator('.gm-marker').first();
-  await marker.click();
-  const detailsPanel = page.locator('.charger-details');
-  await expect(detailsPanel).toBeVisible();
+test("shows charger details when a marker is clicked", async ({ page }) => {
+  await page.locator(".fake-marker").first().click();
+
+  const details = page.locator(".charger-details");
+  await expect(details).toBeVisible();
+  await expect(details.locator(".charger-details__name")).toHaveText("Downtown Supercharger");
+  await expect(details.locator(".charger-details__address")).toHaveText("1 Main St, New York");
+  await expect(details.locator(".charger-details__connectors")).toContainText(
+    "CCS COMBO 2: 4× · up to 150 kW, 2 available"
+  );
+  await expect(details.locator(".charger-details__hours")).toContainText("Monday: Open 24 hours");
+
+  await details.getByRole("button", { name: "Close" }).click();
+  await expect(details).toBeHidden();
+});
+
+test("renders charger data as text, not HTML", async ({ page }) => {
+  await page.locator(".fake-marker").nth(1).click();
+  await expect(page.locator(".charger-details__name")).toHaveText(
+    '<img src="x" onerror="window.__xss = true">'
+  );
+  expect(await page.evaluate(() => window.__xss)).toBeUndefined();
+});
+
+test.describe("with geolocation", () => {
+  test.use({
+    geolocation: { latitude: 47.4979, longitude: 19.0402 },
+    permissions: ["geolocation"],
+  });
+
+  test("centers the map on the user and searches there", async ({ page }) => {
+    await expect(page.locator(".fake-marker")).toHaveCount(2);
+    await page.getByRole("button", { name: "Locate Me" }).click();
+
+    await expect.poll(() => page.evaluate(() => window.__searchRequests.length)).toBe(2);
+    await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
+    const map = await page.evaluate(() => ({
+      center: window.__fakeMap.center,
+      zoom: window.__fakeMap.zoom,
+    }));
+    expect(map).toEqual({ center: { lat: 47.4979, lng: 19.0402 }, zoom: 14 });
+  });
+});
+
+test("reports a denied location permission", async ({ page }) => {
+  await page.addInitScript(() => {
+    navigator.geolocation.getCurrentPosition = (_success, error) => error({ code: 1, message: "" });
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Locate Me" }).click();
+  await expect(page.locator(".map-status")).toHaveText("Location permission denied");
+});
+
+test("filters toggle the panel and charger visibility", async ({ page }) => {
+  const filterButton = page.getByRole("button", { name: "Filters" });
+  const panel = page.locator(".filter-panel");
+
+  await expect(panel).toBeHidden();
+  await filterButton.click();
+  await expect(panel).toBeVisible();
+  await expect(filterButton).toHaveAttribute("aria-expanded", "true");
+
+  await expect(page.locator(".fake-marker")).toHaveCount(2);
+  await panel.getByLabel("Show EV chargers").uncheck();
+  await expect(page.locator(".fake-marker")).toHaveCount(0);
+
+  await panel.getByLabel("Search radius").selectOption("10000");
+  await panel.getByLabel("Show EV chargers").check();
+  await expect(page.locator(".fake-marker")).toHaveCount(2);
+  const requests = await page.evaluate(() => window.__searchRequests);
+  expect(requests.at(-1).locationRestriction.radius).toBe(10000);
 });
