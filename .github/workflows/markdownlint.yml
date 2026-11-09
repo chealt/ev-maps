@@ -1,0 +1,33 @@
+name: Markdown Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '.github/workflows/markdownlint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '.github/workflows/markdownlint.yml'
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install markdownlint
+        run: bun add -g markdownlint-cli
+
+      - name: Run markdownlint on all markdown files
+        run: |
+          # Find all markdown files excluding node_modules and run markdownlint
+          find . -name "*.md" -type f -not -path "./node_modules/*" -exec markdownlint {} \;
