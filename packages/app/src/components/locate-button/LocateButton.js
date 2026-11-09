@@ -9,6 +9,19 @@ const ERROR_MESSAGES = {
 export class LocateButtonElement extends HTMLElement {
   connectedCallback() {
     this.querySelector("button")?.addEventListener("click", () => this.handleClick());
+
+    if (this.hasAttribute("data-auto-locate")) {
+      this.locateIfPermitted();
+    }
+  }
+
+  async locateIfPermitted() {
+    const permission = await navigator.permissions
+      ?.query({ name: "geolocation" })
+      .catch(() => null);
+    if (permission?.state === "granted") {
+      this.handleClick();
+    }
   }
 
   handleClick() {

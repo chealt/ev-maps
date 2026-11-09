@@ -1,8 +1,14 @@
 ---
 import Button from "../button/Button.astro";
+
+interface Props {
+  autoLocate?: boolean;
+}
+
+const { autoLocate = false } = Astro.props;
 ---
 
-<ev-locate-button>
+<ev-locate-button data-auto-locate={autoLocate ? "" : undefined}>
   <Button variant="primary" class="locate-button">
     Locate Me
   </Button>
