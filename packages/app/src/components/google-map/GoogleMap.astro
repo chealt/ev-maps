@@ -1,33 +1,95 @@
 ---
+import Button from "../button/Button.astro";
+import LocateButton from "../locate-button/LocateButton.astro";
+import FilterButton from "../filter-button/FilterButton.astro";
+import "./GoogleMap.css";
+
 interface Props {
   apiKey?: string;
+  mapId?: string;
+  clientId?: string;
   centerLat?: number;
   centerLng?: number;
   zoom?: number;
+  locatedZoom?: number;
+  searchRadius?: number;
   showEvChargers?: boolean;
 }
 
-const { 
-  apiKey = '',
+const {
+  apiKey = "",
+  mapId = "DEMO_MAP_ID",
+  clientId = "",
   centerLat = 0,
   centerLng = 0,
   zoom = 12,
-  showEvChargers = true
+  locatedZoom = 14,
+  searchRadius = 5000,
+  showEvChargers = true,
 } = Astro.props;
 
-import LocateButton from '../locate-button/LocateButton.astro';
-import FilterButton from '../filter-button/FilterButton.astro';
-import './GoogleMap.css';
+const radiusOptions = [1000, 5000, 10000, 25000];
 ---
 
-<ev-google-map data-api-key={apiKey} data-center-lat={centerLat} data-center-lng={centerLng} data-zoom={zoom} data-show-ev-chargers={showEvChargers}>
+<ev-google-map
+  data-api-key={apiKey}
+  data-map-id={mapId}
+  data-client-id={clientId}
+  data-center-lat={centerLat}
+  data-center-lng={centerLng}
+  data-zoom={zoom}
+  data-located-zoom={locatedZoom}
+  data-search-radius={searchRadius}
+  data-show-ev-chargers={String(showEvChargers)}
+>
   <div class="google-map-container">
-    <div class="google-map" id="map"></div>
-    <div class="map-controls">
-      <LocateButton />
-      <FilterButton />
+    <div class="google-map" role="region" aria-label="EV charging station map"></div>
+
+    <div class="map-status" role="status" aria-live="polite">
+      {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
     </div>
-    <div class="map-status"></div>
+
+    {clientId && <div class="google-signin-button"></div>}
+
+    <div class="map-controls">
+      <Button variant="secondary" class="search-area-button">
+        Search this area
+      </Button>
+      <LocateButton />
+      <FilterButton controls="map-filter-panel" />
+    </div>
+
+    <form class="filter-panel" id="map-filter-panel" hidden>
+      <label class="filter-panel__field">
+        <input type="checkbox" name="showEvChargers" checked={showEvChargers} />
+        Show EV chargers
+      </label>
+      <label class="filter-panel__field">
+        Search radius
+        <select name="searchRadius">
+          {radiusOptions.map((radius) => (
+            <option value={radius} selected={radius === searchRadius}>
+              {radius / 1000} km
+            </option>
+          ))}
+        </select>
+      </label>
+    </form>
+
+    <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
+      <Button variant="secondary" size="small" class="charger-details__close" aria-label="Close">
+        ×
+      </Button>
+      <h2 class="charger-details__name" id="charger-details-name"></h2>
+      <p class="charger-details__address"></p>
+      <ul class="charger-details__connectors"></ul>
+      <ul class="charger-details__hours"></ul>
+      <img class="charger-details__photo" alt="" hidden />
+    </aside>
+
+    <template class="charger-details__item-template">
+      <li></li>
+    </template>
   </div>
-  <script src="/src/components/google-map/GoogleMap.js"></script>
+  <script src="./GoogleMap.js"></script>
 </ev-google-map>

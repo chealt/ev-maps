@@ -1,18 +1,30 @@
 ---
-import Map from './map/Map.astro';
-import { GOOGLE_MAPS_API_KEY } from '../env';
+import GoogleMap from "./google-map/GoogleMap.astro";
+import { appConfig } from "../config/app.config.js";
 
 interface Props {
   title?: string;
   subtitle?: string;
 }
 
-const { title = 'EV Maps', subtitle = 'Find electric vehicle charging stations near you' } = Astro.props;
+const { title = "EV Maps", subtitle = "Find electric vehicle charging stations near you" } =
+  Astro.props;
+const { googleMaps, evChargers } = appConfig;
 ---
 
 <main class="container">
   <h1>{title}</h1>
   <p class="subtitle">{subtitle}</p>
-  
-  <Map apiKey={GOOGLE_MAPS_API_KEY} />
+
+  <GoogleMap
+    apiKey={googleMaps.apiKey}
+    mapId={googleMaps.mapId}
+    clientId={googleMaps.clientId}
+    centerLat={googleMaps.defaultCenter.lat}
+    centerLng={googleMaps.defaultCenter.lng}
+    zoom={googleMaps.defaultZoom}
+    locatedZoom={googleMaps.locatedZoom}
+    searchRadius={evChargers.searchRadiusMeters}
+    showEvChargers={evChargers.enabled}
+  />
 </main>

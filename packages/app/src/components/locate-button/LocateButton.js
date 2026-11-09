@@ -1,54 +1,44 @@
-/**
- * LocateButton Web Component
- * Handles geolocation functionality for a button
- */
+const GEOLOCATION_TIMEOUT_MS = 10000;
+
+const ERROR_MESSAGES = {
+  1: "Location permission denied",
+  2: "Location unavailable",
+  3: "Location request timed out",
+};
+
 export class LocateButtonElement extends HTMLElement {
   connectedCallback() {
-    const button = this.querySelector("button");
-
-    if (button) {
-      button.addEventListener("click", () => this.handleClick());
-    }
+    this.querySelector("button")?.addEventListener("click", () => this.handleClick());
   }
 
   handleClick() {
-    this.dispatchEvent(
-      new CustomEvent("locate-start", {
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.emit("locate-start");
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => this.handleSuccess(position),
-        (error) => this.handleError(error),
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-    } else {
-      this.handleError(new Error("Geolocation not supported"));
+    if (!navigator.geolocation) {
+      this.handleError({ message: "Geolocation is not supported by this browser" });
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => this.handleSuccess(position),
+      (error) => this.handleError(error),
+      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS }
+    );
   }
 
-  handleSuccess(position) {
-    const coords = position.coords;
-    this.dispatchEvent(
-      new CustomEvent("location-found", {
-        detail: { lat: coords.latitude, lng: coords.longitude },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+  handleSuccess({ coords }) {
+    this.emit("location-found", { lat: coords.latitude, lng: coords.longitude });
   }
 
   handleError(error) {
-    this.dispatchEvent(
-      new CustomEvent("location-error", {
-        detail: error,
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.emit("location-error", {
+      code: error.code,
+      message: ERROR_MESSAGES[error.code] || error.message || "Unable to determine your location",
+    });
+  }
+
+  emit(type, detail) {
+    this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
   }
 }
 

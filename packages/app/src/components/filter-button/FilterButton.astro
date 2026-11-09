@@ -1,8 +1,16 @@
 ---
-import Button from '../button/Button.astro';
+import Button from "../button/Button.astro";
+
+interface Props {
+  controls?: string;
+}
+
+const { controls } = Astro.props;
 ---
 
 <ev-filter-button>
-  <Button variant="secondary">Filters</Button>
-  <script src="/src/components/filter-button/FilterButton.js"></script>
+  <Button variant="secondary" class="filter-button" aria-expanded="false" aria-controls={controls}>
+    Filters
+  </Button>
+  <script src="./FilterButton.js"></script>
 </ev-filter-button>

@@ -1,270 +1,268 @@
-/*
- * GoogleMap Web Component
- * Handles Google Maps integration with:
- * - Map initialization
- * - User location
- * - Google Sign-In for saved maps
- * - EV charger display and filtering
- */
+import { loadGoogleIdentity, loadGoogleMaps } from "./loader.js";
+import { fetchChargerDetails, searchEvChargers } from "./places.js";
 
-import { fetchEvChargers, fetchEvChargerDetails } from './api.js';
+const PHOTO_MAX_WIDTH = 400;
 
-// Global callback for Google Maps API
-// Must be defined before any Google Maps API script is loaded
-window.initMap = function() {
-  const mapElement = document.querySelector('ev-google-map');
-  if (mapElement && typeof mapElement.initMap === 'function') {
-    mapElement.initMap();
-  }
-};
+function formatConnector({ type, count, availableCount, maxChargeRateKw }) {
+  const name = String(type ?? "Unknown")
+    .replace(/^EV_CONNECTOR_TYPE_/, "")
+    .replaceAll("_", " ");
+  const availability = availableCount == null ? "" : `, ${availableCount} available`;
+  const power = maxChargeRateKw ? ` · up to ${maxChargeRateKw} kW` : "";
+  return `${name}: ${count}×${power}${availability}`;
+}
+
+function decodeJwtPayload(token) {
+  const base64 = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
 
 export class GoogleMapElement extends HTMLElement {
-  connectedCallback() {
-    this.loadGoogleMapsAPI();
-    this.setupEventListeners();
-  }
+  map = null;
+  maps = null;
+  markers = [];
+  searchId = 0;
 
-  loadGoogleMapsAPI() {
-    const apiKey = this.getAttribute('data-api-key');
+  connectedCallback() {
+    this.statusEl = this.querySelector(".map-status");
+    this.mapEl = this.querySelector(".google-map");
+    this.filterPanel = this.querySelector(".filter-panel");
+    this.detailsPanel = this.querySelector(".charger-details");
+
+    this.setupEventListeners();
+
+    const apiKey = this.dataset.apiKey;
     if (!apiKey) {
-      console.error('Google Maps API key is required');
       return;
     }
 
-    const centerLat = parseFloat(this.getAttribute('data-center-lat') || '0');
-    const centerLng = parseFloat(this.getAttribute('data-center-lng') || '0');
-    const zoom = parseInt(this.getAttribute('data-zoom') || '12');
-    const showEvChargers = this.getAttribute('data-show-ev-chargers') === 'true';
+    loadGoogleMaps(apiKey)
+      .then((maps) => this.initMap(maps))
+      .catch((error) => {
+        console.error(error);
+        this.setStatus("Failed to load Google Maps");
+      });
 
-    // Store configuration on the element
-    this.dataset.centerLat = centerLat;
-    this.dataset.centerLng = centerLng;
-    this.dataset.zoom = zoom;
-    this.dataset.showEvChargers = showEvChargers;
+    if (this.dataset.clientId) {
+      loadGoogleIdentity()
+        .then((accounts) => this.initializeGoogleSignIn(accounts))
+        .catch((error) => console.error(error));
+    }
+  }
 
-    // Load Google Maps API
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initMap`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+  get showEvChargers() {
+    return this.dataset.showEvChargers === "true";
+  }
+
+  get searchRadius() {
+    return Number(this.dataset.searchRadius) || 5000;
   }
 
   setupEventListeners() {
-    // Listen for location events from locate button
-    this.addEventListener('locate-start', () => this.handleLocateStart());
-    this.addEventListener('location-found', (event) => this.handleLocationFound(event));
-    this.addEventListener('location-error', (event) => this.handleLocationError(event));
-    
-    // Listen for filter events
-    this.addEventListener('filter-click', () => this.handleFilterClick());
+    this.addEventListener("locate-start", () => this.setStatus("Locating..."));
+    this.addEventListener("location-found", (event) => this.handleLocationFound(event));
+    this.addEventListener("location-error", (event) =>
+      this.setStatus(event.detail?.message || "Unable to determine your location")
+    );
+    this.addEventListener("toggle-filters", () => this.toggleFilters());
+
+    this.querySelector(".search-area-button")?.addEventListener("click", () =>
+      this.loadEvChargers()
+    );
+    this.querySelector(".charger-details__close")?.addEventListener("click", () =>
+      this.hideChargerDetails()
+    );
+    this.filterPanel?.addEventListener("submit", (event) => event.preventDefault());
+    this.filterPanel?.addEventListener("change", () => this.handleFilterChange());
   }
 
-  handleLocateStart() {
-    const statusEl = this.querySelector('.map-status');
-    if (statusEl) {
-      statusEl.textContent = 'Locating...';
+  setStatus(message) {
+    if (this.statusEl) {
+      this.statusEl.textContent = message;
+    }
+  }
+
+  async initMap(maps) {
+    const { Map } = await maps.importLibrary("maps");
+    this.maps = maps;
+    this.map = new Map(this.mapEl, {
+      center: {
+        lat: Number(this.dataset.centerLat) || 0,
+        lng: Number(this.dataset.centerLng) || 0,
+      },
+      zoom: Number(this.dataset.zoom) || 12,
+      mapId: this.dataset.mapId || "DEMO_MAP_ID",
+      gestureHandling: "greedy",
+      fullscreenControl: false,
+      streetViewControl: false,
+    });
+
+    if (this.showEvChargers) {
+      await this.loadEvChargers();
     }
   }
 
   handleLocationFound(event) {
-    const statusEl = this.querySelector('.map-status');
-    if (statusEl && event.detail) {
-      statusEl.textContent = `Location: ${event.detail.lat.toFixed(4)}, ${event.detail.lng.toFixed(4)}`;
-    }
-    
-    // Center map on user location
-    if (window.googleMap) {
-      window.googleMap.setCenter({
-        lat: event.detail.lat,
-        lng: event.detail.lng
-      });
-      window.googleMap.setZoom(15);
-    }
-  }
+    const { lat, lng } = event.detail;
+    this.setStatus(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
 
-  handleLocationError(event) {
-    const statusEl = this.querySelector('.map-status');
-    if (statusEl) {
-      statusEl.textContent = event.detail?.message || 'Error locating';
+    if (this.map) {
+      this.map.setCenter({ lat, lng });
+      this.map.setZoom(Number(this.dataset.locatedZoom) || 14);
+      this.loadEvChargers();
     }
-  }
-
-  handleFilterClick() {
-    const statusEl = this.querySelector('.map-status');
-    if (statusEl) {
-      statusEl.textContent = 'Showing filters';
-    }
-    // Toggle filter panel
-    this.toggleFilters();
   }
 
   toggleFilters() {
-    // Show/hide filter panel
-    const filterPanel = this.querySelector('.filter-panel');
-    if (filterPanel) {
-      filterPanel.classList.toggle('visible');
-    }
-  }
-
-  // Initialize map (called by Google Maps API callback)
-  initMap() {
-    const mapDiv = this.querySelector('.google-map');
-    if (!mapDiv || !window.google || !window.google.maps) {
+    if (!this.filterPanel) {
       return;
     }
-
-    const centerLat = parseFloat(this.dataset.centerLat || '0');
-    const centerLng = parseFloat(this.dataset.centerLng || '0');
-    const zoom = parseInt(this.dataset.zoom || '12');
-
-    window.googleMap = new window.google.maps.Map(mapDiv, {
-      center: { lat: centerLat, lng: centerLng },
-      zoom: zoom,
-      gestureHandling: 'greedy',
-      fullscreenControl: false,
-      mapTypeControl: true,
-      streetViewControl: false,
-      styles: this.getMapStyles()
-    });
-
-    // Load EV chargers if enabled
-    if (this.dataset.showEvChargers === 'true') {
-      this.loadEvChargers();
-    }
-
-    // Setup Google Sign-In
-    this.setupGoogleSignIn();
-  }
-
-  getMapStyles() {
-    return [
-      {
-        featureType: 'poi',
-        elementType: 'labels',
-        stylers: [{ visibility: 'on' }]
-      }
-    ];
-  }
-
-  async loadEvChargers() {
-    try {
-      const centerLat = parseFloat(this.dataset.centerLat || '0');
-      const centerLng = parseFloat(this.dataset.centerLng || '0');
-      const apiKey = this.getAttribute('data-api-key') || '';
-      const evChargers = await fetchEvChargers(centerLat, centerLng, apiKey);
-      this.displayEvChargers(evChargers);
-    } catch (error) {
-      console.error('Error loading EV chargers:', error);
-    }
-  }
-
-  displayEvChargers(evChargers) {
-    if (!window.googleMap) return;
-
-    evChargers.forEach(charger => {
-      const marker = new window.google.maps.Marker({
-        position: {
-          lat: charger.geometry.location.lat,
-          lng: charger.geometry.location.lng
-        },
-        map: window.googleMap,
-        title: charger.name
-      });
-
-      // Add click event to show details
-      marker.addListener('click', () => {
-        this.showChargerDetails(charger.place_id);
-      });
-    });
-  }
-
-  async showChargerDetails(placeId) {
-    try {
-      const apiKey = this.getAttribute('data-api-key') || '';
-      const details = await fetchEvChargerDetails(placeId, apiKey);
-      this.displayChargerDetails(details);
-    } catch (error) {
-      console.error('Error fetching charger details:', error);
-    }
-  }
-
-  displayChargerDetails(details) {
-    // Display charger details in a panel
-    const detailsPanel = this.querySelector('.charger-details');
-    if (detailsPanel) {
-      detailsPanel.innerHTML = `
-        <h3>${details.name}</h3>
-        <p>${details.formatted_address}</p>
-        ${details.opening_hours ? `<p>Hours: ${details.opening_hours.weekday_text.join('<br>')}</p>` : ''}
-        ${details.photos ? `<img src="https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${details.photos[0].photo_reference}&key=${this.getAttribute('data-api-key')}" alt="${details.name}">` : ''}
-      `;
-      detailsPanel.classList.add('visible');
-    }
-  }
-
-  setupGoogleSignIn() {
-    // Load Google Identity Services for sign-in
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => this.initializeGoogleSignIn();
-    document.head.appendChild(script);
-  }
-
-  initializeGoogleSignIn() {
-    if (!window.google || !window.google.accounts) {
-      return;
-    }
-
-    // Initialize Google Sign-In
-    window.google.accounts.id.initialize({
-      client_id: this.getAttribute('data-client-id') || '',
-      callback: (response) => this.handleGoogleSignIn(response),
-      auto_select: false,
-      cancel_on_tap_outside: false
-    });
-
-    // Render sign-in button
-    window.google.accounts.id.renderButton(
-      this.querySelector('.google-signin-button') || this,
-      { theme: 'outline', size: 'medium', type: 'standard' }
+    this.filterPanel.hidden = !this.filterPanel.hidden;
+    this.querySelector(".filter-button")?.setAttribute(
+      "aria-expanded",
+      String(!this.filterPanel.hidden)
     );
   }
 
-  handleGoogleSignIn(response) {
-    // Handle successful sign-in
-    console.log('Google Sign-In successful:', response);
-    this.loadUserMaps(response.credential);
+  handleFilterChange() {
+    const form = new FormData(this.filterPanel);
+    this.dataset.searchRadius = form.get("searchRadius");
+    this.toggleEvChargers(form.has("showEvChargers"));
   }
 
-  async loadUserMaps(accessToken) {
-    // Load user's saved maps from Google Maps API
-    // This requires the Google Maps JavaScript API with the Places library
-    try {
-      // Example: Get user's saved places
-      // Note: This requires additional OAuth scopes and API setup
-      console.log('Loading user maps...');
-    } catch (error) {
-      console.error('Error loading user maps:', error);
+  toggleEvChargers(show) {
+    this.dataset.showEvChargers = String(show);
+    if (show) {
+      this.loadEvChargers();
+    } else {
+      this.clearMarkers();
+      this.hideChargerDetails();
     }
   }
 
-  // Public method to load a specific map/list
-  loadMap(mapId) {
-    // Load a specific saved map by ID
-    console.log('Loading map:', mapId);
+  async loadEvChargers() {
+    if (!this.map || !this.showEvChargers) {
+      return;
+    }
+    const searchId = ++this.searchId;
+    this.setStatus("Searching for EV chargers...");
+
+    try {
+      const center = this.map.getCenter().toJSON();
+      const chargers = await searchEvChargers(this.maps, center, this.searchRadius);
+      if (searchId !== this.searchId) {
+        return;
+      }
+      await this.displayEvChargers(chargers);
+      this.setStatus(
+        chargers.length ? `${chargers.length} EV chargers found` : "No EV chargers found nearby"
+      );
+    } catch (error) {
+      console.error("Error loading EV chargers:", error);
+      this.setStatus("Could not load EV chargers");
+    }
   }
 
-  // Public method to toggle EV chargers
-  toggleEvChargers(show) {
-    this.dataset.showEvChargers = show;
-    // Reload EV chargers based on new setting
-    if (show) {
-      this.loadEvChargers();
+  clearMarkers() {
+    for (const marker of this.markers) {
+      marker.map = null;
+    }
+    this.markers = [];
+  }
+
+  async displayEvChargers(chargers) {
+    const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
+    this.clearMarkers();
+    this.markers = chargers.map((charger) => {
+      const marker = new AdvancedMarkerElement({
+        map: this.map,
+        position: charger.location,
+        title: charger.displayName ?? "EV charger",
+        gmpClickable: true,
+      });
+      marker.addEventListener("gmp-click", () => this.showChargerDetails(charger));
+      return marker;
+    });
+  }
+
+  async showChargerDetails(charger) {
+    try {
+      this.displayChargerDetails(await fetchChargerDetails(charger));
+    } catch (error) {
+      console.error("Error fetching charger details:", error);
+      this.setStatus("Could not load charger details");
+    }
+  }
+
+  fillList(list, items) {
+    const template = this.querySelector(".charger-details__item-template");
+    list.replaceChildren(
+      ...items.map((text) => {
+        const item = template.content.firstElementChild.cloneNode(true);
+        item.textContent = text;
+        return item;
+      })
+    );
+  }
+
+  displayChargerDetails(details) {
+    const panel = this.detailsPanel;
+    if (!panel) {
+      return;
+    }
+    panel.querySelector(".charger-details__name").textContent = details.displayName ?? "";
+    panel.querySelector(".charger-details__address").textContent = details.formattedAddress ?? "";
+    this.fillList(
+      panel.querySelector(".charger-details__connectors"),
+      (details.evChargeOptions?.connectorAggregations ?? []).map(formatConnector)
+    );
+    this.fillList(
+      panel.querySelector(".charger-details__hours"),
+      details.regularOpeningHours?.weekdayDescriptions ?? []
+    );
+
+    const photoEl = panel.querySelector(".charger-details__photo");
+    const photo = details.photos?.[0];
+    photoEl.hidden = !photo;
+    photoEl.src = photo ? photo.getURI({ maxWidth: PHOTO_MAX_WIDTH }) : "";
+    photoEl.alt = photo ? (details.displayName ?? "") : "";
+
+    panel.hidden = false;
+  }
+
+  hideChargerDetails() {
+    if (this.detailsPanel) {
+      this.detailsPanel.hidden = true;
+    }
+  }
+
+  initializeGoogleSignIn(accounts) {
+    const container = this.querySelector(".google-signin-button");
+    if (!accounts?.id || !container) {
+      return;
+    }
+    accounts.id.initialize({
+      client_id: this.dataset.clientId,
+      callback: (response) => this.handleGoogleSignIn(response),
+      auto_select: false,
+      cancel_on_tap_outside: false,
+    });
+    accounts.id.renderButton(container, { theme: "outline", size: "medium", type: "standard" });
+  }
+
+  handleGoogleSignIn({ credential }) {
+    try {
+      const { name, email } = decodeJwtPayload(credential);
+      this.setStatus(`Signed in as ${name || email}`);
+      this.querySelector(".google-signin-button").hidden = true;
+      this.dispatchEvent(
+        new CustomEvent("google-sign-in", { detail: { name, email, credential }, bubbles: true })
+      );
+    } catch (error) {
+      console.error("Invalid Google Sign-In response:", error);
     }
   }
 }
 
-customElements.define('ev-google-map', GoogleMapElement);
+customElements.define("ev-google-map", GoogleMapElement);
