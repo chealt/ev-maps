@@ -1,190 +1,158 @@
 # EV Maps
 
-A modern web application for displaying EV charging stations, built with
-**Astro** for templating and **Web Components** for interactivity.
+A web application for finding EV charging stations, built with **Astro** for
+templating and **Web Components** for interactivity.
 
 ## Tech Stack
 
 - **Runtime**: [Bun](https://bun.sh/) (required)
-- **Framework**: [Astro v4](https://astro.build/) (templating)
-- **Components**: Native Web Components (interactivity)
-- **Styling**: Vanilla CSS
-- **Linting**: [oxlint](https://github.com/oxc-project/oxlint)
-- **Formatting**: [oxfmt](https://github.com/oxc-project/oxfmt)
+- **Framework**: [Astro v4](https://astro.build/) (static output)
+- **Components**: Native Web Components (behavior only, no shadow DOM)
+- **Maps**: Google Maps JavaScript API + Places API (New)
+- **Styling**: Vanilla CSS with native nesting
+- **Linting** (all Rust): [oxlint](https://oxc.rs/docs/guide/usage/linter)
+  (JS), [Biome](https://biomejs.dev/) (CSS), [rumdl](https://rumdl.dev/)
+  (Markdown)
+- **Formatting** (Rust): [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
+  for all files, including `.astro` via `@astrojs/compiler-rs`
+- **Testing**: [Playwright](https://playwright.dev/)
 - **Deployment**: [Cloudflare Pages](https://pages.cloudflare.com/)
-- **Language**: JavaScript (ES Modules)
 
 ## Project Structure
 
 ```text
 ev-maps/
 ├── packages/
-│   ├── dev-config/              # Shared development configs
-│   │   ├── oxlint.json           # Linting configuration
-│   │   ├── oxfmt.json            # Formatting configuration
-│   │   └── package.json
-│   └── app/                      # Main application
-│       ├── astro.config.mjs      # Astro configuration
-│       ├── wrangler.toml         # Cloudflare configuration
+│   ├── dev-config/                  # Shared tool configs
+│   │   ├── .oxfmtrc.json
+│   │   ├── .rumdl.toml
+│   │   ├── biome.json
+│   │   └── oxlint.json
+│   └── app/                         # Main application
+│       ├── astro.config.mjs
+│       ├── playwright.config.js
+│       ├── wrangler.toml            # Cloudflare Pages config
+│       ├── .env.example
 │       ├── src/
 │       │   ├── components/
-│       │   │   ├── MapApp.js     # Web Component logic
-│       │   │   ├── MapApp.html   # Web Component HTML template
-│       │   │   └── MapApp.css    # Web Component styles
-│       │   ├── layouts/
-│       │   │   └── Layout.astro  # Base layout template
-│       │   ├── pages/
-│       │   │   ├── index.astro   # Main page
-│       │   │   └── index.css     # Page-specific styles
-│       │   └── styles/
-│       │       └── global.css    # Global styles
-│       └── package.json
-├── .github/
-│   └── workflows/
-│       ├── dev-config.yml        # CI for dev-config package
-│       ├── app.yml              # CI for app package
-│       └── monorepo.yml         # Root-level CI
-├── package.json                  # Root workspace
-└── README.md
+│       │   │   ├── HomePage.astro
+│       │   │   ├── button/          # Generic button (Astro only)
+│       │   │   ├── filter-button/   # <ev-filter-button>
+│       │   │   ├── google-map/      # <ev-google-map> + Maps/Places helpers
+│       │   │   └── locate-button/   # <ev-locate-button>
+│       │   ├── config/app.config.js # Map defaults and env-based settings
+│       │   ├── layouts/             # Layout.astro + global.css
+│       │   └── pages/index.astro
+│       └── tests/                   # Playwright tests (Google Maps is faked)
+├── .github/workflows/ci.yml         # Lint, format, build and test
+├── docs/DEVELOPMENT_GUIDELINES.md
+└── package.json                     # Workspace root (tooling lives here)
 ```
-
-## Development Guidelines
-
-For detailed development guidelines, best practices, and coding standards,
-please see:
-
-📖 **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)**
-
-This includes:
-
-- Component architecture patterns
-- File organization standards
-- Code quality requirements
-- Performance considerations
-- Accessibility guidelines
-- Commit message conventions
-- Pull request guidelines
-
-## Setup
-
-1. Clone the repository
-2. Install dependencies with `bun install`
-3. Create a `.env` file in the root directory and add your Google Maps API
-   key:
-
-   ```bash
-   GOOGLE_MAPS_API_KEY=your_api_key_here
-   ```
-
-4. Run the development server with `bun run dev`
-
-## Testing
-
-Run tests with `bun run test`
 
 ## Getting Started
 
 ### Prerequisites
 
-1. Install [Bun](https://bun.sh/):
+- [Bun](https://bun.sh/) 1.4.4+: `curl -fsSL https://bun.sh/install | bash`
+- [Node.js](https://nodejs.org/) 22+
 
-   ```bash
-   curl -fsSL https://bun.sh/install | bash
-   ```
+### Setup
 
-2. Install [Node.js LTS](https://nodejs.org/) (v20+):
-
-   ```bash
-   # Using nvm
-   nvm install 20
-   nvm use 20
-   ```
-
-3. Clone the repository:
+1. Clone the repository and install dependencies:
 
    ```bash
    git clone git@github.com:chealt/ev-maps.git
    cd ev-maps
+   bun install
    ```
 
-### Install Dependencies
+2. Copy `packages/app/.env.example` to `packages/app/.env` and set your
+   Google Maps API key:
 
-```bash
-bun install
-```
+   ```bash
+   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
 
-### Development
+   The key needs the **Maps JavaScript API** and **Places API (New)**
+   enabled. It is embedded in the generated page, so restrict it to your
+   site's HTTP referrers in the Google Cloud console.
 
-```bash
-bun run dev
-```
+   Optional settings:
 
-This starts the Astro development server at `http://localhost:4321/`.
+   - `VITE_GOOGLE_MAPS_MAP_ID`: a Map ID for advanced markers (defaults to
+     Google's `DEMO_MAP_ID`)
+   - `VITE_GOOGLE_CLIENT_ID`: an OAuth client ID to show a
+     "Sign in with Google" button
 
-### Build
+3. Start the development server at `http://localhost:4321/`:
 
-```bash
-bun run build
-```
-
-Builds the production-ready app in `packages/app/dist/`.
-
-### Lint
-
-```bash
-bun run lint
-```
-
-### Format
-
-```bash
-bun run format
-```
+   ```bash
+   bun run dev
+   ```
 
 ## Scripts
 
-| Script                 | Description              |
-| ---------------------- | ------------------------ |
-| `bun run dev`          | Start development server |
-| `bun run build`        | Build for production     |
-| `bun run preview`      | Preview production build |
-| `bun run lint`         | Run linter               |
-| `bun run format`       | Format code              |
-| `bun run format:check` | Check formatting         |
+Run from the repository root:
+
+| Script                 | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `bun run dev`          | Start development server                      |
+| `bun run build`        | Build for production into `packages/app/dist` |
+| `bun run preview`      | Preview production build                      |
+| `bun run test`         | Run Playwright tests                          |
+| `bun run lint`         | Lint JS, CSS and Markdown                     |
+| `bun run lint:md`      | Lint Markdown only                            |
+| `bun run format`       | Format code                                   |
+| `bun run format:check` | Check formatting                              |
+
+Before running tests for the first time, install the browser:
+
+```bash
+cd packages/app && bunx playwright install chromium
+```
+
+Tests replace the Google Maps script with a local fake
+(`tests/fixtures/fake-google-maps.js`), so they need neither an API key nor
+network access.
 
 ## Deployment
 
 ### Cloudflare Pages
 
-1. Connect your GitHub repository to Cloudflare Pages
-2. Use the following build settings:
-   - Build command: `bun run build`
-   - Build output directory: `packages/app/dist`
+Connect the repository to Cloudflare Pages with these build settings:
 
-### Manual Deployment
+- Build command: `bun run build`
+- Build output directory: `packages/app/dist`
+- Environment variable: `VITE_GOOGLE_MAPS_API_KEY` (plus the optional ones
+  above)
+
+Or deploy manually:
 
 ```bash
-cd packages/app
 bun run build
-# Upload the dist/ folder to your hosting provider
+cd packages/app && bunx wrangler pages deploy
 ```
 
-## Architecture
+### CI
 
-- **Astro**: Handles static page generation and templating
-- **Web Components**: Provide client-side interactivity
-- **CSS**: Vanilla CSS with modern features (CSS Grid, Flexbox, etc.)
-- **Cloudflare**: Optimized for deployment on Cloudflare's edge network
+`.github/workflows/ci.yml` runs linting, format checks, the build and the
+Playwright tests. To build with a real key in CI, add a
+`VITE_GOOGLE_MAPS_API_KEY` repository secret.
+
+## Development Guidelines
+
+See **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** for
+component architecture, CSS conventions, code quality and commit message
+rules.
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes (following the guidelines above)
-4. Run `bun run lint` and `bun run format`
-5. Commit your changes
-6. Push to your fork
-7. Open a pull request
+4. Run `bun run lint`, `bun run format` and `bun run test`
+5. Commit your changes using Conventional Commits
+6. Open a pull request
 
 ## License
 
