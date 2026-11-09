@@ -44,10 +44,7 @@ ev-maps/
 │       │   ├── layouts/             # Layout.astro + global.css
 │       │   └── pages/index.astro
 │       └── tests/                   # Playwright tests (Google Maps is faked)
-├── .github/workflows/
-│   ├── app.yml                      # CI for packages/app
-│   ├── dev-config.yml               # CI for packages/dev-config
-│   └── markdownlint.yml             # CI for root docs
+├── .github/workflows/app.yml         # CI/CD for the app artifact
 ├── docs/DEVELOPMENT_GUIDELINES.md
 └── package.json                     # Workspace root (tooling lives here)
 ```
@@ -140,25 +137,30 @@ cd packages/app && bunx wrangler pages deploy
 
 ## CI
 
-CI is **workspace specific**: every workspace has its own workflow in
-`.github/workflows/`, and that workflow includes everything the workspace
-needs from CI. Don't add a shared, repo-wide CI workflow.
+Only **artifacts** get a workflow. An artifact is something this repo builds
+and ships, such as the app deployed to Cloudflare Pages. Each artifact's
+workflow includes everything that artifact needs from CI.
 
-Rules for workspace workflows:
+- Don't add workflows for checks that aren't an artifact. For example, there
+  is no workflow for linting Markdown in general. A Markdown lint workflow
+  would only make sense if the linter itself were an artifact we build and
+  ship.
+- Packages that support an artifact, such as `packages/dev-config`, don't get
+  their own workflow. Instead, the artifact's workflow runs when they change.
+- Name the workflow after the artifact (`packages/app` uses `app.yml`).
+- Trigger it with `paths` filters on the artifact, everything it depends on
+  (e.g. `packages/dev-config`, the root `package.json` and `bun.lock`) and the
+  workflow file itself.
+- Run the artifact's own scripts with `working-directory` set to its package.
 
-- Name the workflow after the workspace (`packages/app` uses `app.yml`).
-- Trigger it with `paths` filters on the workspace itself, on everything it
-  depends on (other workspaces such as `packages/dev-config`, the root
-  `package.json` and `bun.lock`) and on the workflow file.
-- Run the workspace's own scripts with `working-directory` set to the
-  workspace.
-- When you add a new workspace, add its workflow in the same pull request.
+Currently there is one workflow:
 
-| Workflow           | Covers                | Runs                                                                       |
-| ------------------ | --------------------- | -------------------------------------------------------------------------- |
-| `app.yml`          | `packages/app`        | JS and CSS lint, CSS variable check, format check, build, Playwright tests |
-| `dev-config.yml`   | `packages/dev-config` | Validates each tool config, format check                                   |
-| `markdownlint.yml` | Root docs (`*.md`)    | Markdown lint and format check                                             |
+| Workflow  | Artifact       | Runs                                                                       |
+| --------- | -------------- | -------------------------------------------------------------------------- |
+| `app.yml` | `packages/app` | JS and CSS lint, CSS variable check, format check, build, Playwright tests |
+
+Checks that aren't part of an artifact, such as linting root Markdown, run
+locally with `bun run lint` and `bun run format:check`.
 
 To build the app with a real key in CI, add a `VITE_GOOGLE_MAPS_API_KEY`
 repository secret.
