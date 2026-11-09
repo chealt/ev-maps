@@ -1,0 +1,6 @@
+# rumdl - Markdown linter (markdownlint-compatible rules)
+# https://rumdl.dev
+
+[global]
+line-length = 80
+respect-gitignore = true
