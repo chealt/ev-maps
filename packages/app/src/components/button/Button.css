@@ -16,7 +16,7 @@
   }
 
   /* Variants */
-  &--primary {
+  &:is(.button--primary) {
     background-color: var(--color-primary);
     color: var(--color-surface);
 
@@ -25,7 +25,7 @@
     }
   }
 
-  &--secondary {
+  &:is(.button--secondary) {
     background-color: var(--color-background);
     color: var(--color-text);
     border: var(--border-width) solid var(--color-border);
@@ -35,7 +35,7 @@
     }
   }
 
-  &--danger {
+  &:is(.button--danger) {
     background-color: var(--color-danger);
     color: var(--color-surface);
 
@@ -45,17 +45,17 @@
   }
 
   /* Sizes */
-  &--small {
+  &:is(.button--small) {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: var(--font-size-sm);
   }
 
-  &--medium {
+  &:is(.button--medium) {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-base);
   }
 
-  &--large {
+  &:is(.button--large) {
     padding: var(--spacing-md) var(--spacing-xl);
     font-size: var(--font-size-lg);
   }
