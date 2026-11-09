@@ -1,14 +1,34 @@
-name: CI
+name: App
 
+# Everything packages/app needs from CI. Runs when the app or anything it
+# depends on changes: shared tool configs, root tooling and the lockfile.
 on:
   push:
     branches: [main]
+    paths:
+      - "packages/app/**"
+      - "packages/dev-config/**"
+      - "package.json"
+      - "bun.lock"
+      - ".gitignore"
+      - ".github/workflows/app.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "packages/app/**"
+      - "packages/dev-config/**"
+      - "package.json"
+      - "bun.lock"
+      - ".gitignore"
+      - ".github/workflows/app.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages/app
 
 jobs:
   check:
@@ -24,21 +44,18 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Lint JavaScript
-        run: bun run --cwd packages/app lint
+        run: bun run lint
 
       - name: Lint CSS
-        run: bun run --cwd packages/app lint:css
+        run: bun run lint:css
 
       - name: Check for hardcoded CSS values
         run: |
           # Design tokens live in global.css; component CSS must use variables.
-          if grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9.]+(px|rem)\b" packages/app/src/components --include="*.css"; then
+          if grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9.]+(px|rem)\b" src/components --include="*.css"; then
             echo "::error::Hardcoded colors or px/rem values found in component CSS. Use CSS variables from global.css instead."
             exit 1
           fi
-
-      - name: Lint Markdown
-        run: bun run lint:md
 
       - name: Check formatting
         run: bun run format:check
@@ -55,7 +72,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build app
+      - name: Build
         run: bun run build
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
@@ -81,7 +98,6 @@ jobs:
 
       - name: Install Playwright browser
         run: bunx playwright install --with-deps chromium
-        working-directory: packages/app
 
       - name: Run tests
         run: bun run test

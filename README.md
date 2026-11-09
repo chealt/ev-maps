@@ -44,7 +44,10 @@ ev-maps/
 │       │   ├── layouts/             # Layout.astro + global.css
 │       │   └── pages/index.astro
 │       └── tests/                   # Playwright tests (Google Maps is faked)
-├── .github/workflows/ci.yml         # Lint, format, build and test
+├── .github/workflows/
+│   ├── app.yml                      # CI for packages/app
+│   ├── dev-config.yml               # CI for packages/dev-config
+│   └── markdownlint.yml             # CI for root docs
 ├── docs/DEVELOPMENT_GUIDELINES.md
 └── package.json                     # Workspace root (tooling lives here)
 ```
@@ -94,16 +97,18 @@ ev-maps/
 
 Run from the repository root:
 
-| Script                 | Description                                   |
-| ---------------------- | --------------------------------------------- |
-| `bun run dev`          | Start development server                      |
-| `bun run build`        | Build for production into `packages/app/dist` |
-| `bun run preview`      | Preview production build                      |
-| `bun run test`         | Run Playwright tests                          |
-| `bun run lint`         | Lint JS, CSS and Markdown                     |
-| `bun run lint:md`      | Lint Markdown only                            |
-| `bun run format`       | Format code                                   |
-| `bun run format:check` | Check formatting                              |
+| Script                    | Description                                   |
+| ------------------------- | --------------------------------------------- |
+| `bun run dev`             | Start development server                      |
+| `bun run build`           | Build for production into `packages/app/dist` |
+| `bun run preview`         | Preview production build                      |
+| `bun run test`            | Run Playwright tests                          |
+| `bun run lint`            | Lint JS, CSS and Markdown                     |
+| `bun run lint:md`         | Lint Markdown only                            |
+| `bun run format`          | Format code                                   |
+| `bun run format:check`    | Check formatting                              |
+| `bun run format:md`       | Format Markdown only                          |
+| `bun run format:md:check` | Check Markdown formatting only                |
 
 Before running tests for the first time, install the browser:
 
@@ -133,11 +138,30 @@ bun run build
 cd packages/app && bunx wrangler pages deploy
 ```
 
-### CI
+## CI
 
-`.github/workflows/ci.yml` runs linting, format checks, the build and the
-Playwright tests. To build with a real key in CI, add a
-`VITE_GOOGLE_MAPS_API_KEY` repository secret.
+CI is **workspace specific**: every workspace has its own workflow in
+`.github/workflows/`, and that workflow includes everything the workspace
+needs from CI. Don't add a shared, repo-wide CI workflow.
+
+Rules for workspace workflows:
+
+- Name the workflow after the workspace (`packages/app` uses `app.yml`).
+- Trigger it with `paths` filters on the workspace itself, on everything it
+  depends on (other workspaces such as `packages/dev-config`, the root
+  `package.json` and `bun.lock`) and on the workflow file.
+- Run the workspace's own scripts with `working-directory` set to the
+  workspace.
+- When you add a new workspace, add its workflow in the same pull request.
+
+| Workflow           | Covers                | Runs                                                                       |
+| ------------------ | --------------------- | -------------------------------------------------------------------------- |
+| `app.yml`          | `packages/app`        | JS and CSS lint, CSS variable check, format check, build, Playwright tests |
+| `dev-config.yml`   | `packages/dev-config` | Validates each tool config, format check                                   |
+| `markdownlint.yml` | Root docs (`*.md`)    | Markdown lint and format check                                             |
+
+To build the app with a real key in CI, add a `VITE_GOOGLE_MAPS_API_KEY`
+repository secret.
 
 ## Development Guidelines
 
