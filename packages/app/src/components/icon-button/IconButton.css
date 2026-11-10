@@ -1,0 +1,39 @@
+/* Doubled class so these outrank Button's size modifiers. */
+.button.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  height: var(--control-size);
+  min-width: var(--control-size);
+  padding: 0 var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--shadow-md);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+
+  &:is(.icon-button--icon-only) {
+    width: var(--control-size);
+    padding: 0;
+  }
+}
+
+.icon-button__icon {
+  display: inline-flex;
+
+  & svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+  }
+}
+
+@media (width < 40em) {
+  .button.icon-button {
+    width: var(--control-size);
+    padding: 0;
+  }
+
+  .icon-button__label {
+    display: none;
+  }
+}

@@ -10,6 +10,8 @@ templating and **Web Components** for interactivity.
 - **Components**: Native Web Components (behavior only, no shadow DOM)
 - **Maps**: Google Maps JavaScript API + Places API (New)
 - **Styling**: Vanilla CSS with native nesting
+- **Icons**: [Lucide](https://lucide.dev/) via `lucide-static` (SVGs inlined
+  at build time)
 - **Linting** (all Rust): [oxlint](https://oxc.rs/docs/guide/usage/linter)
   (JS), [Biome](https://biomejs.dev/) (CSS), [rumdl](https://rumdl.dev/)
   (Markdown)
@@ -39,6 +41,7 @@ ev-maps/
 │       │   │   ├── button/          # Generic button (Astro only)
 │       │   │   ├── filter-button/   # <ev-filter-button>
 │       │   │   ├── google-map/      # <ev-google-map> + Maps/Places helpers
+│       │   │   ├── icon-button/     # Lucide icon button (Astro only)
 │       │   │   └── locate-button/   # <ev-locate-button>
 │       │   ├── config/app.config.js # Map defaults and env-based settings
 │       │   ├── layouts/             # Layout.astro + global.css

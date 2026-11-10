@@ -379,6 +379,23 @@ const {
 }
 ```
 
+### Icon Buttons
+
+Controls use `IconButton`, which wraps `Button` with a
+[Lucide](https://lucide.dev/) icon from `lucide-static`. The SVG is inlined at
+build time, so icons add no client-side JavaScript. Below `40em` the label is
+hidden and the button becomes a round icon-only control; `aria-label` and
+`title` keep it accessible. Pass `iconOnly` to hide the label at every width.
+
+```astro
+---
+import { LocateFixed } from "lucide-static";
+import IconButton from "../icon-button/IconButton.astro";
+---
+
+<IconButton icon={LocateFixed} label="Locate me" variant="primary" />
+```
+
 ### Rendering Dynamic Content
 
 When a Web Component must show data (for example, details from an API),

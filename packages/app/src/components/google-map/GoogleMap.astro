@@ -1,5 +1,6 @@
 ---
-import Button from "../button/Button.astro";
+import { ScanSearch, X } from "lucide-static";
+import IconButton from "../icon-button/IconButton.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
 import "./GoogleMap.css";
@@ -51,37 +52,45 @@ const radiusOptions = [1000, 5000, 10000, 25000];
       {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
     </div>
 
-    {clientId && <div class="google-signin-button"></div>}
+    <div class="map-toolbar">
+      <div class="map-controls">
+        {clientId && <div class="google-signin-button"></div>}
+        <LocateButton autoLocate={autoLocate} />
+        <IconButton
+          icon={ScanSearch}
+          label="Search this area"
+          variant="secondary"
+          class="search-area-button"
+        />
+        <FilterButton controls="map-filter-panel" />
+      </div>
 
-    <div class="map-controls">
-      <Button variant="secondary" class="search-area-button">
-        Search this area
-      </Button>
-      <LocateButton autoLocate={autoLocate} />
-      <FilterButton controls="map-filter-panel" />
+      <form class="filter-panel" id="map-filter-panel" hidden>
+        <label class="filter-panel__field">
+          <input type="checkbox" name="showEvChargers" checked={showEvChargers} />
+          Show EV chargers
+        </label>
+        <label class="filter-panel__field">
+          Search radius
+          <select name="searchRadius">
+            {radiusOptions.map((radius) => (
+              <option value={radius} selected={radius === searchRadius}>
+                {radius / 1000} km
+              </option>
+            ))}
+          </select>
+        </label>
+      </form>
     </div>
 
-    <form class="filter-panel" id="map-filter-panel" hidden>
-      <label class="filter-panel__field">
-        <input type="checkbox" name="showEvChargers" checked={showEvChargers} />
-        Show EV chargers
-      </label>
-      <label class="filter-panel__field">
-        Search radius
-        <select name="searchRadius">
-          {radiusOptions.map((radius) => (
-            <option value={radius} selected={radius === searchRadius}>
-              {radius / 1000} km
-            </option>
-          ))}
-        </select>
-      </label>
-    </form>
-
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
-      <Button variant="secondary" size="small" class="charger-details__close" aria-label="Close">
-        ×
-      </Button>
+      <IconButton
+        icon={X}
+        label="Close"
+        variant="secondary"
+        iconOnly
+        class="charger-details__close"
+      />
       <h2 class="charger-details__name" id="charger-details-name"></h2>
       <p class="charger-details__address"></p>
       <ul class="charger-details__connectors"></ul>

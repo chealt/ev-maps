@@ -1,5 +1,6 @@
 ---
-import Button from "../button/Button.astro";
+import { SlidersHorizontal } from "lucide-static";
+import IconButton from "../icon-button/IconButton.astro";
 
 interface Props {
   controls?: string;
@@ -9,8 +10,13 @@ const { controls } = Astro.props;
 ---
 
 <ev-filter-button>
-  <Button variant="secondary" class="filter-button" aria-expanded="false" aria-controls={controls}>
-    Filters
-  </Button>
+  <IconButton
+    icon={SlidersHorizontal}
+    label="Filters"
+    variant="secondary"
+    class="filter-button"
+    aria-expanded="false"
+    aria-controls={controls}
+  />
   <script src="./FilterButton.js"></script>
 </ev-filter-button>

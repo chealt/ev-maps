@@ -19,7 +19,7 @@ export default defineConfig({
     env: {
       VITE_GOOGLE_MAPS_API_KEY: "test-api-key",
       VITE_GOOGLE_MAPS_MAP_ID: "TEST_MAP_ID",
-      VITE_GOOGLE_CLIENT_ID: "",
+      VITE_GOOGLE_CLIENT_ID: "test-client-id",
     },
   },
 });

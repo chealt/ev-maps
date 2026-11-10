@@ -4,17 +4,14 @@ import { appConfig } from "../config/app.config.js";
 
 interface Props {
   title?: string;
-  subtitle?: string;
 }
 
-const { title = "EV Maps", subtitle = "Find electric vehicle charging stations near you" } =
-  Astro.props;
+const { title = "EV Maps" } = Astro.props;
 const { googleMaps, evChargers } = appConfig;
 ---
 
-<main class="container">
-  <h1>{title}</h1>
-  <p class="subtitle">{subtitle}</p>
+<main>
+  <h1 class="visually-hidden">{title}</h1>
 
   <GoogleMap
     apiKey={googleMaps.apiKey}

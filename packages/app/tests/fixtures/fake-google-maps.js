@@ -101,6 +101,7 @@
   const libraries = { maps: { Map }, marker: { AdvancedMarkerElement }, places: { Place } };
 
   window.google = {
+    ...window.google,
     maps: { importLibrary: async (name) => libraries[name] },
   };
   window[callbackName]();

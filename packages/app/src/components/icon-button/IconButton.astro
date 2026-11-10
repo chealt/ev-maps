@@ -1,0 +1,24 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Button from "../button/Button.astro";
+import "./IconButton.css";
+
+interface Props extends HTMLAttributes<"button"> {
+  icon: string;
+  label: string;
+  variant?: "primary" | "secondary" | "danger";
+  iconOnly?: boolean;
+}
+
+const { icon, label, iconOnly = false, class: className, ...attrs } = Astro.props;
+---
+
+<Button
+  class:list={["icon-button", iconOnly && "icon-button--icon-only", className]}
+  aria-label={label}
+  title={label}
+  {...attrs}
+>
+  <span class="icon-button__icon" aria-hidden="true" set:html={icon} />
+  {!iconOnly && <span class="icon-button__label">{label}</span>}
+</Button>

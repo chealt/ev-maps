@@ -275,7 +275,12 @@ export class GoogleMapElement extends HTMLElement {
       auto_select: false,
       cancel_on_tap_outside: false,
     });
-    accounts.id.renderButton(container, { theme: "outline", size: "medium", type: "standard" });
+    accounts.id.renderButton(container, {
+      type: "icon",
+      shape: "circle",
+      theme: "outline",
+      size: "large",
+    });
   }
 
   handleGoogleSignIn({ credential }) {
