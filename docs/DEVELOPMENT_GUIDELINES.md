@@ -107,9 +107,16 @@ Component Structure:
 
 9. **Use CSS variables for all values**: All colors, fonts, font sizes,
    widths, heights, gaps, borders, z-indexes, opacity, transitions, and other
-   style values should be defined as CSS variables in global.css and used
-   throughout the application. This ensures consistency and makes theming
-   easier. **No hardcoded values allowed in component CSS files.**
+   style values should be defined as CSS variables and used throughout the
+   application. This ensures consistency and makes theming easier.
+   **No hardcoded values allowed in component CSS files**, except where a
+   custom property is defined.
+
+   - **Shared tokens** (colors, typography, spacing, radii, shadows,
+     z-indexes, ...) live in `global.css`.
+   - **Component-specific variables** (e.g. a marker size or panel width) live
+     at the top of the component's CSS file, on the component's root selector.
+     Move a variable to `global.css` once a second component needs it.
 
    ```css
    /* global.css */
@@ -125,6 +132,8 @@ Component Structure:
 
    /* Component CSS */
    .button {
+     --button-pressed-scale: 0.97;
+
      background-color: var(--color-primary);
      padding: var(--spacing-sm) var(--spacing-md);
      border-radius: var(--border-radius-sm);
@@ -144,8 +153,7 @@ Component Structure:
    - Z-indexes: `--z-dropdown`, `--z-sticky`, `--z-fixed`, `--z-modal`
    - Opacity: `--opacity-disabled`, `--opacity-background`, etc.
    - Transitions: `--transition-fast`, etc.
-   - Layout: `--container-max-width`, `--container-padding`, `--map-height`,
-     etc.
+   - Layout: `--container-max-width`, `--container-padding`, etc.
 
 10. **Use CSS nesting**: Use CSS nesting (native browser feature) to organize
     related styles and reduce repetition. This makes CSS more maintainable
@@ -514,7 +522,8 @@ All linting and formatting tools are written in Rust. Shared configs live in
   curly braces for all blocks.
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
   A GritQL plugin (`packages/dev-config/no-hardcoded-css-values.grit`)
-  rejects hardcoded colors and px/rem values in component CSS.
+  rejects hardcoded colors and px/rem values in component CSS, except in
+  custom property definitions.
 - **Markdown**: [rumdl](https://rumdl.dev/)
   (`packages/dev-config/.rumdl.toml`), which uses markdownlint-compatible
   rules.
