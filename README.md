@@ -155,9 +155,9 @@ workflow includes everything that artifact needs from CI.
 
 Currently there is one workflow:
 
-| Workflow  | Artifact       | Runs                                                                       |
-| --------- | -------------- | -------------------------------------------------------------------------- |
-| `app.yml` | `packages/app` | JS and CSS lint, CSS variable check, format check, build, Playwright tests |
+| Workflow  | Artifact       | Runs (as parallel jobs)                                  |
+| --------- | -------------- | -------------------------------------------------------- |
+| `app.yml` | `packages/app` | JS lint, CSS lint, format check, build, Playwright tests |
 
 Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.

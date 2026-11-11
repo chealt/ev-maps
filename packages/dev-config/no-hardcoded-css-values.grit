@@ -1,0 +1,13 @@
+language css;
+
+// Design tokens live in global.css; component CSS must use CSS variables.
+$value where {
+  $value <: or {
+    CssColor(),
+    CssRegularDimension() as $dimension where { $dimension <: r"(?i)[0-9.]+(?:px|rem)" }
+  },
+  register_diagnostic(
+    span = $value,
+    message = "Hardcoded color or px/rem value. Use a CSS variable from global.css instead."
+  )
+}

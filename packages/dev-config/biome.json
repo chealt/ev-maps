@@ -1,6 +1,12 @@
 {
   "$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
   "root": true,
+  "plugins": [
+    {
+      "path": "./no-hardcoded-css-values.grit",
+      "includes": ["**/src/components/**/*.css"]
+    }
+  ],
   "formatter": {
     "enabled": false
   },

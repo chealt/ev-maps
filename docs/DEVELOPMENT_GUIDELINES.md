@@ -513,7 +513,8 @@ All linting and formatting tools are written in Rust. Shared configs live in
   (`packages/dev-config/oxlint.json`). Key rule: `curly: error` - always use
   curly braces for all blocks.
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
-  CI also rejects hardcoded colors and px/rem values in component CSS.
+  A GritQL plugin (`packages/dev-config/no-hardcoded-css-values.grit`)
+  rejects hardcoded colors and px/rem values in component CSS.
 - **Markdown**: [rumdl](https://rumdl.dev/)
   (`packages/dev-config/.rumdl.toml`), which uses markdownlint-compatible
   rules.
