@@ -1,5 +1,6 @@
 ---
 import Button from "../button/Button.astro";
+import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
 import "./GoogleMap.css";
@@ -47,7 +48,7 @@ const radiusOptions = [1000, 5000, 10000, 25000];
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
 
-    <div class="map-status" role="status" aria-live="polite">
+    <div class="map-status" role="status" aria-live="polite" data-state={apiKey ? "idle" : "error"}>
       {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
     </div>
 
@@ -55,20 +56,30 @@ const radiusOptions = [1000, 5000, 10000, 25000];
 
     <div class="map-controls">
       <Button variant="secondary" class="search-area-button">
-        Search this area
+        <Icon name="search" />
+        <span class="button__label">Search this area</span>
       </Button>
       <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
     </div>
 
-    <form class="filter-panel" id="map-filter-panel" hidden>
+    <form class="filter-panel" id="map-filter-panel" aria-labelledby="filter-panel-title" hidden>
+      <h2 class="filter-panel__title" id="filter-panel-title">
+        Filters
+      </h2>
       <label class="filter-panel__field">
-        <input type="checkbox" name="showEvChargers" checked={showEvChargers} />
-        Show EV chargers
+        <span>Show EV chargers</span>
+        <input
+          class="filter-panel__switch"
+          type="checkbox"
+          role="switch"
+          name="showEvChargers"
+          checked={showEvChargers}
+        />
       </label>
       <label class="filter-panel__field">
-        Search radius
-        <select name="searchRadius">
+        <span>Search radius</span>
+        <select class="filter-panel__select" name="searchRadius">
           {radiusOptions.map((radius) => (
             <option value={radius} selected={radius === searchRadius}>
               {radius / 1000} km
@@ -79,18 +90,45 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     </form>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
-      <Button variant="secondary" size="small" class="charger-details__close" aria-label="Close">
-        ×
-      </Button>
-      <h2 class="charger-details__name" id="charger-details-name"></h2>
-      <p class="charger-details__address"></p>
-      <ul class="charger-details__connectors"></ul>
-      <ul class="charger-details__hours"></ul>
+      <div class="charger-details__header">
+        <span class="charger-details__badge">
+          <Icon name="bolt" size="sm" />
+          EV charging
+        </span>
+        <Button variant="ghost" size="icon" class="charger-details__close" aria-label="Close">
+          <Icon name="close" />
+        </Button>
+      </div>
       <img class="charger-details__photo" alt="" hidden />
+      <h2 class="charger-details__name" id="charger-details-name"></h2>
+      <p class="charger-details__address">
+        <Icon name="pin" size="sm" />
+        <span class="charger-details__address-text"></span>
+      </p>
+      <section class="charger-details__section">
+        <h3 class="charger-details__section-title">
+          <Icon name="plug" size="sm" />
+          Connectors
+        </h3>
+        <ul class="charger-details__connectors"></ul>
+      </section>
+      <section class="charger-details__section">
+        <h3 class="charger-details__section-title">
+          <Icon name="clock" size="sm" />
+          Opening hours
+        </h3>
+        <ul class="charger-details__hours"></ul>
+      </section>
     </aside>
 
     <template class="charger-details__item-template">
       <li></li>
+    </template>
+
+    <template class="charger-marker-template">
+      <div class="charger-marker">
+        <Icon name="bolt" size="sm" class="charger-marker__icon" />
+      </div>
     </template>
   </div>
   <script src="./GoogleMap.js"></script>

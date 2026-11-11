@@ -3,8 +3,8 @@ import type { HTMLAttributes } from "astro/types";
 import "./Button.css";
 
 interface Props extends HTMLAttributes<"button"> {
-  variant?: "primary" | "secondary" | "danger";
-  size?: "small" | "medium" | "large";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "small" | "medium" | "large" | "icon";
 }
 
 const {

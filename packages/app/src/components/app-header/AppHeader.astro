@@ -1,0 +1,21 @@
+---
+import Icon from "../icon/Icon.astro";
+import "./AppHeader.css";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+
+<header class="app-header">
+  <span class="app-header__mark">
+    <Icon name="bolt" />
+  </span>
+  <div class="app-header__text">
+    <h1 class="app-header__title">{title}</h1>
+    {subtitle && <p class="app-header__subtitle">{subtitle}</p>}
+  </div>
+</header>

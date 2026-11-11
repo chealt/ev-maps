@@ -1,5 +1,6 @@
 ---
 import Button from "../button/Button.astro";
+import Icon from "../icon/Icon.astro";
 
 interface Props {
   controls?: string;
@@ -10,7 +11,8 @@ const { controls } = Astro.props;
 
 <ev-filter-button>
   <Button variant="secondary" class="filter-button" aria-expanded="false" aria-controls={controls}>
-    Filters
+    <Icon name="sliders" />
+    <span class="button__label">Filters</span>
   </Button>
   <script src="./FilterButton.js"></script>
 </ev-filter-button>

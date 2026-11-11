@@ -1,0 +1,15 @@
+.icon {
+  flex-shrink: 0;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+
+  &:is(.icon--sm) {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  &:is(.icon--lg) {
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+  }
+}

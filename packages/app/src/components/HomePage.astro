@@ -1,6 +1,8 @@
 ---
+import AppHeader from "./app-header/AppHeader.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
 import { appConfig } from "../config/app.config.js";
+import "./HomePage.css";
 
 interface Props {
   title?: string;
@@ -12,9 +14,8 @@ const { title = "EV Maps", subtitle = "Find electric vehicle charging stations n
 const { googleMaps, evChargers } = appConfig;
 ---
 
-<main class="container">
-  <h1>{title}</h1>
-  <p class="subtitle">{subtitle}</p>
+<main class="home-page">
+  <AppHeader title={title} subtitle={subtitle} />
 
   <GoogleMap
     apiKey={googleMaps.apiKey}
