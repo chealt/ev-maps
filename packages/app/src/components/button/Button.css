@@ -1,4 +1,6 @@
 .button {
+  --button-pressed-scale: 0.97;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -19,7 +21,7 @@
     transform var(--transition-fast);
 
   &:active:not(:disabled) {
-    transform: scale(var(--scale-pressed));
+    transform: scale(var(--button-pressed-scale));
   }
 
   &:disabled {

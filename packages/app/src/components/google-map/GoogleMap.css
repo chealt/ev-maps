@@ -1,4 +1,30 @@
 ev-google-map {
+  /* Layout */
+  --header-offset: 5rem;
+  --toolbar-offset: 2rem;
+  --map-overlay-offset: 6rem;
+
+  /* Status */
+  --status-dot-size: 0.5rem;
+  --status-pulse-scale: 0.6;
+  --status-pulse-animation: 1.6s ease-in-out infinite;
+
+  /* Filter panel */
+  --filter-panel-width: 17rem;
+  --switch-width: 2.5rem;
+  --switch-height: 1.375rem;
+  --switch-thumb-size: 1rem;
+
+  /* Charger details */
+  --details-panel-width: 22rem;
+  --details-photo-height: 10rem;
+  --details-sheet-max-height: 60dvh;
+
+  /* Markers */
+  --marker-size: 2.25rem;
+  --marker-tip-offset: -0.207;
+  --marker-active-scale: 1.2;
+
   display: block;
   position: absolute;
   inset: 0;
@@ -58,7 +84,7 @@ ev-google-map {
 
   &[data-state="loading"]::before {
     background: var(--color-accent);
-    animation: status-pulse var(--animation-pulse);
+    animation: status-pulse var(--status-pulse-animation);
   }
 
   &[data-state="success"]::before {
@@ -83,7 +109,7 @@ ev-google-map {
 @keyframes status-pulse {
   50% {
     opacity: var(--opacity-disabled);
-    scale: var(--scale-pulse);
+    scale: var(--status-pulse-scale);
   }
 }
 
@@ -222,7 +248,7 @@ ev-google-map {
   left: var(--spacing-md);
   z-index: var(--z-fixed);
   max-height: calc(100% - var(--header-offset) - var(--spacing-md));
-  width: var(--panel-width);
+  width: var(--details-panel-width);
   max-width: calc(100% - 2 * var(--spacing-md));
   overflow-y: auto;
   padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
@@ -258,7 +284,7 @@ ev-google-map {
 .charger-details__photo {
   display: block;
   width: 100%;
-  height: var(--photo-height);
+  height: var(--details-photo-height);
   object-fit: cover;
   margin-bottom: var(--spacing-md);
   border-radius: var(--border-radius-lg);
@@ -432,7 +458,7 @@ ev-google-map {
     bottom: 0;
     width: auto;
     max-width: none;
-    max-height: var(--sheet-max-height);
+    max-height: var(--details-sheet-max-height);
     border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
     border-bottom: none;
     animation-name: sheet-up;
