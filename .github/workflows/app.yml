@@ -72,6 +72,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Without the key the site builds fine but has no map. Pull requests from
+      # forks are exempt because GitHub doesn't give them secrets.
+      - name: Check required secrets
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+        run: |
+          if [ -z "$VITE_GOOGLE_MAPS_API_KEY" ]; then
+            echo "::error::Set the VITE_GOOGLE_MAPS_API_KEY repository secret. Without it the built site has no map."
+            exit 1
+          fi
+
       - name: Build
         run: bun run build
         env:
