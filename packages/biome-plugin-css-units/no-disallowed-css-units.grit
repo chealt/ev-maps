@@ -1,11 +1,12 @@
 language css;
 
-// Biome has no built-in rule for disallowed units (like Stylelint's
-// unit-disallowed-list), so this plugin covers it. Hex colors are handled by
-// the built-in style/noHexColors rule. Custom property definitions are
-// allowed, e.g. `--marker-size: 36px`.
+// Rejects disallowed CSS units, like Stylelint's unit-disallowed-list, which
+// Biome has no built-in rule for. Custom property definitions are allowed,
+// e.g. `--marker-size: 36px`.
+//
+// Biome plugins can't take options, so the list lives here.
 CssRegularDimension() as $value where {
-  // Lowercase units that component CSS must not use directly.
+  // Lowercase units that must not be used directly.
   $disallowed_units = ["px"],
   $value <: r"[0-9.]+([a-zA-Z]+)"($unit),
   $normalized_unit = lowercase($unit),

@@ -3,7 +3,8 @@
   "root": true,
   "plugins": [
     {
-      "path": "./no-hardcoded-css-units.grit",
+      "path": "@ev-maps/biome-plugin-css-units/no-disallowed-css-units",
+      "resolutionKind": "config",
       "includes": ["**/src/components/**/*.css"]
     }
   ],

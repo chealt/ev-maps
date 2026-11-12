@@ -8,6 +8,7 @@ on:
     paths:
       - "packages/app/**"
       - "packages/dev-config/**"
+      - "packages/biome-plugin-css-units/**"
       - "package.json"
       - "bun.lock"
       - ".gitignore"
@@ -17,6 +18,7 @@ on:
     paths:
       - "packages/app/**"
       - "packages/dev-config/**"
+      - "packages/biome-plugin-css-units/**"
       - "package.json"
       - "bun.lock"
       - ".gitignore"

@@ -1,0 +1,10 @@
+{
+  "name": "@ev-maps/biome-plugin-css-units",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Biome GritQL plugin that rejects disallowed CSS units outside custom property definitions",
+  "files": [
+    "biome-manifest.json",
+    "*.grit"
+  ]
+}

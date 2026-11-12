@@ -521,9 +521,9 @@ All linting and formatting tools are written in Rust. Shared configs live in
   curly braces for all blocks.
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
   In component CSS, the built-in `style/noHexColors` rule rejects hex
-  colors, and a small GritQL plugin
-  (`packages/dev-config/no-hardcoded-css-units.grit`) rejects the units in
-  its `$disallowed_units` list (currently px) outside custom property
+  colors, and the `no-disallowed-css-units` GritQL plugin from the
+  `packages/biome-plugin-css-units` workspace rejects the units in its
+  `$disallowed_units` list (currently px) outside custom property
   definitions; rem is allowed. Biome has no built-in rule for disallowed
   units yet; replace the plugin once it does.
 - **Markdown**: [rumdl](https://rumdl.dev/)
