@@ -208,3 +208,26 @@ jobs:
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to $url" >> "$GITHUB_STEP_SUMMARY"
+
+      # Google sign-in only works on origins listed on the OAuth client, and
+      # those can't contain wildcards. So pull requests are also uploaded to a
+      # fixed "preview" alias that can be authorized once. The most recently
+      # deployed pull request wins.
+      - name: Update the shared preview
+        id: shared-preview
+        if: github.event_name == 'pull_request'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: bun
+          workingDirectory: packages/app
+          command: versions upload --preview-alias preview
+
+      - name: Shared preview URL
+        if: github.event_name == 'pull_request'
+        env:
+          OUTPUT: ${{ steps.shared-preview.outputs.command-output }}
+        run: |
+          url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
+          echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
