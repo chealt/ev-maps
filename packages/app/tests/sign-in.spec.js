@@ -10,11 +10,12 @@ test.beforeEach(async ({ page }) => {
 
 test("shows the Google sign-in button for the configured client", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Account/ })).toBeHidden();
   const config = await page.evaluate(() => window.__gsi.config);
   expect(config.client_id).toBe("test-client-id");
 });
 
-test("signs in with Google", async ({ page }) => {
+test("signs in with Google and shows the account menu", async ({ page }) => {
   const signedIn = page.evaluate(
     () =>
       new Promise((resolve) => {
@@ -26,14 +27,84 @@ test("signs in with Google", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sign in with Google" }).click();
 
-  await expect(page.getByRole("status")).toHaveText("Signed in as Ada Lovelace");
   await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
   expect(await signedIn).toMatchObject({ name: "Ada Lovelace", email: "ada@example.com" });
+
+  const accountButton = page.getByRole("button", { name: "Account: Ada Lovelace" });
+  await accountButton.click();
+
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText("Signed in as")).toBeVisible();
+  await expect(menu.getByText("Ada Lovelace")).toBeVisible();
+  await expect(menu.getByText("ada@example.com")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Account: Ada Lovelace", expanded: true })
+  ).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+});
+
+test("signs out from the account menu", async ({ page }) => {
+  await page.getByRole("button", { name: "Sign in with Google" }).click();
+  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+
+  await page
+    .getByRole("dialog", { name: "Account" })
+    .getByRole("button", { name: "Sign out" })
+    .click();
+
+  await expect(page.getByRole("dialog", { name: "Account" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
 
 test("ignores an invalid sign-in response", async ({ page }) => {
   await page.evaluate(() => window.__gsi.config.callback({ credential: "not-a-jwt" }));
 
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Account/ })).toBeHidden();
+});
+
+test.describe("Google sign-in button theme", () => {
+  const buttonTheme = (page) => page.evaluate(() => window.__gsi.buttonOptions.theme);
+
+  test("uses the light button on a light page", async ({ page }) => {
+    expect(await buttonTheme(page)).toBe("outline");
+  });
+
+  test("uses the dark button when Dark is chosen", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("ev-maps:theme", "dark"));
+    await page.reload();
+
+    await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+    expect(await buttonTheme(page)).toBe("filled_black");
+  });
+
+  test("redraws the button after switching to Dark and signing out", async ({ page }) => {
+    await page.getByRole("button", { name: "Sign in with Google" }).click();
+    await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+    const menu = page.getByRole("dialog", { name: "Account" });
+    await menu.getByRole("radio", { name: "Dark" }).check();
+    await menu.getByRole("button", { name: "Sign out" }).click();
+
+    await expect(page.getByRole("button", { name: "Sign in with Google" })).toHaveCount(1);
+    expect(await buttonTheme(page)).toBe("filled_black");
+  });
+
+  test("follows the system switching to dark", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+
+    await expect.poll(() => buttonTheme(page)).toBe("filled_black");
+    await expect(page.getByRole("button", { name: "Sign in with Google" })).toHaveCount(1);
+  });
+});
+
+test.describe("on a dark system", () => {
+  test.use({ colorScheme: "dark" });
+
+  test("uses the dark Google sign-in button", async ({ page }) => {
+    expect(await page.evaluate(() => window.__gsi.buttonOptions.theme)).toBe("filled_black");
+  });
 });

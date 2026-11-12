@@ -502,7 +502,9 @@ it only once, even if the component is used several times:
 ```
 
 Avoid `is:inline` scripts: they are not bundled, can't `import` other
-modules, and are repeated for every component instance.
+modules, and are repeated for every component instance. The one exception is
+the theme script in `Layout.astro`, which must run before the first paint so
+the page doesn't flash the wrong theme.
 
 ### Slots
 
@@ -670,6 +672,24 @@ this.addEventListener("location-found", (event) => {
 
 - **Global styles**: Place in `src/layouts/global.css`
 - **Component styles**: Place in component-specific `.css` files
+
+### Themes
+
+The app supports a light and a dark theme. Users pick System, Light or Dark
+in the account menu (`ThemePicker`), which sets `data-theme` on `<html>`
+(no attribute means "follow the system").
+
+- Define every color token once in `global.css` with both values, using
+  `light-dark(light, dark)`. `color-scheme` on `:root` picks the value, so
+  components never need theme-specific selectors.
+- Use semantic tokens in components (`--color-surface`, `--color-text`,
+  `--color-primary-light-text`) so both themes work without extra CSS.
+
+```css
+:root {
+  --color-surface: light-dark(#ffffff, #0f172a);
+}
+```
 
 ### CSS Best Practices
 

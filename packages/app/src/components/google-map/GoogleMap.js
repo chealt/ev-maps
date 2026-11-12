@@ -1,8 +1,13 @@
-import { loadGoogleIdentity, loadGoogleMaps } from "./loader.js";
+import { loadGoogleMaps } from "./loader.js";
 import { fetchChargerDetails, searchEvChargers } from "./places.js";
 
 const PHOTO_MAX_WIDTH = 400;
 const LAST_LOCATION_KEY = "ev-maps:last-location";
+// Google Maps color schemes for the themes set by ThemePicker on <html>.
+const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
+
+const currentColorScheme = () =>
+  COLOR_SCHEMES[document.documentElement.dataset.theme] ?? COLOR_SCHEMES.system;
 
 const readLastLocation = () => {
   try {
@@ -30,12 +35,6 @@ const formatConnector = ({ type, count, availableCount, maxChargeRateKw }) => {
   return `${name}: ${count}×${power}${availability}`;
 };
 
-const decodeJwtPayload = (token) => {
-  const base64 = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
-  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-};
-
 class GoogleMapElement extends HTMLElement {
   map = null;
   maps = null;
@@ -44,6 +43,8 @@ class GoogleMapElement extends HTMLElement {
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
   });
+
+  handleThemeChange = () => this.recreateMap();
 
   connectedCallback() {
     this.statusEl = this.querySelector(".map-status");
@@ -64,12 +65,10 @@ class GoogleMapElement extends HTMLElement {
         console.error(error);
         this.setStatus("Failed to load Google Maps", "error");
       });
+  }
 
-    if (this.dataset.clientId) {
-      loadGoogleIdentity()
-        .then((accounts) => this.initializeGoogleSignIn(accounts))
-        .catch((error) => console.error(error));
-    }
+  disconnectedCallback() {
+    document.removeEventListener("theme-change", this.handleThemeChange);
   }
 
   get showEvChargers() {
@@ -91,6 +90,7 @@ class GoogleMapElement extends HTMLElement {
       this.setStatus(event.detail?.message || "Unable to determine your location", "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
+    document.addEventListener("theme-change", this.handleThemeChange);
 
     this.querySelector(".search-area-button")?.addEventListener("click", () =>
       this.loadEvChargers()
@@ -112,13 +112,27 @@ class GoogleMapElement extends HTMLElement {
   async initMap(maps) {
     const { Map } = await maps.importLibrary("maps");
     this.maps = maps;
+    this.MapClass = Map;
     const lastLocation = readLastLocation();
-    this.map = new Map(this.mapEl, {
+    this.createMap({
       center: lastLocation ?? {
         lat: Number(this.dataset.centerLat) || 0,
         lng: Number(this.dataset.centerLng) || 0,
       },
       zoom: lastLocation ? this.locatedZoom : Number(this.dataset.zoom) || 12,
+    });
+    this.resolveMapReady();
+
+    if (this.showEvChargers) {
+      await this.loadEvChargers();
+    }
+  }
+
+  createMap({ center, zoom }) {
+    this.map = new this.MapClass(this.mapEl, {
+      center,
+      zoom,
+      colorScheme: currentColorScheme(),
       mapId: this.dataset.mapId || "DEMO_MAP_ID",
       gestureHandling: "greedy",
       clickableIcons: false,
@@ -127,10 +141,20 @@ class GoogleMapElement extends HTMLElement {
       streetViewControl: false,
       cameraControl: false,
     });
-    this.resolveMapReady();
+  }
 
-    if (this.showEvChargers) {
-      await this.loadEvChargers();
+  // Google Maps only accepts a color scheme when a map is created, so a theme
+  // change replaces the map at the same position and moves the markers over.
+  recreateMap() {
+    if (!this.map) {
+      return;
+    }
+    const center = this.map.getCenter().toJSON();
+    const zoom = this.map.getZoom();
+    this.mapEl.replaceChildren();
+    this.createMap({ center, zoom });
+    for (const marker of this.markers) {
+      marker.map = this.map;
     }
   }
 
@@ -284,38 +308,6 @@ class GoogleMapElement extends HTMLElement {
       this.detailsPanel.hidden = true;
     }
     this.setActiveMarker(null);
-  }
-
-  initializeGoogleSignIn(accounts) {
-    const container = this.querySelector(".google-signin-button");
-    if (!accounts?.id || !container) {
-      return;
-    }
-    accounts.id.initialize({
-      client_id: this.dataset.clientId,
-      callback: (response) => this.handleGoogleSignIn(response),
-      auto_select: false,
-      cancel_on_tap_outside: false,
-    });
-    accounts.id.renderButton(container, {
-      theme: "outline",
-      size: "large",
-      type: "standard",
-      shape: "pill",
-    });
-  }
-
-  handleGoogleSignIn({ credential }) {
-    try {
-      const { name, email } = decodeJwtPayload(credential);
-      this.setStatus(`Signed in as ${name || email}`, "success");
-      this.querySelector(".google-signin-button").hidden = true;
-      this.dispatchEvent(
-        new CustomEvent("google-sign-in", { detail: { name, email, credential }, bubbles: true })
-      );
-    } catch (error) {
-      console.error("Invalid Google Sign-In response:", error);
-    }
   }
 }
 

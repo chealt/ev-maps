@@ -1,28 +1,42 @@
 /* Global Styles - CSS Variables */
 :root {
-  /* Colors */
+  /* Theme: follows the system by default; ThemePicker sets data-theme. */
+  color-scheme: light dark;
+
+  &[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  &[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  /* Colors: light-dark(light value, dark value) */
   --color-primary: #059669;
   --color-primary-dark: #047857;
-  --color-primary-light: #d1fae5;
+  --color-primary-light: light-dark(#d1fae5, #064e3b);
+  --color-primary-light-text: light-dark(#047857, #6ee7b7);
   --color-primary-contrast: #ffffff;
   --color-accent: #0ea5e9;
-  --color-secondary: #0f172a;
-  --color-secondary-dark: #020617;
-  --color-background: #f1f5f9;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-surface-hover: #f1f5f9;
-  --color-surface-glass: rgba(255, 255, 255, 0.82);
-  --color-surface-translucent: rgba(255, 255, 255, 0.9);
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
+  --color-secondary: light-dark(#0f172a, #f8fafc);
+  --color-secondary-dark: light-dark(#020617, #e2e8f0);
+  --color-secondary-contrast: light-dark(#ffffff, #0f172a);
+  --color-background: light-dark(#f1f5f9, #020617);
+  --color-surface: light-dark(#ffffff, #0f172a);
+  --color-surface-muted: light-dark(#f8fafc, #1e293b);
+  --color-surface-hover: light-dark(#f1f5f9, #1e293b);
+  --color-surface-glass: light-dark(rgba(255, 255, 255, 0.82), rgba(15, 23, 42, 0.82));
+  --color-surface-translucent: light-dark(rgba(255, 255, 255, 0.9), rgba(15, 23, 42, 0.9));
+  --color-text: light-dark(#0f172a, #f1f5f9);
+  --color-text-muted: light-dark(#64748b, #94a3b8);
   --color-danger: #ef4444;
   --color-danger-dark: #dc2626;
-  --color-danger-light: #fee2e2;
+  --color-danger-light: light-dark(#fee2e2, #450a0a);
+  --color-danger-light-text: light-dark(#dc2626, #fca5a5);
   --color-success: #22c55e;
   --color-warning: #f59e0b;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-border: light-dark(#e2e8f0, #334155);
+  --color-border-strong: light-dark(#cbd5e1, #475569);
   --color-focus-ring: rgba(5, 150, 105, 0.45);
   --gradient-brand: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 
@@ -67,9 +81,10 @@
   --border-width-marker: 3px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.16), 0 2px 6px rgba(15, 23, 42, 0.08);
+  --shadow-color: light-dark(rgba(15, 23, 42, 0.1), rgba(0, 0, 0, 0.45));
+  --shadow-sm: 0 1px 2px var(--shadow-color);
+  --shadow-md: 0 4px 12px var(--shadow-color), 0 1px 3px var(--shadow-color);
+  --shadow-lg: 0 12px 32px var(--shadow-color), 0 2px 6px var(--shadow-color);
   --shadow-focus: 0 0 0 3px var(--color-focus-ring);
 
   /* Effects */

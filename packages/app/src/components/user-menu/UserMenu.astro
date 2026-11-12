@@ -1,0 +1,49 @@
+---
+import { LogOut } from "lucide-static";
+import Button from "../button/Button.astro";
+import Icon from "../icon/Icon.astro";
+import ThemePicker from "../theme-picker/ThemePicker.astro";
+import "./UserMenu.css";
+
+interface Props {
+  clientId: string;
+}
+
+const { clientId } = Astro.props;
+---
+
+<ev-user-menu class="user-menu" data-client-id={clientId}>
+  <div class="signed-out">
+    <div class="google-signin-button"></div>
+  </div>
+
+  <div class="signed-in" hidden>
+    <button
+      type="button"
+      class="avatar"
+      popovertarget="account-menu"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-label="Account"
+      title="Account"
+    >
+      <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
+      <span class="initials" aria-hidden="true"></span>
+    </button>
+
+    <div class="account-menu" id="account-menu" popover role="dialog" aria-label="Account">
+      <div class="profile">
+        <p class="label">Signed in as</p>
+        <p class="name"></p>
+        <p class="email"></p>
+      </div>
+      <ThemePicker />
+      <Button variant="ghost" class="sign-out">
+        <Icon icon={LogOut} size="sm" />
+        Sign out
+      </Button>
+    </div>
+  </div>
+
+  <script src="./UserMenu.js"></script>
+</ev-user-menu>

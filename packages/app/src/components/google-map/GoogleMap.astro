@@ -9,7 +9,6 @@ import "./GoogleMap.css";
 interface Props {
   apiKey?: string;
   mapId?: string;
-  clientId?: string;
   centerLat?: number;
   centerLng?: number;
   zoom?: number;
@@ -22,7 +21,6 @@ interface Props {
 const {
   apiKey = "",
   mapId = "DEMO_MAP_ID",
-  clientId = "",
   centerLat = 0,
   centerLng = 0,
   zoom = 12,
@@ -38,7 +36,6 @@ const radiusOptions = [1000, 5000, 10000, 25000];
 <ev-google-map
   data-api-key={apiKey}
   data-map-id={mapId}
-  data-client-id={clientId}
   data-center-lat={centerLat}
   data-center-lng={centerLng}
   data-zoom={zoom}
@@ -52,8 +49,6 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     <div class="map-status" role="status" aria-live="polite" data-state={apiKey ? "idle" : "error"}>
       {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
     </div>
-
-    {clientId && <div class="google-signin-button"></div>}
 
     <div class="map-controls">
       <Button variant="secondary" class="search-area-button">
