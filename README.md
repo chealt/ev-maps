@@ -157,8 +157,8 @@ built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
 | `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it) |
 | `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                    |
 | `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                |
-| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Optional Map ID (defaults to `DEMO_MAP_ID`)             |
-| `VITE_GOOGLE_CLIENT_ID`        | Variable | Optional OAuth client ID for Google sign-in             |
+| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Map ID for the vector map                               |
+| `VITE_GOOGLE_CLIENT_ID`        | Variable | OAuth client ID for Google sign-in                      |
 
 The Google Maps key's website restrictions and the OAuth client's authorized
 origins must include the `workers.dev` addresses.
@@ -199,7 +199,9 @@ Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.
 
 The secrets and variables CI needs to build and deploy the app are listed
-under [Cloudflare Workers](#cloudflare-workers).
+under [Cloudflare Workers](#cloudflare-workers). The `Build` job fails if any
+of the `VITE_` ones is missing (except for pull requests from forks, which
+don't get them).
 
 ## Development Guidelines
 
