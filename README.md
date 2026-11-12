@@ -191,8 +191,8 @@ Currently there is one workflow:
 Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.
 
-To build the app with real keys in CI, add `VITE_GOOGLE_MAPS_API_KEY` and
-`VITE_OPEN_CHARGE_MAP_API_KEY` repository secrets.
+The secrets and variables CI needs to build and deploy the app are listed
+under [Cloudflare Pages](#cloudflare-pages).
 
 ## Development Guidelines
 
