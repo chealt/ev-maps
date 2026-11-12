@@ -6,6 +6,14 @@ const decodeJwtPayload = (token) => {
   return JSON.parse(new TextDecoder().decode(bytes));
 };
 
+const systemDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+// The theme the page currently shows: the user's choice, or the system's.
+const isDarkTheme = () => {
+  const { theme } = document.documentElement.dataset;
+  return theme ? theme === "dark" : systemDarkQuery.matches;
+};
+
 const initialsOf = (name) =>
   name
     .split(/\s+/)
@@ -15,6 +23,21 @@ const initialsOf = (name) =>
     .join("");
 
 class UserMenuElement extends HTMLElement {
+  renderSignInButton = () => {
+    const container = this.querySelector(".google-signin-button");
+    if (!this.accounts || !container) {
+      return;
+    }
+    // Google draws the button in an iframe once, so a theme change redraws it.
+    container.replaceChildren();
+    this.accounts.id.renderButton(container, {
+      theme: isDarkTheme() ? "filled_black" : "outline",
+      size: "large",
+      type: "standard",
+      shape: "pill",
+    });
+  };
+
   connectedCallback() {
     this.signedOutEl = this.querySelector(".signed-out");
     this.signedInEl = this.querySelector(".signed-in");
@@ -25,14 +48,21 @@ class UserMenuElement extends HTMLElement {
       this.querySelector(".avatar").setAttribute("aria-expanded", String(event.newState === "open"))
     );
 
+    document.addEventListener("theme-change", this.renderSignInButton);
+    systemDarkQuery.addEventListener("change", this.renderSignInButton);
+
     loadGoogleIdentity()
       .then((accounts) => this.initializeGoogleSignIn(accounts))
       .catch((error) => console.error(error));
   }
 
+  disconnectedCallback() {
+    document.removeEventListener("theme-change", this.renderSignInButton);
+    systemDarkQuery.removeEventListener("change", this.renderSignInButton);
+  }
+
   initializeGoogleSignIn(accounts) {
-    const container = this.querySelector(".google-signin-button");
-    if (!accounts?.id || !container) {
+    if (!accounts?.id) {
       return;
     }
     this.accounts = accounts;
@@ -42,12 +72,7 @@ class UserMenuElement extends HTMLElement {
       auto_select: false,
       cancel_on_tap_outside: false,
     });
-    accounts.id.renderButton(container, {
-      theme: "outline",
-      size: "large",
-      type: "standard",
-      shape: "pill",
-    });
+    this.renderSignInButton();
   }
 
   handleCredential({ credential }) {
