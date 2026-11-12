@@ -56,13 +56,13 @@ test("renders charger data as text, not HTML", async ({ page }) => {
 
 const USER_LOCATION = { lat: 47.4979, lng: 19.0402 };
 
-async function mapState(page) {
+const mapState = async (page) => {
   return page.evaluate(() => ({
     center: window.__fakeMap.center,
     zoom: window.__fakeMap.zoom,
     lastSearchCenter: window.__searchRequests.at(-1).locationRestriction.center,
   }));
-}
+};
 
 test.describe("with geolocation", () => {
   test.use({

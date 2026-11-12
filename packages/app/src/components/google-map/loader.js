@@ -1,7 +1,7 @@
 const CALLBACK_NAME = "__evMapsGoogleMapsLoaded";
 const scriptLoads = new Map();
 
-function loadScript(src, beforeLoad) {
+const loadScript = (src, beforeLoad) => {
   if (!scriptLoads.has(src)) {
     scriptLoads.set(
       src,
@@ -16,9 +16,9 @@ function loadScript(src, beforeLoad) {
     );
   }
   return scriptLoads.get(src);
-}
+};
 
-export function loadGoogleMaps(apiKey) {
+const loadGoogleMaps = (apiKey) => {
   if (window.google?.maps?.importLibrary) {
     return Promise.resolve(window.google.maps);
   }
@@ -34,10 +34,12 @@ export function loadGoogleMaps(apiKey) {
       resolve(window.google.maps);
     };
   });
-}
+};
 
-export function loadGoogleIdentity() {
+const loadGoogleIdentity = () => {
   return loadScript("https://accounts.google.com/gsi/client", (resolve, script) => {
     script.onload = () => resolve(window.google.accounts);
   });
-}
+};
+
+export { loadGoogleMaps, loadGoogleIdentity };

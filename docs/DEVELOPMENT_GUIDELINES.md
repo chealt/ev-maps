@@ -290,7 +290,7 @@ import Button from "../button/Button.astro";
 
 ```javascript
 // Web Component with SPECIFIC functionality
-export class MapElement extends HTMLElement {
+class MapElement extends HTMLElement {
   connectedCallback() {
     const locateBtn = this.querySelector('[data-action="locate"]');
     const filterBtn = this.querySelector('[data-action="filters"]');
@@ -317,6 +317,8 @@ export class MapElement extends HTMLElement {
   }
 }
 customElements.define("ev-map", MapElement);
+
+export { MapElement };
 ```
 
 **Result:**
@@ -536,8 +538,10 @@ All linting and formatting tools are written in Rust. Shared configs live in
 `packages/dev-config`; the tools are installed at the workspace root.
 
 - **JavaScript**: [oxlint](https://oxc.rs/docs/guide/usage/linter)
-  (`packages/dev-config/oxlint.json`). Key rule: `curly: error` - always use
-  curly braces for all blocks.
+  (`packages/dev-config/oxlint.json`). Key rules: `curly` (always use curly
+  braces for all blocks), and `func-style`, `import/group-exports` and
+  `import/exports-last` for
+  [Functions and Exports](#functions-and-exports).
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
   In component CSS, the built-in `style/noHexColors` rule rejects hex
   colors, and the `no-disallowed-css-units` GritQL plugin from the
@@ -586,6 +590,45 @@ bun run format:check  # verify only (used in CI)
 - CSS styles
 - Static content
 - Simple conditional rendering (use Astro directives instead)
+
+### Functions and Exports
+
+- **Functions are arrow functions assigned to a `const`**, never `function`
+  declarations: `const loadScript = (src) => { ... };`. Class methods stay
+  methods.
+- **One export statement per file, at the end.** Don't export declarations
+  inline (`export function`, `export const`, `export class`); declare them
+  first, then list everything the file exports in a single
+  `export { ... };`.
+- Config files that a tool requires to have a default export (e.g.
+  `astro.config.mjs`) keep their single `export default`.
+
+```javascript
+// ✅ Good
+const loadScript = (src) => {
+  // ...
+};
+
+const loadGoogleMaps = (apiKey) => loadScript(mapsUrl(apiKey));
+
+export { loadGoogleMaps, loadScript };
+```
+
+```javascript
+// ❌ Bad
+function loadScript(src) {
+  // ...
+}
+
+export function loadGoogleMaps(apiKey) {
+  return loadScript(mapsUrl(apiKey));
+}
+
+export const CALLBACK_NAME = "__evMapsGoogleMapsLoaded";
+```
+
+oxlint enforces this in CI with `func-style` (`expression`),
+`import/group-exports` and `import/exports-last`.
 
 ### Event Handling
 
