@@ -1,13 +1,18 @@
 language css;
 
 // Biome has no built-in rule for disallowed units (like Stylelint's
-// unit-disallowed-list), so this covers px/rem. Hex colors are handled by the
-// built-in style/noHexColors rule. Custom property definitions are allowed.
+// unit-disallowed-list), so this plugin covers it. Hex colors are handled by
+// the built-in style/noHexColors rule. Custom property definitions are
+// allowed, e.g. `--marker-size: 36px`.
 CssRegularDimension() as $value where {
-  $value <: r"(?i)[0-9.]+(?:px|rem)",
+  // Lowercase units that component CSS must not use directly.
+  $disallowed_units = ["px"],
+  $value <: r"[0-9.]+([a-zA-Z]+)"($unit),
+  $normalized_unit = lowercase($unit),
+  $disallowed_units <: some $normalized_unit,
   not $value <: within CssGenericProperty(name = CssDashedIdentifier()),
   register_diagnostic(
     span = $value,
-    message = "Hardcoded px/rem value. Use a CSS variable instead."
+    message = "Disallowed CSS unit. Use rem or a CSS variable instead."
   )
 }

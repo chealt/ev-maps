@@ -109,8 +109,9 @@ Component Structure:
    widths, heights, gaps, borders, z-indexes, opacity, transitions, and other
    style values should be defined as CSS variables and used throughout the
    application. This ensures consistency and makes theming easier.
-   **No hardcoded values allowed in component CSS files**, except where a
+   **No hex colors or px values in component CSS files**, except where a
    custom property is defined (colors always belong in `global.css`).
+   rem values are allowed, but prefer a shared token when one fits.
 
    - **Shared tokens** (colors, typography, spacing, radii, shadows,
      z-indexes, ...) live in `global.css`.
@@ -521,9 +522,10 @@ All linting and formatting tools are written in Rust. Shared configs live in
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
   In component CSS, the built-in `style/noHexColors` rule rejects hex
   colors, and a small GritQL plugin
-  (`packages/dev-config/no-hardcoded-css-units.grit`) rejects px/rem values
-  outside custom property definitions. Biome has no built-in rule for
-  disallowed units yet; replace the plugin once it does.
+  (`packages/dev-config/no-hardcoded-css-units.grit`) rejects the units in
+  its `$disallowed_units` list (currently px) outside custom property
+  definitions; rem is allowed. Biome has no built-in rule for disallowed
+  units yet; replace the plugin once it does.
 - **Markdown**: [rumdl](https://rumdl.dev/)
   (`packages/dev-config/.rumdl.toml`), which uses markdownlint-compatible
   rules.
