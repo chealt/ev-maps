@@ -62,7 +62,6 @@
   class AdvancedMarkerElement {
     constructor({ map, title }) {
       this.element = document.createElement("button");
-      this.element.className = "fake-marker";
       this.element.textContent = title;
       this.map = map;
     }
