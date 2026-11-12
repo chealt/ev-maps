@@ -57,6 +57,9 @@
     setZoom(zoom) {
       this.zoom = zoom;
     }
+    getZoom() {
+      return this.zoom;
+    }
   }
 
   class AdvancedMarkerElement {

@@ -1,0 +1,25 @@
+---
+import { Monitor, Moon, Sun } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import "./ThemePicker.css";
+
+const options = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+];
+---
+
+<ev-theme-picker>
+  <fieldset class="theme-picker">
+    <legend class="legend">Theme</legend>
+    {options.map(({ value, label, icon }) => (
+      <label class="option">
+        <input type="radio" name="theme" value={value} checked={value === "system"} />
+        <Icon icon={icon} size="sm" />
+        {label}
+      </label>
+    ))}
+  </fieldset>
+  <script src="./ThemePicker.js"></script>
+</ev-theme-picker>

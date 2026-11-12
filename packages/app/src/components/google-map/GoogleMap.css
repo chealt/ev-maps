@@ -94,7 +94,7 @@ ev-google-map {
   &[data-state="error"] {
     background: var(--color-danger-light);
     border-color: var(--color-danger);
-    color: var(--color-danger-dark);
+    color: var(--color-danger-light-text);
 
     &::before {
       background: var(--color-danger);
@@ -111,15 +111,6 @@ ev-google-map {
     opacity: var(--opacity-disabled);
     scale: var(--status-pulse-scale);
   }
-}
-
-.google-signin-button {
-  position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  z-index: var(--z-sticky);
-  border-radius: var(--border-radius-full);
-  box-shadow: var(--shadow-md);
 }
 
 /* Toolbar */
@@ -264,6 +255,7 @@ ev-google-map {
 
   &.active {
     background: var(--color-secondary);
+    color: var(--color-secondary-contrast);
     transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset))) rotate(-45deg)
       scale(var(--marker-active-scale));
   }
@@ -307,7 +299,7 @@ ev-google-map {
     padding: var(--spacing-2xs) var(--spacing-sm);
     border-radius: var(--border-radius-full);
     background: var(--color-primary-light);
-    color: var(--color-primary-dark);
+    color: var(--color-primary-light-text);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
   }

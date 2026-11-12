@@ -17,6 +17,18 @@ const { title = "EV Maps" } = Astro.props;
     <meta name="theme-color" content="#059669" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    <!-- Applies the saved theme before the first paint, so the page doesn't flash
+         the wrong theme. It must stay inline to run before rendering. -->
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem("ev-maps:theme");
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.dataset.theme = theme;
+        }
+      } catch {
+        // Storage can be unavailable; the system theme applies.
+      }
+    </script>
   </head>
   <body>
     <slot />

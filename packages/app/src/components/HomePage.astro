@@ -1,6 +1,7 @@
 ---
 import AppHeader from "./app-header/AppHeader.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
+import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
 import "./HomePage.css";
 
@@ -16,11 +17,11 @@ const { googleMaps, evChargers } = appConfig;
 
 <main class="home-page">
   <AppHeader title={title} subtitle={subtitle} />
+  {googleMaps.clientId && <UserMenu clientId={googleMaps.clientId} />}
 
   <GoogleMap
     apiKey={googleMaps.apiKey}
     mapId={googleMaps.mapId}
-    clientId={googleMaps.clientId}
     centerLat={googleMaps.defaultCenter.lat}
     centerLng={googleMaps.defaultCenter.lng}
     zoom={googleMaps.defaultZoom}
