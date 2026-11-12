@@ -1,8 +1,8 @@
 import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
 import { loadGoogleMaps } from "./loader.js";
+import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
 
-const LAST_LOCATION_KEY = "ev-maps:last-location";
 // Chargers closer than this many pixels are grouped; above the max zoom never.
 const CLUSTER_RADIUS = 60;
 const CLUSTER_MAX_ZOOM = 16;
@@ -17,23 +17,6 @@ const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 
 const currentColorScheme = () =>
   COLOR_SCHEMES[document.documentElement.dataset.theme] ?? COLOR_SCHEMES.system;
-
-const readLastLocation = () => {
-  try {
-    const { lat, lng } = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY));
-    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveLastLocation = (location) => {
-  try {
-    localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify(location));
-  } catch {
-    // Storage can be unavailable (private mode, blocked cookies).
-  }
-};
 
 const formatConnector = ({ type, powerKw, quantity }) => {
   const power = powerKw ? ` · ${powerKw} kW` : "";
@@ -55,14 +38,34 @@ const toFeature = (charger) => ({
   properties: { charger },
 });
 
-const chargerCountMessage = (count, truncated) => {
-  if (!count) {
+const chargerCountMessage = ({ shown, total, filtered, truncated }) => {
+  if (!total) {
     return "No EV chargers in this area";
   }
-  if (truncated) {
-    return `Showing ${count} EV chargers, zoom in to see all`;
+  if (filtered) {
+    return `${shown} of ${total} EV chargers match the filters`;
   }
-  return `${count} EV chargers found`;
+  if (truncated) {
+    return `Showing ${total} EV chargers, zoom in to see all`;
+  }
+  return `${total} EV chargers found`;
+};
+
+// The active power filter buttons' ranges: [minKw, maxKw).
+const readActivePowerRanges = (panel) =>
+  [...panel.querySelectorAll('.power-filter[aria-pressed="true"]')].map((button) => ({
+    minKw: Number(button.dataset.minKw),
+    maxKw: button.dataset.maxKw ? Number(button.dataset.maxKw) : Infinity,
+  }));
+
+// With no range active, every charger matches, including those without power
+// data; otherwise its fastest connector must be in one of the active ranges.
+const matchesPower = (charger, ranges) => {
+  if (!ranges.length) {
+    return true;
+  }
+  const power = charger.maxPowerKw;
+  return power != null && ranges.some((range) => power >= range.minKw && power < range.maxKw);
 };
 
 class GoogleMapElement extends HTMLElement {
@@ -79,10 +82,11 @@ class GoogleMapElement extends HTMLElement {
   connectedCallback() {
     this.statusEl = this.querySelector(".map-status");
     this.mapEl = this.querySelector(".google-map");
-    this.filterPanel = this.querySelector(".filter-panel");
+    this.filterPanel = this.querySelector(".filter-dialog");
     this.detailsPanel = this.querySelector(".charger-details");
 
     this.setupEventListeners();
+    this.filtersRestored = this.restoreFilters();
 
     const apiKey = this.dataset.apiKey;
     if (!apiKey) {
@@ -102,10 +106,6 @@ class GoogleMapElement extends HTMLElement {
 
   disconnectedCallback() {
     document.removeEventListener("theme-change", this.handleThemeChange);
-  }
-
-  get showEvChargers() {
-    return this.dataset.showEvChargers === "true";
   }
 
   get locatedZoom() {
@@ -128,8 +128,17 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
-    this.filterPanel?.addEventListener("submit", (event) => event.preventDefault());
-    this.filterPanel?.addEventListener("change", () => this.handleFilterChange());
+    this.filterPanel?.addEventListener("click", (event) => this.handleFilterClick(event));
+    for (const button of this.querySelectorAll(".clear-filters")) {
+      button.addEventListener("click", () => this.clearFilters());
+    }
+    for (const button of this.filterPanel?.querySelectorAll(".close, .done") ?? []) {
+      button.addEventListener("click", () => this.filterPanel.close());
+    }
+    // However the dialog closes (buttons, Escape), the Filters button follows.
+    this.filterPanel?.addEventListener("close", () =>
+      this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false")
+    );
   }
 
   setStatus(message, state = "idle") {
@@ -143,15 +152,20 @@ class GoogleMapElement extends HTMLElement {
     const { Map } = await maps.importLibrary("maps");
     this.maps = maps;
     this.MapClass = Map;
-    const lastLocation = readLastLocation();
+    const savedView = await readMapView();
     this.createMap({
-      center: lastLocation ?? {
+      center: savedView?.center ?? {
         lat: Number(this.dataset.centerLat) || 0,
         lng: Number(this.dataset.centerLng) || 0,
       },
-      zoom: lastLocation ? this.locatedZoom : Number(this.dataset.zoom) || 12,
+      zoom: savedView?.zoom ?? (savedView ? this.locatedZoom : Number(this.dataset.zoom) || 12),
     });
     this.resolveMapReady();
+
+    // A saved view is where the user left the map, so don't move it.
+    if (!savedView) {
+      this.querySelector("ev-locate-button[data-auto-locate]")?.locateIfPermitted();
+    }
   }
 
   createMap({ center, zoom }) {
@@ -167,8 +181,16 @@ class GoogleMapElement extends HTMLElement {
       streetViewControl: false,
       cameraControl: false,
     });
-    // "idle" fires once the map has finished moving or zooming.
-    this.map.addListener("idle", () => this.loadEvChargers());
+    // "idle" fires once the map has finished moving or zooming. The first one
+    // is just the initial render, which isn't a view the user chose.
+    let rendered = false;
+    this.map.addListener("idle", () => {
+      if (rendered) {
+        saveMapView({ center: this.map.getCenter().toJSON(), zoom: this.map.getZoom() });
+      }
+      rendered = true;
+      this.loadEvChargers();
+    });
   }
 
   // Google Maps only accepts a color scheme when a map is created, so a theme
@@ -189,7 +211,6 @@ class GoogleMapElement extends HTMLElement {
   async handleLocationFound(event) {
     const { lat, lng } = event.detail;
     this.setStatus(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
-    saveLastLocation({ lat, lng });
 
     await this.mapReady;
     this.map.setCenter({ lat, lng });
@@ -197,40 +218,73 @@ class GoogleMapElement extends HTMLElement {
   }
 
   toggleFilters() {
-    if (!this.filterPanel) {
+    if (!this.filterPanel || this.filterPanel.open) {
       return;
     }
-    this.filterPanel.hidden = !this.filterPanel.hidden;
-    this.querySelector(".filter-button")?.setAttribute(
-      "aria-expanded",
-      String(!this.filterPanel.hidden)
+    this.filterPanel.showModal();
+    this.querySelector(".filter-button")?.setAttribute("aria-expanded", "true");
+  }
+
+  handleFilterClick(event) {
+    const button = event.target.closest(".power-filter");
+    if (!button) {
+      return;
+    }
+    button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true"));
+    this.filtersChanged();
+  }
+
+  clearFilters() {
+    for (const button of this.querySelectorAll(".power-filter")) {
+      button.setAttribute("aria-pressed", "false");
+    }
+    this.filtersChanged();
+  }
+
+  filtersChanged() {
+    saveFilters({ powerRanges: this.activePowerRanges() });
+    this.updateClearFiltersButtons();
+    this.showMatchingChargers();
+  }
+
+  // "Clear filters" shows on the map and is enabled in the dialog only while
+  // a filter is active.
+  updateClearFiltersButtons() {
+    const active = this.activePowerRanges().length > 0;
+    for (const button of this.querySelectorAll(".clear-filters")) {
+      if (this.filterPanel?.contains(button)) {
+        button.disabled = !active;
+      } else {
+        button.hidden = !active;
+      }
+    }
+  }
+
+  activePowerRanges() {
+    return [...this.querySelectorAll('.power-filter[aria-pressed="true"]')].map(
+      (button) => button.dataset.powerRange
     );
   }
 
-  handleFilterChange() {
-    const form = new FormData(this.filterPanel);
-    this.toggleEvChargers(form.has("showEvChargers"));
-  }
-
-  toggleEvChargers(show) {
-    this.dataset.showEvChargers = String(show);
-    if (show) {
-      this.loadEvChargers();
-    } else {
-      this.clearMarkers();
-      this.hideChargerDetails();
+  // Activates the saved power filters; ranges that no longer exist are ignored.
+  async restoreFilters() {
+    const { powerRanges } = await readFilters();
+    for (const button of this.querySelectorAll(".power-filter")) {
+      button.setAttribute("aria-pressed", String(powerRanges.includes(button.dataset.powerRange)));
     }
+    this.updateClearFiltersButtons();
   }
 
   async loadEvChargers() {
     const bounds = this.map?.getBounds()?.toJSON();
-    if (!bounds || !this.showEvChargers) {
+    if (!bounds) {
       return;
     }
     const searchId = ++this.searchId;
     const zoom = this.map.getZoom();
 
     if (zoom < this.minChargerZoom) {
+      this.loaded = null;
       this.clearMarkers();
       this.hideChargerDetails();
       this.setStatus("Zoom in to see EV chargers");
@@ -252,22 +306,49 @@ class GoogleMapElement extends HTMLElement {
       if (searchId !== this.searchId) {
         return;
       }
-      this.clusterIndex = new Supercluster({
-        radius: CLUSTER_RADIUS,
-        extent: CLUSTER_EXTENT,
-        maxZoom: CLUSTER_MAX_ZOOM,
-      }).load(chargers.map(toFeature));
-      await this.renderMarkers();
-      this.setStatus(
-        chargerCountMessage(chargers.length, truncated),
-        chargers.length ? "success" : "idle"
-      );
+      this.loaded = { chargers, truncated };
+      await this.showMatchingChargers();
     } catch (error) {
       console.error("Error loading EV chargers:", error);
       if (searchId === this.searchId) {
         this.setStatus("Could not load EV chargers", "error");
       }
     }
+  }
+
+  // Clusters and draws the loaded chargers that match the filters.
+  async showMatchingChargers() {
+    await this.filtersRestored;
+    if (!this.loaded) {
+      return;
+    }
+    const { chargers, truncated } = this.loaded;
+    const ranges = this.filterPanel ? readActivePowerRanges(this.filterPanel) : [];
+    const matching = chargers.filter((charger) => matchesPower(charger, ranges));
+
+    this.clusterIndex = new Supercluster({
+      radius: CLUSTER_RADIUS,
+      extent: CLUSTER_EXTENT,
+      maxZoom: CLUSTER_MAX_ZOOM,
+    }).load(matching.map(toFeature));
+    await this.renderMarkers();
+
+    if (
+      this.activeChargerId != null &&
+      !matching.some((charger) => charger.id === this.activeChargerId)
+    ) {
+      this.hideChargerDetails();
+    }
+
+    this.setStatus(
+      chargerCountMessage({
+        shown: matching.length,
+        total: chargers.length,
+        filtered: matching.length !== chargers.length,
+        truncated,
+      }),
+      matching.length ? "success" : "idle"
+    );
   }
 
   clearMarkers() {
@@ -379,6 +460,7 @@ class GoogleMapElement extends HTMLElement {
     if (!panel) {
       return;
     }
+    this.activeChargerId = charger.id;
     panel.querySelector(".name").textContent = charger.name;
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
@@ -390,6 +472,7 @@ class GoogleMapElement extends HTMLElement {
     if (this.detailsPanel) {
       this.detailsPanel.hidden = true;
     }
+    this.activeChargerId = null;
     this.setActiveMarker(null);
   }
 }

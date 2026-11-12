@@ -9,12 +9,10 @@ const ERROR_MESSAGES = {
 class LocateButtonElement extends HTMLElement {
   connectedCallback() {
     this.querySelector("button")?.addEventListener("click", () => this.handleClick());
-
-    if (this.hasAttribute("data-auto-locate")) {
-      this.locateIfPermitted();
-    }
   }
 
+  // Called by <ev-google-map> on load when there's no saved map view and
+  // data-auto-locate is set; asks for the location only if already permitted.
   async locateIfPermitted() {
     const permission = await navigator.permissions
       ?.query({ name: "geolocation" })

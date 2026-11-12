@@ -154,20 +154,14 @@ test("reports a denied location permission", async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText("Location permission denied");
 });
 
-test("filters toggle the panel and charger visibility", async ({ page }) => {
-  const markers = page.getByRole("region", { name: "EV charging station map" }).getByRole("button");
-  const filterButton = page.getByRole("button", { name: "Filters" });
-  const showChargers = page.getByLabel("Show EV chargers");
+test("the filters button opens and closes the filters", async ({ page }) => {
+  const power = page.getByRole("group", { name: "Charging power" });
+  await expect(power).toBeHidden();
 
-  await expect(showChargers).toBeHidden();
-  await filterButton.click();
-  await expect(showChargers).toBeVisible();
+  await page.getByRole("button", { name: "Filters" }).click();
+  await expect(power).toBeVisible();
   await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
 
-  await expect(markers).toHaveCount(2);
-  await showChargers.uncheck();
-  await expect(markers).toHaveCount(0);
-
-  await showChargers.check();
-  await expect(markers).toHaveCount(2);
+  await page.getByRole("button", { name: "Filters" }).click();
+  await expect(power).toBeHidden();
 });
