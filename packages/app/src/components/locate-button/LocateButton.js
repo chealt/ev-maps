@@ -6,7 +6,7 @@ const ERROR_MESSAGES = {
   3: "Location request timed out",
 };
 
-export class LocateButtonElement extends HTMLElement {
+class LocateButtonElement extends HTMLElement {
   connectedCallback() {
     this.querySelector("button")?.addEventListener("click", () => this.handleClick());
 
@@ -56,3 +56,5 @@ export class LocateButtonElement extends HTMLElement {
 }
 
 customElements.define("ev-locate-button", LocateButtonElement);
+
+export { LocateButtonElement };

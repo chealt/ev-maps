@@ -4,9 +4,15 @@
     "browser": true,
     "es2024": true
   },
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import"],
   "rules": {
     "curly": "error",
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-console": [
+      "warn",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
     "no-debugger": "error",
     "no-dupe-keys": "error",
     "no-duplicate-imports": "error",
@@ -17,6 +23,9 @@
     "no-unused-vars": "error",
     "typescript/triple-slash-reference": "off",
     "use-isnan": "error",
-    "valid-typeof": "error"
+    "valid-typeof": "error",
+    "func-style": ["error", "expression"],
+    "import/exports-last": "error",
+    "import/group-exports": "error"
   }
 }

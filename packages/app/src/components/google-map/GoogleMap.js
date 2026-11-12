@@ -4,39 +4,39 @@ import { fetchChargerDetails, searchEvChargers } from "./places.js";
 const PHOTO_MAX_WIDTH = 400;
 const LAST_LOCATION_KEY = "ev-maps:last-location";
 
-function readLastLocation() {
+const readLastLocation = () => {
   try {
     const { lat, lng } = JSON.parse(localStorage.getItem(LAST_LOCATION_KEY));
     return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
   } catch {
     return null;
   }
-}
+};
 
-function saveLastLocation(location) {
+const saveLastLocation = (location) => {
   try {
     localStorage.setItem(LAST_LOCATION_KEY, JSON.stringify(location));
   } catch {
     // Storage can be unavailable (private mode, blocked cookies).
   }
-}
+};
 
-function formatConnector({ type, count, availableCount, maxChargeRateKw }) {
+const formatConnector = ({ type, count, availableCount, maxChargeRateKw }) => {
   const name = String(type ?? "Unknown")
     .replace(/^EV_CONNECTOR_TYPE_/, "")
     .replaceAll("_", " ");
   const availability = availableCount == null ? "" : `, ${availableCount} available`;
   const power = maxChargeRateKw ? ` · up to ${maxChargeRateKw} kW` : "";
   return `${name}: ${count}×${power}${availability}`;
-}
+};
 
-function decodeJwtPayload(token) {
+const decodeJwtPayload = (token) => {
   const base64 = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
   const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
   return JSON.parse(new TextDecoder().decode(bytes));
-}
+};
 
-export class GoogleMapElement extends HTMLElement {
+class GoogleMapElement extends HTMLElement {
   map = null;
   maps = null;
   markers = [];
@@ -293,3 +293,5 @@ export class GoogleMapElement extends HTMLElement {
 }
 
 customElements.define("ev-google-map", GoogleMapElement);
+
+export { GoogleMapElement };
