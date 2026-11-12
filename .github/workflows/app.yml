@@ -60,6 +60,7 @@ jobs:
         run: bun run ${{ matrix.script }}
 
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,6 +85,7 @@ jobs:
           path: packages/app/dist
 
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
