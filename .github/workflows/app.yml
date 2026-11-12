@@ -10,9 +10,12 @@ on:
   pull_request:
     branches: [main]
 
+# A newer commit on a pull request makes older runs pointless, so cancel them.
+# Never cancel runs on main: a cancelled run would skip its deploy, and if the
+# next push doesn't change the app, that change would never reach production.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
   run:

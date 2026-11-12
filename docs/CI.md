@@ -12,9 +12,11 @@ includes everything that artifact needs from CI.
   `packages/biome-plugin-css-units`, don't get their own workflow. Instead,
   the artifact's workflow runs when they change.
 - Name the workflow after the artifact (`packages/app` uses `app.yml`).
-- Trigger it with `paths` filters on the artifact, everything it depends on
-  (e.g. `packages/dev-config`, the root `package.json` and `bun.lock`) and the
-  workflow file itself.
+- Run it for every push and pull request, and list the artifact, everything it
+  depends on (e.g. `packages/dev-config`, the root `package.json` and
+  `bun.lock`) and the workflow file itself in its `Detect changes` job.
+  Don't put `paths` filters on the triggers: required checks would never
+  report for other changes, and those pull requests couldn't be merged.
 - Run the artifact's own scripts with `working-directory` set to its package.
 
 ## Workflows
@@ -26,6 +28,14 @@ includes everything that artifact needs from CI.
 The lint, format, build and test jobs run in parallel; `Deploy` runs after all
 of them pass. The Playwright HTML report, with videos of every test and traces
 of failures, is uploaded as the `playwright-report` artifact.
+
+When nothing the app depends on changed (e.g. a docs-only pull request), the
+checks still run so they report, but skip their steps and pass in seconds, and
+nothing is deployed. If change detection fails, the checks fail instead of
+skipping, because a skipped check counts as passed.
+
+A newer commit on a pull request cancels the older runs. Runs on `main` are
+never cancelled, so every app change gets deployed.
 
 Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.
