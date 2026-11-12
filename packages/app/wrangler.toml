@@ -1,5 +1,8 @@
-# Cloudflare Pages project (static site). Deploy with:
-#   bunx wrangler pages deploy
+# Cloudflare Worker that serves the static site in ./dist (built by
+# `bun run build`). CI deploys it; to deploy by hand:
+#   bunx wrangler deploy
 name = "ev-maps"
-compatibility_date = "2025-01-01"
-pages_build_output_dir = "./dist"
+compatibility_date = "2026-11-09"
+
+[assets]
+directory = "./dist"

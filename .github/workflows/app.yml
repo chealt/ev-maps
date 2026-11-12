@@ -111,3 +111,74 @@ jobs:
           name: playwright-report
           path: packages/app/playwright-report
           retention-days: 14
+
+  # Deploys the tested build to the ev-maps Cloudflare Worker (static assets,
+  # see packages/app/wrangler.toml): production for pushes to main, a preview
+  # version with its own URL for pull requests. Pull requests from forks are
+  # skipped because they don't get the Cloudflare secrets.
+  deploy:
+    name: Deploy
+    needs: [check, build, test]
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      url: ${{ steps.url.outputs.url }}
+    steps:
+      - name: Check Cloudflare configuration
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: .
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets to deploy."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Installs the pinned wrangler from packages/app/package.json.
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ev-maps-dist
+          path: packages/app/dist
+
+      # Preview URLs need a DNS-safe alias: "feat/My_Branch" -> "feat-my-branch".
+      - name: Preview alias
+        id: alias
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          alias=$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g' | cut -c1-40 | sed -E 's/^-+|-+$//g')
+          echo "alias=$alias" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloudflare
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: bun
+          workingDirectory: packages/app
+          command: ${{ github.event_name == 'push' && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
+
+      - name: Deployment URL
+        id: url
+        env:
+          OUTPUT: ${{ steps.deploy.outputs.command-output }}
+        run: |
+          url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
+          if [ -z "$url" ]; then
+            url=$(printf '%s\n' "$OUTPUT" | grep -oE 'https://[a-z0-9.-]+\.workers\.dev' | head -1)
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to $url" >> "$GITHUB_STEP_SUMMARY"

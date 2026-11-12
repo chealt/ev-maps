@@ -892,4 +892,4 @@ Button was not showing disabled cursor properly.
 - [Astro Documentation](https://astro.build/)
 - [Astro Components](https://docs.astro.build/en/concepts/components/)
 - [Bun Documentation](https://bun.sh/)
-- [Cloudflare Pages Docs](https://developers.cloudflare.com/pages/)
+- [Cloudflare Workers static assets](https://developers.cloudflare.com/workers/static-assets/)
