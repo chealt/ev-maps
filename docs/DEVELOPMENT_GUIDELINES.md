@@ -132,8 +132,6 @@ Component Structure:
 
    /* Component CSS */
    .button {
-     --button-pressed-scale: 0.97;
-
      background-color: var(--color-primary);
      padding: var(--spacing-sm) var(--spacing-md);
      border-radius: var(--border-radius-sm);
