@@ -95,9 +95,9 @@ export class GoogleMapElement extends HTMLElement {
     this.querySelector(".search-area-button")?.addEventListener("click", () =>
       this.loadEvChargers()
     );
-    this.querySelector(".charger-details__close")?.addEventListener("click", () =>
-      this.hideChargerDetails()
-    );
+    this.detailsPanel
+      ?.querySelector(".close")
+      ?.addEventListener("click", () => this.hideChargerDetails());
     this.filterPanel?.addEventListener("submit", (event) => event.preventDefault());
     this.filterPanel?.addEventListener("change", () => this.handleFilterChange());
   }
@@ -210,9 +210,9 @@ export class GoogleMapElement extends HTMLElement {
   }
 
   setActiveMarker(marker) {
-    this.activeMarker?.content?.classList.remove("charger-marker--active");
+    this.activeMarker?.content?.classList.remove("active");
     this.activeMarker = marker;
-    marker?.content?.classList.add("charger-marker--active");
+    marker?.content?.classList.add("active");
   }
 
   async displayEvChargers(chargers) {
@@ -244,7 +244,7 @@ export class GoogleMapElement extends HTMLElement {
   }
 
   fillList(list, items) {
-    const template = this.querySelector(".charger-details__item-template");
+    const template = this.detailsPanel.querySelector(".item-template");
     list.replaceChildren(
       ...items.map((text) => {
         const item = template.content.firstElementChild.cloneNode(true);
@@ -259,19 +259,18 @@ export class GoogleMapElement extends HTMLElement {
     if (!panel) {
       return;
     }
-    panel.querySelector(".charger-details__name").textContent = details.displayName ?? "";
-    panel.querySelector(".charger-details__address-text").textContent =
-      details.formattedAddress ?? "";
+    panel.querySelector(".name").textContent = details.displayName ?? "";
+    panel.querySelector(".address .text").textContent = details.formattedAddress ?? "";
     this.fillList(
-      panel.querySelector(".charger-details__connectors"),
+      panel.querySelector(".connectors"),
       (details.evChargeOptions?.connectorAggregations ?? []).map(formatConnector)
     );
     this.fillList(
-      panel.querySelector(".charger-details__hours"),
+      panel.querySelector(".hours"),
       details.regularOpeningHours?.weekdayDescriptions ?? []
     );
 
-    const photoEl = panel.querySelector(".charger-details__photo");
+    const photoEl = panel.querySelector(".photo");
     const photo = details.photos?.[0];
     photoEl.hidden = !photo;
     photoEl.src = photo ? photo.getURI({ maxWidth: PHOTO_MAX_WIDTH }) : "";

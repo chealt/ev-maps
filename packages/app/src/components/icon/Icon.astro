@@ -13,7 +13,7 @@ const { icon, size = "md", filled = false, class: className } = Astro.props;
 ---
 
 <span
-  class:list={["icon", `icon--${size}`, filled && "icon--filled", className]}
+  class:list={["icon", size, filled && "filled", className]}
   aria-hidden="true"
   set:html={icon}
 />

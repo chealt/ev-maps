@@ -12,11 +12,11 @@ const { title, subtitle } = Astro.props;
 ---
 
 <header class="app-header">
-  <span class="app-header__mark">
+  <span class="mark">
     <Icon icon={Zap} filled />
   </span>
-  <div class="app-header__text">
-    <h1 class="app-header__title">{title}</h1>
-    {subtitle && <p class="app-header__subtitle">{subtitle}</p>}
+  <div class="text">
+    <h1 class="title">{title}</h1>
+    {subtitle && <p class="subtitle">{subtitle}</p>}
   </div>
 </header>

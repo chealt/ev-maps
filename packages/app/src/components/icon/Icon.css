@@ -9,17 +9,17 @@
     height: 100%;
   }
 
-  &:is(.icon--sm) {
+  &.sm {
     width: var(--icon-size-sm);
     height: var(--icon-size-sm);
   }
 
-  &:is(.icon--lg) {
+  &.lg {
     width: var(--icon-size-lg);
     height: var(--icon-size-lg);
   }
 
-  &:is(.icon--filled) svg {
+  &.filled svg {
     fill: currentColor;
   }
 }

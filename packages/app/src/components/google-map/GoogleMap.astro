@@ -58,29 +58,29 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     <div class="map-controls">
       <Button variant="secondary" class="search-area-button">
         <Icon icon={Search} />
-        <span class="button__label">Search this area</span>
+        <span class="label">Search this area</span>
       </Button>
       <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
     </div>
 
     <form class="filter-panel" id="map-filter-panel" aria-labelledby="filter-panel-title" hidden>
-      <h2 class="filter-panel__title" id="filter-panel-title">
+      <h2 class="title" id="filter-panel-title">
         Filters
       </h2>
-      <label class="filter-panel__field">
+      <label class="field">
         <span>Show EV chargers</span>
         <input
-          class="filter-panel__switch"
+          class="switch"
           type="checkbox"
           role="switch"
           name="showEvChargers"
           checked={showEvChargers}
         />
       </label>
-      <label class="filter-panel__field">
+      <label class="field">
         <span>Search radius</span>
-        <select class="filter-panel__select" name="searchRadius">
+        <select class="select" name="searchRadius">
           {radiusOptions.map((radius) => (
             <option value={radius} selected={radius === searchRadius}>
               {radius / 1000} km
@@ -91,44 +91,43 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     </form>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
-      <div class="charger-details__header">
-        <span class="charger-details__badge">
+      <div class="header">
+        <span class="badge">
           <Icon icon={Zap} size="sm" />
           EV charging
         </span>
-        <Button variant="ghost" size="icon" class="charger-details__close" aria-label="Close">
+        <Button variant="ghost" size="icon-only" class="close" aria-label="Close">
           <Icon icon={X} />
         </Button>
       </div>
-      <img class="charger-details__photo" alt="" hidden />
-      <h2 class="charger-details__name" id="charger-details-name"></h2>
-      <p class="charger-details__address">
+      <img class="photo" alt="" hidden />
+      <h2 class="name" id="charger-details-name"></h2>
+      <p class="address">
         <Icon icon={MapPin} size="sm" />
-        <span class="charger-details__address-text"></span>
+        <span class="text"></span>
       </p>
-      <section class="charger-details__section">
-        <h3 class="charger-details__section-title">
+      <section class="section">
+        <h3 class="title">
           <Icon icon={PlugZap} size="sm" />
           Connectors
         </h3>
-        <ul class="charger-details__connectors"></ul>
+        <ul class="connectors"></ul>
       </section>
-      <section class="charger-details__section">
-        <h3 class="charger-details__section-title">
+      <section class="section">
+        <h3 class="title">
           <Icon icon={Clock} size="sm" />
           Opening hours
         </h3>
-        <ul class="charger-details__hours"></ul>
+        <ul class="hours"></ul>
       </section>
+      <template class="item-template">
+        <li></li>
+      </template>
     </aside>
-
-    <template class="charger-details__item-template">
-      <li></li>
-    </template>
 
     <template class="charger-marker-template">
       <div class="charger-marker">
-        <Icon icon={Zap} filled size="sm" class="charger-marker__icon" />
+        <Icon icon={Zap} filled size="sm" />
       </div>
     </template>
   </div>
