@@ -142,6 +142,10 @@ The app is served by the `ev-maps` Cloudflare Worker as static assets
 - **Pull requests** from this repository upload a preview version, without
   touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
   shows on the pull request. Pull requests from forks are not deployed.
+- **The shared preview**, `https://preview-ev-maps.<subdomain>.workers.dev`,
+  always shows the most recently deployed pull request. Google sign-in only
+  works on authorized origins, which can't contain wildcards, so this is the
+  one preview address to add to the OAuth client.
 
 It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
 built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
