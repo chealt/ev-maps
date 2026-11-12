@@ -48,7 +48,9 @@ ev-maps/
 │       │   └── pages/index.astro
 │       └── tests/                   # Playwright tests (Google Maps is faked)
 ├── .github/workflows/app.yml         # CI/CD for the app artifact
-├── docs/DEVELOPMENT_GUIDELINES.md
+├── docs/
+│   ├── DEVELOPMENT_GUIDELINES.md
+│   └── TESTING_GUIDELINES.md
 └── package.json                     # Workspace root (tooling lives here)
 ```
 
@@ -118,7 +120,8 @@ cd packages/app && bunx playwright install chromium
 
 Tests replace the Google Maps script with a local fake
 (`tests/fixtures/fake-google-maps.js`), so they need neither an API key nor
-network access.
+network access. Before writing tests, read the
+**[Testing Guidelines](docs/TESTING_GUIDELINES.md)**.
 
 ## Deployment
 
@@ -175,6 +178,10 @@ See **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** for
 component architecture, CSS conventions, code quality and commit message
 rules.
 
+See **[Testing Guidelines](docs/TESTING_GUIDELINES.md)** for how to write
+Playwright tests: find elements by accessible role, label or text (never CSS
+selectors or test IDs), and don't check layout or visual appearance.
+
 ## Contributing
 
 **Always create a pull request with your changes.** Never commit or push
@@ -183,7 +190,7 @@ change can be reviewed before it's merged.
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes (following the guidelines above)
+3. Make your changes (following the development and testing guidelines)
 4. Run `bun run lint`, `bun run format` and `bun run test`
 5. Commit your changes using Conventional Commits
 6. Open a pull request
