@@ -1,5 +1,7 @@
 ---
 import Button from "../button/Button.astro";
+import { Clock, MapPin, PlugZap, Search, X, Zap } from "lucide-static";
+import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
 import "./GoogleMap.css";
@@ -47,7 +49,7 @@ const radiusOptions = [1000, 5000, 10000, 25000];
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
 
-    <div class="map-status" role="status" aria-live="polite">
+    <div class="map-status" role="status" aria-live="polite" data-state={apiKey ? "idle" : "error"}>
       {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
     </div>
 
@@ -55,20 +57,30 @@ const radiusOptions = [1000, 5000, 10000, 25000];
 
     <div class="map-controls">
       <Button variant="secondary" class="search-area-button">
-        Search this area
+        <Icon icon={Search} />
+        <span class="label">Search this area</span>
       </Button>
       <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
     </div>
 
-    <form class="filter-panel" id="map-filter-panel" hidden>
-      <label class="filter-panel__field">
-        <input type="checkbox" name="showEvChargers" checked={showEvChargers} />
-        Show EV chargers
+    <form class="filter-panel" id="map-filter-panel" aria-labelledby="filter-panel-title" hidden>
+      <h2 class="title" id="filter-panel-title">
+        Filters
+      </h2>
+      <label class="field">
+        <span>Show EV chargers</span>
+        <input
+          class="switch"
+          type="checkbox"
+          role="switch"
+          name="showEvChargers"
+          checked={showEvChargers}
+        />
       </label>
-      <label class="filter-panel__field">
-        Search radius
-        <select name="searchRadius">
+      <label class="field">
+        <span>Search radius</span>
+        <select class="select" name="searchRadius">
           {radiusOptions.map((radius) => (
             <option value={radius} selected={radius === searchRadius}>
               {radius / 1000} km
@@ -79,18 +91,44 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     </form>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
-      <Button variant="secondary" size="small" class="charger-details__close" aria-label="Close">
-        ×
-      </Button>
-      <h2 class="charger-details__name" id="charger-details-name"></h2>
-      <p class="charger-details__address"></p>
-      <ul class="charger-details__connectors"></ul>
-      <ul class="charger-details__hours"></ul>
-      <img class="charger-details__photo" alt="" hidden />
+      <div class="header">
+        <span class="badge">
+          <Icon icon={Zap} size="sm" />
+          EV charging
+        </span>
+        <Button variant="ghost" size="icon-only" class="close" aria-label="Close">
+          <Icon icon={X} />
+        </Button>
+      </div>
+      <img class="photo" alt="" hidden />
+      <h2 class="name" id="charger-details-name"></h2>
+      <p class="address">
+        <Icon icon={MapPin} size="sm" />
+        <span class="text"></span>
+      </p>
+      <section class="section">
+        <h3 class="title">
+          <Icon icon={PlugZap} size="sm" />
+          Connectors
+        </h3>
+        <ul class="connectors"></ul>
+      </section>
+      <section class="section">
+        <h3 class="title">
+          <Icon icon={Clock} size="sm" />
+          Opening hours
+        </h3>
+        <ul class="hours"></ul>
+      </section>
+      <template class="item-template">
+        <li></li>
+      </template>
     </aside>
 
-    <template class="charger-details__item-template">
-      <li></li>
+    <template class="charger-marker-template">
+      <div class="charger-marker">
+        <Icon icon={Zap} filled size="sm" />
+      </div>
     </template>
   </div>
   <script src="./GoogleMap.js"></script>

@@ -167,8 +167,8 @@ Component Structure:
         background: var(--color-primary-dark);
       }
 
-      &--disabled {
-        opacity: var(--opacity-disabled);
+      &.secondary {
+        background: var(--color-surface);
       }
     }
 
@@ -179,8 +179,8 @@ Component Structure:
     .button:hover {
       background: var(--color-primary-dark);
     }
-    .button--disabled {
-      opacity: var(--opacity-disabled);
+    .button.secondary {
+      background: var(--color-surface);
     }
     ```
 
@@ -190,13 +190,13 @@ Component Structure:
 
     ```astro
     <!-- ✅ Good - Astro's class:list -->
-    <button class:list={["button", `button--${variant}`, `button--${size}`]}>
+    <button class:list={["button", variant, size]}>
       <slot />
     </button>
 
     <!-- ❌ Bad - manual array join -->
     <button
-      class={["button", `button--${variant}`, `button--${size}`]
+      class={["button", variant, size]
         .filter(Boolean)
         .join(" ")}
     >
@@ -256,7 +256,7 @@ interface Props {
 const { variant = "primary", dataAction } = Astro.props;
 ---
 
-<button class:list={["button", `button--${variant}`]} data-action={dataAction}>
+<button class:list={["button", variant]} data-action={dataAction}>
   <slot />
 </button>
 ```
@@ -364,7 +364,7 @@ const {
 
 <button
   type={type}
-  class:list={["button", `button--${variant}`, className]}
+  class:list={["button", variant, className]}
   {...attrs}
 >
   <slot />
@@ -386,6 +386,25 @@ const {
 }
 ```
 
+### Icons
+
+Use [Lucide](https://lucide.dev/icons/) icons from `lucide-static` through
+the `Icon` component. Each icon is an SVG string that Astro inlines at build
+time, so icons ship no client-side JavaScript. Don't copy SVG markup into
+components.
+
+```astro
+---
+import { LocateFixed } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+---
+
+<Icon icon={LocateFixed} />
+<Icon icon={LocateFixed} size="sm" filled />
+```
+
+Icons are decorative (`aria-hidden`). Give icon-only buttons an `aria-label`.
+
 ### Rendering Dynamic Content
 
 When a Web Component must show data (for example, details from an API),
@@ -395,16 +414,16 @@ items, render a `<template>` in Astro and clone it.
 
 ```astro
 <aside class="details" hidden>
-  <h2 class="details__name"></h2>
-  <ul class="details__list"></ul>
+  <h2 class="name"></h2>
+  <ul class="list"></ul>
 </aside>
-<template class="details__item-template">
+<template class="item-template">
   <li></li>
 </template>
 ```
 
 ```javascript
-panel.querySelector(".details__name").textContent = place.name;
+panel.querySelector(".name").textContent = place.name;
 ```
 
 ## File Organization
@@ -430,8 +449,8 @@ components/
 
 - **Components**: PascalCase (e.g., `Button.astro`, `Map.astro`, `Card.astro`)
 - **CSS files**: Match component name (e.g., `Button.css`, `Map.css`)
-- **CSS classes**: kebab-case (e.g., `.button`, `.button--primary`,
-  `.map-container`)
+- **CSS classes**: kebab-case, no BEM (e.g., `.charger-details`, `.name`,
+  `.primary`). See [Class Names](#class-names).
 - **Variables**: camelCase (e.g., `buttonId`, `currentPosition`)
 - **Props**: camelCase (e.g., `variant`, `disabled`, `onClick`)
 
@@ -461,8 +480,8 @@ Use Astro's `class:list` directive:
 <div
   class:list={[
     "container",
-    isActive && "container--active",
-    size === "large" && "container--large",
+    isActive && "active",
+    size === "large" && "large",
   ]}
 ></div>
 ```
@@ -621,26 +640,21 @@ this.addEventListener("location-found", (event) => {
    }
    ```
 
-2. **Use BEM-like naming**:
+2. **Combine short class names; don't use BEM**. See
+   [Class Names](#class-names).
 
-   ```css
-   .button {
-   } /* Block */
-   .button--primary {
-   } /* Modifier */
-   .button__icon {
-   } /* Element */
-   ```
-
-3. **Avoid deep nesting**:
+3. **Avoid deep nesting**: scope child classes under the component's block,
+   one level deep where possible.
 
    ```css
    /* ❌ Bad */
-   .parent .child .grandchild {
+   .charger-details .section .list .item .text {
    }
 
    /* ✅ Good */
-   .grandchild {
+   .charger-details {
+     .text {
+     }
    }
    ```
 
@@ -657,6 +671,63 @@ this.addEventListener("location-found", (event) => {
      display: flex;
    }
    ```
+
+### Class Names
+
+Don't use BEM (`block__element--modifier`). Combine short class names
+instead:
+
+- **Block**: the component's root element gets a descriptive, unique class,
+  e.g. `.app-header` or `.charger-details`. Use a semantic tag for it where one
+  fits (`<header>`, `<aside>`, `<form>`), but style the class, not the tag:
+  all CSS is global, so `header { }` would style every header on the page.
+- **Children**: short classes such as `.title`, `.subtitle` or `.name`,
+  styled only through nesting under the block.
+- **Modifiers**: extra classes on the same element, such as `.primary`,
+  `.small` or `.active`, styled only in combination (`&.primary`). Never style
+  a modifier on its own.
+- Don't give a modifier the same name as another component's block class
+  (e.g. a button size called `icon` would pick up the `Icon` component's
+  `.icon` styles).
+
+```astro
+<header class="app-header">
+  <h1 class="title">EV Maps</h1>
+  <p class="subtitle">Find electric vehicle charging stations near you</p>
+</header>
+
+<button class="button primary small">Locate Me</button>
+```
+
+```css
+.app-header {
+  .title {
+    font-weight: var(--font-weight-bold);
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+  }
+}
+
+.button {
+  &.primary {
+    background: var(--color-primary);
+  }
+
+  &.small {
+    font-size: var(--font-size-xs);
+  }
+}
+```
+
+```css
+/* ❌ Bad - BEM */
+.app-header__subtitle {
+}
+.button--primary {
+}
+```
 
 ## Performance Considerations
 

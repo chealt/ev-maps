@@ -17,7 +17,8 @@
     "test:debug": "playwright test --debug"
   },
   "dependencies": {
-    "astro": "^4.16.19"
+    "astro": "^4.16.19",
+    "lucide-static": "^1.72.0"
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",

@@ -3,8 +3,8 @@ import type { HTMLAttributes } from "astro/types";
 import "./Button.css";
 
 interface Props extends HTMLAttributes<"button"> {
-  variant?: "primary" | "secondary" | "danger";
-  size?: "small" | "medium" | "large";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "small" | "medium" | "large" | "icon-only";
 }
 
 const {
@@ -16,10 +16,6 @@ const {
 } = Astro.props;
 ---
 
-<button
-  type={type}
-  class:list={["button", `button--${variant}`, `button--${size}`, className]}
-  {...attrs}
->
+<button type={type} class:list={["button", variant, size, className]} {...attrs}>
   <slot />
 </button>

@@ -62,7 +62,7 @@ export class GoogleMapElement extends HTMLElement {
       .then((maps) => this.initMap(maps))
       .catch((error) => {
         console.error(error);
-        this.setStatus("Failed to load Google Maps");
+        this.setStatus("Failed to load Google Maps", "error");
       });
 
     if (this.dataset.clientId) {
@@ -85,26 +85,27 @@ export class GoogleMapElement extends HTMLElement {
   }
 
   setupEventListeners() {
-    this.addEventListener("locate-start", () => this.setStatus("Locating..."));
+    this.addEventListener("locate-start", () => this.setStatus("Locating...", "loading"));
     this.addEventListener("location-found", (event) => this.handleLocationFound(event));
     this.addEventListener("location-error", (event) =>
-      this.setStatus(event.detail?.message || "Unable to determine your location")
+      this.setStatus(event.detail?.message || "Unable to determine your location", "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
 
     this.querySelector(".search-area-button")?.addEventListener("click", () =>
       this.loadEvChargers()
     );
-    this.querySelector(".charger-details__close")?.addEventListener("click", () =>
-      this.hideChargerDetails()
-    );
+    this.detailsPanel
+      ?.querySelector(".close")
+      ?.addEventListener("click", () => this.hideChargerDetails());
     this.filterPanel?.addEventListener("submit", (event) => event.preventDefault());
     this.filterPanel?.addEventListener("change", () => this.handleFilterChange());
   }
 
-  setStatus(message) {
+  setStatus(message, state = "idle") {
     if (this.statusEl) {
       this.statusEl.textContent = message;
+      this.statusEl.dataset.state = state;
     }
   }
 
@@ -120,8 +121,11 @@ export class GoogleMapElement extends HTMLElement {
       zoom: lastLocation ? this.locatedZoom : Number(this.dataset.zoom) || 12,
       mapId: this.dataset.mapId || "DEMO_MAP_ID",
       gestureHandling: "greedy",
+      clickableIcons: false,
       fullscreenControl: false,
+      mapTypeControl: false,
       streetViewControl: false,
+      cameraControl: false,
     });
     this.resolveMapReady();
 
@@ -173,7 +177,7 @@ export class GoogleMapElement extends HTMLElement {
       return;
     }
     const searchId = ++this.searchId;
-    this.setStatus("Searching for EV chargers...");
+    this.setStatus("Searching for EV chargers...", "loading");
 
     try {
       const center = this.map.getCenter().toJSON();
@@ -183,11 +187,12 @@ export class GoogleMapElement extends HTMLElement {
       }
       await this.displayEvChargers(chargers);
       this.setStatus(
-        chargers.length ? `${chargers.length} EV chargers found` : "No EV chargers found nearby"
+        chargers.length ? `${chargers.length} EV chargers found` : "No EV chargers found nearby",
+        chargers.length ? "success" : "idle"
       );
     } catch (error) {
       console.error("Error loading EV chargers:", error);
-      this.setStatus("Could not load EV chargers");
+      this.setStatus("Could not load EV chargers", "error");
     }
   }
 
@@ -196,6 +201,18 @@ export class GoogleMapElement extends HTMLElement {
       marker.map = null;
     }
     this.markers = [];
+    this.activeMarker = null;
+  }
+
+  createMarkerContent() {
+    const template = this.querySelector(".charger-marker-template");
+    return template?.content.firstElementChild.cloneNode(true);
+  }
+
+  setActiveMarker(marker) {
+    this.activeMarker?.content?.classList.remove("active");
+    this.activeMarker = marker;
+    marker?.content?.classList.add("active");
   }
 
   async displayEvChargers(chargers) {
@@ -206,9 +223,13 @@ export class GoogleMapElement extends HTMLElement {
         map: this.map,
         position: charger.location,
         title: charger.displayName ?? "EV charger",
+        content: this.createMarkerContent(),
         gmpClickable: true,
       });
-      marker.addEventListener("gmp-click", () => this.showChargerDetails(charger));
+      marker.addEventListener("gmp-click", () => {
+        this.setActiveMarker(marker);
+        this.showChargerDetails(charger);
+      });
       return marker;
     });
   }
@@ -218,12 +239,12 @@ export class GoogleMapElement extends HTMLElement {
       this.displayChargerDetails(await fetchChargerDetails(charger));
     } catch (error) {
       console.error("Error fetching charger details:", error);
-      this.setStatus("Could not load charger details");
+      this.setStatus("Could not load charger details", "error");
     }
   }
 
   fillList(list, items) {
-    const template = this.querySelector(".charger-details__item-template");
+    const template = this.detailsPanel.querySelector(".item-template");
     list.replaceChildren(
       ...items.map((text) => {
         const item = template.content.firstElementChild.cloneNode(true);
@@ -238,18 +259,18 @@ export class GoogleMapElement extends HTMLElement {
     if (!panel) {
       return;
     }
-    panel.querySelector(".charger-details__name").textContent = details.displayName ?? "";
-    panel.querySelector(".charger-details__address").textContent = details.formattedAddress ?? "";
+    panel.querySelector(".name").textContent = details.displayName ?? "";
+    panel.querySelector(".address .text").textContent = details.formattedAddress ?? "";
     this.fillList(
-      panel.querySelector(".charger-details__connectors"),
+      panel.querySelector(".connectors"),
       (details.evChargeOptions?.connectorAggregations ?? []).map(formatConnector)
     );
     this.fillList(
-      panel.querySelector(".charger-details__hours"),
+      panel.querySelector(".hours"),
       details.regularOpeningHours?.weekdayDescriptions ?? []
     );
 
-    const photoEl = panel.querySelector(".charger-details__photo");
+    const photoEl = panel.querySelector(".photo");
     const photo = details.photos?.[0];
     photoEl.hidden = !photo;
     photoEl.src = photo ? photo.getURI({ maxWidth: PHOTO_MAX_WIDTH }) : "";
@@ -262,6 +283,7 @@ export class GoogleMapElement extends HTMLElement {
     if (this.detailsPanel) {
       this.detailsPanel.hidden = true;
     }
+    this.setActiveMarker(null);
   }
 
   initializeGoogleSignIn(accounts) {
@@ -275,13 +297,18 @@ export class GoogleMapElement extends HTMLElement {
       auto_select: false,
       cancel_on_tap_outside: false,
     });
-    accounts.id.renderButton(container, { theme: "outline", size: "medium", type: "standard" });
+    accounts.id.renderButton(container, {
+      theme: "outline",
+      size: "large",
+      type: "standard",
+      shape: "pill",
+    });
   }
 
   handleGoogleSignIn({ credential }) {
     try {
       const { name, email } = decodeJwtPayload(credential);
-      this.setStatus(`Signed in as ${name || email}`);
+      this.setStatus(`Signed in as ${name || email}`, "success");
       this.querySelector(".google-signin-button").hidden = true;
       this.dispatchEvent(
         new CustomEvent("google-sign-in", { detail: { name, email, credential }, bubbles: true })
