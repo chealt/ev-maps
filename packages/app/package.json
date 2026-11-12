@@ -23,7 +23,8 @@
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",
-    "@playwright/test": "^1.65.0"
+    "@playwright/test": "^1.65.0",
+    "wrangler": "4.161.0"
   },
   "engines": {
     "bun": ">=1.4.4",
