@@ -1,18 +1,15 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
 
-const signInButton = (page) => page.getByRole("button", { name: "Sign in with Google" });
-const mapStatus = (page) => page.getByRole("status");
-
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
   await fakeGoogleIdentity(page);
   await page.goto("/");
-  await expect(mapStatus(page)).toHaveText("2 EV chargers found");
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });
 
 test("shows the Google sign-in button for the configured client", async ({ page }) => {
-  await expect(signInButton(page)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
   const config = await page.evaluate(() => window.__gsi.config);
   expect(config.client_id).toBe("test-client-id");
 });
@@ -27,16 +24,16 @@ test("signs in with Google", async ({ page }) => {
       })
   );
 
-  await signInButton(page).click();
+  await page.getByRole("button", { name: "Sign in with Google" }).click();
 
-  await expect(mapStatus(page)).toHaveText("Signed in as Ada Lovelace");
-  await expect(signInButton(page)).toBeHidden();
+  await expect(page.getByRole("status")).toHaveText("Signed in as Ada Lovelace");
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
   expect(await signedIn).toMatchObject({ name: "Ada Lovelace", email: "ada@example.com" });
 });
 
 test("ignores an invalid sign-in response", async ({ page }) => {
   await page.evaluate(() => window.__gsi.config.callback({ credential: "not-a-jwt" }));
 
-  await expect(mapStatus(page)).toHaveText("2 EV chargers found");
-  await expect(signInButton(page)).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
