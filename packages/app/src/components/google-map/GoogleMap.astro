@@ -1,5 +1,6 @@
 ---
 import Button from "../button/Button.astro";
+import { Clock, MapPin, PlugZap, Search, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -56,7 +57,7 @@ const radiusOptions = [1000, 5000, 10000, 25000];
 
     <div class="map-controls">
       <Button variant="secondary" class="search-area-button">
-        <Icon name="search" />
+        <Icon icon={Search} />
         <span class="button__label">Search this area</span>
       </Button>
       <LocateButton autoLocate={autoLocate} />
@@ -92,29 +93,29 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="charger-details__header">
         <span class="charger-details__badge">
-          <Icon name="bolt" size="sm" />
+          <Icon icon={Zap} size="sm" />
           EV charging
         </span>
         <Button variant="ghost" size="icon" class="charger-details__close" aria-label="Close">
-          <Icon name="close" />
+          <Icon icon={X} />
         </Button>
       </div>
       <img class="charger-details__photo" alt="" hidden />
       <h2 class="charger-details__name" id="charger-details-name"></h2>
       <p class="charger-details__address">
-        <Icon name="pin" size="sm" />
+        <Icon icon={MapPin} size="sm" />
         <span class="charger-details__address-text"></span>
       </p>
       <section class="charger-details__section">
         <h3 class="charger-details__section-title">
-          <Icon name="plug" size="sm" />
+          <Icon icon={PlugZap} size="sm" />
           Connectors
         </h3>
         <ul class="charger-details__connectors"></ul>
       </section>
       <section class="charger-details__section">
         <h3 class="charger-details__section-title">
-          <Icon name="clock" size="sm" />
+          <Icon icon={Clock} size="sm" />
           Opening hours
         </h3>
         <ul class="charger-details__hours"></ul>
@@ -127,7 +128,7 @@ const radiusOptions = [1000, 5000, 10000, 25000];
 
     <template class="charger-marker-template">
       <div class="charger-marker">
-        <Icon name="bolt" size="sm" class="charger-marker__icon" />
+        <Icon icon={Zap} filled size="sm" class="charger-marker__icon" />
       </div>
     </template>
   </div>

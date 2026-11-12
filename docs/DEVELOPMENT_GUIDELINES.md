@@ -386,6 +386,25 @@ const {
 }
 ```
 
+### Icons
+
+Use [Lucide](https://lucide.dev/icons/) icons from `lucide-static` through
+the `Icon` component. Each icon is an SVG string that Astro inlines at build
+time, so icons ship no client-side JavaScript. Don't copy SVG markup into
+components.
+
+```astro
+---
+import { LocateFixed } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+---
+
+<Icon icon={LocateFixed} />
+<Icon icon={LocateFixed} size="sm" filled />
+```
+
+Icons are decorative (`aria-hidden`). Give icon-only buttons an `aria-label`.
+
 ### Rendering Dynamic Content
 
 When a Web Component must show data (for example, details from an API),

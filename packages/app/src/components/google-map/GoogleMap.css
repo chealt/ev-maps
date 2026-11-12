@@ -401,7 +401,6 @@ ev-google-map {
 
 .charger-marker__icon {
   rotate: 45deg;
-  fill: currentColor;
 }
 
 @keyframes rise-in {

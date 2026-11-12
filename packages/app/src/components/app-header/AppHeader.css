@@ -24,10 +24,6 @@
   background: var(--gradient-brand);
   color: var(--color-primary-contrast);
   box-shadow: var(--shadow-sm);
-
-  .icon {
-    fill: currentColor;
-  }
 }
 
 .app-header__title {

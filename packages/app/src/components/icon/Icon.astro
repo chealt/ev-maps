@@ -2,58 +2,18 @@
 import "./Icon.css";
 
 interface Props {
-  name: "bolt" | "locate" | "sliders" | "search" | "close" | "pin" | "clock" | "plug";
+  /** An SVG string exported by `lucide-static`, e.g. `import { Zap } from "lucide-static"`. */
+  icon: string;
   size?: "sm" | "md" | "lg";
+  filled?: boolean;
   class?: string;
 }
 
-const { name, size = "md", class: className } = Astro.props;
+const { icon, size = "md", filled = false, class: className } = Astro.props;
 ---
 
-<svg
-  class:list={["icon", `icon--${size}`, className]}
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
+<span
+  class:list={["icon", `icon--${size}`, filled && "icon--filled", className]}
   aria-hidden="true"
-  focusable="false"
->
-  {name === "bolt" && (
-    <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
-  )}
-  {name === "locate" && (
-    <>
-      <path d="M2 12h3M19 12h3M12 2v3M12 19v3" />
-      <circle cx="12" cy="12" r="7" />
-      <circle cx="12" cy="12" r="3" />
-    </>
-  )}
-  {name === "sliders" && (
-    <path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4" />
-  )}
-  {name === "search" && (
-    <>
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </>
-  )}
-  {name === "close" && <path d="M18 6 6 18M6 6l12 12" />}
-  {name === "pin" && (
-    <>
-      <path d="M20 10c0 5-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 15 4 10a8 8 0 0 1 16 0" />
-      <circle cx="12" cy="10" r="3" />
-    </>
-  )}
-  {name === "clock" && (
-    <>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
-    </>
-  )}
-  {name === "plug" && (
-    <path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4ZM2 22l3-3M7.5 13.5 10 11M10.5 16.5 13 14M18 3l-4 4h6l-4 4" />
-  )}
-</svg>
+  set:html={icon}
+/>
