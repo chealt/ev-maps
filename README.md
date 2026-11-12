@@ -1,231 +1,37 @@
 # EV Maps
 
-A web application for finding EV charging stations, built with **Astro** for
-templating and **Web Components** for interactivity.
+Find electric vehicle charging stations on a map.
 
-## Tech Stack
+**Live:** <https://ev-maps.chealt.workers.dev>
 
-- **Runtime**: [Bun](https://bun.sh/) (required)
-- **Framework**: [Astro v4](https://astro.build/) (static output)
-- **Components**: Native Web Components (behavior only, no shadow DOM)
-- **Maps**: Google Maps JavaScript API
-- **Charger data**: [Open Charge Map](https://openchargemap.org) API,
-  cached in the browser for 24 hours
-- **Styling**: Vanilla CSS with native nesting
-- **Linting** (all Rust): [oxlint](https://oxc.rs/docs/guide/usage/linter)
-  (JS), [Biome](https://biomejs.dev/) (CSS), [rumdl](https://rumdl.dev/)
-  (Markdown)
-- **Formatting** (Rust): [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
-  for all files, including `.astro` via `@astrojs/compiler-rs`
-- **Testing**: [Playwright](https://playwright.dev/)
-- **Deployment**: [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) (static assets)
+## Features
 
-## Project Structure
+- Full-screen map of EV chargers in the visible area, with nearby chargers
+  grouped into clusters when zoomed out
+- Charger details: address, connectors and power, operator, access, cost and
+  status
+- Locate me, and the map remembers where you were last time
+- Sign in with Google; the account menu has sign-out and a light, dark or
+  system theme
 
-```text
-ev-maps/
-├── packages/
-│   ├── biome-plugin-css-units/      # Biome plugin: disallowed CSS units
-│   │   ├── biome-manifest.json
-│   │   └── no-disallowed-css-units.grit
-│   ├── dev-config/                  # Shared tool configs
-│   │   ├── .oxfmtrc.json
-│   │   ├── .rumdl.toml
-│   │   ├── biome.json
-│   │   └── oxlint.json
-│   └── app/                         # Main application
-│       ├── astro.config.mjs
-│       ├── playwright.config.js
-│       ├── wrangler.toml            # Cloudflare Worker config
-│       ├── .env.example
-│       ├── src/
-│       │   ├── components/
-│       │   │   ├── HomePage.astro
-│       │   │   ├── button/          # Generic button (Astro only)
-│       │   │   ├── filter-button/   # <ev-filter-button>
-│       │   │   ├── google-map/      # <ev-google-map> + Maps and charger data
-│       │   │   └── locate-button/   # <ev-locate-button>
-│       │   ├── config/app.config.js # Map defaults and env-based settings
-│       │   ├── layouts/             # Layout.astro + global.css
-│       │   └── pages/index.astro
-│       └── tests/                   # Playwright tests (external APIs are faked)
-├── .github/workflows/app.yml         # CI/CD for the app artifact
-├── docs/
-│   ├── DEVELOPMENT_GUIDELINES.md
-│   └── TESTING_GUIDELINES.md
-└── package.json                     # Workspace root (tooling lives here)
-```
+Charging data comes from [Open Charge Map](https://openchargemap.org); the map
+is [Google Maps](https://developers.google.com/maps).
 
-## Getting Started
+## Documentation
 
-### Prerequisites
-
-- [Bun](https://bun.sh/) 1.4.4+: `curl -fsSL https://bun.sh/install | bash`
-- [Node.js](https://nodejs.org/) 26+ (the current LTS)
-
-### Setup
-
-1. Clone the repository and install dependencies:
-
-   ```bash
-   git clone git@github.com:chealt/ev-maps.git
-   cd ev-maps
-   bun install
-   ```
-
-2. Copy `packages/app/.env.example` to `packages/app/.env` and set your
-   API keys:
-
-   ```bash
-   VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
-   VITE_OPEN_CHARGE_MAP_API_KEY=your_api_key_here
-   ```
-
-   - The Google key needs the **Maps JavaScript API** enabled. It is embedded
-     in the generated page, so restrict it to your site's HTTP referrers in
-     the Google Cloud console.
-   - Get an Open Charge Map key at
-     <https://openchargemap.org/site/develop/api>. It is also embedded in the
-     page.
-
-   Optional settings:
-
-   - `VITE_GOOGLE_MAPS_MAP_ID`: a Map ID for advanced markers (defaults to
-     Google's `DEMO_MAP_ID`)
-   - `VITE_GOOGLE_CLIENT_ID`: an OAuth client ID to show a
-     "Sign in with Google" button
-
-3. Start the development server at `http://localhost:4321/`:
-
-   ```bash
-   bun run dev
-   ```
-
-## Scripts
-
-Run from the repository root:
-
-| Script                    | Description                                   |
-| ------------------------- | --------------------------------------------- |
-| `bun run dev`             | Start development server                      |
-| `bun run build`           | Build for production into `packages/app/dist` |
-| `bun run preview`         | Preview production build                      |
-| `bun run test`            | Run Playwright tests                          |
-| `bun run lint`            | Lint JS, CSS and Markdown                     |
-| `bun run lint:md`         | Lint Markdown only                            |
-| `bun run format`          | Format code                                   |
-| `bun run format:check`    | Check formatting                              |
-| `bun run format:md`       | Format Markdown only                          |
-| `bun run format:md:check` | Check Markdown formatting only                |
-
-Before running tests for the first time, install the browser:
-
-```bash
-cd packages/app && bunx playwright install chromium
-```
-
-Tests replace Google Maps, Google sign-in and Open Charge Map with local
-fakes (`tests/fixtures/`), so they need neither API keys nor network access.
-Before writing tests, read the
-**[Testing Guidelines](docs/TESTING_GUIDELINES.md)**.
-
-## Deployment
-
-### Cloudflare Workers
-
-The app is served by the `ev-maps` Cloudflare Worker as static assets
-(`packages/app/wrangler.toml`). The `Deploy` job in
-`.github/workflows/app.yml` deploys it once lint, build and tests pass:
-
-- **Pushes to `main`** deploy to production at
-  `https://ev-maps.<your-subdomain>.workers.dev`.
-- **Pull requests** from this repository upload a preview version, without
-  touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
-  shows on the pull request. Pull requests from forks are not deployed.
-- **The shared preview**, `https://preview-ev-maps.<subdomain>.workers.dev`,
-  always shows the most recently deployed pull request. Google sign-in only
-  works on authorized origins, which can't contain wildcards, so this is the
-  one preview address to add to the OAuth client.
-
-It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
-built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
-(**Settings → Secrets and variables → Actions**):
-
-| Name                           | Type     | Purpose                                                 |
-| ------------------------------ | -------- | ------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`         | Secret   | API token from the **Edit Cloudflare Workers** template |
-| `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it) |
-| `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                    |
-| `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                |
-| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Map ID for the vector map                               |
-| `VITE_GOOGLE_CLIENT_ID`        | Variable | OAuth client ID for Google sign-in                      |
-
-The Google Maps key's website restrictions and the OAuth client's authorized
-origins must include the `workers.dev` addresses.
-
-To deploy by hand:
-
-```bash
-bun run build
-cd packages/app && bunx wrangler deploy
-```
-
-## CI
-
-Only **artifacts** get a workflow. An artifact is something this repo builds
-and ships, such as the app deployed to Cloudflare. Each artifact's
-workflow includes everything that artifact needs from CI.
-
-- Don't add workflows for checks that aren't an artifact. For example, there
-  is no workflow for linting Markdown in general. A Markdown lint workflow
-  would only make sense if the linter itself were an artifact we build and
-  ship.
-- Packages that support an artifact, such as `packages/dev-config` and
-  `packages/biome-plugin-css-units`, don't get their own workflow. Instead,
-  the artifact's workflow runs when they change.
-- Name the workflow after the artifact (`packages/app` uses `app.yml`).
-- Trigger it with `paths` filters on the artifact, everything it depends on
-  (e.g. `packages/dev-config`, the root `package.json` and `bun.lock`) and the
-  workflow file itself.
-- Run the artifact's own scripts with `working-directory` set to its package.
-
-Currently there is one workflow:
-
-| Workflow  | Artifact       | Runs (as parallel jobs)                                  |
-| --------- | -------------- | -------------------------------------------------------- |
-| `app.yml` | `packages/app` | JS lint, CSS lint, format check, build, Playwright tests |
-
-Checks that aren't part of an artifact, such as linting root Markdown, run
-locally with `bun run lint` and `bun run format:check`.
-
-The secrets and variables CI needs to build and deploy the app are listed
-under [Cloudflare Workers](#cloudflare-workers). The `Build` job fails if any
-of the `VITE_` ones is missing (except for pull requests from forks, which
-don't get them).
-
-## Development Guidelines
-
-See **[Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md)** for
-component architecture, CSS conventions, code quality and commit message
-rules.
-
-See **[Testing Guidelines](docs/TESTING_GUIDELINES.md)** for how to write
-Playwright tests: find elements by accessible role, label or text (never CSS
-selectors or test IDs), and don't check layout or visual appearance.
+| Document                                                 | Contents                                               |
+| -------------------------------------------------------- | ------------------------------------------------------ |
+| [Getting Started](docs/GETTING_STARTED.md)               | Prerequisites, setup, environment variables, scripts   |
+| [Architecture](docs/ARCHITECTURE.md)                     | Tech stack, project structure and how the parts fit    |
+| [Deployment](docs/DEPLOYMENT.md)                         | Cloudflare Workers, GitHub secrets, Google Cloud setup |
+| [CI](docs/CI.md)                                         | How the GitHub Actions workflow is organized           |
+| [Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md) | Components, CSS, code quality, commit messages         |
+| [Testing Guidelines](docs/TESTING_GUIDELINES.md)         | How to write Playwright tests                          |
 
 ## Contributing
 
-**Always create a pull request with your changes.** Never commit or push
-directly to `main`, even for small fixes or documentation updates, so every
-change can be reviewed before it's merged.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes (following the development and testing guidelines)
-4. Run `bun run lint`, `bun run format` and `bun run test`
-5. Commit your changes using Conventional Commits
-6. Open a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)
