@@ -10,14 +10,14 @@
       "Latitude": 40.71,
       "Longitude": -74.0
     },
-    "OperatorInfo": { "Title": "Tesla" },
-    "UsageType": { "Title": "Public - Membership Required" },
+    "OperatorID": 23,
+    "UsageTypeID": 4,
     "UsageCost": "$0.40/kWh",
-    "StatusType": { "Title": "Operational", "IsOperational": true },
+    "StatusTypeID": 50,
     "NumberOfPoints": 8,
     "Connections": [
-      { "ConnectionType": { "Title": "CCS (Type 1)" }, "PowerKW": 150, "Quantity": 4 },
-      { "ConnectionType": { "Title": "NACS / Tesla Supercharger" }, "PowerKW": 250, "Quantity": 4 }
+      { "ConnectionTypeID": 32, "PowerKW": 150, "Quantity": 4 },
+      { "ConnectionTypeID": 27, "PowerKW": 250, "Quantity": 4 }
     ]
   },
   {
@@ -26,8 +26,8 @@
       "Title": "<img src=\"x\" onerror=\"window.__xss = true\">",
       "AddressLine1": "2 Side St",
       "Town": "New York",
-      "Latitude": 40.72,
-      "Longitude": -74.01
+      "Latitude": 40.75,
+      "Longitude": -73.95
     },
     "Connections": []
   }

@@ -1,0 +1,9 @@
+{
+  "Operators": [{ "ID": 23, "Title": "Tesla" }],
+  "UsageTypes": [{ "ID": 4, "Title": "Public - Membership Required" }],
+  "StatusTypes": [{ "ID": 50, "Title": "Operational" }],
+  "ConnectionTypes": [
+    { "ID": 32, "Title": "CCS (Type 1)" },
+    { "ID": 27, "Title": "NACS / Tesla Supercharger" }
+  ]
+}

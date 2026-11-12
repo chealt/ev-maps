@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeOpenChargeMap, requestCovers } from "./fixtures/open-charge-map.js";
+import { fakeOpenChargeMap, requestCovers, tileWidth } from "./fixtures/open-charge-map.js";
 
 const hours = (count) => count * 60 * 60 * 1000;
 
@@ -70,8 +70,18 @@ test("asks to zoom in when the visible area is too large", async ({ page }) => {
   await expect(markers).toHaveCount(2);
 });
 
+test("loads smaller tiles where an area is too dense for one request", async ({ page }) => {
+  // Tiles at the default zoom are ~0.35° wide; their smaller tiles are ~0.18°.
+  const requests = await fakeOpenChargeMap(page, { fullTilesWiderThan: 0.3 });
+  await page.goto("/");
+
+  await expect(page.getByRole("status")).toHaveText(/^\d+ EV chargers found$/);
+  expect(requests.some((request) => tileWidth(request) < 0.3)).toBe(true);
+});
+
 test("says when only some chargers are shown", async ({ page }) => {
-  await fakeOpenChargeMap(page, { fillTiles: true });
+  await page.setViewportSize({ width: 400, height: 300 });
+  await fakeOpenChargeMap(page, { fullTilesWiderThan: 0 });
   await page.goto("/");
 
   await expect(page.getByRole("status")).toHaveText(
@@ -80,10 +90,35 @@ test("says when only some chargers are shown", async ({ page }) => {
 });
 
 test("reports a failed request", async ({ page }) => {
-  await page.route("https://api.openchargemap.io/v3/poi?**", (route) =>
+  await page.route("https://api.openchargemap.io/v3/**", (route) =>
     route.fulfill({ status: 500, headers: { "access-control-allow-origin": "*" } })
   );
   await page.goto("/");
 
   await expect(page.getByRole("status")).toHaveText("Could not load EV chargers");
+});
+
+test("groups nearby chargers when zoomed out", async ({ page }) => {
+  await fakeOpenChargeMap(page);
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button")).toHaveCount(2);
+
+  await page.evaluate(() => window.__fakeMap.setZoom(9));
+
+  await expect(map.getByRole("button", { name: "2 EV chargers" })).toBeVisible();
+  await expect(map.getByRole("button")).toHaveCount(1);
+});
+
+test("zooms in to split a group when it is clicked", async ({ page }) => {
+  await fakeOpenChargeMap(page);
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await page.evaluate(() => window.__fakeMap.setZoom(9));
+
+  await map.getByRole("button", { name: "2 EV chargers" }).click();
+
+  await expect(map.getByRole("button", { name: "Downtown Supercharger" })).toBeVisible();
+  await expect(map.getByRole("button")).toHaveCount(2);
+  expect(await page.evaluate(() => window.__fakeMap.zoom)).toBeGreaterThan(9);
 });

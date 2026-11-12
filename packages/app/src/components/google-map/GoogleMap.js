@@ -1,7 +1,17 @@
-import { deleteExpiredTiles, fetchChargersInBounds } from "./chargers.js";
+import Supercluster from "supercluster";
+import { deleteExpiredResponses, fetchChargersInBounds } from "./chargers.js";
 import { loadGoogleMaps } from "./loader.js";
 
 const LAST_LOCATION_KEY = "ev-maps:last-location";
+// Chargers closer than this many pixels are grouped; above the max zoom never.
+const CLUSTER_RADIUS = 60;
+const CLUSTER_MAX_ZOOM = 16;
+// Google Maps tiles are 256px, so the radius is in screen pixels.
+const CLUSTER_EXTENT = 256;
+const CLUSTER_SIZES = [
+  { minCount: 100, size: "large" },
+  { minCount: 10, size: "medium" },
+];
 // Google Maps color schemes for the themes set by ThemePicker on <html>.
 const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 
@@ -39,6 +49,12 @@ const formatDetails = ({ operator, usageType, usageCost, status, numberOfPoints 
     numberOfPoints && `Charging points: ${numberOfPoints}`,
   ].filter(Boolean);
 
+const toFeature = (charger) => ({
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [charger.location.lng, charger.location.lat] },
+  properties: { charger },
+});
+
 const chargerCountMessage = (count, truncated) => {
   if (!count) {
     return "No EV chargers in this area";
@@ -73,7 +89,7 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
 
-    deleteExpiredTiles().catch((error) => console.error(error));
+    deleteExpiredResponses().catch((error) => console.error(error));
 
     loadGoogleMaps(apiKey)
       .then((maps) => this.initMap(maps))
@@ -96,7 +112,7 @@ class GoogleMapElement extends HTMLElement {
   }
 
   get minChargerZoom() {
-    return Number(this.dataset.minChargerZoom) || 8;
+    return Number(this.dataset.minChargerZoom) || 9;
   }
 
   setupEventListeners() {
@@ -235,7 +251,12 @@ class GoogleMapElement extends HTMLElement {
       if (searchId !== this.searchId) {
         return;
       }
-      await this.displayEvChargers(chargers);
+      this.clusterIndex = new Supercluster({
+        radius: CLUSTER_RADIUS,
+        extent: CLUSTER_EXTENT,
+        maxZoom: CLUSTER_MAX_ZOOM,
+      }).load(chargers.map(toFeature));
+      await this.renderMarkers();
       this.setStatus(
         chargerCountMessage(chargers.length, truncated),
         chargers.length ? "success" : "idle"
@@ -253,12 +274,12 @@ class GoogleMapElement extends HTMLElement {
       marker.map = null;
     }
     this.markersById.clear();
+    this.clusterIndex = null;
     this.activeMarker = null;
   }
 
-  createMarkerContent() {
-    const template = this.querySelector(".charger-marker-template");
-    return template?.content.firstElementChild.cloneNode(true);
+  cloneTemplate(selector) {
+    return this.querySelector(selector)?.content.firstElementChild.cloneNode(true);
   }
 
   setActiveMarker(marker) {
@@ -267,34 +288,77 @@ class GoogleMapElement extends HTMLElement {
     marker?.content?.classList.add("active");
   }
 
-  // Keeps markers that are still in view, so they don't flicker on every move.
-  async displayEvChargers(chargers) {
-    const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
-    const ids = new Set(chargers.map((charger) => charger.id));
+  createChargerMarker(AdvancedMarkerElement, charger) {
+    const marker = new AdvancedMarkerElement({
+      map: this.map,
+      position: charger.location,
+      title: charger.name,
+      content: this.cloneTemplate(".charger-marker-template"),
+      gmpClickable: true,
+    });
+    marker.addEventListener("gmp-click", () => {
+      this.setActiveMarker(marker);
+      this.displayChargerDetails(charger);
+    });
+    return marker;
+  }
 
-    for (const [id, marker] of this.markersById) {
-      if (!ids.has(id)) {
+  createClusterMarker(AdvancedMarkerElement, cluster) {
+    const { cluster_id: clusterId, point_count: count } = cluster.properties;
+    const [lng, lat] = cluster.geometry.coordinates;
+    const content = this.cloneTemplate(".charger-cluster-template");
+    content.querySelector(".count").textContent = String(count);
+    const size = CLUSTER_SIZES.find(({ minCount }) => count >= minCount)?.size;
+    if (size) {
+      content.classList.add(size);
+    }
+    const marker = new AdvancedMarkerElement({
+      map: this.map,
+      position: { lat, lng },
+      title: `${count} EV chargers`,
+      content,
+      gmpClickable: true,
+    });
+    marker.addEventListener("gmp-click", () => {
+      this.map.setCenter({ lat, lng });
+      this.map.setZoom(this.clusterIndex.getClusterExpansionZoom(clusterId));
+    });
+    return marker;
+  }
+
+  // Draws the clusters and chargers in view. Markers that are still in view
+  // are kept, so they don't flicker on every move.
+  async renderMarkers() {
+    const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
+    const { north, south, east, west } = this.map.getBounds().toJSON();
+    const zoom = Math.floor(this.map.getZoom());
+    const features = this.clusterIndex.getClusters([west, south, east, north], zoom);
+
+    const featuresByKey = new Map(
+      features.map((feature) => [
+        feature.properties.cluster
+          ? `cluster:${zoom}:${feature.properties.cluster_id}`
+          : `charger:${feature.properties.charger.id}`,
+        feature,
+      ])
+    );
+
+    for (const [key, marker] of this.markersById) {
+      if (!featuresByKey.has(key)) {
         marker.map = null;
-        this.markersById.delete(id);
+        this.markersById.delete(key);
       }
     }
 
-    for (const charger of chargers) {
-      if (this.markersById.has(charger.id)) {
-        continue;
+    for (const [key, feature] of featuresByKey) {
+      if (!this.markersById.has(key)) {
+        this.markersById.set(
+          key,
+          feature.properties.cluster
+            ? this.createClusterMarker(AdvancedMarkerElement, feature)
+            : this.createChargerMarker(AdvancedMarkerElement, feature.properties.charger)
+        );
       }
-      const marker = new AdvancedMarkerElement({
-        map: this.map,
-        position: charger.location,
-        title: charger.name,
-        content: this.createMarkerContent(),
-        gmpClickable: true,
-      });
-      marker.addEventListener("gmp-click", () => {
-        this.setActiveMarker(marker);
-        this.displayChargerDetails(charger);
-      });
-      this.markersById.set(charger.id, marker);
     }
   }
 

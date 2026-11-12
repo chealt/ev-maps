@@ -28,7 +28,7 @@ const {
   zoom = 12,
   locatedZoom = 14,
   autoLocate = true,
-  minChargerZoom = 8,
+  minChargerZoom = 9,
   showEvChargers = true,
 } = Astro.props;
 ---
@@ -111,6 +111,12 @@ const {
         <li></li>
       </template>
     </aside>
+
+    <template class="charger-cluster-template">
+      <div class="charger-cluster">
+        <span class="count"></span>
+      </div>
+    </template>
 
     <template class="charger-marker-template">
       <div class="charger-marker">

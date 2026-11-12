@@ -21,6 +21,10 @@ ev-google-map {
 
   /* Markers */
   --marker-size: 2.25rem;
+  --cluster-size: 2.5rem;
+  --cluster-size-medium: 3rem;
+  --cluster-size-large: 3.5rem;
+  --cluster-ring-width: 0.375rem;
   --marker-tip-offset: -0.207;
   --marker-active-scale: 1.2;
 
@@ -247,6 +251,41 @@ ev-google-map {
 
   .icon {
     rotate: 45deg;
+  }
+}
+
+/* Clusters of nearby chargers */
+.charger-cluster {
+  display: grid;
+  place-items: center;
+  width: var(--cluster-size);
+  height: var(--cluster-size);
+  border: var(--border-width-marker) solid var(--color-surface);
+  border-radius: var(--border-radius-full);
+  background: var(--gradient-brand);
+  box-shadow:
+    0 0 0 var(--cluster-ring-width) var(--color-focus-ring),
+    var(--shadow-md);
+  color: var(--color-primary-contrast);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: transform var(--transition-base);
+
+  &:hover {
+    transform: scale(var(--marker-active-scale));
+  }
+
+  &.medium {
+    width: var(--cluster-size-medium);
+    height: var(--cluster-size-medium);
+  }
+
+  &.large {
+    width: var(--cluster-size-large);
+    height: var(--cluster-size-large);
+    font-size: var(--font-size-base);
   }
 }
 
