@@ -7,5 +7,8 @@
     "lint": "oxlint -c oxlint.json --no-error-on-unmatched-pattern . && biome lint --config-path=. . && rumdl check --deny-config-warnings --config .rumdl.toml .",
     "format": "oxfmt -c .oxfmtrc.json --ignore-path ../../.gitignore .",
     "format:check": "oxfmt -c .oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "dependencies": {
+    "@ev-maps/biome-plugin-css-units": "workspace:*"
   }
 }

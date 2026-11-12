@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/@biomejs/biome/manifest_schema.json",
+  "version": 1,
+  "plugins": {
+    "rules": [
+      {
+        "no-disallowed-css-units": "./no-disallowed-css-units.grit"
+      }
+    ]
+  }
+}

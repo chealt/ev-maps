@@ -23,6 +23,9 @@ templating and **Web Components** for interactivity.
 ```text
 ev-maps/
 ├── packages/
+│   ├── biome-plugin-css-units/      # Biome plugin: disallowed CSS units
+│   │   ├── biome-manifest.json
+│   │   └── no-disallowed-css-units.grit
 │   ├── dev-config/                  # Shared tool configs
 │   │   ├── .oxfmtrc.json
 │   │   ├── .rumdl.toml
@@ -145,8 +148,9 @@ workflow includes everything that artifact needs from CI.
   is no workflow for linting Markdown in general. A Markdown lint workflow
   would only make sense if the linter itself were an artifact we build and
   ship.
-- Packages that support an artifact, such as `packages/dev-config`, don't get
-  their own workflow. Instead, the artifact's workflow runs when they change.
+- Packages that support an artifact, such as `packages/dev-config` and
+  `packages/biome-plugin-css-units`, don't get their own workflow. Instead,
+  the artifact's workflow runs when they change.
 - Name the workflow after the artifact (`packages/app` uses `app.yml`).
 - Trigger it with `paths` filters on the artifact, everything it depends on
   (e.g. `packages/dev-config`, the root `package.json` and `bun.lock`) and the
@@ -155,9 +159,9 @@ workflow includes everything that artifact needs from CI.
 
 Currently there is one workflow:
 
-| Workflow  | Artifact       | Runs                                                                       |
-| --------- | -------------- | -------------------------------------------------------------------------- |
-| `app.yml` | `packages/app` | JS and CSS lint, CSS variable check, format check, build, Playwright tests |
+| Workflow  | Artifact       | Runs (as parallel jobs)                                  |
+| --------- | -------------- | -------------------------------------------------------- |
+| `app.yml` | `packages/app` | JS lint, CSS lint, format check, build, Playwright tests |
 
 Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.

@@ -107,9 +107,17 @@ Component Structure:
 
 9. **Use CSS variables for all values**: All colors, fonts, font sizes,
    widths, heights, gaps, borders, z-indexes, opacity, transitions, and other
-   style values should be defined as CSS variables in global.css and used
-   throughout the application. This ensures consistency and makes theming
-   easier. **No hardcoded values allowed in component CSS files.**
+   style values should be defined as CSS variables and used throughout the
+   application. This ensures consistency and makes theming easier.
+   **No hex colors or px values in component CSS files**, except where a
+   custom property is defined (colors always belong in `global.css`).
+   rem values are allowed, but prefer a shared token when one fits.
+
+   - **Shared tokens** (colors, typography, spacing, radii, shadows,
+     z-indexes, ...) live in `global.css`.
+   - **Component-specific variables** (e.g. a marker size or panel width) live
+     at the top of the component's CSS file, on the component's root selector.
+     Move a variable to `global.css` once a second component needs it.
 
    ```css
    /* global.css */
@@ -144,8 +152,7 @@ Component Structure:
    - Z-indexes: `--z-dropdown`, `--z-sticky`, `--z-fixed`, `--z-modal`
    - Opacity: `--opacity-disabled`, `--opacity-background`, etc.
    - Transitions: `--transition-fast`, etc.
-   - Layout: `--container-max-width`, `--container-padding`, `--map-height`,
-     etc.
+   - Layout: `--container-max-width`, `--container-padding`, etc.
 
 10. **Use CSS nesting**: Use CSS nesting (native browser feature) to organize
     related styles and reduce repetition. This makes CSS more maintainable
@@ -513,7 +520,12 @@ All linting and formatting tools are written in Rust. Shared configs live in
   (`packages/dev-config/oxlint.json`). Key rule: `curly: error` - always use
   curly braces for all blocks.
 - **CSS**: [Biome](https://biomejs.dev/) (`packages/dev-config/biome.json`).
-  CI also rejects hardcoded colors and px/rem values in component CSS.
+  In component CSS, the built-in `style/noHexColors` rule rejects hex
+  colors, and the `no-disallowed-css-units` GritQL plugin from the
+  `packages/biome-plugin-css-units` workspace rejects the units in its
+  `$disallowed_units` list (currently px) outside custom property
+  definitions; rem is allowed. Biome has no built-in rule for disallowed
+  units yet; replace the plugin once it does.
 - **Markdown**: [rumdl](https://rumdl.dev/)
   (`packages/dev-config/.rumdl.toml`), which uses markdownlint-compatible
   rules.

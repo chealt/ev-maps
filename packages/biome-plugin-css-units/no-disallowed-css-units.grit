@@ -1,0 +1,19 @@
+language css;
+
+// Rejects disallowed CSS units, like Stylelint's unit-disallowed-list, which
+// Biome has no built-in rule for. Custom property definitions are allowed,
+// e.g. `--marker-size: 36px`.
+//
+// Biome plugins can't take options, so the list lives here.
+CssRegularDimension() as $value where {
+  // Lowercase units that must not be used directly.
+  $disallowed_units = ["px"],
+  $value <: r"[0-9.]+([a-zA-Z]+)"($unit),
+  $normalized_unit = lowercase($unit),
+  $disallowed_units <: some $normalized_unit,
+  not $value <: within CssGenericProperty(name = CssDashedIdentifier()),
+  register_diagnostic(
+    span = $value,
+    message = "Disallowed CSS unit. Use rem or a CSS variable instead."
+  )
+}

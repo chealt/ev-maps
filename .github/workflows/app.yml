@@ -8,6 +8,7 @@ on:
     paths:
       - "packages/app/**"
       - "packages/dev-config/**"
+      - "packages/biome-plugin-css-units/**"
       - "package.json"
       - "bun.lock"
       - ".gitignore"
@@ -17,6 +18,7 @@ on:
     paths:
       - "packages/app/**"
       - "packages/dev-config/**"
+      - "packages/biome-plugin-css-units/**"
       - "package.json"
       - "bun.lock"
       - ".gitignore"
@@ -32,7 +34,18 @@ defaults:
 
 jobs:
   check:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Lint JavaScript
+            script: lint
+          - name: Lint CSS
+            script: lint:css
+          - name: Check formatting
+            script: format:check
     steps:
       - uses: actions/checkout@v4
 
@@ -43,22 +56,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Lint JavaScript
-        run: bun run lint
-
-      - name: Lint CSS
-        run: bun run lint:css
-
-      - name: Check for hardcoded CSS values
-        run: |
-          # Design tokens live in global.css; component CSS must use variables.
-          if grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9.]+(px|rem)\b" src/components --include="*.css"; then
-            echo "::error::Hardcoded colors or px/rem values found in component CSS. Use CSS variables from global.css instead."
-            exit 1
-          fi
-
-      - name: Check formatting
-        run: bun run format:check
+      - name: ${{ matrix.name }}
+        run: bun run ${{ matrix.script }}
 
   build:
     runs-on: ubuntu-latest

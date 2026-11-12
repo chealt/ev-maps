@@ -23,9 +23,16 @@
         "@playwright/test": "^1.65.0",
       },
     },
+    "packages/biome-plugin-css-units": {
+      "name": "@ev-maps/biome-plugin-css-units",
+      "version": "0.0.1",
+    },
     "packages/dev-config": {
       "name": "@ev-maps/dev-config",
       "version": "0.0.1",
+      "dependencies": {
+        "@ev-maps/biome-plugin-css-units": "workspace:*",
+      },
     },
   },
   "packages": {
@@ -178,6 +185,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.21.5", "", { "os": "win32", "cpu": "x64" }, "sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw=="],
 
     "@ev-maps/app": ["@ev-maps/app@workspace:packages/app"],
+
+    "@ev-maps/biome-plugin-css-units": ["@ev-maps/biome-plugin-css-units@workspace:packages/biome-plugin-css-units"],
 
     "@ev-maps/dev-config": ["@ev-maps/dev-config@workspace:packages/dev-config"],
 

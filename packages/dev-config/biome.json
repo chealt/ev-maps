@@ -1,6 +1,13 @@
 {
   "$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
   "root": true,
+  "plugins": [
+    {
+      "path": "@ev-maps/biome-plugin-css-units/no-disallowed-css-units",
+      "resolutionKind": "config",
+      "includes": ["**/src/components/**/*.css"]
+    }
+  ],
   "formatter": {
     "enabled": false
   },
@@ -10,6 +17,18 @@
       "preset": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/src/components/**/*.css"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noHexColors": "error"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "includes": ["**/*.css"]
   }
