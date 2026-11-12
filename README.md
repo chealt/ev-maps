@@ -61,7 +61,7 @@ ev-maps/
 ### Prerequisites
 
 - [Bun](https://bun.sh/) 1.4.4+: `curl -fsSL https://bun.sh/install | bash`
-- [Node.js](https://nodejs.org/) 22+
+- [Node.js](https://nodejs.org/) 26+ (the current LTS)
 
 ### Setup
 
