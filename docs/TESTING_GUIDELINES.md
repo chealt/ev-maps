@@ -16,6 +16,8 @@ they give you.
 
 **❌ NEVER use CSS selectors, XPath or test IDs to find elements.**
 
+**❌ NEVER wrap queries in one-line helper functions. Write them inline.**
+
 **❌ NEVER check layout or visual appearance in end-to-end tests.**
 
 ## Finding Elements
@@ -77,6 +79,40 @@ const filterButton = page.locator(".filter-button");
 await expect(filterButton).toHaveAttribute("aria-expanded", "true");
 await expect(page.locator(".map-status")).toHaveText("2 EV chargers found");
 ```
+
+### Write Queries Inline
+
+Write each query in the test that uses it. Don't wrap queries in one-line
+helper functions, even if several tests use the same query.
+
+```javascript
+// ❌ Bad
+const mapStatus = (page) => page.getByRole("status");
+const chargerMarker = (page, name) =>
+  page
+    .getByRole("region", { name: "EV charging station map" })
+    .getByRole("button", { name });
+
+await chargerMarker(page, "Downtown Supercharger").click();
+await expect(mapStatus(page)).toHaveText("2 EV chargers found");
+
+// ✅ Good
+const map = page.getByRole("region", { name: "EV charging station map" });
+await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+```
+
+The query is what makes a test readable: its role and name say what the user
+sees. A helper hides that behind a name you have to look up, and it can
+quietly drift from what it finds.
+
+What's fine:
+
+- Storing a locator in a local variable inside one test, when that test uses
+  it several times, e.g. `const markers = map.getByRole("button")`
+- Constants for test data, such as a charger name used in several assertions
+- Helpers that aren't queries, such as faking an external service or reading
+  a fake's recorded state
 
 ### If an Element Can't Be Found
 
