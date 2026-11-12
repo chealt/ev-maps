@@ -18,7 +18,7 @@ templating and **Web Components** for interactivity.
 - **Formatting** (Rust): [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
   for all files, including `.astro` via `@astrojs/compiler-rs`
 - **Testing**: [Playwright](https://playwright.dev/)
-- **Deployment**: [Cloudflare Pages](https://pages.cloudflare.com/)
+- **Deployment**: [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) (static assets)
 
 ## Project Structure
 
@@ -36,7 +36,7 @@ ev-maps/
 │   └── app/                         # Main application
 │       ├── astro.config.mjs
 │       ├── playwright.config.js
-│       ├── wrangler.toml            # Cloudflare Pages config
+│       ├── wrangler.toml            # Cloudflare Worker config
 │       ├── .env.example
 │       ├── src/
 │       │   ├── components/
@@ -131,47 +131,45 @@ Before writing tests, read the
 
 ## Deployment
 
-### Cloudflare Pages
+### Cloudflare Workers
 
-The `Deploy` job in `.github/workflows/app.yml` deploys the app to Cloudflare
-Pages once lint, build and tests pass:
+The app is served by the `ev-maps` Cloudflare Worker as static assets
+(`packages/app/wrangler.toml`). The `Deploy` job in
+`.github/workflows/app.yml` deploys it once lint, build and tests pass:
 
-- **Pushes to `main`** deploy to production.
-- **Pull requests** from this repository get a preview deployment; its URL
+- **Pushes to `main`** deploy to production at
+  `https://ev-maps.<your-subdomain>.workers.dev`.
+- **Pull requests** from this repository upload a preview version, without
+  touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
   shows on the pull request. Pull requests from forks are not deployed.
 
 It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
 built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
 (**Settings → Secrets and variables → Actions**):
 
-| Name                           | Type     | Purpose                                                  |
-| ------------------------------ | -------- | -------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`         | Secret   | API token with the **Cloudflare Pages: Edit** permission |
-| `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID                                    |
-| `CLOUDFLARE_PAGES_PROJECT`     | Variable | Pages project name (defaults to `ev-maps`)               |
-| `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                     |
-| `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                 |
-| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Optional Map ID (defaults to `DEMO_MAP_ID`)              |
-| `VITE_GOOGLE_CLIENT_ID`        | Variable | Optional OAuth client ID for Google sign-in              |
+| Name                           | Type     | Purpose                                                 |
+| ------------------------------ | -------- | ------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`         | Secret   | API token from the **Edit Cloudflare Workers** template |
+| `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it) |
+| `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                    |
+| `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                |
+| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Optional Map ID (defaults to `DEMO_MAP_ID`)             |
+| `VITE_GOOGLE_CLIENT_ID`        | Variable | Optional OAuth client ID for Google sign-in             |
 
-The Cloudflare Pages project needs `main` as its production branch and must
-not build the repository itself. To create one:
-
-```bash
-bunx wrangler pages project create ev-maps --production-branch=main
-```
+The Google Maps key's website restrictions and the OAuth client's authorized
+origins must include the `workers.dev` addresses.
 
 To deploy by hand:
 
 ```bash
 bun run build
-cd packages/app && bunx wrangler pages deploy
+cd packages/app && bunx wrangler deploy
 ```
 
 ## CI
 
 Only **artifacts** get a workflow. An artifact is something this repo builds
-and ships, such as the app deployed to Cloudflare Pages. Each artifact's
+and ships, such as the app deployed to Cloudflare. Each artifact's
 workflow includes everything that artifact needs from CI.
 
 - Don't add workflows for checks that aren't an artifact. For example, there
@@ -197,7 +195,7 @@ Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.
 
 The secrets and variables CI needs to build and deploy the app are listed
-under [Cloudflare Pages](#cloudflare-pages).
+under [Cloudflare Workers](#cloudflare-workers).
 
 ## Development Guidelines
 
