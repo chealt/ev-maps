@@ -1,34 +1,6 @@
 (() => {
   const callbackName = new URL(document.currentScript.src).searchParams.get("callback");
-
-  const CHARGERS = [
-    {
-      id: "charger-1",
-      displayName: "Downtown Supercharger",
-      location: { lat: 40.71, lng: -74.0 },
-      details: {
-        formattedAddress: "1 Main St, New York",
-        regularOpeningHours: { weekdayDescriptions: ["Monday: Open 24 hours"] },
-        evChargeOptions: {
-          connectorAggregations: [
-            {
-              type: "EV_CONNECTOR_TYPE_CCS_COMBO_2",
-              count: 4,
-              availableCount: 2,
-              maxChargeRateKw: 150,
-            },
-          ],
-        },
-        photos: [],
-      },
-    },
-    {
-      id: "charger-2",
-      displayName: '<img src="x" onerror="window.__xss = true">',
-      location: { lat: 40.72, lng: -74.01 },
-      details: { formattedAddress: "2 Side St, New York" },
-    },
-  ];
+  const TILE_SIZE = 256;
 
   class LatLng {
     constructor({ lat, lng }) {
@@ -46,19 +18,52 @@
       this.options = options;
       this.center = options.center;
       this.zoom = options.zoom;
+      this.listeners = [];
       window.__fakeMap = this;
+      this.emitIdle();
+    }
+    // Like Google Maps, "idle" fires after the map renders or stops moving.
+    emitIdle() {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = setTimeout(() => {
+        for (const { event, handler } of this.listeners) {
+          if (event === "idle") {
+            handler();
+          }
+        }
+      });
+    }
+    addListener(event, handler) {
+      const listener = { event, handler };
+      this.listeners.push(listener);
+      return { remove: () => this.listeners.splice(this.listeners.indexOf(listener), 1) };
     }
     getCenter() {
       return new LatLng(this.center);
     }
     setCenter(center) {
       this.center = center;
+      this.emitIdle();
     }
     setZoom(zoom) {
       this.zoom = zoom;
+      this.emitIdle();
     }
     getZoom() {
       return this.zoom;
+    }
+    // An approximate Web Mercator viewport around the center.
+    getBounds() {
+      const degreesPerPixel = 360 / (TILE_SIZE * 2 ** this.zoom);
+      const halfWidth = (this.element.clientWidth / 2) * degreesPerPixel;
+      const halfHeight = (this.element.clientHeight / 2) * degreesPerPixel;
+      const bounds = {
+        north: Math.min(this.center.lat + halfHeight, 85),
+        south: Math.max(this.center.lat - halfHeight, -85),
+        east: Math.min(this.center.lng + halfWidth, 180),
+        west: Math.max(this.center.lng - halfWidth, -180),
+      };
+      return { toJSON: () => bounds };
     }
   }
 
@@ -86,21 +91,7 @@
     }
   }
 
-  class Place {
-    constructor({ details, ...data }) {
-      Object.assign(this, data);
-      this.details = details;
-    }
-    static async searchNearby(request) {
-      window.__searchRequests = [...(window.__searchRequests ?? []), request];
-      return { places: CHARGERS.map((charger) => new Place(charger)) };
-    }
-    async fetchFields() {
-      Object.assign(this, this.details);
-    }
-  }
-
-  const libraries = { maps: { Map }, marker: { AdvancedMarkerElement }, places: { Place } };
+  const libraries = { maps: { Map }, marker: { AdvancedMarkerElement } };
 
   window.google = {
     maps: { importLibrary: async (name) => libraries[name] },

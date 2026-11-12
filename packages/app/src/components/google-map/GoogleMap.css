@@ -17,7 +17,6 @@ ev-google-map {
 
   /* Charger details */
   --details-panel-width: 22rem;
-  --details-photo-height: 10rem;
   --details-sheet-max-height: 60dvh;
 
   /* Markers */
@@ -216,20 +215,6 @@ ev-google-map {
       }
     }
   }
-
-  .select {
-    font: inherit;
-    color: var(--color-text);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-sm);
-    background: var(--color-surface);
-    cursor: pointer;
-
-    &:hover {
-      border-color: var(--color-border-strong);
-    }
-  }
 }
 
 /* Markers */
@@ -304,19 +289,6 @@ ev-google-map {
     font-weight: var(--font-weight-semibold);
   }
 
-  .photo {
-    display: block;
-    width: 100%;
-    height: var(--details-photo-height);
-    object-fit: cover;
-    margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius-lg);
-
-    &[hidden] {
-      display: none;
-    }
-  }
-
   .name {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
@@ -362,7 +334,7 @@ ev-google-map {
   }
 
   .connectors,
-  .hours {
+  .details {
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -380,7 +352,7 @@ ev-google-map {
     }
   }
 
-  .hours {
+  .details {
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--color-border);
 
@@ -391,6 +363,17 @@ ev-google-map {
       & + li {
         border-top: var(--border-width) solid var(--color-border);
       }
+    }
+  }
+
+  .attribution {
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+
+    a {
+      color: inherit;
+      text-decoration: underline;
     }
   }
 }

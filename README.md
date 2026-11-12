@@ -8,7 +8,9 @@ templating and **Web Components** for interactivity.
 - **Runtime**: [Bun](https://bun.sh/) (required)
 - **Framework**: [Astro v4](https://astro.build/) (static output)
 - **Components**: Native Web Components (behavior only, no shadow DOM)
-- **Maps**: Google Maps JavaScript API + Places API (New)
+- **Maps**: Google Maps JavaScript API
+- **Charger data**: [Open Charge Map](https://openchargemap.org) API,
+  cached in the browser for 24 hours
 - **Styling**: Vanilla CSS with native nesting
 - **Linting** (all Rust): [oxlint](https://oxc.rs/docs/guide/usage/linter)
   (JS), [Biome](https://biomejs.dev/) (CSS), [rumdl](https://rumdl.dev/)
@@ -41,12 +43,12 @@ ev-maps/
 │       │   │   ├── HomePage.astro
 │       │   │   ├── button/          # Generic button (Astro only)
 │       │   │   ├── filter-button/   # <ev-filter-button>
-│       │   │   ├── google-map/      # <ev-google-map> + Maps/Places helpers
+│       │   │   ├── google-map/      # <ev-google-map> + Maps and charger data
 │       │   │   └── locate-button/   # <ev-locate-button>
 │       │   ├── config/app.config.js # Map defaults and env-based settings
 │       │   ├── layouts/             # Layout.astro + global.css
 │       │   └── pages/index.astro
-│       └── tests/                   # Playwright tests (Google Maps is faked)
+│       └── tests/                   # Playwright tests (external APIs are faked)
 ├── .github/workflows/app.yml         # CI/CD for the app artifact
 ├── docs/
 │   ├── DEVELOPMENT_GUIDELINES.md
@@ -72,15 +74,19 @@ ev-maps/
    ```
 
 2. Copy `packages/app/.env.example` to `packages/app/.env` and set your
-   Google Maps API key:
+   API keys:
 
    ```bash
    VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+   VITE_OPEN_CHARGE_MAP_API_KEY=your_api_key_here
    ```
 
-   The key needs the **Maps JavaScript API** and **Places API (New)**
-   enabled. It is embedded in the generated page, so restrict it to your
-   site's HTTP referrers in the Google Cloud console.
+   - The Google key needs the **Maps JavaScript API** enabled. It is embedded
+     in the generated page, so restrict it to your site's HTTP referrers in
+     the Google Cloud console.
+   - Get an Open Charge Map key at
+     <https://openchargemap.org/site/develop/api>. It is also embedded in the
+     page.
 
    Optional settings:
 
@@ -118,9 +124,9 @@ Before running tests for the first time, install the browser:
 cd packages/app && bunx playwright install chromium
 ```
 
-Tests replace the Google Maps script with a local fake
-(`tests/fixtures/fake-google-maps.js`), so they need neither an API key nor
-network access. Before writing tests, read the
+Tests replace Google Maps, Google sign-in and Open Charge Map with local
+fakes (`tests/fixtures/`), so they need neither API keys nor network access.
+Before writing tests, read the
 **[Testing Guidelines](docs/TESTING_GUIDELINES.md)**.
 
 ## Deployment
@@ -131,8 +137,8 @@ Connect the repository to Cloudflare Pages with these build settings:
 
 - Build command: `bun run build`
 - Build output directory: `packages/app/dist`
-- Environment variable: `VITE_GOOGLE_MAPS_API_KEY` (plus the optional ones
-  above)
+- Environment variables: `VITE_GOOGLE_MAPS_API_KEY` and
+  `VITE_OPEN_CHARGE_MAP_API_KEY` (plus the optional ones above)
 
 Or deploy manually:
 
@@ -169,8 +175,8 @@ Currently there is one workflow:
 Checks that aren't part of an artifact, such as linting root Markdown, run
 locally with `bun run lint` and `bun run format:check`.
 
-To build the app with a real key in CI, add a `VITE_GOOGLE_MAPS_API_KEY`
-repository secret.
+To build the app with real keys in CI, add `VITE_GOOGLE_MAPS_API_KEY` and
+`VITE_OPEN_CHARGE_MAP_API_KEY` repository secrets.
 
 ## Development Guidelines
 

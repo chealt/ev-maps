@@ -1,0 +1,34 @@
+[
+  {
+    "ID": 1001,
+    "AddressInfo": {
+      "Title": "Downtown Supercharger",
+      "AddressLine1": "1 Main St",
+      "Town": "New York",
+      "StateOrProvince": "NY",
+      "Postcode": "10001",
+      "Latitude": 40.71,
+      "Longitude": -74.0
+    },
+    "OperatorInfo": { "Title": "Tesla" },
+    "UsageType": { "Title": "Public - Membership Required" },
+    "UsageCost": "$0.40/kWh",
+    "StatusType": { "Title": "Operational", "IsOperational": true },
+    "NumberOfPoints": 8,
+    "Connections": [
+      { "ConnectionType": { "Title": "CCS (Type 1)" }, "PowerKW": 150, "Quantity": 4 },
+      { "ConnectionType": { "Title": "NACS / Tesla Supercharger" }, "PowerKW": 250, "Quantity": 4 }
+    ]
+  },
+  {
+    "ID": 1002,
+    "AddressInfo": {
+      "Title": "<img src=\"x\" onerror=\"window.__xss = true\">",
+      "AddressLine1": "2 Side St",
+      "Town": "New York",
+      "Latitude": 40.72,
+      "Longitude": -74.01
+    },
+    "Connections": []
+  }
+]

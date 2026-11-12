@@ -21,13 +21,14 @@ const { googleMaps, evChargers } = appConfig;
 
   <GoogleMap
     apiKey={googleMaps.apiKey}
+    openChargeMapKey={evChargers.openChargeMapKey}
     mapId={googleMaps.mapId}
     centerLat={googleMaps.defaultCenter.lat}
     centerLng={googleMaps.defaultCenter.lng}
     zoom={googleMaps.defaultZoom}
     locatedZoom={googleMaps.locatedZoom}
     autoLocate={googleMaps.autoLocate}
-    searchRadius={evChargers.searchRadiusMeters}
+    minChargerZoom={evChargers.minZoom}
     showEvChargers={evChargers.enabled}
   />
 </main>

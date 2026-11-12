@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeOpenChargeMap } from "./fixtures/open-charge-map.js";
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
   await fakeGoogleIdentity(page);
+  await fakeOpenChargeMap(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });
