@@ -1,5 +1,5 @@
 import Supercluster from "supercluster";
-import { deleteExpiredResponses, fetchChargersInBounds } from "./chargers.js";
+import { fetchChargersInBounds } from "./chargers.js";
 import { loadGoogleMaps } from "./loader.js";
 
 const LAST_LOCATION_KEY = "ev-maps:last-location";
@@ -89,7 +89,8 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
 
-    deleteExpiredResponses().catch((error) => console.error(error));
+    // Caches Open Charge Map responses; see public/sw.js.
+    navigator.serviceWorker?.register("/sw.js").catch((error) => console.error(error));
 
     loadGoogleMaps(apiKey)
       .then((maps) => this.initMap(maps))
