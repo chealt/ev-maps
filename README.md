@@ -133,14 +133,30 @@ Before writing tests, read the
 
 ### Cloudflare Pages
 
-Connect the repository to Cloudflare Pages with these build settings:
+The `Deploy` job in `.github/workflows/app.yml` deploys the app to the
+`ev-maps` Cloudflare Pages project once lint, build and tests pass:
 
-- Build command: `bun run build`
-- Build output directory: `packages/app/dist`
-- Environment variables: `VITE_GOOGLE_MAPS_API_KEY` and
-  `VITE_OPEN_CHARGE_MAP_API_KEY` (plus the optional ones above)
+- **Pushes to `main`** deploy to production.
+- **Pull requests** from this repository get a preview deployment; its URL
+  shows on the pull request. Pull requests from forks are not deployed.
 
-Or deploy manually:
+It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
+built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
+(**Settings → Secrets and variables → Actions**):
+
+| Name                           | Type     | Purpose                                                  |
+| ------------------------------ | -------- | -------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`         | Secret   | API token with the **Cloudflare Pages: Edit** permission |
+| `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID                                    |
+| `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                     |
+| `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                 |
+| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Optional Map ID (defaults to `DEMO_MAP_ID`)              |
+| `VITE_GOOGLE_CLIENT_ID`        | Variable | Optional OAuth client ID for Google sign-in              |
+
+The Cloudflare Pages project must be named `ev-maps` with `main` as its
+production branch, and must not build the repository itself.
+
+To deploy by hand:
 
 ```bash
 bun run build
