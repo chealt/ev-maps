@@ -72,6 +72,32 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # The site builds without these, but then has no map, no chargers, a demo
+      # map style or no sign-in. Pull requests from forks are exempt because
+      # GitHub doesn't give them secrets or variables.
+      - name: Check required secrets and variables
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+          VITE_OPEN_CHARGE_MAP_API_KEY: ${{ secrets.VITE_OPEN_CHARGE_MAP_API_KEY }}
+          VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+        run: |
+          missing=0
+          for name in VITE_GOOGLE_MAPS_API_KEY VITE_OPEN_CHARGE_MAP_API_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Set the $name repository secret."
+              missing=1
+            fi
+          done
+          for name in VITE_GOOGLE_MAPS_MAP_ID VITE_GOOGLE_CLIENT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Set the $name repository variable."
+              missing=1
+            fi
+          done
+          exit $missing
+
       - name: Build
         run: bun run build
         env:
