@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "astro": "^4.16.19",
-    "lucide-static": "^1.72.0"
+    "lucide-static": "^1.72.0",
+    "supercluster": "^9.1.0"
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",

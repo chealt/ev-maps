@@ -1,0 +1,34 @@
+[
+  {
+    "ID": 1001,
+    "AddressInfo": {
+      "Title": "Downtown Supercharger",
+      "AddressLine1": "1 Main St",
+      "Town": "New York",
+      "StateOrProvince": "NY",
+      "Postcode": "10001",
+      "Latitude": 40.71,
+      "Longitude": -74.0
+    },
+    "OperatorID": 23,
+    "UsageTypeID": 4,
+    "UsageCost": "$0.40/kWh",
+    "StatusTypeID": 50,
+    "NumberOfPoints": 8,
+    "Connections": [
+      { "ConnectionTypeID": 32, "PowerKW": 150, "Quantity": 4 },
+      { "ConnectionTypeID": 27, "PowerKW": 250, "Quantity": 4 }
+    ]
+  },
+  {
+    "ID": 1002,
+    "AddressInfo": {
+      "Title": "<img src=\"x\" onerror=\"window.__xss = true\">",
+      "AddressLine1": "2 Side St",
+      "Town": "New York",
+      "Latitude": 40.75,
+      "Longitude": -73.95
+    },
+    "Connections": []
+  }
+]

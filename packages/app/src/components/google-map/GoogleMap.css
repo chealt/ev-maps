@@ -17,11 +17,14 @@ ev-google-map {
 
   /* Charger details */
   --details-panel-width: 22rem;
-  --details-photo-height: 10rem;
   --details-sheet-max-height: 60dvh;
 
   /* Markers */
   --marker-size: 2.25rem;
+  --cluster-size: 2.5rem;
+  --cluster-size-medium: 3rem;
+  --cluster-size-large: 3.5rem;
+  --cluster-ring-width: 0.375rem;
   --marker-tip-offset: -0.207;
   --marker-active-scale: 1.2;
 
@@ -216,20 +219,6 @@ ev-google-map {
       }
     }
   }
-
-  .select {
-    font: inherit;
-    color: var(--color-text);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-sm);
-    background: var(--color-surface);
-    cursor: pointer;
-
-    &:hover {
-      border-color: var(--color-border-strong);
-    }
-  }
 }
 
 /* Markers */
@@ -262,6 +251,41 @@ ev-google-map {
 
   .icon {
     rotate: 45deg;
+  }
+}
+
+/* Clusters of nearby chargers */
+.charger-cluster {
+  display: grid;
+  place-items: center;
+  width: var(--cluster-size);
+  height: var(--cluster-size);
+  border: var(--border-width-marker) solid var(--color-surface);
+  border-radius: var(--border-radius-full);
+  background: var(--gradient-brand);
+  box-shadow:
+    0 0 0 var(--cluster-ring-width) var(--color-focus-ring),
+    var(--shadow-md);
+  color: var(--color-primary-contrast);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: transform var(--transition-base);
+
+  &:hover {
+    transform: scale(var(--marker-active-scale));
+  }
+
+  &.medium {
+    width: var(--cluster-size-medium);
+    height: var(--cluster-size-medium);
+  }
+
+  &.large {
+    width: var(--cluster-size-large);
+    height: var(--cluster-size-large);
+    font-size: var(--font-size-base);
   }
 }
 
@@ -302,19 +326,6 @@ ev-google-map {
     color: var(--color-primary-light-text);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
-  }
-
-  .photo {
-    display: block;
-    width: 100%;
-    height: var(--details-photo-height);
-    object-fit: cover;
-    margin-bottom: var(--spacing-md);
-    border-radius: var(--border-radius-lg);
-
-    &[hidden] {
-      display: none;
-    }
   }
 
   .name {
@@ -362,7 +373,7 @@ ev-google-map {
   }
 
   .connectors,
-  .hours {
+  .details {
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -380,7 +391,7 @@ ev-google-map {
     }
   }
 
-  .hours {
+  .details {
     border-radius: var(--border-radius-md);
     border: var(--border-width) solid var(--color-border);
 
@@ -391,6 +402,17 @@ ev-google-map {
       & + li {
         border-top: var(--border-width) solid var(--color-border);
       }
+    }
+  }
+
+  .attribution {
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+
+    a {
+      color: inherit;
+      text-decoration: underline;
     }
   }
 }

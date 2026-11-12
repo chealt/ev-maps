@@ -1,6 +1,6 @@
 ---
 import Button from "../button/Button.astro";
-import { Clock, MapPin, PlugZap, Search, X, Zap } from "lucide-static";
+import { Info, MapPin, PlugZap, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -8,39 +8,40 @@ import "./GoogleMap.css";
 
 interface Props {
   apiKey?: string;
+  openChargeMapKey?: string;
   mapId?: string;
   centerLat?: number;
   centerLng?: number;
   zoom?: number;
   locatedZoom?: number;
   autoLocate?: boolean;
-  searchRadius?: number;
+  minChargerZoom?: number;
   showEvChargers?: boolean;
 }
 
 const {
   apiKey = "",
+  openChargeMapKey = "",
   mapId = "DEMO_MAP_ID",
   centerLat = 0,
   centerLng = 0,
   zoom = 12,
   locatedZoom = 14,
   autoLocate = true,
-  searchRadius = 5000,
+  minChargerZoom = 9,
   showEvChargers = true,
 } = Astro.props;
-
-const radiusOptions = [1000, 5000, 10000, 25000];
 ---
 
 <ev-google-map
   data-api-key={apiKey}
+  data-open-charge-map-key={openChargeMapKey}
   data-map-id={mapId}
   data-center-lat={centerLat}
   data-center-lng={centerLng}
   data-zoom={zoom}
   data-located-zoom={locatedZoom}
-  data-search-radius={searchRadius}
+  data-min-charger-zoom={minChargerZoom}
   data-show-ev-chargers={String(showEvChargers)}
 >
   <div class="google-map-container">
@@ -51,10 +52,6 @@ const radiusOptions = [1000, 5000, 10000, 25000];
     </div>
 
     <div class="map-controls">
-      <Button variant="secondary" class="search-area-button">
-        <Icon icon={Search} />
-        <span class="label">Search this area</span>
-      </Button>
       <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
     </div>
@@ -73,16 +70,6 @@ const radiusOptions = [1000, 5000, 10000, 25000];
           checked={showEvChargers}
         />
       </label>
-      <label class="field">
-        <span>Search radius</span>
-        <select class="select" name="searchRadius">
-          {radiusOptions.map((radius) => (
-            <option value={radius} selected={radius === searchRadius}>
-              {radius / 1000} km
-            </option>
-          ))}
-        </select>
-      </label>
     </form>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
@@ -95,7 +82,6 @@ const radiusOptions = [1000, 5000, 10000, 25000];
           <Icon icon={X} />
         </Button>
       </div>
-      <img class="photo" alt="" hidden />
       <h2 class="name" id="charger-details-name"></h2>
       <p class="address">
         <Icon icon={MapPin} size="sm" />
@@ -110,15 +96,27 @@ const radiusOptions = [1000, 5000, 10000, 25000];
       </section>
       <section class="section">
         <h3 class="title">
-          <Icon icon={Clock} size="sm" />
-          Opening hours
+          <Icon icon={Info} size="sm" />
+          Details
         </h3>
-        <ul class="hours"></ul>
+        <ul class="details"></ul>
       </section>
+      <p class="attribution">
+        Charging data from
+        <a href="https://openchargemap.org" target="_blank" rel="noopener">
+          Open Charge Map
+        </a>
+      </p>
       <template class="item-template">
         <li></li>
       </template>
     </aside>
+
+    <template class="charger-cluster-template">
+      <div class="charger-cluster">
+        <span class="count"></span>
+      </div>
+    </template>
 
     <template class="charger-marker-template">
       <div class="charger-marker">

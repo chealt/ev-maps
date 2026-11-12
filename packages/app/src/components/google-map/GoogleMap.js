@@ -1,8 +1,17 @@
+import Supercluster from "supercluster";
+import { deleteExpiredResponses, fetchChargersInBounds } from "./chargers.js";
 import { loadGoogleMaps } from "./loader.js";
-import { fetchChargerDetails, searchEvChargers } from "./places.js";
 
-const PHOTO_MAX_WIDTH = 400;
 const LAST_LOCATION_KEY = "ev-maps:last-location";
+// Chargers closer than this many pixels are grouped; above the max zoom never.
+const CLUSTER_RADIUS = 60;
+const CLUSTER_MAX_ZOOM = 16;
+// Google Maps tiles are 256px, so the radius is in screen pixels.
+const CLUSTER_EXTENT = 256;
+const CLUSTER_SIZES = [
+  { minCount: 100, size: "large" },
+  { minCount: 10, size: "medium" },
+];
 // Google Maps color schemes for the themes set by ThemePicker on <html>.
 const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 
@@ -26,19 +35,40 @@ const saveLastLocation = (location) => {
   }
 };
 
-const formatConnector = ({ type, count, availableCount, maxChargeRateKw }) => {
-  const name = String(type ?? "Unknown")
-    .replace(/^EV_CONNECTOR_TYPE_/, "")
-    .replaceAll("_", " ");
-  const availability = availableCount == null ? "" : `, ${availableCount} available`;
-  const power = maxChargeRateKw ? ` · up to ${maxChargeRateKw} kW` : "";
-  return `${name}: ${count}×${power}${availability}`;
+const formatConnector = ({ type, powerKw, quantity }) => {
+  const power = powerKw ? ` · ${powerKw} kW` : "";
+  return `${type}: ${quantity ?? 1}×${power}`;
+};
+
+const formatDetails = ({ operator, usageType, usageCost, status, numberOfPoints }) =>
+  [
+    operator && `Operator: ${operator}`,
+    usageType && `Access: ${usageType}`,
+    usageCost && `Cost: ${usageCost}`,
+    status && `Status: ${status}`,
+    numberOfPoints && `Charging points: ${numberOfPoints}`,
+  ].filter(Boolean);
+
+const toFeature = (charger) => ({
+  type: "Feature",
+  geometry: { type: "Point", coordinates: [charger.location.lng, charger.location.lat] },
+  properties: { charger },
+});
+
+const chargerCountMessage = (count, truncated) => {
+  if (!count) {
+    return "No EV chargers in this area";
+  }
+  if (truncated) {
+    return `Showing ${count} EV chargers, zoom in to see all`;
+  }
+  return `${count} EV chargers found`;
 };
 
 class GoogleMapElement extends HTMLElement {
   map = null;
   maps = null;
-  markers = [];
+  markersById = new Map();
   searchId = 0;
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
@@ -58,6 +88,8 @@ class GoogleMapElement extends HTMLElement {
     if (!apiKey) {
       return;
     }
+
+    deleteExpiredResponses().catch((error) => console.error(error));
 
     loadGoogleMaps(apiKey)
       .then((maps) => this.initMap(maps))
@@ -79,8 +111,8 @@ class GoogleMapElement extends HTMLElement {
     return Number(this.dataset.locatedZoom) || 14;
   }
 
-  get searchRadius() {
-    return Number(this.dataset.searchRadius) || 5000;
+  get minChargerZoom() {
+    return Number(this.dataset.minChargerZoom) || 9;
   }
 
   setupEventListeners() {
@@ -92,9 +124,6 @@ class GoogleMapElement extends HTMLElement {
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     document.addEventListener("theme-change", this.handleThemeChange);
 
-    this.querySelector(".search-area-button")?.addEventListener("click", () =>
-      this.loadEvChargers()
-    );
     this.detailsPanel
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
@@ -122,10 +151,6 @@ class GoogleMapElement extends HTMLElement {
       zoom: lastLocation ? this.locatedZoom : Number(this.dataset.zoom) || 12,
     });
     this.resolveMapReady();
-
-    if (this.showEvChargers) {
-      await this.loadEvChargers();
-    }
   }
 
   createMap({ center, zoom }) {
@@ -141,6 +166,8 @@ class GoogleMapElement extends HTMLElement {
       streetViewControl: false,
       cameraControl: false,
     });
+    // "idle" fires once the map has finished moving or zooming.
+    this.map.addListener("idle", () => this.loadEvChargers());
   }
 
   // Google Maps only accepts a color scheme when a map is created, so a theme
@@ -153,7 +180,7 @@ class GoogleMapElement extends HTMLElement {
     const zoom = this.map.getZoom();
     this.mapEl.replaceChildren();
     this.createMap({ center, zoom });
-    for (const marker of this.markers) {
+    for (const marker of this.markersById.values()) {
       marker.map = this.map;
     }
   }
@@ -166,7 +193,6 @@ class GoogleMapElement extends HTMLElement {
     await this.mapReady;
     this.map.setCenter({ lat, lng });
     this.map.setZoom(this.locatedZoom);
-    this.loadEvChargers();
   }
 
   toggleFilters() {
@@ -182,7 +208,6 @@ class GoogleMapElement extends HTMLElement {
 
   handleFilterChange() {
     const form = new FormData(this.filterPanel);
-    this.dataset.searchRadius = form.get("searchRadius");
     this.toggleEvChargers(form.has("showEvChargers"));
   }
 
@@ -197,40 +222,64 @@ class GoogleMapElement extends HTMLElement {
   }
 
   async loadEvChargers() {
-    if (!this.map || !this.showEvChargers) {
+    const bounds = this.map?.getBounds()?.toJSON();
+    if (!bounds || !this.showEvChargers) {
       return;
     }
     const searchId = ++this.searchId;
-    this.setStatus("Searching for EV chargers...", "loading");
+    const zoom = this.map.getZoom();
 
+    if (zoom < this.minChargerZoom) {
+      this.clearMarkers();
+      this.hideChargerDetails();
+      this.setStatus("Zoom in to see EV chargers");
+      return;
+    }
+
+    const apiKey = this.dataset.openChargeMapKey;
+    if (!apiKey) {
+      this.setStatus(
+        "Open Charge Map API key is missing. Set VITE_OPEN_CHARGE_MAP_API_KEY.",
+        "error"
+      );
+      return;
+    }
+
+    this.setStatus("Loading EV chargers...", "loading");
     try {
-      const center = this.map.getCenter().toJSON();
-      const chargers = await searchEvChargers(this.maps, center, this.searchRadius);
+      const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom, apiKey });
       if (searchId !== this.searchId) {
         return;
       }
-      await this.displayEvChargers(chargers);
+      this.clusterIndex = new Supercluster({
+        radius: CLUSTER_RADIUS,
+        extent: CLUSTER_EXTENT,
+        maxZoom: CLUSTER_MAX_ZOOM,
+      }).load(chargers.map(toFeature));
+      await this.renderMarkers();
       this.setStatus(
-        chargers.length ? `${chargers.length} EV chargers found` : "No EV chargers found nearby",
+        chargerCountMessage(chargers.length, truncated),
         chargers.length ? "success" : "idle"
       );
     } catch (error) {
       console.error("Error loading EV chargers:", error);
-      this.setStatus("Could not load EV chargers", "error");
+      if (searchId === this.searchId) {
+        this.setStatus("Could not load EV chargers", "error");
+      }
     }
   }
 
   clearMarkers() {
-    for (const marker of this.markers) {
+    for (const marker of this.markersById.values()) {
       marker.map = null;
     }
-    this.markers = [];
+    this.markersById.clear();
+    this.clusterIndex = null;
     this.activeMarker = null;
   }
 
-  createMarkerContent() {
-    const template = this.querySelector(".charger-marker-template");
-    return template?.content.firstElementChild.cloneNode(true);
+  cloneTemplate(selector) {
+    return this.querySelector(selector)?.content.firstElementChild.cloneNode(true);
   }
 
   setActiveMarker(marker) {
@@ -239,31 +288,77 @@ class GoogleMapElement extends HTMLElement {
     marker?.content?.classList.add("active");
   }
 
-  async displayEvChargers(chargers) {
-    const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
-    this.clearMarkers();
-    this.markers = chargers.map((charger) => {
-      const marker = new AdvancedMarkerElement({
-        map: this.map,
-        position: charger.location,
-        title: charger.displayName ?? "EV charger",
-        content: this.createMarkerContent(),
-        gmpClickable: true,
-      });
-      marker.addEventListener("gmp-click", () => {
-        this.setActiveMarker(marker);
-        this.showChargerDetails(charger);
-      });
-      return marker;
+  createChargerMarker(AdvancedMarkerElement, charger) {
+    const marker = new AdvancedMarkerElement({
+      map: this.map,
+      position: charger.location,
+      title: charger.name,
+      content: this.cloneTemplate(".charger-marker-template"),
+      gmpClickable: true,
     });
+    marker.addEventListener("gmp-click", () => {
+      this.setActiveMarker(marker);
+      this.displayChargerDetails(charger);
+    });
+    return marker;
   }
 
-  async showChargerDetails(charger) {
-    try {
-      this.displayChargerDetails(await fetchChargerDetails(charger));
-    } catch (error) {
-      console.error("Error fetching charger details:", error);
-      this.setStatus("Could not load charger details", "error");
+  createClusterMarker(AdvancedMarkerElement, cluster) {
+    const { cluster_id: clusterId, point_count: count } = cluster.properties;
+    const [lng, lat] = cluster.geometry.coordinates;
+    const content = this.cloneTemplate(".charger-cluster-template");
+    content.querySelector(".count").textContent = String(count);
+    const size = CLUSTER_SIZES.find(({ minCount }) => count >= minCount)?.size;
+    if (size) {
+      content.classList.add(size);
+    }
+    const marker = new AdvancedMarkerElement({
+      map: this.map,
+      position: { lat, lng },
+      title: `${count} EV chargers`,
+      content,
+      gmpClickable: true,
+    });
+    marker.addEventListener("gmp-click", () => {
+      this.map.setCenter({ lat, lng });
+      this.map.setZoom(this.clusterIndex.getClusterExpansionZoom(clusterId));
+    });
+    return marker;
+  }
+
+  // Draws the clusters and chargers in view. Markers that are still in view
+  // are kept, so they don't flicker on every move.
+  async renderMarkers() {
+    const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
+    const { north, south, east, west } = this.map.getBounds().toJSON();
+    const zoom = Math.floor(this.map.getZoom());
+    const features = this.clusterIndex.getClusters([west, south, east, north], zoom);
+
+    const featuresByKey = new Map(
+      features.map((feature) => [
+        feature.properties.cluster
+          ? `cluster:${zoom}:${feature.properties.cluster_id}`
+          : `charger:${feature.properties.charger.id}`,
+        feature,
+      ])
+    );
+
+    for (const [key, marker] of this.markersById) {
+      if (!featuresByKey.has(key)) {
+        marker.map = null;
+        this.markersById.delete(key);
+      }
+    }
+
+    for (const [key, feature] of featuresByKey) {
+      if (!this.markersById.has(key)) {
+        this.markersById.set(
+          key,
+          feature.properties.cluster
+            ? this.createClusterMarker(AdvancedMarkerElement, feature)
+            : this.createChargerMarker(AdvancedMarkerElement, feature.properties.charger)
+        );
+      }
     }
   }
 
@@ -278,28 +373,15 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
-  displayChargerDetails(details) {
+  displayChargerDetails(charger) {
     const panel = this.detailsPanel;
     if (!panel) {
       return;
     }
-    panel.querySelector(".name").textContent = details.displayName ?? "";
-    panel.querySelector(".address .text").textContent = details.formattedAddress ?? "";
-    this.fillList(
-      panel.querySelector(".connectors"),
-      (details.evChargeOptions?.connectorAggregations ?? []).map(formatConnector)
-    );
-    this.fillList(
-      panel.querySelector(".hours"),
-      details.regularOpeningHours?.weekdayDescriptions ?? []
-    );
-
-    const photoEl = panel.querySelector(".photo");
-    const photo = details.photos?.[0];
-    photoEl.hidden = !photo;
-    photoEl.src = photo ? photo.getURI({ maxWidth: PHOTO_MAX_WIDTH }) : "";
-    photoEl.alt = photo ? (details.displayName ?? "") : "";
-
+    panel.querySelector(".name").textContent = charger.name;
+    panel.querySelector(".address .text").textContent = charger.address;
+    this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
+    this.fillList(panel.querySelector(".details"), formatDetails(charger));
     panel.hidden = false;
   }
 
