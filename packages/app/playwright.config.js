@@ -6,10 +6,13 @@ export default defineConfig({
   testDir: "./tests",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "github" : "list",
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,
-    trace: "on-first-retry",
+    // CI keeps a video of every test and a trace of every failed attempt;
+    // both are attached to the HTML report artifact.
+    trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
+    video: process.env.CI ? "on" : "off",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
