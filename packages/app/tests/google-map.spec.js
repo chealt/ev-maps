@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 
 const fakeGoogleMaps = await readFile(new URL("./fixtures/fake-google-maps.js", import.meta.url));
 
-const DOWNTOWN_CHARGER = "Downtown Supercharger";
-const XSS_CHARGER = '<img src="x" onerror="window.__xss = true">';
+const downtownChargerLabel = "Downtown Supercharger";
+const xssElement = '<img src="x" onerror="window.__xss = true">';
 
 test.beforeEach(async ({ page }) => {
   await page.route("https://maps.googleapis.com/maps/api/js?**", (route) =>
@@ -32,11 +32,11 @@ test("shows EV charger markers", async ({ page }) => {
 
 test("shows charger details when a marker is clicked", async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: DOWNTOWN_CHARGER, exact: true }).click();
+  await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
 
-  const details = page.getByRole("complementary", { name: DOWNTOWN_CHARGER });
+  const details = page.getByRole("complementary", { name: downtownChargerLabel });
   await expect(details).toBeVisible();
-  await expect(details.getByRole("heading", { name: DOWNTOWN_CHARGER })).toBeVisible();
+  await expect(details.getByRole("heading", { name: downtownChargerLabel })).toBeVisible();
   await expect(details.getByText("1 Main St, New York")).toBeVisible();
   await expect(details.getByText("CCS COMBO 2: 4× · up to 150 kW, 2 available")).toBeVisible();
   await expect(details.getByText("Monday: Open 24 hours")).toBeVisible();
@@ -47,8 +47,8 @@ test("shows charger details when a marker is clicked", async ({ page }) => {
 
 test("renders charger data as text, not HTML", async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: XSS_CHARGER, exact: true }).click();
-  await expect(page.getByRole("heading", { name: XSS_CHARGER, exact: true })).toBeVisible();
+  await map.getByRole("button", { name: xssElement, exact: true }).click();
+  await expect(page.getByRole("heading", { name: xssElement, exact: true })).toBeVisible();
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
 });
 
