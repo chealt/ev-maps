@@ -60,7 +60,7 @@ await details.getByRole("button", { name: "Close" }).click();
 
 // ❌ Bad
 await page.locator(".google-map .marker").first().click();
-await page.locator(".charger-details__close").click();
+await page.locator(".charger-details .close").click();
 ```
 
 ### Check State Through Accessibility

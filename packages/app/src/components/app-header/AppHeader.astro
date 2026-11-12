@@ -1,0 +1,22 @@
+---
+import { Zap } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import "./AppHeader.css";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+
+<header class="app-header">
+  <span class="mark">
+    <Icon icon={Zap} filled />
+  </span>
+  <div class="text">
+    <h1 class="title">{title}</h1>
+    {subtitle && <p class="subtitle">{subtitle}</p>}
+  </div>
+</header>

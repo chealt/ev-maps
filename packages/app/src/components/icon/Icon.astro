@@ -1,0 +1,19 @@
+---
+import "./Icon.css";
+
+interface Props {
+  /** An SVG string exported by `lucide-static`, e.g. `import { Zap } from "lucide-static"`. */
+  icon: string;
+  size?: "sm" | "md" | "lg";
+  filled?: boolean;
+  class?: string;
+}
+
+const { icon, size = "md", filled = false, class: className } = Astro.props;
+---
+
+<span
+  class:list={["icon", size, filled && "filled", className]}
+  aria-hidden="true"
+  set:html={icon}
+/>

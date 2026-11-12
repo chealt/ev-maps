@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
+import { fakeGoogleIdentity } from "./fixtures/google.js";
 
 const fakeGoogleMaps = await readFile(new URL("./fixtures/fake-google-maps.js", import.meta.url));
 
@@ -10,6 +11,7 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://maps.googleapis.com/maps/api/js?**", (route) =>
     route.fulfill({ contentType: "text/javascript", body: fakeGoogleMaps })
   );
+  await fakeGoogleIdentity(page);
   await page.goto("/");
 });
 
