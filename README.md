@@ -133,8 +133,8 @@ Before writing tests, read the
 
 ### Cloudflare Pages
 
-The `Deploy` job in `.github/workflows/app.yml` deploys the app to the
-`ev-maps` Cloudflare Pages project once lint, build and tests pass:
+The `Deploy` job in `.github/workflows/app.yml` deploys the app to Cloudflare
+Pages once lint, build and tests pass:
 
 - **Pushes to `main`** deploy to production.
 - **Pull requests** from this repository get a preview deployment; its URL
@@ -148,13 +148,18 @@ built in GitHub Actions, not by Cloudflare. It needs these GitHub settings
 | ------------------------------ | -------- | -------------------------------------------------------- |
 | `CLOUDFLARE_API_TOKEN`         | Secret   | API token with the **Cloudflare Pages: Edit** permission |
 | `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID                                    |
+| `CLOUDFLARE_PAGES_PROJECT`     | Variable | Pages project name (defaults to `ev-maps`)               |
 | `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                     |
 | `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                 |
 | `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Optional Map ID (defaults to `DEMO_MAP_ID`)              |
 | `VITE_GOOGLE_CLIENT_ID`        | Variable | Optional OAuth client ID for Google sign-in              |
 
-The Cloudflare Pages project must be named `ev-maps` with `main` as its
-production branch, and must not build the repository itself.
+The Cloudflare Pages project needs `main` as its production branch and must
+not build the repository itself. To create one:
+
+```bash
+bunx wrangler pages project create ev-maps --production-branch=main
+```
 
 To deploy by hand:
 
