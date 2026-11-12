@@ -1,0 +1,13 @@
+language css;
+
+// Biome has no built-in rule for disallowed units (like Stylelint's
+// unit-disallowed-list), so this covers px/rem. Hex colors are handled by the
+// built-in style/noHexColors rule. Custom property definitions are allowed.
+CssRegularDimension() as $value where {
+  $value <: r"(?i)[0-9.]+(?:px|rem)",
+  not $value <: within CssGenericProperty(name = CssDashedIdentifier()),
+  register_diagnostic(
+    span = $value,
+    message = "Hardcoded px/rem value. Use a CSS variable instead."
+  )
+}

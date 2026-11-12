@@ -3,7 +3,7 @@
   "root": true,
   "plugins": [
     {
-      "path": "./no-hardcoded-css-values.grit",
+      "path": "./no-hardcoded-css-units.grit",
       "includes": ["**/src/components/**/*.css"]
     }
   ],
@@ -16,6 +16,18 @@
       "preset": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/src/components/**/*.css"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noHexColors": "error"
+          }
+        }
+      }
+    }
+  ],
   "files": {
     "includes": ["**/*.css"]
   }
