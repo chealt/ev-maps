@@ -92,11 +92,21 @@ class GoogleMapElement extends HTMLElement {
     // Caches Open Charge Map responses; see public/sw.js.
     navigator.serviceWorker?.register("/sw.js").catch((error) => console.error(error));
 
+    this.loadMap(apiKey);
+  }
+
+  // Google Maps can't be cached, so offline the map waits for a connection.
+  loadMap(apiKey) {
     loadGoogleMaps(apiKey)
       .then((maps) => this.initMap(maps))
       .catch((error) => {
         console.error(error);
-        this.setStatus("Failed to load Google Maps", "error");
+        if (navigator.onLine) {
+          this.setStatus("Failed to load Google Maps", "error");
+        } else {
+          this.setStatus("You're offline. The map will load when you're back online.");
+          window.addEventListener("online", () => this.loadMap(apiKey), { once: true });
+        }
       });
   }
 
@@ -264,8 +274,15 @@ class GoogleMapElement extends HTMLElement {
       );
     } catch (error) {
       console.error("Error loading EV chargers:", error);
-      if (searchId === this.searchId) {
+      if (searchId !== this.searchId) {
+        return;
+      }
+      if (navigator.onLine) {
         this.setStatus("Could not load EV chargers", "error");
+      } else {
+        // Areas visited in the last day load from the service worker's cache.
+        this.setStatus("You're offline. Chargers will load when you're back online.");
+        window.addEventListener("online", () => this.loadEvChargers(), { once: true });
       }
     }
   }
@@ -330,8 +347,14 @@ class GoogleMapElement extends HTMLElement {
   // Draws the clusters and chargers in view. Markers that are still in view
   // are kept, so they don't flicker on every move.
   async renderMarkers() {
+    // getBounds() is undefined until the map has rendered, e.g. when Google
+    // Maps failed to load.
+    const bounds = this.map.getBounds()?.toJSON();
+    if (!bounds) {
+      return;
+    }
     const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
-    const { north, south, east, west } = this.map.getBounds().toJSON();
+    const { north, south, east, west } = bounds;
     const zoom = Math.floor(this.map.getZoom());
     const features = this.clusterIndex.getClusters([west, south, east, north], zoom);
 
