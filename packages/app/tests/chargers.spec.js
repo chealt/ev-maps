@@ -2,8 +2,6 @@ import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeOpenChargeMap, requestCovers, tileWidth } from "./fixtures/open-charge-map.js";
 
-const hours = (count) => count * 60 * 60 * 1000;
-
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
   await fakeGoogleIdentity(page);
@@ -35,25 +33,69 @@ test("loads chargers again when the map moves to a new area", async ({ page }) =
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });
 
-test("uses cached chargers for a day", async ({ page }) => {
-  const start = new Date("2026-01-01T08:00:00Z").getTime();
-  const requests = await fakeOpenChargeMap(page);
+test.describe("with the service worker", () => {
+  // Every other test blocks service workers (see playwright.config.js).
+  test.use({ serviceWorkers: "allow" });
 
-  await page.clock.setFixedTime(start);
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  const firstLoad = requests.length;
-  expect(firstLoad).toBeGreaterThan(0);
+  // Once the service worker controls the page, every Open Charge Map request
+  // goes through it; requests made before that went straight to the network.
+  const loadControlledPage = async (page) => {
+    await page.goto("/");
+    await page.waitForFunction(() => navigator.serviceWorker.controller);
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  };
 
-  await page.clock.setFixedTime(start + hours(23));
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  expect(requests).toHaveLength(firstLoad);
+  // The service worker keeps responses for a day, by the time it stored them.
+  // Its clock can't be faked, so make the stored responses a day older.
+  const ageCachedResponses = (page) =>
+    page.evaluate(
+      async (dayMs) => {
+        const cache = await caches.open("ev-maps-open-charge-map-v1");
+        for (const request of await cache.keys()) {
+          const response = await cache.match(request);
+          const headers = new Headers(response.headers);
+          headers.set("x-ev-maps-cached-at", String(Date.now() - dayMs - 1000));
+          await cache.put(request, new Response(await response.blob(), { headers }));
+        }
+      },
+      24 * 60 * 60 * 1000
+    );
 
-  await page.clock.setFixedTime(start + hours(25));
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  expect(requests).toHaveLength(firstLoad * 2);
+  test("serves chargers from its cache after a reload", async ({ page }) => {
+    const requests = await fakeOpenChargeMap(page);
+    await loadControlledPage(page);
+    const requestCount = requests.length;
+
+    await page.reload();
+
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    expect(requests).toHaveLength(requestCount);
+  });
+
+  test("loads chargers again after a day", async ({ page }) => {
+    const requests = await fakeOpenChargeMap(page);
+    await loadControlledPage(page);
+    const requestCount = requests.length;
+
+    await ageCachedResponses(page);
+    await page.reload();
+
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    expect(requests.length).toBeGreaterThan(requestCount);
+  });
+
+  test("uses expired chargers when the network fails", async ({ page }) => {
+    await fakeOpenChargeMap(page);
+    await loadControlledPage(page);
+    await ageCachedResponses(page);
+
+    await page.context().unrouteAll();
+    await page.context().route("https://api.openchargemap.io/**", (route) => route.abort());
+    await page.reload();
+
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  });
 });
 
 test("asks to zoom in when the visible area is too large", async ({ page }) => {

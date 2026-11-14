@@ -8,7 +8,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "lint": "oxlint -c ../dev-config/oxlint.json src tests",
+    "lint": "oxlint -c ../dev-config/oxlint.json src tests public",
     "lint:css": "biome lint --config-path=../dev-config src",
     "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
     "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check .",

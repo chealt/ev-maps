@@ -3,13 +3,10 @@
 // The visible map area is split into fixed Web Mercator tiles, so the same
 // area always produces the same requests. Tiles are requested in compact form
 // (IDs instead of names, about a quarter of the size) and the names come from
-// Open Charge Map's reference data. Every response is kept in Cache Storage
-// for a day, so panning back or reloading doesn't hit the API.
+// Open Charge Map's reference data. The service worker (public/sw.js) caches
+// every response for a day, so panning back or reloading doesn't hit the API.
 
 const API_URL = "https://api.openchargemap.io/v3";
-const CACHE_NAME = "ev-maps-open-charge-map-v1";
-const CACHED_AT_HEADER = "x-ev-maps-cached-at";
-const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_RESULTS_PER_TILE = 2000;
 // Tiles are 2 zoom levels larger than the map, so a viewport covers ~2×2 tiles.
 const TILE_ZOOM_OFFSET = 2;
@@ -80,48 +77,20 @@ const tileUrl = (tile, apiKey) => {
 const referenceDataUrl = (apiKey) =>
   `${API_URL}/referencedata?${new URLSearchParams({ output: "json", key: apiKey })}`;
 
-const openCache = async () => {
-  try {
-    return await caches.open(CACHE_NAME);
-  } catch {
-    // Cache Storage is unavailable (e.g. not a secure context).
-    return null;
-  }
-};
-
-const isFresh = (response) =>
-  Date.now() - Number(response.headers.get(CACHED_AT_HEADER)) < CACHE_MAX_AGE_MS;
-
-const fetchFromApi = async (url, cache) => {
+const fetchJson = async (url) => {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Open Charge Map request failed: ${response.status}`);
   }
-  const body = await response.text();
-  await cache?.put(
-    url,
-    new Response(body, {
-      headers: { "content-type": "application/json", [CACHED_AT_HEADER]: String(Date.now()) },
-    })
-  );
-  return JSON.parse(body);
-};
-
-const fetchCached = async (url) => {
-  const cache = await openCache();
-  const cached = await cache?.match(url);
-  if (cached && isFresh(cached)) {
-    return cached.json();
-  }
-  return fetchFromApi(url, cache);
+  return response.json();
 };
 
 // Shares one request between callers asking for the same URL at the same time.
-const fetchCachedOnce = (url) => {
+const fetchJsonOnce = (url) => {
   if (!inFlightRequests.has(url)) {
     inFlightRequests.set(
       url,
-      fetchCached(url).finally(() => inFlightRequests.delete(url))
+      fetchJson(url).finally(() => inFlightRequests.delete(url))
     );
   }
   return inFlightRequests.get(url);
@@ -130,7 +99,7 @@ const fetchCachedOnce = (url) => {
 const titlesById = (items = []) => new Map(items.map(({ ID, Title }) => [ID, Title]));
 
 const fetchReferenceData = async (apiKey) => {
-  const data = await fetchCachedOnce(referenceDataUrl(apiKey));
+  const data = await fetchJsonOnce(referenceDataUrl(apiKey));
   return {
     operators: titlesById(data.Operators),
     usageTypes: titlesById(data.UsageTypes),
@@ -139,19 +108,9 @@ const fetchReferenceData = async (apiKey) => {
   };
 };
 
-const deleteExpiredResponses = async () => {
-  const cache = await openCache();
-  for (const request of (await cache?.keys()) ?? []) {
-    const response = await cache.match(request);
-    if (response && !isFresh(response)) {
-      await cache.delete(request);
-    }
-  }
-};
-
 // Loads a tile; if it's full, loads its smaller tiles in view instead.
 const fetchTileChargers = async ({ tile, bounds, apiKey, depth = 0 }) => {
-  const pois = await fetchCachedOnce(tileUrl(tile, apiKey));
+  const pois = await fetchJsonOnce(tileUrl(tile, apiKey));
   const full = pois.length >= MAX_RESULTS_PER_TILE;
   if (!full || depth >= MAX_SPLIT_DEPTH || tile.zoom >= MAX_TILE_ZOOM) {
     return { pois, truncated: full };
@@ -210,4 +169,4 @@ const fetchChargersInBounds = async ({ bounds, zoom, apiKey }) => {
   };
 };
 
-export { deleteExpiredResponses, fetchChargersInBounds };
+export { fetchChargersInBounds };

@@ -27,5 +27,13 @@
     "func-style": ["error", "expression"],
     "import/exports-last": "error",
     "import/group-exports": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/public/sw.js"],
+      "env": {
+        "serviceworker": true
+      }
+    }
+  ]
 }

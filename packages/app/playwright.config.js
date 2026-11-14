@@ -9,6 +9,9 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,
+    // Requests made by a service worker bypass page.route(), so the external
+    // APIs couldn't be faked; without it the app fetches directly.
+    serviceWorkers: "block",
     // CI keeps a video of every test and a trace of every failed attempt;
     // both are attached to the HTML report artifact.
     trace: process.env.CI ? "retain-on-failure" : "on-first-retry",
