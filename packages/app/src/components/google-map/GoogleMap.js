@@ -150,6 +150,13 @@ class GoogleMapElement extends HTMLElement {
   }
 
   async initMap(maps) {
+    // Offline, the map can't fetch its Map ID configuration (needed for
+    // markers) or tiles, and wouldn't recover, so wait for a connection.
+    if (!navigator.onLine) {
+      this.setStatus("You're offline. The map will load when you're back online.");
+      window.addEventListener("online", () => this.initMap(maps), { once: true });
+      return;
+    }
     const { Map } = await maps.importLibrary("maps");
     this.maps = maps;
     this.MapClass = Map;
