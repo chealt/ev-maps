@@ -10,10 +10,8 @@ ev-google-map {
   --status-pulse-animation: 1.6s ease-in-out infinite;
 
   /* Filter panel */
-  --filter-panel-width: 17rem;
-  --switch-width: 2.5rem;
-  --switch-height: 1.375rem;
-  --switch-thumb-size: 1rem;
+  --filter-dialog-content-width: 40rem;
+  --filter-option-min-width: 9rem;
 
   /* Charger details */
   --details-panel-width: 22rem;
@@ -48,7 +46,6 @@ ev-google-map {
 /* Floating surfaces */
 .map-status,
 .map-controls,
-.filter-panel,
 .charger-details {
   background: var(--color-surface-glass);
   backdrop-filter: var(--blur-glass);
@@ -140,83 +137,75 @@ ev-google-map {
 }
 
 /* Filters */
-.filter-panel {
-  position: absolute;
-  bottom: var(--map-overlay-offset);
-  left: 50%;
-  translate: -50% 0;
-  z-index: var(--z-dropdown);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  width: var(--filter-panel-width);
-  max-width: calc(100% - 2 * var(--spacing-md));
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
-  animation: rise-in var(--transition-base);
+/* Full screen on every screen size; the content is a centered column. */
+.filter-dialog {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text);
 
-  &[hidden] {
-    display: none;
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    animation: rise-in var(--transition-base);
   }
 
-  .title {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: var(--letter-spacing-wide);
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    margin-bottom: var(--spacing-xs);
+  .header,
+  .body,
+  .footer {
+    width: 100%;
+    max-width: var(--filter-dialog-content-width);
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
   }
 
-  .field {
+  .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--spacing-md);
-    padding: var(--spacing-sm) 0;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-
-    & + .field {
-      border-top: var(--border-width) solid var(--color-border);
-    }
   }
 
-  .switch {
-    appearance: none;
-    position: relative;
-    flex-shrink: 0;
-    width: var(--switch-width);
-    height: var(--switch-height);
-    border-radius: var(--border-radius-full);
-    background: var(--color-border-strong);
-    cursor: pointer;
-    transition: background-color var(--transition-fast);
+  .title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+  }
 
-    &::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: calc((var(--switch-height) - var(--switch-thumb-size)) / 2);
-      width: var(--switch-thumb-size);
-      height: var(--switch-thumb-size);
-      translate: 0 -50%;
-      border-radius: var(--border-radius-full);
-      background: var(--color-surface);
-      box-shadow: var(--shadow-sm);
-      transition: left var(--transition-base);
-    }
+  .body {
+    flex: 1;
+    overflow-y: auto;
+  }
 
-    &:checked {
-      background: var(--color-primary);
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
 
-      &::after {
-        left: calc(
-          var(--switch-width) - var(--switch-thumb-size) -
-            (var(--switch-height) - var(--switch-thumb-size)) / 2
-        );
-      }
+  .subtitle {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--filter-option-min-width), 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .footer {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-lg);
+
+    .button {
+      min-width: var(--filter-option-min-width);
     }
   }
 }
@@ -453,15 +442,6 @@ ev-google-map {
       display: flex;
       flex: 1;
     }
-  }
-
-  .filter-panel {
-    bottom: calc(var(--map-overlay-offset) + var(--spacing-sm));
-    left: var(--spacing-md);
-    right: var(--spacing-md);
-    width: auto;
-    max-width: none;
-    translate: none;
   }
 
   .charger-details {

@@ -91,10 +91,16 @@ test.describe("with geolocation", () => {
     await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   });
 
-  test("remembers the last location", async ({ page }) => {
-    await expect
-      .poll(() => page.evaluate(() => localStorage.getItem("ev-maps:last-location")))
-      .toBe(JSON.stringify(userLocation));
+  test("doesn't locate the user over where they left the map", async ({ page }) => {
+    await expect.poll(() => mapState(page)).toMatchObject({ center: userLocation });
+    const newYork = { lat: 40.73, lng: -73.99 };
+    await page.evaluate((center) => window.__fakeMap.setCenter(center), newYork);
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+    await page.reload();
+
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    expect(await mapState(page)).toEqual({ center: newYork, zoom: 14 });
   });
 });
 
@@ -104,7 +110,23 @@ test("does not locate automatically without permission", async ({ page }) => {
   expect(loadedChargersAround({ lat: 40.7128, lng: -74.006 })).toBe(true);
 });
 
-test("opens at the last known location", async ({ page }) => {
+test("reopens where the map was left", async ({ page }) => {
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  const london = { lat: 51.5074, lng: -0.1278 };
+  await page.evaluate((center) => {
+    window.__fakeMap.setCenter(center);
+    window.__fakeMap.setZoom(13);
+  }, london);
+  await expect.poll(() => loadedChargersAround(london)).toBe(true);
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  await page.reload();
+
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  expect(await mapState(page)).toEqual({ center: london, zoom: 13 });
+});
+
+test("opens at the location saved by an older version", async ({ page }) => {
   await page.addInitScript((location) => {
     localStorage.setItem("ev-maps:last-location", JSON.stringify(location));
   }, userLocation);
@@ -154,20 +176,25 @@ test("reports a denied location permission", async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText("Location permission denied");
 });
 
-test("filters toggle the panel and charger visibility", async ({ page }) => {
-  const markers = page.getByRole("region", { name: "EV charging station map" }).getByRole("button");
-  const filterButton = page.getByRole("button", { name: "Filters" });
-  const showChargers = page.getByLabel("Show EV chargers");
+test("the filters open in a dialog that closes with Done, Close or Escape", async ({ page }) => {
+  const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Filters" });
+  await expect(dialog).toBeHidden();
 
-  await expect(showChargers).toBeHidden();
-  await filterButton.click();
-  await expect(showChargers).toBeVisible();
+  await filtersButton.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("group", { name: "Charging power" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
 
-  await expect(markers).toHaveCount(2);
-  await showChargers.uncheck();
-  await expect(markers).toHaveCount(0);
+  await filtersButton.click();
+  await dialog.getByRole("button", { name: "Close filters" }).click();
+  await expect(dialog).toBeHidden();
 
-  await showChargers.check();
-  await expect(markers).toHaveCount(2);
+  await filtersButton.click();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
 });
