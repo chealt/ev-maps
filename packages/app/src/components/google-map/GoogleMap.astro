@@ -1,6 +1,6 @@
 ---
 import Button from "../button/Button.astro";
-import { Info, MapPin, PlugZap, X, Zap } from "lucide-static";
+import { FilterX, Info, MapPin, PlugZap, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -16,8 +16,14 @@ interface Props {
   locatedZoom?: number;
   autoLocate?: boolean;
   minChargerZoom?: number;
-  showEvChargers?: boolean;
 }
+
+const powerRanges = [
+  { value: "under-50", label: "< 50 kW", minKw: 0, maxKw: 50 },
+  { value: "50-150", label: "50–150 kW", minKw: 50, maxKw: 150 },
+  { value: "150-300", label: "150–300 kW", minKw: 150, maxKw: 300 },
+  { value: "300-plus", label: "300+ kW", minKw: 300 },
+];
 
 const {
   apiKey = "",
@@ -29,7 +35,6 @@ const {
   locatedZoom = 14,
   autoLocate = true,
   minChargerZoom = 9,
-  showEvChargers = true,
 } = Astro.props;
 ---
 
@@ -42,7 +47,6 @@ const {
   data-zoom={zoom}
   data-located-zoom={locatedZoom}
   data-min-charger-zoom={minChargerZoom}
-  data-show-ev-chargers={String(showEvChargers)}
 >
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
@@ -54,23 +58,52 @@ const {
     <div class="map-controls">
       <LocateButton autoLocate={autoLocate} />
       <FilterButton controls="map-filter-panel" />
+      <Button variant="secondary" class="clear-filters" hidden>
+        <Icon icon={FilterX} />
+        <span class="label">Clear filters</span>
+      </Button>
     </div>
 
-    <form class="filter-panel" id="map-filter-panel" aria-labelledby="filter-panel-title" hidden>
-      <h2 class="title" id="filter-panel-title">
-        Filters
-      </h2>
-      <label class="field">
-        <span>Show EV chargers</span>
-        <input
-          class="switch"
-          type="checkbox"
-          role="switch"
-          name="showEvChargers"
-          checked={showEvChargers}
-        />
-      </label>
-    </form>
+    <dialog class="filter-dialog" id="map-filter-panel" aria-labelledby="filter-panel-title">
+      <div class="header">
+        <h2 class="title" id="filter-panel-title">
+          Filters
+        </h2>
+        <Button variant="ghost" size="icon-only" class="close" aria-label="Close filters">
+          <Icon icon={X} />
+        </Button>
+      </div>
+      <div class="body">
+        <div class="group" role="group" aria-labelledby="power-filter-title">
+          <h3 class="subtitle" id="power-filter-title">
+            Charging power
+          </h3>
+          <div class="options">
+            {powerRanges.map(({ value, label, minKw, maxKw }) => (
+              <Button
+                variant="secondary"
+                size="large"
+                class="power-filter"
+                aria-pressed="false"
+                data-power-range={value}
+                data-min-kw={minKw}
+                data-max-kw={maxKw}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <Button variant="secondary" size="large" class="clear-filters" disabled>
+          Clear filters
+        </Button>
+        <Button variant="primary" size="large" class="done">
+          Done
+        </Button>
+      </div>
+    </dialog>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="header">

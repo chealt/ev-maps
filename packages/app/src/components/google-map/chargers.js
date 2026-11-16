@@ -126,6 +126,12 @@ const fetchTileChargers = async ({ tile, bounds, apiKey, depth = 0 }) => {
   };
 };
 
+// The fastest connector's power, or null when no connector has one.
+const maxPowerKw = (connections = []) => {
+  const powers = connections.map((connection) => connection.PowerKW).filter(Number.isFinite);
+  return powers.length ? Math.max(...powers) : null;
+};
+
 const toCharger = (poi, reference) => ({
   id: poi.ID,
   name: poi.AddressInfo?.Title || "EV charger",
@@ -143,6 +149,7 @@ const toCharger = (poi, reference) => ({
   usageCost: poi.UsageCost,
   status: reference.statusTypes.get(poi.StatusTypeID),
   numberOfPoints: poi.NumberOfPoints,
+  maxPowerKw: maxPowerKw(poi.Connections),
   connectors: (poi.Connections ?? []).map((connection) => ({
     type: reference.connectionTypes.get(connection.ConnectionTypeID) || "Unknown connector",
     powerKw: connection.PowerKW,

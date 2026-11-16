@@ -9,7 +9,6 @@ const appConfig = {
     autoLocate: true,
   },
   evChargers: {
-    enabled: true,
     openChargeMapKey: import.meta.env.VITE_OPEN_CHARGE_MAP_API_KEY || "",
     // Below this map zoom the visible area is too large to load chargers for.
     minZoom: 9,

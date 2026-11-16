@@ -8,12 +8,15 @@ const [chargers, referenceData] = await Promise.all([
   readFixture("open-charge-map-reference.json"),
 ]);
 
-// Serves the fixture chargers for every Open Charge Map tile request and
-// records the requested tile URLs. It routes on the browser context, so it
-// also fakes requests made by the service worker. Tiles wider than `fullTilesWiderThan`
-// degrees return as many chargers as they asked for, as if the area had more
-// than the per-tile limit.
-const fakeOpenChargeMap = async (page, { fullTilesWiderThan = Infinity } = {}) => {
+// Serves the fixture chargers (or `chargers`) for every Open Charge Map tile
+// request and records the requested tile URLs. It routes on the browser
+// context, so it also fakes requests made by the service worker. Tiles wider
+// than `fullTilesWiderThan` degrees return as many chargers as they asked
+// for, as if the area had more than the per-tile limit.
+const fakeOpenChargeMap = async (
+  page,
+  { chargers: tileChargers = chargers, fullTilesWiderThan = Infinity } = {}
+) => {
   const requests = [];
   await page
     .context()
@@ -26,10 +29,10 @@ const fakeOpenChargeMap = async (page, { fullTilesWiderThan = Infinity } = {}) =
     const body =
       tileWidth(url) > fullTilesWiderThan
         ? Array.from({ length: Number(url.searchParams.get("maxresults")) }, (_, index) => ({
-            ...chargers[0],
+            ...tileChargers[0],
             ID: `${url.searchParams.get("boundingbox")}-${index}`,
           }))
-        : chargers;
+        : tileChargers;
     return route.fulfill({ json: body, headers: { "access-control-allow-origin": "*" } });
   });
   return requests;
