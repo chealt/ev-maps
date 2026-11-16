@@ -1,4 +1,5 @@
 import { readdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { defineConfig } from "astro/config";
 
 // Lists the built files for the service worker to precache (public/sw.js).
@@ -30,6 +31,13 @@ export default defineConfig({
     routing: { prefixDefaultLocale: true },
   },
   vite: {
+    resolve: {
+      alias: {
+        // The exported chargers the country pages are built from (see
+        // src/lib/pages.js); the tests point it at their own fixtures.
+        "@country-chargers": resolve(process.env.EV_MAPS_CHARGERS_DIR ?? "data/chargers"),
+      },
+    },
     // The API runs in the Worker, which `bun run dev` starts on port 8787.
     server: { proxy: { "/api": "http://localhost:8787" } },
   },
