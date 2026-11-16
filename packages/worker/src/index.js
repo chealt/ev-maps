@@ -4,7 +4,7 @@
 // - /: redirects to the page for the visitor's language and country
 // It also runs the charger import on a schedule (see import/index.js).
 
-import { tileBounds } from "@ev-maps/tiles";
+import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { withoutDuplicates } from "./duplicates.js";
 import { runImport } from "./import/index.js";
@@ -25,8 +25,16 @@ const json = (data, { status = 200, headers = {} } = {}) =>
     headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 
+// Tiles are cached by their path and the current format, whatever the query
+// string: a new format starts a new cache, and random queries can't fill it.
+const tileCacheKey = (request) => {
+  const url = new URL(request.url);
+  return new Request(new URL(`${url.pathname}?v=${TILE_FORMAT_VERSION}`, url.origin));
+};
+
 const tileResponse = async (request, env, { zoom, x, y }, context) => {
-  const cached = await caches.default.match(request);
+  const cacheKey = tileCacheKey(request);
+  const cached = await caches.default.match(cacheKey);
   if (cached) {
     return cached;
   }
@@ -39,7 +47,7 @@ const tileResponse = async (request, env, { zoom, x, y }, context) => {
     { chargers: withoutDuplicates(rows.map(toClientCharger)), full },
     { headers: { "cache-control": TILE_CACHE_CONTROL } }
   );
-  context.waitUntil(caches.default.put(request, response.clone()));
+  context.waitUntil(caches.default.put(cacheKey, response.clone()));
   return response;
 };
 
