@@ -3,7 +3,7 @@
 ## Tech Stack
 
 - **Runtime**: [Bun](https://bun.sh/) (required)
-- **Framework**: [Astro v4](https://astro.build/) (static output)
+- **Framework**: [Astro v7](https://astro.build/) (static output)
 - **Components**: Native Web Components (behavior only, no shadow DOM)
 - **Maps**: Google Maps JavaScript API
 - **Charger data**: [Open Charge Map](https://openchargemap.org) API

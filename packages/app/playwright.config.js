@@ -19,7 +19,10 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `bunx --bun astro dev --port ${PORT}`,
+    // --ignore-lock: a one-off server in the foreground, next to any running
+    // `astro dev` (Astro otherwise refuses a second one, and backgrounds the
+    // server when it detects a coding agent).
+    command: `bunx --bun astro dev --port ${PORT} --ignore-lock`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     env: {

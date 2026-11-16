@@ -28,9 +28,9 @@ jobs:
     outputs:
       app: ${{ steps.filter.outputs.app }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           # The app and everything it depends on.
@@ -73,7 +73,7 @@ jobs:
         working-directory: .
         run: echo "No app changes; skipping." >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: needs.changes.outputs.app == 'true'
 
       - uses: oven-sh/setup-bun@v2
@@ -108,7 +108,7 @@ jobs:
         working-directory: .
         run: echo "No app changes; skipping." >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: needs.changes.outputs.app == 'true'
 
       - uses: oven-sh/setup-bun@v2
@@ -155,7 +155,7 @@ jobs:
           VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: needs.changes.outputs.app == 'true'
         with:
           name: ev-maps-dist
@@ -180,7 +180,7 @@ jobs:
         working-directory: .
         run: echo "No app changes; skipping." >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: needs.changes.outputs.app == 'true'
 
       - uses: oven-sh/setup-bun@v2
@@ -201,7 +201,7 @@ jobs:
         run: bun run test
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ needs.changes.outputs.app == 'true' && (!cancelled()) }}
         with:
           name: playwright-report
@@ -232,7 +232,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -242,7 +242,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: ev-maps-dist
           path: packages/app/dist
@@ -259,7 +259,7 @@ jobs:
 
       - name: Deploy to Cloudflare
         id: deploy
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -286,7 +286,7 @@ jobs:
       - name: Update the shared preview
         id: shared-preview
         if: github.event_name == 'pull_request'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
