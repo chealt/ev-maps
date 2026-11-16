@@ -1,4 +1,5 @@
 import { loadGoogleIdentity } from "../google-map/loader.js";
+import { message } from "../../lib/messages.js";
 
 const decodeJwtPayload = (token) => {
   const base64 = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
@@ -35,6 +36,7 @@ class UserMenuElement extends HTMLElement {
       size: "large",
       type: "standard",
       shape: "pill",
+      locale: document.documentElement.lang,
     });
   };
 
@@ -96,7 +98,7 @@ class UserMenuElement extends HTMLElement {
     pictureEl.hidden = !picture;
     pictureEl.src = picture ?? "";
     this.querySelector(".initials").textContent = picture ? "" : initialsOf(name);
-    this.querySelector(".avatar").setAttribute("aria-label", `Account: ${name}`);
+    this.querySelector(".avatar").setAttribute("aria-label", message("accountOf", { name }));
     this.querySelector(".name").textContent = name;
     this.querySelector(".email").textContent = email ?? "";
 

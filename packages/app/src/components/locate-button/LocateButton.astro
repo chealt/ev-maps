@@ -2,18 +2,20 @@
 import Button from "../button/Button.astro";
 import { LocateFixed } from "lucide-static";
 import Icon from "../icon/Icon.astro";
+import { translations } from "../../i18n/index.js";
 
 interface Props {
   autoLocate?: boolean;
 }
 
 const { autoLocate = false } = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-locate-button data-auto-locate={autoLocate ? "" : undefined}>
   <Button variant="primary" class="locate-button">
     <Icon icon={LocateFixed} />
-    <span class="label">Locate Me</span>
+    <span class="label">{page.locate}</span>
   </Button>
   <script src="./LocateButton.js"></script>
 </ev-locate-button>

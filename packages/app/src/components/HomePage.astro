@@ -3,6 +3,7 @@ import AppHeader from "./app-header/AppHeader.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
 import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
+import { translations } from "../i18n/index.js";
 import "./HomePage.css";
 
 interface Props {
@@ -12,12 +13,8 @@ interface Props {
   chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
-const {
-  title = "EV Maps",
-  subtitle = "Find electric vehicle charging stations near you",
-  chargers,
-  chargerBounds,
-} = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
+const { title = "EV Maps", subtitle = page.subtitle, chargers, chargerBounds } = Astro.props;
 const { googleMaps, evChargers } = appConfig;
 ---
 

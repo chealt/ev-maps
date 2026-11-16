@@ -4,6 +4,7 @@ import { FilterX, Info, List, MapPin, PlugZap, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
+import { translations } from "../../i18n/index.js";
 import "./GoogleMap.css";
 
 interface Props {
@@ -40,6 +41,8 @@ const {
   chargerBounds,
 } = Astro.props;
 
+const { page } = translations(Astro.currentLocale ?? "en");
+
 // JSON inside <script>: escape "<" so the data can't close the element.
 const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u003c");
 ---
@@ -56,7 +59,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 >
   {chargersJson && <script type="application/json" class="page-chargers" set:html={chargersJson} />}
   <div class="google-map-container">
-    <div class="google-map" role="region" aria-label="EV charging station map"></div>
+    <div class="google-map" role="region" aria-label={page.mapLabel}></div>
 
     <button
       type="button"
@@ -69,7 +72,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     >
       <!-- A live region's text doesn't name the button it's in, hence aria-labelledby. -->
       <span class="text" id="map-status-text" role="status" aria-live="polite">
-        {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
+        {!apiKey && page.apiKeyMissing}
       </span>
       <Icon icon={List} size="sm" class="list-icon" />
     </button>
@@ -79,7 +82,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <FilterButton controls="map-filter-panel" />
       <Button variant="secondary" class="clear-filters" hidden>
         <Icon icon={FilterX} />
-        <span class="label">Clear filters</span>
+        <span class="label">{page.clearFilters}</span>
       </Button>
     </div>
 
@@ -90,16 +93,16 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     >
       <div class="header">
         <h2 class="title" id="filter-panel-title">
-          Filters
+          {page.filters}
         </h2>
-        <Button variant="ghost" size="icon-only" class="close" aria-label="Close filters">
+        <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeFilters}>
           <Icon icon={X} />
         </Button>
       </div>
       <div class="body">
         <div class="group" role="group" aria-labelledby="power-filter-title">
           <h3 class="subtitle" id="power-filter-title">
-            Charging power
+            {page.chargingPower}
           </h3>
           <div class="options">
             {powerRanges.map(({ value, label, minKw, maxKw }) => (
@@ -120,10 +123,10 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       </div>
       <div class="footer">
         <Button variant="secondary" size="large" class="clear-filters" disabled>
-          Clear filters
+          {page.clearFilters}
         </Button>
         <Button variant="primary" size="large" class="done">
-          Done
+          {page.done}
         </Button>
       </div>
     </dialog>
@@ -136,11 +139,11 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <div class="header">
         <div>
           <h2 class="title" id="charger-list-title">
-            EV chargers
+            {page.chargerList}
           </h2>
           <p class="sort-basis"></p>
         </div>
-        <Button variant="ghost" size="icon-only" class="close" aria-label="Close list">
+        <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeList}>
           <Icon icon={X} />
         </Button>
       </div>
@@ -162,9 +165,9 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <div class="header">
         <span class="badge">
           <Icon icon={Zap} size="sm" />
-          EV charging
+          {page.badge}
         </span>
-        <Button variant="ghost" size="icon-only" class="close" aria-label="Close">
+        <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
           <Icon icon={X} />
         </Button>
       </div>
@@ -176,29 +179,30 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <section class="section">
         <h3 class="title">
           <Icon icon={PlugZap} size="sm" />
-          Connectors
+          {page.connectors}
         </h3>
         <ul class="connectors"></ul>
       </section>
       <section class="section">
         <h3 class="title">
           <Icon icon={Info} size="sm" />
-          Details
+          {page.details}
         </h3>
         <ul class="details"></ul>
       </section>
       <p class="attribution" data-source="ocm" hidden>
-        Charging data from
+        {page.openChargeMapCredit.before}{" "}
         <a href="https://openchargemap.org" target="_blank" rel="noopener">
           Open Charge Map
         </a>
+        {page.openChargeMapCredit.after}
       </p>
       <p class="attribution" data-source="osm" hidden>
-        Charging data ©
+        {page.openStreetMapCredit.before}{" "}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
-          OpenStreetMap contributors
+          {page.openStreetMapCredit.link}
         </a>
-        , ODbL
+        {page.openStreetMapCredit.after}
       </p>
       <template class="item-template">
         <li></li>

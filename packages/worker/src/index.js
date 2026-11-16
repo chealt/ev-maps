@@ -14,6 +14,8 @@ const MAX_TILE_ZOOM = 18;
 // The data changes weekly: browsers keep tiles for an hour, the edge a day.
 const TILE_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
 const DEFAULT_LANGUAGE = "en";
+// Set by the app's language picker; it wins over the browser's languages.
+const LANGUAGE_COOKIE = "ev-maps-language";
 // Each candidate language costs a lookup in the static assets.
 const MAX_LANGUAGES_TRIED = 4;
 
@@ -68,6 +70,12 @@ const preferredLanguages = (header) =>
     .sort((a, b) => b.quality - a.quality)
     .map(({ language }) => language);
 
+const cookieValue = (header, name) =>
+  (header ?? "")
+    .split(";")
+    .map((part) => part.trim().split("="))
+    .find(([key]) => key === name)?.[1];
+
 const pageExists = async (request, env, pathname) => {
   const response = await env.ASSETS.fetch(
     new Request(new URL(pathname, request.url), { method: "HEAD" })
@@ -76,10 +84,16 @@ const pageExists = async (request, env, pathname) => {
 };
 
 // The built pages decide what's supported: /{language}/ for every language,
-// /{language}/{country}/ for every country with chargers.
+// /{language}/{country}/ for every country with chargers. The language is the
+// one the visitor picked, else the browser's, else English.
 const localizedPath = async (request, env) => {
+  const picked = cookieValue(request.headers.get("cookie"), LANGUAGE_COOKIE)?.toLowerCase();
   const languages = [
-    ...new Set([...preferredLanguages(request.headers.get("accept-language")), DEFAULT_LANGUAGE]),
+    ...new Set([
+      ...(/^[a-z]{2,3}$/.test(picked ?? "") ? [picked] : []),
+      ...preferredLanguages(request.headers.get("accept-language")),
+      DEFAULT_LANGUAGE,
+    ]),
   ].slice(0, MAX_LANGUAGES_TRIED);
   let language = DEFAULT_LANGUAGE;
   for (const candidate of languages) {
@@ -108,7 +122,7 @@ const redirectToLocalizedPage = async (request, env) => {
     headers: {
       location: location.toString(),
       "cache-control": "private, no-store",
-      vary: "Accept-Language",
+      vary: "Accept-Language, Cookie",
     },
   });
 };

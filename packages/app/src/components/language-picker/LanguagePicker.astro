@@ -1,0 +1,41 @@
+---
+import { translations } from "../../i18n/index.js";
+import { languages } from "../../lib/pages.js";
+import "./LanguagePicker.css";
+
+const current = Astro.currentLocale ?? "en";
+const { page } = translations(current);
+
+// The same page in another language, e.g. /pl/hu/ for /en/hu/.
+const pathIn = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
+const options = languages().map((language) => ({
+  language,
+  href: pathIn(language),
+  name: translations(language).languageName,
+}));
+---
+
+<ev-language-picker>
+  <nav class="language-picker" aria-labelledby="language-picker-title">
+    <h2 class="legend" id="language-picker-title">
+      {page.language}
+    </h2>
+    <ul class="options">
+      {options.map(({ language, href, name }) => (
+        <li>
+          <a
+            class="option"
+            href={href}
+            hreflang={language}
+            lang={language}
+            data-language={language}
+            aria-current={language === current ? "page" : undefined}
+          >
+            {name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+  <script src="./LanguagePicker.js"></script>
+</ev-language-picker>

@@ -49,9 +49,9 @@ test("shows charger details when a marker is clicked", async ({ page }) => {
   await expect(details.getByRole("heading", { name: downtownChargerLabel })).toBeVisible();
   await expect(details.getByText("1 Main St, New York, NY, 10001")).toBeVisible();
   await expect(details.getByText("CCS (Type 1): 4× · 150 kW")).toBeVisible();
-  await expect(details.getByText("NACS / Tesla Supercharger: 4× · 250 kW")).toBeVisible();
+  await expect(details.getByText("NACS (Tesla): 4× · 250 kW")).toBeVisible();
   await expect(details.getByText("Operator: Tesla")).toBeVisible();
-  await expect(details.getByText("Access: Public - Membership Required")).toBeVisible();
+  await expect(details.getByText("Access: Public, membership required")).toBeVisible();
   await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();
   await expect(details.getByText("Status: Operational")).toBeVisible();
   await expect(details.getByText("Charging points: 8")).toBeVisible();

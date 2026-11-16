@@ -6,14 +6,14 @@
     "location": { "lat": 40.71, "lng": -74.0 },
     "address": "1 Main St, New York, NY, 10001",
     "operator": "Tesla",
-    "usageType": "Public - Membership Required",
+    "access": "membership",
     "usageCost": "$0.40/kWh",
-    "status": "Operational",
+    "status": "operational",
     "numberOfPoints": 8,
     "maxPowerKw": 250,
     "connectors": [
-      { "type": "CCS (Type 1)", "powerKw": 150, "quantity": 4 },
-      { "type": "NACS / Tesla Supercharger", "powerKw": 250, "quantity": 4 }
+      { "type": "ccs1", "powerKw": 150, "quantity": 4 },
+      { "type": "nacs", "powerKw": 250, "quantity": 4 }
     ]
   },
   {

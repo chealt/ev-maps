@@ -2,18 +2,20 @@
 import Button from "../button/Button.astro";
 import { SlidersHorizontal } from "lucide-static";
 import Icon from "../icon/Icon.astro";
+import { translations } from "../../i18n/index.js";
 
 interface Props {
   controls?: string;
 }
 
 const { controls } = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-filter-button>
   <Button variant="secondary" class="filter-button" aria-expanded="false" aria-controls={controls}>
     <Icon icon={SlidersHorizontal} />
-    <span class="label">Filters</span>
+    <span class="label">{page.filters}</span>
   </Button>
   <script src="./FilterButton.js"></script>
 </ev-filter-button>

@@ -40,12 +40,14 @@ ev-maps/
 │   │   │   │   ├── filter-button/     # <ev-filter-button>
 │   │   │   │   ├── google-map/        # <ev-google-map>, charger data, clustering
 │   │   │   │   ├── icon/              # Lucide icon wrapper (Astro only)
+│   │   │   │   ├── language-picker/   # <ev-language-picker>: links to other languages
 │   │   │   │   ├── locate-button/     # <ev-locate-button>
 │   │   │   │   ├── theme-picker/      # <ev-theme-picker>
 │   │   │   │   └── user-menu/         # <ev-user-menu>: sign-in and account menu
 │   │   │   ├── config/app.config.js   # Map defaults and env-based settings
+│   │   │   ├── i18n/                  # Copy per language: en.js, pl.js, hu.js
 │   │   │   ├── layouts/               # Layout.astro + global.css (design tokens)
-│   │   │   ├── lib/pages.js           # Build-time data: languages, country chargers
+│   │   │   ├── lib/                   # messages.js (runtime copy), pages.js
 │   │   │   └── pages/                 # /{lang}/ and /{lang}/{country}/
 │   │   ├── data/chargers/             # Exported chargers per country (git-ignored)
 │   │   └── tests/                     # Playwright tests
@@ -80,8 +82,9 @@ ev-maps/
 - **Chargers**: when the map stops moving, `google-map/chargers.js` loads the
   visible area's tiles from `/api/chargers/{z}/{x}/{y}`, which reads D1
   through the R*Tree index and merges duplicates (the same charger from two
-  sources within 60 m). A full tile is split into smaller tiles. Tiles are
-  cached at the edge for a day and in the browser by the service worker.
+  sources within 60 m). Access, status and connector types are sent as IDs,
+  which the page translates. A full tile is split into smaller tiles. Tiles
+  are cached at the edge for a day and in the browser by the service worker.
 - **Country pages**: every page is under its language: `/en/` is the map
   without data, and `/en/hu/`, `/en/pl/`, … are static pages, one per
   country with chargers. Each contains all of the country's chargers, built
@@ -89,9 +92,15 @@ ev-maps/
   starts on the country and shows them right away, also when zoomed out too
   far to load tiles; zoomed in, it loads the area's tiles as usual. The
   country pages are rebuilt every week (`refresh.yml`) and on every deploy.
+- **Languages**: English, Polish and Hungarian, each built as its own static
+  pages (`/en/`, `/pl/`, `/hu/`); see
+  [Languages](DEVELOPMENT_GUIDELINES.md#languages). Google Maps and Google
+  sign-in load in the page's language, and the account menu links to the page
+  in the other languages.
 - **Language and country**: the Worker redirects `/` to
-  `/{language}/{country}/`: the first language in the browser's
-  `Accept-Language` that has pages (else English), and the country of the
+  `/{language}/{country}/`: the language picked in the account menu (the
+  `ev-maps-language` cookie), else the first language in the browser's
+  `Accept-Language` that has pages, else English; and the country of the
   visitor's IP address (Cloudflare's `request.cf.country`). Without a page for
   that country it redirects to `/{language}/`. It only picks the URL; every
   page is served as a static file.

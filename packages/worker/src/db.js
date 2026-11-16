@@ -3,6 +3,8 @@
 // { source, sourceId, country, name, lat, lng, address, operator, usageType,
 //   usageCost, status, numberOfPoints, maxPowerKw, connectors, license }
 
+import { accessId, connectorType, isFreeCost, statusId } from "./charger-values.js";
+
 // D1 runs a batch in one round trip; keep batches modest.
 const BATCH_SIZE = 50;
 
@@ -75,20 +77,29 @@ const deleteUnseen = async (db, { source, where, params, seenBefore }) => {
 };
 
 // The shape the client uses (see packages/app/src/components/google-map/chargers.js).
-const toClientCharger = (row) => ({
-  id: `${row.source}:${row.source_id}`,
-  source: row.source,
-  name: row.name || "EV charger",
-  location: { lat: row.lat, lng: row.lng },
-  address: row.address ?? "",
-  operator: row.operator ?? undefined,
-  usageType: row.usage_type ?? undefined,
-  usageCost: row.usage_cost ?? undefined,
-  status: row.status ?? undefined,
-  numberOfPoints: row.number_of_points ?? undefined,
-  maxPowerKw: row.max_power_kw ?? null,
-  connectors: JSON.parse(row.connectors || "[]"),
-});
+// Access, status and connector types are IDs the app translates; a charger
+// without a name has none, and the app names it.
+const toClientCharger = (row) => {
+  const free = isFreeCost(row.usage_cost);
+  return {
+    id: `${row.source}:${row.source_id}`,
+    source: row.source,
+    name: row.name || undefined,
+    location: { lat: row.lat, lng: row.lng },
+    address: row.address ?? "",
+    operator: row.operator ?? undefined,
+    access: accessId(row.usage_type) ?? undefined,
+    usageCost: free ? undefined : (row.usage_cost ?? undefined),
+    free: free || undefined,
+    status: statusId(row.status) ?? undefined,
+    numberOfPoints: row.number_of_points ?? undefined,
+    maxPowerKw: row.max_power_kw ?? null,
+    connectors: JSON.parse(row.connectors || "[]").map((connector) => ({
+      ...connector,
+      type: connectorType(connector.type),
+    })),
+  };
+};
 
 // Chargers inside a bounding box, via the R*Tree index. Asks for one more
 // than `limit` so callers can tell the area was cut off.
