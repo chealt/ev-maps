@@ -498,9 +498,45 @@ class GoogleMapElement extends HTMLElement {
 
   async showChargerFromList(charger) {
     await this.closeChargerList();
-    this.map.setCenter(charger.location);
-    this.map.setZoom(Math.max(this.map.getZoom(), LIST_ZOOM));
     this.displayChargerDetails(charger);
+    this.map.setZoom(this.unclusteredZoom(charger));
+    this.centerInVisibleArea(charger.location);
+  }
+
+  // The lowest zoom (at least LIST_ZOOM) at which the charger has its own pin
+  // instead of being part of a cluster.
+  unclusteredZoom(charger) {
+    const { lat, lng } = charger.location;
+    const around = [lng - 1e-6, lat - 1e-6, lng + 1e-6, lat + 1e-6];
+    const fromZoom = Math.max(Math.floor(this.map.getZoom()), LIST_ZOOM);
+    for (let zoom = fromZoom; zoom <= CLUSTER_MAX_ZOOM; zoom++) {
+      const features = this.clusterIndex?.getClusters(around, zoom) ?? [];
+      if (features.some((f) => !f.properties.cluster && f.properties.charger.id === charger.id)) {
+        return zoom;
+      }
+    }
+    return CLUSTER_MAX_ZOOM + 1;
+  }
+
+  // Centers a location in the part of the map the details panel leaves
+  // visible: above the bottom sheet on small screens, right of the side
+  // panel otherwise. Uses layout offsets, as the panel may still be sliding
+  // in with a transform.
+  centerInVisibleArea(location) {
+    this.map.setCenter(location);
+    const panel = this.detailsPanel;
+    const container = panel?.offsetParent;
+    if (!panel || panel.hidden || !container) {
+      return;
+    }
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const isBottomSheet = panel.offsetWidth >= width - 1;
+    const target = isBottomSheet
+      ? { x: width / 2, y: panel.offsetTop / 2 }
+      : { x: (panel.offsetLeft + panel.offsetWidth + width) / 2, y: height / 2 };
+    // Panning the view by (dx, dy) moves the content by (-dx, -dy).
+    this.map.panBy(width / 2 - target.x, height / 2 - target.y);
   }
 
   clearMarkers() {
@@ -600,6 +636,12 @@ class GoogleMapElement extends HTMLElement {
             : this.createChargerMarker(AdvancedMarkerElement, feature.properties.charger)
         );
       }
+    }
+
+    // The charger whose details are open keeps its highlighted pin.
+    const activeMarker = this.markersById.get(`charger:${this.activeChargerId}`);
+    if (activeMarker && activeMarker !== this.activeMarker) {
+      this.setActiveMarker(activeMarker);
     }
   }
 
