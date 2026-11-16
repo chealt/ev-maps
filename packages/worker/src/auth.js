@@ -13,7 +13,13 @@ const PROVIDERS_PATH = "/api/sign-in-providers";
 const socialProviders = (env) => ({
   ...(env.GOOGLE_CLIENT_ID &&
     env.GOOGLE_CLIENT_SECRET && {
-      google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET },
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        // Always let the user choose the Google account, instead of Google
+        // picking the one the browser last used.
+        prompt: "select_account",
+      },
     }),
 });
 
