@@ -1,6 +1,6 @@
 ---
 import Button from "../button/Button.astro";
-import { FilterX, Info, MapPin, PlugZap, X, Zap } from "lucide-static";
+import { FilterX, Info, List, MapPin, PlugZap, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -51,9 +51,21 @@ const {
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
 
-    <div class="map-status" role="status" aria-live="polite" data-state={apiKey ? "idle" : "error"}>
-      {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
-    </div>
+    <button
+      type="button"
+      class="map-status"
+      aria-haspopup="dialog"
+      aria-controls="charger-list"
+      aria-labelledby="map-status-text"
+      data-state={apiKey ? "idle" : "error"}
+      disabled
+    >
+      <!-- A live region's text doesn't name the button it's in, hence aria-labelledby. -->
+      <span class="text" id="map-status-text" role="status" aria-live="polite">
+        {!apiKey && "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY."}
+      </span>
+      <Icon icon={List} size="sm" class="list-icon" />
+    </button>
 
     <div class="map-controls">
       <LocateButton autoLocate={autoLocate} />
@@ -64,7 +76,11 @@ const {
       </Button>
     </div>
 
-    <dialog class="filter-dialog" id="map-filter-panel" aria-labelledby="filter-panel-title">
+    <dialog
+      class="fullscreen-dialog filter-dialog"
+      id="map-filter-panel"
+      aria-labelledby="filter-panel-title"
+    >
       <div class="header">
         <h2 class="title" id="filter-panel-title">
           Filters
@@ -103,6 +119,36 @@ const {
           Done
         </Button>
       </div>
+    </dialog>
+
+    <dialog
+      class="fullscreen-dialog charger-list"
+      id="charger-list"
+      aria-labelledby="charger-list-title"
+    >
+      <div class="header">
+        <div>
+          <h2 class="title" id="charger-list-title">
+            EV chargers
+          </h2>
+          <p class="sort-basis"></p>
+        </div>
+        <Button variant="ghost" size="icon-only" class="close" aria-label="Close list">
+          <Icon icon={X} />
+        </Button>
+      </div>
+      <div class="body">
+        <ol class="items"></ol>
+      </div>
+      <template class="item-template">
+        <li class="item">
+          <button type="button" class="entry">
+            <span class="name"></span>
+            <span class="distance"></span>
+            <span class="meta"></span>
+          </button>
+        </li>
+      </template>
     </dialog>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>

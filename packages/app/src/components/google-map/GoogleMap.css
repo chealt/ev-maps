@@ -10,8 +10,12 @@ ev-google-map {
   --status-pulse-animation: 1.6s ease-in-out infinite;
 
   /* Filter panel */
-  --filter-dialog-content-width: 40rem;
+  --dialog-content-width: 40rem;
   --filter-option-min-width: 9rem;
+
+  /* Charger list */
+  --list-item-height: 4.5rem;
+  --view-transition-duration: 0.35s;
 
   /* Charger details */
   --details-panel-width: 22rem;
@@ -66,12 +70,31 @@ ev-google-map {
   padding: var(--spacing-xs) var(--spacing-md) var(--spacing-xs) var(--overlay-gap);
   border-radius: var(--border-radius-full);
   box-shadow: var(--shadow-md);
+  font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast);
+
+  .text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Disabled while there's nothing to list; it still shows the status. */
+  &:disabled {
+    cursor: default;
+
+    .list-icon {
+      display: none;
+    }
+  }
 
   &::before {
     content: "";
@@ -101,7 +124,7 @@ ev-google-map {
     }
   }
 
-  &:empty {
+  &:has(.text:empty) {
     display: none;
   }
 }
@@ -138,7 +161,7 @@ ev-google-map {
 
 /* Filters */
 /* Full screen on every screen size; the content is a centered column. */
-.filter-dialog {
+.fullscreen-dialog {
   width: 100%;
   max-width: none;
   height: 100dvh;
@@ -159,7 +182,7 @@ ev-google-map {
   .body,
   .footer {
     width: 100%;
-    max-width: var(--filter-dialog-content-width);
+    max-width: var(--dialog-content-width);
     margin: 0 auto;
     padding: var(--spacing-md) var(--spacing-lg);
   }
@@ -180,7 +203,9 @@ ev-google-map {
     flex: 1;
     overflow-y: auto;
   }
+}
 
+.filter-dialog {
   .group {
     display: flex;
     flex-direction: column;
@@ -403,6 +428,78 @@ ev-google-map {
       color: inherit;
       text-decoration: underline;
     }
+  }
+}
+
+/* Charger list */
+.charger-list {
+  .sort-basis {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .items {
+    list-style: none;
+  }
+
+  /* Only items on screen are laid out; the list can hold thousands. */
+  .item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--list-item-height);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-2xs) var(--spacing-md);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+  }
+
+  .name {
+    font-weight: var(--font-weight-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .distance {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-light-text);
+  }
+
+  .meta {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+}
+
+/* The status pill morphs into the charger list and back. */
+.map-status.list-transition,
+.charger-list.list-transition {
+  view-transition-name: charger-list;
+}
+
+::view-transition-group(charger-list) {
+  animation-duration: var(--view-transition-duration);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
   }
 }
 
