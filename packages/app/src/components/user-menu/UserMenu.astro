@@ -2,7 +2,9 @@
 import { LogOut } from "lucide-static";
 import Button from "../button/Button.astro";
 import Icon from "../icon/Icon.astro";
+import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
+import { translations } from "../../i18n/index.js";
 import "./UserMenu.css";
 
 interface Props {
@@ -10,6 +12,7 @@ interface Props {
 }
 
 const { clientId } = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-user-menu class="user-menu" data-client-id={clientId}>
@@ -24,23 +27,24 @@ const { clientId } = Astro.props;
       popovertarget="account-menu"
       aria-haspopup="dialog"
       aria-expanded="false"
-      aria-label="Account"
-      title="Account"
+      aria-label={page.account}
+      title={page.account}
     >
       <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
       <span class="initials" aria-hidden="true"></span>
     </button>
 
-    <div class="account-menu" id="account-menu" popover role="dialog" aria-label="Account">
+    <div class="account-menu" id="account-menu" popover role="dialog" aria-label={page.account}>
       <div class="profile">
-        <p class="label">Signed in as</p>
+        <p class="label">{page.signedInAs}</p>
         <p class="name"></p>
         <p class="email"></p>
       </div>
       <ThemePicker />
+      <LanguagePicker />
       <Button variant="ghost" class="sign-out">
         <Icon icon={LogOut} size="sm" />
-        Sign out
+        {page.signOut}
       </Button>
     </div>
   </div>

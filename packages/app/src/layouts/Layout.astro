@@ -1,12 +1,26 @@
 ---
 import "./global.css";
+import { translations } from "../i18n/index.js";
+import { languages } from "../lib/pages.js";
 
 interface Props {
   title?: string;
-  lang?: string;
 }
 
-const { title = "EV Maps", lang = "en" } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { page, messages, values } = translations(lang);
+const { title = page.title } = Astro.props;
+
+// The same page in every language, e.g. /pl/hu/ for /en/hu/.
+const pathInLanguage = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
+const alternates = languages().map((language) => ({
+  language,
+  href: new URL(pathInLanguage(language), Astro.site ?? Astro.url).href,
+}));
+
+// The scripts' copy (src/lib/messages.js). JSON inside <script>: escape "<"
+// so it can't close the element.
+const messagesJson = JSON.stringify({ messages, values }).replaceAll("<", "\\u003c");
 ---
 
 <!doctype html>
@@ -14,10 +28,15 @@ const { title = "EV Maps", lang = "en" } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Electric Vehicle Charging Station Map" />
+    <meta name="description" content={page.description} />
     <meta name="theme-color" content="#059669" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    {alternates.map(({ language, href }) => (
+      <link rel="alternate" hreflang={language} href={href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
+    <script type="application/json" id="messages" set:html={messagesJson} />
     <!-- Applies the saved theme before the first paint, so the page doesn't flash
          the wrong theme. It must stay inline to run before rendering. -->
     <script is:inline>

@@ -9,11 +9,11 @@
     },
     "address": "Deák Ferenc tér, Budapest",
     "operator": "MOL Plugee",
-    "status": "Operational",
+    "status": "operational",
     "maxPowerKw": 150,
     "connectors": [
       {
-        "type": "CCS (Type 2)",
+        "type": "ccs2",
         "powerKw": 150,
         "quantity": 2
       }
@@ -31,7 +31,7 @@
     "maxPowerKw": 22,
     "connectors": [
       {
-        "type": "Type 2",
+        "type": "type2",
         "powerKw": 22,
         "quantity": 2
       }
@@ -49,7 +49,7 @@
     "maxPowerKw": 50,
     "connectors": [
       {
-        "type": "CHAdeMO",
+        "type": "chademo",
         "powerKw": 50,
         "quantity": 1
       }
@@ -67,7 +67,7 @@
     "maxPowerKw": 11,
     "connectors": [
       {
-        "type": "Type 2",
+        "type": "type2",
         "powerKw": 11,
         "quantity": 1
       }

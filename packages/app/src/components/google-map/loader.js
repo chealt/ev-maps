@@ -32,6 +32,8 @@ const loadGoogleMaps = (apiKey) => {
     v: "weekly",
     loading: "async",
     callback: CALLBACK_NAME,
+    // Map labels and controls in the page's language.
+    language: document.documentElement.lang || "en",
   });
   return loadScript(`https://maps.googleapis.com/maps/api/js?${params}`, (resolve) => {
     window[CALLBACK_NAME] = () => {

@@ -1,5 +1,6 @@
 import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
+import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { loadGoogleMaps } from "./loader.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
 
@@ -18,19 +19,25 @@ const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 const currentColorScheme = () =>
   COLOR_SCHEMES[document.documentElement.dataset.theme] ?? COLOR_SCHEMES.system;
 
-const formatConnector = ({ type, powerKw, quantity }) => {
-  const power = powerKw ? ` · ${powerKw} kW` : "";
-  return `${type}: ${quantity ?? 1}×${power}`;
+const formatConnector = ({ type, powerKw, quantity }) =>
+  message(powerKw ? "connectorWithPower" : "connector", {
+    type: valueLabel("connectors", type),
+    quantity: quantity ?? 1,
+    power: powerKw,
+  });
+
+const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoints }) => {
+  const cost = free ? freeLabel() : usageCost;
+  return [
+    operator && message("operator", { value: operator }),
+    access && message("access", { value: valueLabel("access", access) }),
+    cost && message("cost", { value: cost }),
+    status && message("status", { value: valueLabel("status", status) }),
+    numberOfPoints && message("chargingPoints", { count: numberOfPoints }),
+  ].filter(Boolean);
 };
 
-const formatDetails = ({ operator, usageType, usageCost, status, numberOfPoints }) =>
-  [
-    operator && `Operator: ${operator}`,
-    usageType && `Access: ${usageType}`,
-    usageCost && `Cost: ${usageCost}`,
-    status && `Status: ${status}`,
-    numberOfPoints && `Charging points: ${numberOfPoints}`,
-  ].filter(Boolean);
+const chargerName = (charger) => charger.name || message("unnamedCharger");
 
 const EARTH_RADIUS_METERS = 6371000;
 const LIST_ZOOM = 15;
@@ -49,8 +56,12 @@ const distanceInMeters = (from, to) => {
 
 const formatDistance = (meters) =>
   meters < 1000
-    ? `${Math.round(meters / 10) * 10} m`
-    : `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
+    ? formatNumber(Math.round(meters / 10) * 10, { style: "unit", unit: "meter" })
+    : formatNumber(meters / 1000, {
+        style: "unit",
+        unit: "kilometer",
+        maximumFractionDigits: meters < 10000 ? 1 : 0,
+      });
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -79,15 +90,15 @@ const toFeature = (charger) => ({
 
 const chargerCountMessage = ({ shown, total, filtered, truncated }) => {
   if (!total) {
-    return "No EV chargers in this area";
+    return message("noChargers");
   }
   if (filtered) {
-    return `${shown} of ${total} EV chargers match the filters`;
+    return message("chargersFiltered", { shown, count: total });
   }
   if (truncated) {
-    return `Showing ${total} EV chargers, zoom in to see all`;
+    return message("chargersTruncated", { count: total });
   }
-  return `${total} EV chargers found`;
+  return message("chargersFound", { count: total });
 };
 
 // The active power filter buttons' ranges: [minKw, maxKw).
@@ -148,9 +159,9 @@ class GoogleMapElement extends HTMLElement {
       .catch((error) => {
         console.error(error);
         if (navigator.onLine) {
-          this.setStatus("Failed to load Google Maps", "error");
+          this.setStatus(message("mapFailed"), "error");
         } else {
-          this.setStatus("You're offline. The map will load when you're back online.");
+          this.setStatus(message("offlineMap"));
           window.addEventListener("online", () => this.loadMap(apiKey), { once: true });
         }
       });
@@ -187,10 +198,10 @@ class GoogleMapElement extends HTMLElement {
   }
 
   setupEventListeners() {
-    this.addEventListener("locate-start", () => this.setStatus("Locating...", "loading"));
+    this.addEventListener("locate-start", () => this.setStatus(message("locating"), "loading"));
     this.addEventListener("location-found", (event) => this.handleLocationFound(event));
     this.addEventListener("location-error", (event) =>
-      this.setStatus(event.detail?.message || "Unable to determine your location", "error")
+      this.setStatus(event.detail?.message || message("locationFailed"), "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.statusButton?.addEventListener("click", () => this.openChargerList());
@@ -237,7 +248,7 @@ class GoogleMapElement extends HTMLElement {
     // Offline, the map can't fetch its Map ID configuration (needed for
     // markers) or tiles, and wouldn't recover, so wait for a connection.
     if (!navigator.onLine) {
-      this.setStatus("You're offline. The map will load when you're back online.");
+      this.setStatus(message("offlineMap"));
       window.addEventListener("online", () => this.initMap(maps), { once: true });
       return;
     }
@@ -312,7 +323,9 @@ class GoogleMapElement extends HTMLElement {
   async handleLocationFound(event) {
     const { lat, lng } = event.detail;
     this.userLocation = { lat, lng };
-    this.setStatus(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    const coordinate = (value) =>
+      formatNumber(value, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    this.setStatus(message("location", { lat: coordinate(lat), lng: coordinate(lng) }));
 
     await this.mapReady;
     this.map.setCenter({ lat, lng });
@@ -395,7 +408,7 @@ class GoogleMapElement extends HTMLElement {
       this.loaded = null;
       this.clearMarkers();
       this.hideChargerDetails();
-      this.setStatus("Zoom in to see EV chargers");
+      this.setStatus(message("zoomIn"));
       return;
     }
 
@@ -411,7 +424,7 @@ class GoogleMapElement extends HTMLElement {
       }
     } else {
       this.setListedChargers([]);
-      this.setStatus("Loading EV chargers...", "loading");
+      this.setStatus(message("loading"), "loading");
     }
     try {
       const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom });
@@ -426,10 +439,10 @@ class GoogleMapElement extends HTMLElement {
         return;
       }
       if (navigator.onLine) {
-        this.setStatus("Could not load EV chargers", "error");
+        this.setStatus(message("loadFailed"), "error");
       } else {
         // Areas visited in the last day load from the service worker's cache.
-        this.setStatus("You're offline. Chargers will load when you're back online.");
+        this.setStatus(message("offlineChargers"));
         window.addEventListener("online", () => this.loadEvChargers(), { once: true });
       }
     }
@@ -490,20 +503,20 @@ class GoogleMapElement extends HTMLElement {
 
     const list = this.chargerList;
     const count = this.sortedChargers.length;
-    list.querySelector(".title").textContent = `${count} EV charger${count === 1 ? "" : "s"}`;
-    list.querySelector(".sort-basis").textContent = this.userLocation
-      ? "Nearest to your location first"
-      : "Nearest to the center of the map first";
+    list.querySelector(".title").textContent = message("chargerCount", { count });
+    list.querySelector(".sort-basis").textContent = message(
+      this.userLocation ? "nearestToYou" : "nearestToCenter"
+    );
 
     const template = list.querySelector(".item-template");
     list.querySelector(".items").replaceChildren(
       ...this.sortedChargers.map(({ charger, meters }, index) => {
         const item = template.content.firstElementChild.cloneNode(true);
         item.querySelector(".entry").dataset.index = String(index);
-        item.querySelector(".name").textContent = charger.name;
+        item.querySelector(".name").textContent = chargerName(charger);
         item.querySelector(".distance").textContent = formatDistance(meters);
         item.querySelector(".meta").textContent = [
-          charger.maxPowerKw ? `${charger.maxPowerKw} kW` : null,
+          charger.maxPowerKw ? message("power", { power: charger.maxPowerKw }) : null,
           charger.address,
         ]
           .filter(Boolean)
@@ -608,7 +621,7 @@ class GoogleMapElement extends HTMLElement {
     const marker = new AdvancedMarkerElement({
       map: this.map,
       position: charger.location,
-      title: charger.name,
+      title: chargerName(charger),
       content: this.cloneTemplate(".charger-marker-template"),
       gmpClickable: true,
     });
@@ -631,7 +644,7 @@ class GoogleMapElement extends HTMLElement {
     const marker = new AdvancedMarkerElement({
       map: this.map,
       position: { lat, lng },
-      title: `${count} EV chargers`,
+      title: message("chargerCount", { count }),
       content,
       gmpClickable: true,
     });
@@ -707,7 +720,7 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     this.activeChargerId = charger.id;
-    panel.querySelector(".name").textContent = charger.name;
+    panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));

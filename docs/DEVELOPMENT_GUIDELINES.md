@@ -554,6 +554,43 @@ Use slots for composable components:
 </Card>
 ```
 
+## Languages
+
+The site is in English, Polish and Hungarian. Every page is built once per
+language, under its prefix (`/en/`, `/pl/`, `/hu/`), with Astro's i18n
+routing.
+
+**❌ NEVER write copy in JavaScript, in the Worker or in a component.** All
+text lives in `src/i18n/{language}.js`, and the build fails if a language is
+missing a key that English has.
+
+- **Page text** (`page`): components read it with
+  `translations(Astro.currentLocale).page`, and Astro renders it at build
+  time.
+- **Messages scripts show** (`messages`), e.g. statuses: Astro renders each
+  language's templates into the page, and scripts fill them in with
+  `message(key, values)` from `src/lib/messages.js`. `{name}` is a
+  placeholder. A message with a count has a form for each plural category of
+  the language (`one`, `few`, `many`, `other` in Polish), and `message()`
+  picks one with `Intl.PluralRules`.
+- **Numbers, distances and units** are formatted with `Intl.NumberFormat` in
+  the page's language, never by hand.
+- **Values in the data** (access, status, connector types) are IDs; the
+  Worker maps the sources' values to them (`packages/worker`'s
+  `charger-values.js`), and `values` in each language file labels them. Names
+  and addresses are shown as the source gives them.
+- **Adding a language**: add it to `i18n.locales` in `astro.config.mjs` and
+  create `src/i18n/{language}.js`. The Worker redirects `/` to it for
+  browsers that prefer it, without changes.
+
+```javascript
+// ✅ Good
+this.setStatus(message("chargersFound", { count: chargers.length }));
+
+// ❌ Bad
+this.setStatus(`${chargers.length} EV chargers found`);
+```
+
 ## Code Quality
 
 ### Linting Rules

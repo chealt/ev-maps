@@ -19,14 +19,16 @@ const precacheManifest = () => ({
 
 export default defineConfig({
   output: "static",
+  // Production, for absolute URLs such as the pages' hreflang links.
+  site: "https://ev-maps.chealt.workers.dev",
   devToolbar: {
     enabled: false,
   },
   integrations: [precacheManifest()],
-  // Every page is under its language, e.g. /en/ and /en/hu/; see
-  // src/pages/index.astro for /.
+  // Every page is under its language, e.g. /en/ and /pl/hu/; see
+  // src/pages/index.astro for /. Each locale needs src/i18n/{locale}.js.
   i18n: {
-    locales: ["en"],
+    locales: ["en", "pl", "hu"],
     defaultLocale: "en",
     routing: { prefixDefaultLocale: true },
   },

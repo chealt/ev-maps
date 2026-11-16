@@ -1,9 +1,12 @@
+import { message } from "../../lib/messages.js";
+
 const GEOLOCATION_TIMEOUT_MS = 10000;
 
+// GeolocationPositionError codes.
 const ERROR_MESSAGES = {
-  1: "Location permission denied",
-  2: "Location unavailable",
-  3: "Location request timed out",
+  1: "locationDenied",
+  2: "locationUnavailable",
+  3: "locationTimeout",
 };
 
 class LocateButtonElement extends HTMLElement {
@@ -26,7 +29,7 @@ class LocateButtonElement extends HTMLElement {
     this.emit("locate-start");
 
     if (!navigator.geolocation) {
-      this.handleError({ message: "Geolocation is not supported by this browser" });
+      this.emit("location-error", { message: message("locationUnsupported") });
       return;
     }
 
@@ -44,7 +47,7 @@ class LocateButtonElement extends HTMLElement {
   handleError(error) {
     this.emit("location-error", {
       code: error.code,
-      message: ERROR_MESSAGES[error.code] || error.message || "Unable to determine your location",
+      message: message(ERROR_MESSAGES[error.code] ?? "locationFailed"),
     });
   }
 
