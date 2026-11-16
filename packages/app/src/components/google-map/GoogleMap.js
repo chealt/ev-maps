@@ -32,6 +32,37 @@ const formatDetails = ({ operator, usageType, usageCost, status, numberOfPoints 
     numberOfPoints && `Charging points: ${numberOfPoints}`,
   ].filter(Boolean);
 
+const EARTH_RADIUS_METERS = 6371000;
+const LIST_ZOOM = 15;
+
+const toRadians = (degrees) => (degrees * Math.PI) / 180;
+
+// Great-circle (haversine) distance between two { lat, lng } points.
+const distanceInMeters = (from, to) => {
+  const dLat = toRadians(to.lat - from.lat);
+  const dLng = toRadians(to.lng - from.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(from.lat)) * Math.cos(toRadians(to.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_METERS * Math.asin(Math.sqrt(a));
+};
+
+const formatDistance = (meters) =>
+  meters < 1000
+    ? `${Math.round(meters / 10) * 10} m`
+    : `${(meters / 1000).toFixed(meters < 10000 ? 1 : 0)} km`;
+
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Runs a DOM update as a view transition where supported and wanted.
+const withViewTransition = (update) => {
+  if (!document.startViewTransition || prefersReducedMotion()) {
+    update();
+    return Promise.resolve();
+  }
+  return document.startViewTransition(update).finished.catch(() => {});
+};
+
 const toFeature = (charger) => ({
   type: "Feature",
   geometry: { type: "Point", coordinates: [charger.location.lng, charger.location.lat] },
@@ -80,7 +111,9 @@ class GoogleMapElement extends HTMLElement {
   handleThemeChange = () => this.recreateMap();
 
   connectedCallback() {
-    this.statusEl = this.querySelector(".map-status");
+    this.statusButton = this.querySelector(".map-status");
+    this.statusEl = this.statusButton?.querySelector(".text");
+    this.chargerList = this.querySelector(".charger-list");
     this.mapEl = this.querySelector(".google-map");
     this.filterPanel = this.querySelector(".filter-dialog");
     this.detailsPanel = this.querySelector(".charger-details");
@@ -133,6 +166,21 @@ class GoogleMapElement extends HTMLElement {
       this.setStatus(event.detail?.message || "Unable to determine your location", "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
+    this.statusButton?.addEventListener("click", () => this.openChargerList());
+    this.chargerList
+      ?.querySelector(".close")
+      ?.addEventListener("click", () => this.closeChargerList());
+    // Escape closes the dialog without a transition, so close it with one.
+    this.chargerList?.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      this.closeChargerList();
+    });
+    this.chargerList?.querySelector(".items")?.addEventListener("click", (event) => {
+      const entry = event.target.closest(".entry");
+      if (entry) {
+        this.showChargerFromList(this.sortedChargers[Number(entry.dataset.index)].charger);
+      }
+    });
     document.addEventListener("theme-change", this.handleThemeChange);
 
     this.detailsPanel
@@ -154,7 +202,7 @@ class GoogleMapElement extends HTMLElement {
   setStatus(message, state = "idle") {
     if (this.statusEl) {
       this.statusEl.textContent = message;
-      this.statusEl.dataset.state = state;
+      this.statusButton.dataset.state = state;
     }
   }
 
@@ -227,6 +275,7 @@ class GoogleMapElement extends HTMLElement {
 
   async handleLocationFound(event) {
     const { lat, lng } = event.detail;
+    this.userLocation = { lat, lng };
     this.setStatus(`Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
 
     await this.mapReady;
@@ -317,6 +366,7 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
 
+    this.setListedChargers([]);
     this.setStatus("Loading EV chargers...", "loading");
     try {
       const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom, apiKey });
@@ -356,6 +406,7 @@ class GoogleMapElement extends HTMLElement {
       maxZoom: CLUSTER_MAX_ZOOM,
     }).load(matching.map(toFeature));
     await this.renderMarkers();
+    this.setListedChargers(matching);
 
     if (
       this.activeChargerId != null &&
@@ -375,12 +426,126 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
+  // The status pill opens the list of these chargers, so it's disabled when
+  // there are none.
+  setListedChargers(chargers) {
+    this.listedChargers = chargers;
+    if (this.statusButton) {
+      this.statusButton.disabled = chargers.length === 0;
+    }
+  }
+
+  // Lists the chargers nearest first: to the user if they've been located,
+  // otherwise to the center of the map.
+  renderChargerList() {
+    const origin = this.userLocation ?? this.map.getCenter().toJSON();
+    this.sortedChargers = this.listedChargers
+      .map((charger) => ({ charger, meters: distanceInMeters(origin, charger.location) }))
+      .sort((a, b) => a.meters - b.meters);
+
+    const list = this.chargerList;
+    const count = this.sortedChargers.length;
+    list.querySelector(".title").textContent = `${count} EV charger${count === 1 ? "" : "s"}`;
+    list.querySelector(".sort-basis").textContent = this.userLocation
+      ? "Nearest to your location first"
+      : "Nearest to the center of the map first";
+
+    const template = list.querySelector(".item-template");
+    list.querySelector(".items").replaceChildren(
+      ...this.sortedChargers.map(({ charger, meters }, index) => {
+        const item = template.content.firstElementChild.cloneNode(true);
+        item.querySelector(".entry").dataset.index = String(index);
+        item.querySelector(".name").textContent = charger.name;
+        item.querySelector(".distance").textContent = formatDistance(meters);
+        item.querySelector(".meta").textContent = [
+          charger.maxPowerKw ? `${charger.maxPowerKw} kW` : null,
+          charger.address,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        return item;
+      })
+    );
+    list.querySelector(".body").scrollTop = 0;
+  }
+
+  // The status pill morphs into the list: only one element at a time may
+  // carry the shared view-transition-name, so it moves inside the update.
+  openChargerList() {
+    if (!this.chargerList || this.chargerList.open || !this.listedChargers?.length) {
+      return;
+    }
+    this.renderChargerList();
+    this.statusButton.classList.add("list-transition");
+    withViewTransition(() => {
+      this.statusButton.classList.remove("list-transition");
+      this.chargerList.classList.add("list-transition");
+      this.chargerList.showModal();
+    }).finally(() => this.chargerList.classList.remove("list-transition"));
+  }
+
+  closeChargerList() {
+    if (!this.chargerList?.open) {
+      return Promise.resolve();
+    }
+    this.chargerList.classList.add("list-transition");
+    return withViewTransition(() => {
+      this.chargerList.classList.remove("list-transition");
+      this.chargerList.close();
+      this.statusButton.classList.add("list-transition");
+    }).finally(() => this.statusButton.classList.remove("list-transition"));
+  }
+
+  async showChargerFromList(charger) {
+    await this.closeChargerList();
+    this.displayChargerDetails(charger);
+    this.map.setZoom(this.unclusteredZoom(charger));
+    this.centerInVisibleArea(charger.location);
+  }
+
+  // The lowest zoom (at least LIST_ZOOM) at which the charger has its own pin
+  // instead of being part of a cluster.
+  unclusteredZoom(charger) {
+    const { lat, lng } = charger.location;
+    const around = [lng - 1e-6, lat - 1e-6, lng + 1e-6, lat + 1e-6];
+    const fromZoom = Math.max(Math.floor(this.map.getZoom()), LIST_ZOOM);
+    for (let zoom = fromZoom; zoom <= CLUSTER_MAX_ZOOM; zoom++) {
+      const features = this.clusterIndex?.getClusters(around, zoom) ?? [];
+      if (features.some((f) => !f.properties.cluster && f.properties.charger.id === charger.id)) {
+        return zoom;
+      }
+    }
+    return CLUSTER_MAX_ZOOM + 1;
+  }
+
+  // Centers a location in the part of the map the details panel leaves
+  // visible: above the bottom sheet on small screens, right of the side
+  // panel otherwise. Uses layout offsets, as the panel may still be sliding
+  // in with a transform.
+  centerInVisibleArea(location) {
+    this.map.setCenter(location);
+    const panel = this.detailsPanel;
+    const container = panel?.offsetParent;
+    if (!panel || panel.hidden || !container) {
+      return;
+    }
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const isBottomSheet = panel.offsetWidth >= width - 1;
+    const target = isBottomSheet
+      ? { x: width / 2, y: panel.offsetTop / 2 }
+      : { x: (panel.offsetLeft + panel.offsetWidth + width) / 2, y: height / 2 };
+    // Panning the view by (dx, dy) moves the content by (-dx, -dy).
+    this.map.panBy(width / 2 - target.x, height / 2 - target.y);
+  }
+
   clearMarkers() {
     for (const marker of this.markersById.values()) {
       marker.map = null;
     }
     this.markersById.clear();
     this.clusterIndex = null;
+    this.setListedChargers([]);
     this.activeMarker = null;
   }
 
@@ -471,6 +636,12 @@ class GoogleMapElement extends HTMLElement {
             : this.createChargerMarker(AdvancedMarkerElement, feature.properties.charger)
         );
       }
+    }
+
+    // The charger whose details are open keeps its highlighted pin.
+    const activeMarker = this.markersById.get(`charger:${this.activeChargerId}`);
+    if (activeMarker && activeMarker !== this.activeMarker) {
+      this.setActiveMarker(activeMarker);
     }
   }
 
