@@ -169,6 +169,13 @@ jobs:
       # The country pages are built from the chargers in the production
       # database. Pull requests from forks don't get the Cloudflare secrets,
       # so they build without country pages.
+      # The export runs on Node: Wrangler's remote bindings don't work under
+      # Bun. The version comes from engines.node in the root package.json.
+      - uses: actions/setup-node@v7
+        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        with:
+          node-version-file: package.json
+
       - name: Export chargers for the country pages
         if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         working-directory: packages/worker

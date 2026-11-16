@@ -104,4 +104,13 @@ const chargersInBounds = async (db, { north, south, east, west }, limit) => {
   return { rows: results.slice(0, limit), full: results.length > limit };
 };
 
-export { chargersInBounds, deleteUnseen, toClientCharger, upsertChargers };
+// Every charger, a page at a time: the ones after `afterRid`, in rid order.
+const chargersAfter = async (db, afterRid, limit) => {
+  const { results } = await db
+    .prepare("SELECT * FROM chargers WHERE rid > ? ORDER BY rid LIMIT ?")
+    .bind(afterRid, limit)
+    .all();
+  return results;
+};
+
+export { chargersAfter, chargersInBounds, deleteUnseen, toClientCharger, upsertChargers };

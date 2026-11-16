@@ -56,7 +56,9 @@
    bun run export:chargers
    ```
 
-   The files go to `packages/app/data/chargers/`, which git ignores. Without
+   The export reads the database through Wrangler's `getPlatformProxy()`,
+   with Node: Wrangler's remote bindings don't work under Bun. The files go to
+   `packages/app/data/chargers/`, which git ignores. Without
    them there are no country pages, only `/en/`. Locally `/` redirects to
    `/en/`; the redirect to the visitor's country needs the Worker
    (`http://localhost:8787/`, after `bun run build`).

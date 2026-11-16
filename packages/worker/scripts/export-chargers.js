@@ -4,20 +4,26 @@
 //
 //   bun run export -- --out <directory> [--remote]
 //
-// Without --remote it reads the local database `bun run dev` uses.
+// It runs on Node, not Bun: Wrangler's remote bindings don't work under Bun
+// (https://github.com/oven-sh/bun/issues/39247).
+//
+// Without --remote it reads the local database `bun run dev` uses; with it,
+// the production database, through Wrangler's remote bindings
+// (wrangler.export.toml), with your `wrangler login` or CLOUDFLARE_API_TOKEN.
 
-import { execFileSync } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { iso1A2Code } from "@rapideditor/country-coder";
-import { toClientCharger } from "../src/db.js";
+import { getPlatformProxy } from "wrangler";
+import { chargersAfter, toClientCharger } from "../src/db.js";
 import { withoutDuplicates } from "../src/duplicates.js";
 
-// Rows per query; wrangler prints every result, so keep each one modest.
 const PAGE_SIZE = 5000;
 // About 10 cm, plenty for a map and much shorter than the stored doubles.
 const COORDINATE_DECIMALS = 6;
+const CONFIG_PATH = new URL("../wrangler.toml", import.meta.url).pathname;
+const REMOTE_CONFIG_PATH = new URL("../wrangler.export.toml", import.meta.url).pathname;
 
 const {
   values: { out, remote },
@@ -30,51 +36,14 @@ if (!out) {
   process.exit(1);
 }
 
-// Cloudflare's code for an API token without access to D1.
-const UNAUTHORIZED_CODE = 7403;
-
-// wrangler --json prints errors as JSON on stdout.
-const failWithWranglerError = (output) => {
-  const { error } = JSON.parse(output || "{}");
-  if (!error) {
-    return;
-  }
-  console.error(
-    [error.text, ...(error.notes ?? []).map((note) => note.text)].filter(Boolean).join("\n")
-  );
-  if (error.code === UNAUTHORIZED_CODE) {
-    console.error("The Cloudflare API token needs D1 access (D1: Edit, or at least D1: Read).");
-  }
-  process.exit(1);
-};
-
-const query = (sql) => {
-  const args = ["d1", "execute", "ev-maps", remote ? "--remote" : "--local", "--json"];
-  try {
-    const output = execFileSync("wrangler", [...args, "--command", sql], {
-      encoding: "utf8",
-      maxBuffer: 512 * 1024 * 1024,
-      stdio: ["ignore", "pipe", "inherit"],
-    });
-    return JSON.parse(output)[0].results;
-  } catch (error) {
-    failWithWranglerError(error.stdout);
-    throw error;
-  }
-};
-
-const readAllChargers = () => {
+const readAllChargers = async (db) => {
   const rows = [];
-  let lastRid = 0;
   for (;;) {
-    const page = query(
-      `SELECT * FROM chargers WHERE rid > ${lastRid} ORDER BY rid LIMIT ${PAGE_SIZE}`
-    );
+    const page = await chargersAfter(db, rows.at(-1)?.rid ?? 0, PAGE_SIZE);
     rows.push(...page);
     if (page.length < PAGE_SIZE) {
       return rows;
     }
-    lastRid = page.at(-1).rid;
   }
 };
 
@@ -94,11 +63,48 @@ const groupByCountry = (rows) => {
   for (const row of rows) {
     const country = countryOf(row)?.toLowerCase();
     if (country) {
-      byCountry.set(country, [...(byCountry.get(country) ?? []), toPageCharger(row)]);
+      if (!byCountry.has(country)) {
+        byCountry.set(country, []);
+      }
+      byCountry.get(country).push(toPageCharger(row));
     }
   }
   return byCountry;
 };
+
+const readDatabase = async () => {
+  const { env, dispose } = await getPlatformProxy({
+    configPath: remote ? REMOTE_CONFIG_PATH : CONFIG_PATH,
+  });
+  try {
+    return await readAllChargers(env.DB);
+  } finally {
+    await dispose();
+  }
+};
+
+// Wrangler's errors carry Cloudflare's explanation in notes, on the error or
+// its cause.
+const describeError = (error) =>
+  [error, error?.cause]
+    .filter(Boolean)
+    .flatMap((part) => [part.message ?? part.text, ...(part.notes ?? []).map((note) => note.text)])
+    .filter(Boolean)
+    .join("\n");
+
+const failWith = (error) => {
+  const description = describeError(error);
+  console.error(`Export failed: ${description}`);
+  if (/\b(7403|9106|10000)\b|not authorized|authentication/i.test(description)) {
+    console.error(
+      "Check the Cloudflare login: `bunx wrangler login`, or CLOUDFLARE_API_TOKEN with D1 and Workers Scripts access."
+    );
+  }
+  process.exit(1);
+};
+
+// Read first, so a failed export leaves the previous files in place.
+const byCountry = groupByCountry(await readDatabase().catch(failWith));
 
 const directory = resolve(out);
 await mkdir(directory, { recursive: true });
@@ -107,8 +113,6 @@ for (const file of await readdir(directory)) {
     await rm(join(directory, file));
   }
 }
-
-const byCountry = groupByCountry(readAllChargers());
 for (const [country, chargers] of [...byCountry].sort(([a], [b]) => a.localeCompare(b))) {
   const unique = withoutDuplicates(chargers).sort((a, b) => a.id.localeCompare(b.id));
   await writeFile(join(directory, `${country}.json`), JSON.stringify(unique));

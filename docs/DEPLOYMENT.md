@@ -24,7 +24,10 @@ It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
 built in GitHub Actions, not by Cloudflare.
 
 The `Build` job exports the chargers from the production D1 database for the
-country pages, so it needs the Cloudflare secrets too.
+country pages, so it needs the Cloudflare secrets too. The export reads D1
+through a Wrangler remote binding (`packages/worker/wrangler.export.toml`,
+which is never deployed), so the token needs
+**Workers Scripts: Edit** (in the Workers template) as well as D1.
 
 The Worker also serves `/api/chargers/…` and the redirect for `/`, and imports
 chargers into the `ev-maps` D1 database on a schedule (see
