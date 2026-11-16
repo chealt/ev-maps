@@ -3,9 +3,13 @@
 // callback URL, signed in. Returns the sign-in requests' bodies.
 const ADA = { id: "user-1", name: "Ada Lovelace", email: "ada@example.com", image: null };
 
-const fakeAuthApi = async (page, { signedIn = false, user = ADA, signInStatus = 200 } = {}) => {
+const fakeAuthApi = async (
+  page,
+  { signedIn = false, user = ADA, signInStatus = 200, providers = ["google"] } = {}
+) => {
   const state = { signedIn };
   const signInRequests = [];
+  await page.route("**/api/sign-in-providers", (route) => route.fulfill({ json: { providers } }));
   await page.route("**/api/auth/get-session", (route) =>
     route.fulfill({ json: state.signedIn ? { session: { userId: user.id }, user } : null })
   );

@@ -117,6 +117,11 @@
       gap: var(--spacing-xs);
       padding-bottom: var(--spacing-md);
       border-bottom: var(--border-width) solid var(--color-border);
+
+      /* The Worker has no provider with credentials, e.g. locally. */
+      &.unavailable {
+        display: none;
+      }
     }
 
     .legend {

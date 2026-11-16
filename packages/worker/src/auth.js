@@ -6,6 +6,8 @@
 import { betterAuth } from "better-auth";
 
 const AUTH_PATH = "/api/auth";
+// Which providers have credentials, so the page only offers those.
+const PROVIDERS_PATH = "/api/sign-in-providers";
 
 // Only providers with credentials are offered; see docs/DEPLOYMENT.md.
 const socialProviders = (env) => ({
@@ -39,8 +41,20 @@ const authFor = (env, request) => {
   return instances.get(baseURL);
 };
 
-const isAuthPath = (pathname) => pathname.startsWith(`${AUTH_PATH}/`);
+const isAuthPath = (pathname) =>
+  pathname === PROVIDERS_PATH || pathname.startsWith(`${AUTH_PATH}/`);
 
-const handleAuth = (request, env) => authFor(env, request).handler(request);
+const providersResponse = (env) =>
+  new Response(JSON.stringify({ providers: Object.keys(socialProviders(env)) }), {
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=300",
+    },
+  });
+
+const handleAuth = (request, env) =>
+  new URL(request.url).pathname === PROVIDERS_PATH
+    ? providersResponse(env)
+    : authFor(env, request).handler(request);
 
 export { handleAuth, isAuthPath };

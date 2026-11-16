@@ -4,6 +4,7 @@
 import { message } from "../../lib/messages.js";
 
 const SESSION_URL = "/api/auth/get-session";
+const PROVIDERS_URL = "/api/sign-in-providers";
 const SIGN_IN_URL = "/api/auth/sign-in/social";
 const SIGN_OUT_URL = "/api/auth/sign-out";
 // Added to the page's URL when sign-in fails, so the menu can say so.
@@ -50,6 +51,25 @@ class UserMenuElement extends HTMLElement {
 
     this.showReturnedError();
     this.loadSession();
+    this.loadProviders();
+  }
+
+  // The page lists every provider; the Worker says which have credentials.
+  // Without an answer (e.g. offline), all of them stay.
+  async loadProviders() {
+    try {
+      const response = await fetch(PROVIDERS_URL);
+      if (!response.ok) {
+        return;
+      }
+      const { providers } = await response.json();
+      for (const button of this.querySelectorAll("[data-provider]")) {
+        button.hidden = !providers.includes(button.dataset.provider);
+      }
+      this.querySelector(".sign-in").classList.toggle("unavailable", providers.length === 0);
+    } catch (error) {
+      console.error("Could not load the sign-in providers:", error);
+    }
   }
 
   // Offline or without the API, the menu stays signed out.

@@ -22,6 +22,17 @@ test("offers sign-in, the theme and the language when signed out", async ({ page
   await expect(page.getByRole("button", { name: "Sign in", expanded: true })).toBeVisible();
 });
 
+test("offers only the providers the Worker can sign in with", async ({ page }) => {
+  await fakeAuthApi(page, { providers: [] });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("radio", { name: "System" })).toBeVisible();
+  await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
+});
+
 test("signs in with Google and stays signed in after a reload", async ({ page }) => {
   const signInRequests = await fakeAuthApi(page);
   await page.goto("/");
