@@ -8,7 +8,6 @@ import "./GoogleMap.css";
 
 interface Props {
   apiKey?: string;
-  openChargeMapKey?: string;
   mapId?: string;
   centerLat?: number;
   centerLng?: number;
@@ -16,6 +15,9 @@ interface Props {
   locatedZoom?: number;
   autoLocate?: boolean;
   minChargerZoom?: number;
+  // A country page's chargers, shown without loading them from the API.
+  chargers?: object[];
+  chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
 const powerRanges = [
@@ -27,7 +29,6 @@ const powerRanges = [
 
 const {
   apiKey = "",
-  openChargeMapKey = "",
   mapId = "DEMO_MAP_ID",
   centerLat = 0,
   centerLng = 0,
@@ -35,19 +36,25 @@ const {
   locatedZoom = 14,
   autoLocate = true,
   minChargerZoom = 9,
+  chargers,
+  chargerBounds,
 } = Astro.props;
+
+// JSON inside <script>: escape "<" so the data can't close the element.
+const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u003c");
 ---
 
 <ev-google-map
   data-api-key={apiKey}
-  data-open-charge-map-key={openChargeMapKey}
   data-map-id={mapId}
   data-center-lat={centerLat}
   data-center-lng={centerLng}
   data-zoom={zoom}
   data-located-zoom={locatedZoom}
   data-min-charger-zoom={minChargerZoom}
+  data-charger-bounds={chargerBounds && JSON.stringify(chargerBounds)}
 >
+  {chargersJson && <script type="application/json" class="page-chargers" set:html={chargersJson} />}
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
 
@@ -180,11 +187,18 @@ const {
         </h3>
         <ul class="details"></ul>
       </section>
-      <p class="attribution">
+      <p class="attribution" data-source="ocm" hidden>
         Charging data from
         <a href="https://openchargemap.org" target="_blank" rel="noopener">
           Open Charge Map
         </a>
+      </p>
+      <p class="attribution" data-source="osm" hidden>
+        Charging data ©
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
+          OpenStreetMap contributors
+        </a>
+        , ODbL
       </p>
       <template class="item-template">
         <li></li>

@@ -1,8 +1,8 @@
-// Keeps the app working offline and caches Open Charge Map responses.
+// Keeps the app working offline and caches charger tiles.
 //
-// - Open Charge Map: cached for a day, off the main thread, so panning back
-//   or reloading doesn't hit the API. If the network fails, an expired copy
-//   is better than nothing.
+// - Charger tiles (/api/chargers/…): cached for a day, off the main thread,
+//   so panning back or reloading doesn't hit the API. If the network fails,
+//   an expired copy is better than nothing.
 // - The app's own pages and files: pages come from the network first, so a
 //   new deploy shows up right away, with the cached copy as the offline
 //   fallback. Built files have a content hash in their name, so they never
@@ -10,14 +10,16 @@
 // - Google Maps and Google sign-in are never cached: Google's terms don't
 //   allow it, so the map needs a connection.
 
-const CACHE_NAME = "ev-maps-open-charge-map-v1";
+const CACHE_NAME = "ev-maps-chargers-v1";
+// Caches of earlier versions, removed on activation.
+const OLD_CACHE_NAMES = ["ev-maps-open-charge-map-v1"];
 const APP_CACHE_NAME = "ev-maps-app-v1";
 // The app's files have a single version each, but servers can send
 // "Vary: Origin", which would stop module scripts (sent with an Origin
 // header) from matching the precached copies.
 const APP_MATCH_OPTIONS = { ignoreVary: true };
 const HASHED_ASSETS_PATH = "/_astro/";
-const API_ORIGIN = "https://api.openchargemap.io";
+const CHARGERS_PATH = "/api/chargers/";
 const CACHED_AT_HEADER = "x-ev-maps-cached-at";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -62,6 +64,15 @@ const deleteExpiredResponses = async () => {
   }
 };
 
+// Any cached page, e.g. for / offline: online, the Worker redirects it to the
+// visitor's language and country, which can't be cached.
+const anyCachedPage = async (cache) => {
+  const pages = (await cache.keys()).filter((request) =>
+    new URL(request.url).pathname.endsWith("/")
+  );
+  return pages.length ? cache.match(pages.at(-1), APP_MATCH_OPTIONS) : undefined;
+};
+
 // Pages: the network first, so new deploys show up right away.
 const networkFirst = async (request) => {
   const cache = await caches.open(APP_CACHE_NAME);
@@ -72,7 +83,9 @@ const networkFirst = async (request) => {
     }
     return response;
   } catch (error) {
-    const cached = await cache.match(request, { ...APP_MATCH_OPTIONS, ignoreSearch: true });
+    const cached =
+      (await cache.match(request, { ...APP_MATCH_OPTIONS, ignoreSearch: true })) ??
+      (new URL(request.url).pathname === "/" ? await anyCachedPage(cache) : undefined);
     if (cached) {
       return cached;
     }
@@ -95,15 +108,17 @@ const cacheFirst = async (request) => {
 };
 
 // The first visit's page and files load before the service worker takes
-// control, so cache them on install. The build lists them in
-// precache-manifest.json (see astro.config.mjs); the dev server has none.
+// control, so cache them on install: the open pages, and the files the build
+// lists in precache-manifest.json (see astro.config.mjs; the dev server has
+// none).
 const precacheApp = async () => {
-  const response = await fetch("/precache-manifest.json");
-  if (!response.ok) {
-    return;
-  }
   const cache = await caches.open(APP_CACHE_NAME);
-  await cache.addAll(await response.json());
+  const pages = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  await Promise.all(pages.map(({ url }) => cache.add(new URL(url).pathname).catch(() => {})));
+  const response = await fetch("/precache-manifest.json");
+  if (response.ok) {
+    await cache.addAll(await response.json());
+  }
 };
 
 self.addEventListener("install", (event) => {
@@ -113,7 +128,13 @@ self.addEventListener("install", (event) => {
 
 // Take over open pages right away, so the first visit is cached too.
 self.addEventListener("activate", (event) => {
-  event.waitUntil(Promise.all([self.clients.claim(), deleteExpiredResponses()]));
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      deleteExpiredResponses(),
+      ...OLD_CACHE_NAMES.map((name) => caches.delete(name)),
+    ])
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -122,10 +143,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   const url = new URL(request.url);
-  if (url.origin === API_ORIGIN) {
-    event.respondWith(fetchWithCache(request));
-  } else if (url.origin !== self.location.origin) {
+  if (url.origin !== self.location.origin) {
     return;
+  }
+  if (url.pathname.startsWith(CHARGERS_PATH)) {
+    event.respondWith(fetchWithCache(request));
   } else if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
   } else if (url.pathname.startsWith(HASHED_ASSETS_PATH) || url.pathname === "/favicon.svg") {

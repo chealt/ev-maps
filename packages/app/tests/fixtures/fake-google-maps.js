@@ -52,6 +52,24 @@
     getZoom() {
       return this.zoom;
     }
+    // Centers the bounds at the largest zoom that fits them.
+    fitBounds({ north, south, east, west }) {
+      this.fittedBounds = { north, south, east, west };
+      this.center = { lat: (north + south) / 2, lng: (east + west) / 2 };
+      const fits = (zoom) => {
+        const degreesPerPixel = 360 / (TILE_SIZE * 2 ** zoom);
+        return (
+          (east - west) / degreesPerPixel <= this.element.clientWidth &&
+          (north - south) / degreesPerPixel <= this.element.clientHeight
+        );
+      };
+      let zoom = 0;
+      while (zoom < 21 && fits(zoom + 1)) {
+        zoom++;
+      }
+      this.zoom = zoom;
+      this.emitIdle();
+    }
     // An approximate Web Mercator viewport around the center.
     getBounds() {
       const degreesPerPixel = 360 / (TILE_SIZE * 2 ** this.zoom);

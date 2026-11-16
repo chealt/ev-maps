@@ -63,6 +63,14 @@ const withViewTransition = (update) => {
   return document.startViewTransition(update).finished.catch(() => {});
 };
 
+const boundsCenter = ({ north, south, east, west }) => ({
+  lat: (north + south) / 2,
+  lng: (east + west) / 2,
+});
+
+const isInBounds = ({ lat, lng }, { north, south, east, west }) =>
+  lat >= south && lat <= north && lng >= west && lng <= east;
+
 const toFeature = (charger) => ({
   type: "Feature",
   geometry: { type: "Point", coordinates: [charger.location.lng, charger.location.lat] },
@@ -117,6 +125,7 @@ class GoogleMapElement extends HTMLElement {
     this.mapEl = this.querySelector(".google-map");
     this.filterPanel = this.querySelector(".filter-dialog");
     this.detailsPanel = this.querySelector(".charger-details");
+    this.pageChargers = this.readPageChargers();
 
     this.setupEventListeners();
     this.filtersRestored = this.restoreFilters();
@@ -157,6 +166,24 @@ class GoogleMapElement extends HTMLElement {
 
   get minChargerZoom() {
     return Number(this.dataset.minChargerZoom) || 9;
+  }
+
+  // A country page has its chargers in the page, built with the site.
+  readPageChargers() {
+    const data = this.querySelector(".page-chargers")?.textContent;
+    if (!data) {
+      return null;
+    }
+    try {
+      return JSON.parse(data);
+    } catch (error) {
+      console.error("Invalid page chargers:", error);
+      return null;
+    }
+  }
+
+  get chargerBounds() {
+    return this.dataset.chargerBounds ? JSON.parse(this.dataset.chargerBounds) : null;
   }
 
   setupEventListeners() {
@@ -218,13 +245,22 @@ class GoogleMapElement extends HTMLElement {
     this.maps = maps;
     this.MapClass = Map;
     const savedView = await readMapView();
+    // Without a saved view, a country page starts on the country.
+    const countryBounds = savedView ? null : this.chargerBounds;
     this.createMap({
-      center: savedView?.center ?? {
-        lat: Number(this.dataset.centerLat) || 0,
-        lng: Number(this.dataset.centerLng) || 0,
-      },
+      center:
+        savedView?.center ??
+        (countryBounds
+          ? boundsCenter(countryBounds)
+          : {
+              lat: Number(this.dataset.centerLat) || 0,
+              lng: Number(this.dataset.centerLng) || 0,
+            }),
       zoom: savedView?.zoom ?? (savedView ? this.locatedZoom : Number(this.dataset.zoom) || 12),
     });
+    if (countryBounds) {
+      this.map.fitBounds(countryBounds, 0);
+    }
     this.resolveMapReady();
 
     // A saved view is where the user left the map, so don't move it.
@@ -350,6 +386,12 @@ class GoogleMapElement extends HTMLElement {
     const zoom = this.map.getZoom();
 
     if (zoom < this.minChargerZoom) {
+      // Too large an area to load, but a country page has its own chargers.
+      if (this.pageChargers?.length) {
+        this.loaded = { chargers: this.pageChargers, truncated: false };
+        await this.showMatchingChargers();
+        return;
+      }
       this.loaded = null;
       this.clearMarkers();
       this.hideChargerDetails();
@@ -357,19 +399,22 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
 
-    const apiKey = this.dataset.openChargeMapKey;
-    if (!apiKey) {
-      this.setStatus(
-        "Open Charge Map API key is missing. Set VITE_OPEN_CHARGE_MAP_API_KEY.",
-        "error"
-      );
-      return;
+    // A country page's chargers show while the area's tiles load.
+    const pageChargersInView = this.pageChargers?.filter((charger) =>
+      isInBounds(charger.location, bounds)
+    );
+    if (pageChargersInView?.length) {
+      this.loaded = { chargers: pageChargersInView, truncated: false };
+      await this.showMatchingChargers();
+      if (searchId !== this.searchId) {
+        return;
+      }
+    } else {
+      this.setListedChargers([]);
+      this.setStatus("Loading EV chargers...", "loading");
     }
-
-    this.setListedChargers([]);
-    this.setStatus("Loading EV chargers...", "loading");
     try {
-      const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom, apiKey });
+      const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom });
       if (searchId !== this.searchId) {
         return;
       }
@@ -666,6 +711,9 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));
+    for (const attribution of panel.querySelectorAll(".attribution")) {
+      attribution.hidden = attribution.dataset.source !== charger.source;
+    }
     panel.hidden = false;
   }
 

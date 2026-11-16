@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ocm:1001",
+    "source": "ocm",
+    "name": "Downtown Supercharger",
+    "location": { "lat": 40.71, "lng": -74.0 },
+    "address": "1 Main St, New York, NY, 10001",
+    "operator": "Tesla",
+    "usageType": "Public - Membership Required",
+    "usageCost": "$0.40/kWh",
+    "status": "Operational",
+    "numberOfPoints": 8,
+    "maxPowerKw": 250,
+    "connectors": [
+      { "type": "CCS (Type 1)", "powerKw": 150, "quantity": 4 },
+      { "type": "NACS / Tesla Supercharger", "powerKw": 250, "quantity": 4 }
+    ]
+  },
+  {
+    "id": "osm:node/1002",
+    "source": "osm",
+    "name": "<img src=\"x\" onerror=\"window.__xss = true\">",
+    "location": { "lat": 40.75, "lng": -73.95 },
+    "address": "2 Side St, New York",
+    "maxPowerKw": null,
+    "connectors": []
+  }
+]

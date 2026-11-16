@@ -1,0 +1,100 @@
+name: Worker
+
+# Everything packages/worker needs from CI: the Worker's own checks. It runs
+# for every push and pull request so the required checks always report. The
+# Worker serves the app's build, so app.yml deploys them together once the
+# app's build and tests pass. When nothing the Worker depends on changed, the
+# checks skip their steps and pass in seconds.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A newer commit on a pull request makes older runs pointless, so cancel them.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: packages/worker
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      worker: ${{ steps.filter.outputs.worker }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          # The Worker and everything it depends on.
+          filters: |
+            worker:
+              - "packages/worker/**"
+              - "packages/tiles/**"
+              - "packages/dev-config/**"
+              - "package.json"
+              - "bun.lock"
+              - ".gitignore"
+              - ".github/workflows/worker.yml"
+
+  check:
+    needs: changes
+    if: ${{ !cancelled() }}
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Lint Worker
+            package: worker
+            script: lint
+          - name: Check Worker formatting
+            package: worker
+            script: format:check
+          # Bundles the Worker the way a deploy would, without deploying it.
+          - name: Build Worker
+            package: worker
+            script: build
+          - name: Lint tiles
+            package: tiles
+            script: lint
+          - name: Check tiles formatting
+            package: tiles
+            script: format:check
+    steps:
+      # A skipped check counts as passed, so fail if change detection failed.
+      - name: Check change detection
+        if: needs.changes.result != 'success'
+        working-directory: .
+        run: |
+          echo "::error::Change detection failed."
+          exit 1
+
+      - name: Nothing to check
+        if: needs.changes.outputs.worker != 'true'
+        working-directory: .
+        run: echo "No Worker changes; skipping." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v7
+        if: needs.changes.outputs.worker == 'true'
+
+      - uses: oven-sh/setup-bun@v2
+        if: needs.changes.outputs.worker == 'true'
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        if: needs.changes.outputs.worker == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: ${{ matrix.name }}
+        if: needs.changes.outputs.worker == 'true'
+        working-directory: packages/${{ matrix.package }}
+        run: bun run ${{ matrix.script }}

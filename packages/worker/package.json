@@ -1,0 +1,27 @@
+{
+  "name": "@ev-maps/worker",
+  "version": "0.0.1",
+  "private": true,
+  "description": "EV Maps Cloudflare Worker: charger API, redirect to the country pages and charger import",
+  "type": "module",
+  "scripts": {
+    "dev": "mkdir -p ../app/dist && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled",
+    "build": "mkdir -p ../app/dist && wrangler deploy --dry-run --outdir dist",
+    "export": "node scripts/export-chargers.js",
+    "lint": "oxlint -c ../dev-config/oxlint.json src scripts",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "dependencies": {
+    "@ev-maps/tiles": "workspace:*",
+    "@rapideditor/country-coder": "^6.0.0"
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*",
+    "wrangler": "4.162.0"
+  },
+  "engines": {
+    "bun": ">=1.4.4",
+    "node": ">=26.0.0"
+  }
+}

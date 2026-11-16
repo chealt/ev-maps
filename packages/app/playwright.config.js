@@ -27,9 +27,10 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       VITE_GOOGLE_MAPS_API_KEY: "test-api-key",
-      VITE_OPEN_CHARGE_MAP_API_KEY: "test-ocm-key",
       VITE_GOOGLE_MAPS_MAP_ID: "TEST_MAP_ID",
       VITE_GOOGLE_CLIENT_ID: "test-client-id",
+      // The country pages' chargers, instead of an export of the database.
+      EV_MAPS_CHARGERS_DIR: "tests/fixtures/country-chargers",
     },
   },
 });

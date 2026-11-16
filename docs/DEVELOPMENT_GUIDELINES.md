@@ -430,6 +430,28 @@ panel.querySelector(".name").textContent = place.name;
 
 ## File Organization
 
+### Monorepo Packages
+
+This is a monorepo: every package lives in `packages/` and is a Bun
+workspace (`@ev-maps/<name>`).
+
+**🚨 Every artifact gets its own package.** An artifact is something we build
+and ship on its own: the app, a Cloudflare Worker, a library we'd publish.
+
+- **❌ NEVER put a Worker (or any other deployable) inside another package**,
+  e.g. `packages/app/worker/`. Give it its own package, like
+  `packages/worker`, with its own `package.json`, `wrangler.toml`,
+  migrations and scripts (`dev`, `build`, `lint`, `format`, `format:check`).
+- **Code shared by several packages goes in its own package** (like
+  `packages/tiles`), which they depend on with `"workspace:*"` and import by
+  name (`import { tileBounds } from "@ev-maps/tiles";`).
+- **❌ NEVER import another package's files by relative path**
+  (`../../app/src/...`); depend on the package instead.
+- Each package has its dependencies in its own `package.json`. Only tooling
+  used across the repository (linters, formatters, `concurrently`) lives in
+  the root `package.json`.
+- Give every new artifact a workflow; see [CI](CI.md).
+
 ### Component Structure
 
 Each Astro component should have its own directory:
@@ -604,6 +626,8 @@ bun run format:check  # verify only (used in CI)
   `export { ... };`.
 - Config files that a tool requires to have a default export (e.g.
   `astro.config.mjs`) keep their single `export default`.
+- Astro pages export `getStaticPaths` inline (`export const getStaticPaths =
+  ...`), as Astro requires; oxlint allows that in `src/pages`.
 
 ```javascript
 // ✅ Good

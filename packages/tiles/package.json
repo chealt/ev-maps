@@ -1,0 +1,16 @@
+{
+  "name": "@ev-maps/tiles",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Web Mercator tile maths shared by the app and the Worker",
+  "type": "module",
+  "exports": "./tiles.js",
+  "scripts": {
+    "lint": "oxlint -c ../dev-config/oxlint.json .",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  }
+}

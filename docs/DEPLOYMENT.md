@@ -2,12 +2,16 @@
 
 ## Cloudflare Workers
 
-The app is served by the `ev-maps` Cloudflare Worker as static assets
-(`packages/app/wrangler.toml`). The `Deploy` job in
+The app is served by the `ev-maps` Cloudflare Worker (`packages/worker`) as
+static assets (`packages/worker/wrangler.toml` points at `packages/app/dist`).
+The `Deploy` job in
 `.github/workflows/app.yml` deploys it once lint, build and tests pass:
 
 - **Pushes to `main`** deploy to production at
   `https://ev-maps.<your-subdomain>.workers.dev`.
+- **Every Monday**, `.github/workflows/refresh.yml` runs `app.yml` on `main`
+  again, which rebuilds the country pages from the latest chargers and
+  deploys them to production.
 - **Pull requests** from this repository upload a preview version, without
   touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
   shows on the pull request. Pull requests from forks are not deployed.
@@ -19,25 +23,45 @@ The app is served by the `ev-maps` Cloudflare Worker as static assets
 It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
 built in GitHub Actions, not by Cloudflare.
 
+The `Build` job exports the chargers from the production D1 database for the
+country pages, so it needs the Cloudflare secrets too. The export reads D1
+through a Wrangler remote binding (`packages/worker/wrangler.export.toml`,
+which is never deployed), so the token needs
+**Workers Scripts: Edit** (in the Workers template) as well as D1.
+
+The Worker also serves `/api/chargers/…` and the redirect for `/`, and imports
+chargers into the `ev-maps` D1 database on a schedule (see
+[Architecture](ARCHITECTURE.md)). Pushes to `main` apply new database
+migrations before deploying; pull request previews share the database and
+never change its schema.
+
+The Worker needs this secret, set once in Cloudflare:
+
+```bash
+cd packages/worker && bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
+```
+
 To deploy by hand:
 
 ```bash
+bun run export:chargers -- --remote
 bun run build
-cd packages/app && bunx wrangler deploy
+cd packages/worker
+bunx wrangler d1 migrations apply ev-maps --remote
+bunx wrangler deploy
 ```
 
 ## GitHub Secrets and Variables
 
 Set these under **Settings → Secrets and variables → Actions**:
 
-| Name                           | Type     | Purpose                                                 |
-| ------------------------------ | -------- | ------------------------------------------------------- |
-| `CLOUDFLARE_API_TOKEN`         | Secret   | API token from the **Edit Cloudflare Workers** template |
-| `CLOUDFLARE_ACCOUNT_ID`        | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it) |
-| `VITE_GOOGLE_MAPS_API_KEY`     | Secret   | Google Maps key, built into the page                    |
-| `VITE_OPEN_CHARGE_MAP_API_KEY` | Secret   | Open Charge Map key, built into the page                |
-| `VITE_GOOGLE_MAPS_MAP_ID`      | Variable | Map ID for the vector map                               |
-| `VITE_GOOGLE_CLIENT_ID`        | Variable | OAuth client ID for Google sign-in                      |
+| Name                       | Type     | Purpose                                                                    |
+| -------------------------- | -------- | -------------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`     | Secret   | API token from the **Edit Cloudflare Workers** template, plus **D1: Edit** |
+| `CLOUDFLARE_ACCOUNT_ID`    | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it)                    |
+| `VITE_GOOGLE_MAPS_API_KEY` | Secret   | Google Maps key, built into the page                                       |
+| `VITE_GOOGLE_MAPS_MAP_ID`  | Variable | Map ID for the vector map                                                  |
+| `VITE_GOOGLE_CLIENT_ID`    | Variable | OAuth client ID for Google sign-in                                         |
 
 The `Build` job fails if any of the `VITE_` ones is missing (except for pull
 requests from forks, which don't get them).

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeOpenChargeMap } from "./fixtures/open-charge-map.js";
+import { fakeChargersApi } from "./fixtures/chargers-api.js";
 
 const mapState = (page) =>
   page.evaluate(() => ({
@@ -12,7 +12,7 @@ const mapState = (page) =>
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
   await fakeGoogleIdentity(page);
-  await fakeOpenChargeMap(page);
+  await fakeChargersApi(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   await page.getByRole("button", { name: "Sign in with Google" }).click();

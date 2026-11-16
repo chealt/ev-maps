@@ -11,23 +11,46 @@ includes everything that artifact needs from CI.
 - Packages that support an artifact, such as `packages/dev-config` and
   `packages/biome-plugin-css-units`, don't get their own workflow. Instead,
   the artifact's workflow runs when they change.
-- Name the workflow after the artifact (`packages/app` uses `app.yml`).
+- Name the workflow after the artifact (`packages/app` uses `app.yml`,
+  `packages/worker` uses `worker.yml`). Every artifact is its own package
+  (see [Monorepo Packages](DEVELOPMENT_GUIDELINES.md#monorepo-packages)), so
+  every Worker gets its own package and workflow.
 - Run it for every push and pull request, and list the artifact, everything it
   depends on (e.g. `packages/dev-config`, the root `package.json` and
   `bun.lock`) and the workflow file itself in its `Detect changes` job.
   Don't put `paths` filters on the triggers: required checks would never
   report for other changes, and those pull requests couldn't be merged.
 - Run the artifact's own scripts with `working-directory` set to its package.
+- Scheduled work goes in a workflow of its own, named after what it does, that
+  starts the artifact's workflow (`workflow_dispatch`) instead of copying its
+  jobs. Don't add `schedule` triggers to an artifact's workflow.
 
 ## Workflows
 
-| Workflow  | Artifact       | Jobs                                                             |
-| --------- | -------------- | ---------------------------------------------------------------- |
-| `app.yml` | `packages/app` | JS lint, CSS lint, format check, build, Playwright tests, deploy |
+| Workflow     | Artifact          | Jobs                                                             |
+| ------------ | ----------------- | ---------------------------------------------------------------- |
+| `app.yml`    | `packages/app`    | JS lint, CSS lint, format check, build, Playwright tests, deploy |
+| `worker.yml` | `packages/worker` | JS lint, format check, bundle (`wrangler deploy --dry-run`)      |
+
+Both also lint and format-check `packages/tiles`, which they share.
+
+| Workflow      | Schedule             | What it does                                               |
+| ------------- | -------------------- | ---------------------------------------------------------- |
+| `refresh.yml` | Mondays at 03:00 UTC | Runs `app.yml` on `main`, which rebuilds the country pages |
+
+A run of `app.yml` started this way, or by hand, checks, builds and deploys
+everything, without change detection. On `main` it deploys to production;
+started on another branch, it doesn't deploy. Its `Build` job exports the
+chargers from the production database for the country pages (except for pull
+requests from forks, which build without them).
 
 The lint, format, build and test jobs run in parallel; `Deploy` runs after all
-of them pass. The Playwright HTML report, with videos of every test and traces
-of failures, is uploaded as the `playwright-report` artifact.
+of them pass. The Worker serves the app's build, so the two are deployed
+together, by `app.yml`'s `Deploy` job from `packages/worker`. That's why
+`app.yml` also runs when `packages/worker` changes.
+
+The Playwright HTML report, with videos of every test and traces of failures,
+is uploaded as the `playwright-report` artifact.
 
 When nothing the app depends on changed (e.g. a docs-only pull request), the
 checks still run so they report, but skip their steps and pass in seconds, and

@@ -1,0 +1,27 @@
+# The ev-maps Worker: serves the app's static site (packages/app/dist, built
+# by `bun run build`), the charger tile API and the redirect from / to the
+# visitor's language and country, and imports chargers into D1 on a schedule.
+# CI deploys it; to deploy by hand:
+#   bunx wrangler d1 migrations apply ev-maps --remote && bunx wrangler deploy
+name = "ev-maps"
+main = "src/index.js"
+compatibility_date = "2026-11-09"
+
+[assets]
+directory = "../app/dist"
+binding = "ASSETS"
+# Everything else is served straight from the static assets.
+run_worker_first = ["/", "/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ev-maps"
+database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
+migrations_dir = "migrations"
+
+# Each run continues the import where the previous one stopped.
+[triggers]
+crons = ["*/15 * * * *"]
+
+[observability]
+enabled = true

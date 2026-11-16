@@ -1,8 +1,7 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import HomePage from "../components/HomePage.astro";
----
+// In production the Worker answers / with the visitor's language and country
+// (packages/worker); this page only serves the dev server.
+import { getRelativeLocaleUrl } from "astro:i18n";
 
-<Layout title="EV Maps - Electric Vehicle Charging Stations">
-  <HomePage />
-</Layout>
+return Astro.redirect(getRelativeLocaleUrl("en"));
+---

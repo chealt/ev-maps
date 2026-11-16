@@ -1,0 +1,13 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import HomePage from "../../components/HomePage.astro";
+import { languages } from "../../lib/pages.js";
+
+export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+
+const { lang } = Astro.params;
+---
+
+<Layout title="EV Maps - Electric Vehicle Charging Stations" lang={lang}>
+  <HomePage />
+</Layout>
