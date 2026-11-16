@@ -2,6 +2,7 @@
 // 1°×1° grid cell per job, across Eastern Europe. OpenStreetMap data is
 // © OpenStreetMap contributors, licensed under the ODbL.
 
+import { iso1A2Code } from "@rapideditor/country-coder";
 import { deleteUnseen, upsertChargers } from "../db.js";
 
 const SOURCE = "osm";
@@ -60,13 +61,16 @@ const toCharger = (element) => {
   const connectors = toConnectors(tags);
   const powers = connectors.map((connector) => connector.powerKw).filter(Number.isFinite);
   const street = [tags["addr:street"], tags["addr:housenumber"]].filter(Boolean).join(" ");
+  const lat = element.lat ?? element.center?.lat;
+  const lng = element.lon ?? element.center?.lon;
   return {
     source: SOURCE,
     sourceId: `${element.type}/${element.id}`,
-    country: tags["addr:country"] ?? null,
+    // Few chargers are tagged with a country, so it comes from the location.
+    country: Number.isFinite(lat) && Number.isFinite(lng) ? iso1A2Code([lng, lat]) : null,
     name: tags.name ?? tags.brand ?? tags.operator ?? tags.network,
-    lat: element.lat ?? element.center?.lat,
-    lng: element.lon ?? element.center?.lon,
+    lat,
+    lng,
     address: [street, tags["addr:city"], tags["addr:postcode"]].filter(Boolean).join(", "),
     operator: tags.operator ?? tags.network,
     usageType: tags.access,

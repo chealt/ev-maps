@@ -1,6 +1,7 @@
 # The ev-maps Worker: serves the app's static site (packages/app/dist, built
-# by `bun run build`), the charger tile API and the first-load injection, and
-# imports chargers into D1 on a schedule. CI deploys it; to deploy by hand:
+# by `bun run build`), the charger tile API and the redirect from / to the
+# visitor's language and country, and imports chargers into D1 on a schedule.
+# CI deploys it; to deploy by hand:
 #   bunx wrangler d1 migrations apply ev-maps --remote && bunx wrangler deploy
 name = "ev-maps"
 main = "src/index.js"

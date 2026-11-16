@@ -1,0 +1,76 @@
+[
+  {
+    "id": "ocm:2001",
+    "source": "ocm",
+    "name": "Budapest Hub",
+    "location": {
+      "lat": 47.4979,
+      "lng": 19.0402
+    },
+    "address": "Deák Ferenc tér, Budapest",
+    "operator": "MOL Plugee",
+    "status": "Operational",
+    "maxPowerKw": 150,
+    "connectors": [
+      {
+        "type": "CCS (Type 2)",
+        "powerKw": 150,
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "osm:node/2002",
+    "source": "osm",
+    "name": "Debrecen Station",
+    "location": {
+      "lat": 47.5316,
+      "lng": 21.6273
+    },
+    "address": "Piac utca, Debrecen",
+    "maxPowerKw": 22,
+    "connectors": [
+      {
+        "type": "Type 2",
+        "powerKw": 22,
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "ocm:2003",
+    "source": "ocm",
+    "name": "Szeged Charger",
+    "location": {
+      "lat": 46.253,
+      "lng": 20.1414
+    },
+    "address": "Széchenyi tér, Szeged",
+    "maxPowerKw": 50,
+    "connectors": [
+      {
+        "type": "CHAdeMO",
+        "powerKw": 50,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "osm:node/2004",
+    "source": "osm",
+    "name": "Sopron Charger",
+    "location": {
+      "lat": 47.6817,
+      "lng": 16.5845
+    },
+    "address": "Várkerület, Sopron",
+    "maxPowerKw": 11,
+    "connectors": [
+      {
+        "type": "Type 2",
+        "powerKw": 11,
+        "quantity": 1
+      }
+    ]
+  }
+]

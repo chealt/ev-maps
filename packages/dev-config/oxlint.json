@@ -40,6 +40,13 @@
       "rules": {
         "no-console": "off"
       }
+    },
+    {
+      "files": ["**/src/pages/**/*.astro"],
+      "rules": {
+        "import/exports-last": "off",
+        "import/group-exports": "off"
+      }
     }
   ]
 }

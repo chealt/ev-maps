@@ -48,6 +48,19 @@
    curl "http://localhost:8787/__scheduled?cron=*/15+*+*+*+*"
    ```
 
+5. The country pages (`/en/hu/`, `/en/pl/`, …) are built from an export of
+   the chargers. Export the local database, or production's with `--remote`
+   (needs `bunx wrangler login`), then restart `bun run dev`:
+
+   ```bash
+   bun run export:chargers
+   ```
+
+   The files go to `packages/app/data/chargers/`, which git ignores. Without
+   them there are no country pages, only `/en/`. Locally `/` redirects to
+   `/en/`; the redirect to the visitor's country needs the Worker
+   (`http://localhost:8787/`, after `bun run build`).
+
 ## Environment Variables
 
 The `VITE_` ones (`packages/app/.env.local`) are built into the page, so none
@@ -77,6 +90,7 @@ Run from the repository root:
 | `bun run dev:app`         | Start only the dev server                     |
 | `bun run dev:worker`      | Start only the Worker                         |
 | `bun run build`           | Build for production into `packages/app/dist` |
+| `bun run export:chargers` | Export chargers for the country pages         |
 | `bun run preview`         | Preview production build                      |
 | `bun run test`            | Run Playwright tests                          |
 | `bun run lint`            | Lint JS, CSS and Markdown                     |

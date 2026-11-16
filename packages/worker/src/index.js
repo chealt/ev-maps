@@ -1,72 +1,27 @@
-// The ev-maps Worker. Static assets are served directly; the Worker only
-// runs for:
+// The ev-maps Worker. Static assets, including the country pages, are served
+// directly; the Worker only runs for:
 // - /api/chargers/{z}/{x}/{y}: chargers in a map tile, from D1
-// - /: the static page, with the chargers nearest the visitor's approximate
-//   (IP based) location inlined, so the first view needs no extra request
+// - /: redirects to the page for the visitor's language and country
 // It also runs the charger import on a schedule (see import/index.js).
 
 import { tileBounds } from "@ev-maps/tiles";
 import { chargersInBounds, toClientCharger } from "./db.js";
+import { withoutDuplicates } from "./duplicates.js";
 import { runImport } from "./import/index.js";
 
 const MAX_CHARGERS_PER_TILE = 2000;
 const MAX_TILE_ZOOM = 18;
 // The data changes weekly: browsers keep tiles for an hour, the edge a day.
 const TILE_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
-const INITIAL_CHARGERS = 150;
-// Around the visitor: roughly 30 km.
-const INITIAL_RADIUS_DEGREES = 0.3;
-// Chargers from different sources this close are taken to be the same one.
-const DUPLICATE_DISTANCE_METERS = 60;
-const METERS_PER_DEGREE_LAT = 111320;
+const DEFAULT_LANGUAGE = "en";
+// Each candidate language costs a lookup in the static assets.
+const MAX_LANGUAGES_TRIED = 4;
 
 const json = (data, { status = 200, headers = {} } = {}) =>
   new Response(JSON.stringify(data), {
     status,
     headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
-
-// Prefer the record with the most detail.
-const detailScore = (charger) =>
-  charger.connectors.filter((connector) => connector.powerKw).length * 2 +
-  (charger.status ? 1 : 0) +
-  (charger.address ? 1 : 0);
-
-// Approximate distance in meters; fine at these small distances.
-const metersBetween = (a, b) => {
-  const dLat = (a.lat - b.lat) * METERS_PER_DEGREE_LAT;
-  const dLng = (a.lng - b.lng) * METERS_PER_DEGREE_LAT * Math.cos((a.lat * Math.PI) / 180);
-  return Math.hypot(dLat, dLng);
-};
-
-// Drops a charger when another source has one within
-// DUPLICATE_DISTANCE_METERS, keeping the record with the most detail. Chargers
-// from the same source are never merged: separate ones at one car park are
-// real. Uses a grid of cells as large as the distance, so only a charger's
-// own and neighboring cells need checking.
-const withoutDuplicates = (chargers) => {
-  const cellSize = DUPLICATE_DISTANCE_METERS / METERS_PER_DEGREE_LAT;
-  const cellOf = ({ lat, lng }) => [Math.floor(lat / cellSize), Math.floor(lng / cellSize)];
-  const keptByCell = new Map();
-  const kept = [];
-  for (const charger of [...chargers].sort((a, b) => detailScore(b) - detailScore(a))) {
-    const [row, column] = cellOf(charger.location);
-    const neighbors = [-1, 0, 1].flatMap((dRow) =>
-      [-1, 0, 1].flatMap((dColumn) => keptByCell.get(`${row + dRow},${column + dColumn}`) ?? [])
-    );
-    const isDuplicate = neighbors.some(
-      (other) =>
-        other.source !== charger.source &&
-        metersBetween(other.location, charger.location) <= DUPLICATE_DISTANCE_METERS
-    );
-    if (!isDuplicate) {
-      kept.push(charger);
-      const key = `${row},${column}`;
-      keptByCell.set(key, [...(keptByCell.get(key) ?? []), charger]);
-    }
-  }
-  return kept;
-};
 
 const tileResponse = async (request, env, { zoom, x, y }, context) => {
   const cached = await caches.default.match(request);
@@ -96,52 +51,66 @@ const parseTile = (pathname) => {
   return zoom <= MAX_TILE_ZOOM && x < tiles && y < tiles ? { zoom, x, y } : null;
 };
 
-const distanceSquared = (a, b) => (a.lat - b.lat) ** 2 + (a.lng - b.lng) ** 2;
+// The languages of an Accept-Language header, most preferred first:
+// "hu-HU,hu;q=0.9,en;q=0.8" -> ["hu", "en"].
+const preferredLanguages = (header) =>
+  (header ?? "")
+    .split(",")
+    .map((part) => {
+      const [tag, ...params] = part.trim().split(";");
+      const quality = params.map((param) => param.trim()).find((param) => param.startsWith("q="));
+      return {
+        language: tag.trim().toLowerCase().split("-")[0],
+        quality: quality ? Number(quality.slice(2)) : 1,
+      };
+    })
+    .filter(({ language, quality }) => /^[a-z]{2,3}$/.test(language) && quality > 0)
+    .sort((a, b) => b.quality - a.quality)
+    .map(({ language }) => language);
 
-const nearestChargers = async (env, location) => {
-  const { rows } = await chargersInBounds(
-    env.DB,
-    {
-      north: location.lat + INITIAL_RADIUS_DEGREES,
-      south: location.lat - INITIAL_RADIUS_DEGREES,
-      east: location.lng + INITIAL_RADIUS_DEGREES,
-      west: location.lng - INITIAL_RADIUS_DEGREES,
-    },
-    MAX_CHARGERS_PER_TILE
+const pageExists = async (request, env, pathname) => {
+  const response = await env.ASSETS.fetch(
+    new Request(new URL(pathname, request.url), { method: "HEAD" })
   );
-  return withoutDuplicates(rows.map(toClientCharger))
-    .sort((a, b) => distanceSquared(a.location, location) - distanceSquared(b.location, location))
-    .slice(0, INITIAL_CHARGERS);
+  return response.ok;
 };
 
-// JSON inside <script>: escape "<" so data can't close the element.
-const scriptJson = (data) => JSON.stringify(data).replaceAll("<", "\\u003c");
-
-// The static page, with the visitor's approximate location and the chargers
-// nearest to it. It varies per visitor, so it isn't cached.
-const pageWithNearbyChargers = async (request, env) => {
-  const page = await env.ASSETS.fetch(new Request(request.url));
-  const location = { lat: Number(request.cf?.latitude), lng: Number(request.cf?.longitude) };
-  if (!page.ok || !Number.isFinite(location.lat) || !Number.isFinite(location.lng)) {
-    return page;
+// The built pages decide what's supported: /{language}/ for every language,
+// /{language}/{country}/ for every country with chargers.
+const localizedPath = async (request, env) => {
+  const languages = [
+    ...new Set([...preferredLanguages(request.headers.get("accept-language")), DEFAULT_LANGUAGE]),
+  ].slice(0, MAX_LANGUAGES_TRIED);
+  let language = DEFAULT_LANGUAGE;
+  for (const candidate of languages) {
+    if (await pageExists(request, env, `/${candidate}/`)) {
+      language = candidate;
+      break;
+    }
   }
-  const chargers = await nearestChargers(env, location).catch(() => []);
-  const response = new HTMLRewriter()
-    .on("ev-google-map", {
-      element(element) {
-        element.setAttribute("data-ip-lat", String(location.lat));
-        element.setAttribute("data-ip-lng", String(location.lng));
-        element.append(
-          `<script type="application/json" class="initial-chargers">${scriptJson(chargers)}</script>`,
-          { html: true }
-        );
-      },
-    })
-    .transform(page);
-  const headers = new Headers(response.headers);
-  headers.set("cache-control", "private, no-store");
-  headers.delete("etag");
-  return new Response(response.body, { status: response.status, headers });
+  const country = request.cf?.country?.toLowerCase();
+  if (/^[a-z]{2}$/.test(country ?? "")) {
+    const countryPath = `/${language}/${country}/`;
+    if (await pageExists(request, env, countryPath)) {
+      return countryPath;
+    }
+  }
+  return `/${language}/`;
+};
+
+// Varies per visitor, so it isn't cached; the pages it points to are.
+const redirectToLocalizedPage = async (request, env) => {
+  const url = new URL(request.url);
+  const location = new URL(await localizedPath(request, env), url);
+  location.search = url.search;
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: location.toString(),
+      "cache-control": "private, no-store",
+      vary: "Accept-Language",
+    },
+  });
 };
 
 export default {
@@ -153,8 +122,8 @@ export default {
         ? tileResponse(request, env, tile, context)
         : json({ error: "Not found" }, { status: 404 });
     }
-    if (request.method === "GET" && url.pathname === "/") {
-      return pageWithNearbyChargers(request, env);
+    if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/") {
+      return redirectToLocalizedPage(request, env);
     }
     return env.ASSETS.fetch(request);
   },

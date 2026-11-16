@@ -15,6 +15,9 @@ interface Props {
   locatedZoom?: number;
   autoLocate?: boolean;
   minChargerZoom?: number;
+  // A country page's chargers, shown without loading them from the API.
+  chargers?: object[];
+  chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
 const powerRanges = [
@@ -33,7 +36,12 @@ const {
   locatedZoom = 14,
   autoLocate = true,
   minChargerZoom = 9,
+  chargers,
+  chargerBounds,
 } = Astro.props;
+
+// JSON inside <script>: escape "<" so the data can't close the element.
+const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u003c");
 ---
 
 <ev-google-map
@@ -44,7 +52,9 @@ const {
   data-zoom={zoom}
   data-located-zoom={locatedZoom}
   data-min-charger-zoom={minChargerZoom}
+  data-charger-bounds={chargerBounds && JSON.stringify(chargerBounds)}
 >
+  {chargersJson && <script type="application/json" class="page-chargers" set:html={chargersJson} />}
   <div class="google-map-container">
     <div class="google-map" role="region" aria-label="EV charging station map"></div>
 

@@ -1,0 +1,25 @@
+name: Refresh
+
+# Rebuilds the static country pages every week from the latest chargers in
+# the database, and deploys them to production. The import refreshes every
+# area weekly; the map loads newer chargers from the API in between.
+#
+# It only starts the App workflow on main, which builds, tests and deploys as
+# for any change (see app.yml), so the pages are never deployed untested.
+on:
+  schedule:
+    # Mondays at 03:00 UTC.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    name: Rebuild the country pages
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Run the App workflow on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run app.yml --repo "$GITHUB_REPOSITORY" --ref main

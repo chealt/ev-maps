@@ -9,6 +9,9 @@ The `Deploy` job in
 
 - **Pushes to `main`** deploy to production at
   `https://ev-maps.<your-subdomain>.workers.dev`.
+- **Every Monday**, `.github/workflows/refresh.yml` runs `app.yml` on `main`
+  again, which rebuilds the country pages from the latest chargers and
+  deploys them to production.
 - **Pull requests** from this repository upload a preview version, without
   touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
   shows on the pull request. Pull requests from forks are not deployed.
@@ -20,7 +23,10 @@ The `Deploy` job in
 It deploys the `ev-maps-dist` artifact from the `Build` job, so the app is
 built in GitHub Actions, not by Cloudflare.
 
-The Worker also serves `/api/chargers/…` and the first load, and imports
+The `Build` job exports the chargers from the production D1 database for the
+country pages, so it needs the Cloudflare secrets too.
+
+The Worker also serves `/api/chargers/…` and the redirect for `/`, and imports
 chargers into the `ev-maps` D1 database on a schedule (see
 [Architecture](ARCHITECTURE.md)). Pushes to `main` apply new database
 migrations before deploying; pull request previews share the database and
@@ -35,6 +41,7 @@ cd packages/worker && bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
 To deploy by hand:
 
 ```bash
+bun run export:chargers -- --remote
 bun run build
 cd packages/worker
 bunx wrangler d1 migrations apply ev-maps --remote

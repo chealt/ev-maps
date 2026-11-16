@@ -45,19 +45,23 @@ ev-maps/
 │   │   │   │   └── user-menu/         # <ev-user-menu>: sign-in and account menu
 │   │   │   ├── config/app.config.js   # Map defaults and env-based settings
 │   │   │   ├── layouts/               # Layout.astro + global.css (design tokens)
-│   │   │   └── pages/index.astro
+│   │   │   ├── lib/pages.js           # Build-time data: languages, country chargers
+│   │   │   └── pages/                 # /{lang}/ and /{lang}/{country}/
+│   │   ├── data/chargers/             # Exported chargers per country (git-ignored)
 │   │   └── tests/                     # Playwright tests
 │   │       └── fixtures/              # Fakes for the external APIs
 │   ├── worker/                        # The Cloudflare Worker
 │   │   ├── wrangler.toml              # Worker config; serves app/dist as assets
 │   │   ├── migrations/                # D1 database migrations
-│   │   └── src/                       # Charger API, first load, import
+│   │   ├── scripts/                   # export-chargers.js: D1 to JSON per country
+│   │   └── src/                       # Charger API, redirect for /, import
 │   ├── tiles/                         # Tile maths shared by the app and Worker
 │   ├── biome-plugin-css-units/        # Biome plugin: disallowed CSS units
 │   └── dev-config/                    # Shared oxlint, oxfmt, Biome and rumdl configs
 ├── .github/workflows/
 │   ├── app.yml                        # CI for the app, and the deploy
-│   └── worker.yml                     # CI for the Worker
+│   ├── worker.yml                     # CI for the Worker
+│   └── refresh.yml                    # Weekly rebuild of the country pages
 ├── docs/                              # Developer documentation
 └── package.json                       # Workspace root (tooling lives here)
 ```
@@ -78,9 +82,22 @@ ev-maps/
   through the R*Tree index and merges duplicates (the same charger from two
   sources within 60 m). A full tile is split into smaller tiles. Tiles are
   cached at the edge for a day and in the browser by the service worker.
-- **First load**: the Worker adds the visitor's approximate (IP based)
-  location and the chargers nearest to it to the static page, so the first
-  view needs no extra request.
+- **Country pages**: every page is under its language: `/en/` is the map
+  without data, and `/en/hu/`, `/en/pl/`, … are static pages, one per
+  country with chargers. Each contains all of the country's chargers, built
+  from an export of D1 (`packages/worker/scripts/export-chargers.js`). The map
+  starts on the country and shows them right away, also when zoomed out too
+  far to load tiles; zoomed in, it loads the area's tiles as usual. The
+  country pages are rebuilt every week (`refresh.yml`) and on every deploy.
+- **Language and country**: the Worker redirects `/` to
+  `/{language}/{country}/`: the first language in the browser's
+  `Accept-Language` that has pages (else English), and the country of the
+  visitor's IP address (Cloudflare's `request.cf.country`). Without a page for
+  that country it redirects to `/{language}/`. It only picks the URL; every
+  page is served as a static file.
+- **Countries**: Open Charge Map gives each charger's country; OpenStreetMap
+  chargers get it from their location, with
+  [country-coder](https://github.com/rapideditor/country-coder).
 - **Clustering**: `supercluster` groups nearby chargers; only the clusters and
   chargers in view are drawn as markers.
 - **Sign-in**: `<ev-user-menu>` uses Google Identity Services. The ID token is

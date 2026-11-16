@@ -5,11 +5,16 @@ name: App
 # push and pull request so the required checks always report. When nothing the
 # app or the Worker depends on changed (e.g. docs-only changes), the checks
 # skip their steps and pass in seconds, and nothing is deployed.
+#
+# Runs started by hand or by refresh.yml (workflow_dispatch) check, build and
+# deploy everything; on main, that rebuilds the country pages from the latest
+# chargers and deploys them to production.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 # A newer commit on a pull request makes older runs pointless, so cancel them.
 # Never cancel runs on main: a cancelled run would skip its deploy, and if the
@@ -27,11 +32,13 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     outputs:
-      app: ${{ steps.filter.outputs.app }}
+      app: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.app == 'true' }}
     steps:
       - uses: actions/checkout@v7
+        if: github.event_name != 'workflow_dispatch'
 
       - uses: dorny/paths-filter@v4
+        if: github.event_name != 'workflow_dispatch'
         id: filter
         with:
           # The app, everything it depends on, and the Worker it's deployed
@@ -138,7 +145,7 @@ jobs:
       # or no sign-in. Pull requests from forks are exempt because
       # GitHub doesn't give them secrets or variables.
       - name: Check required secrets and variables
-        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
@@ -158,6 +165,17 @@ jobs:
             fi
           done
           exit $missing
+
+      # The country pages are built from the chargers in the production
+      # database. Pull requests from forks don't get the Cloudflare secrets,
+      # so they build without country pages.
+      - name: Export chargers for the country pages
+        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        working-directory: packages/worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bun run export -- --remote --out ../app/data/chargers
 
       - name: Build
         if: needs.changes.outputs.app == 'true'
@@ -222,15 +240,16 @@ jobs:
 
   # Deploys the tested build with the ev-maps Cloudflare Worker (static assets
   # plus the API, see packages/worker/wrangler.toml): production for pushes to
-  # main, a preview version with its own URL for pull requests. Pull requests
-  # from forks are skipped because they don't get the Cloudflare secrets.
+  # main and runs started on main, a preview version with its own URL for pull
+  # requests. Pull requests from forks are skipped because they don't get the
+  # Cloudflare secrets, and so are runs started on other branches.
   deploy:
     name: Deploy
     needs: [changes, check, build, test]
-    if: needs.changes.outputs.app == 'true' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+    if: needs.changes.outputs.app == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
       url: ${{ steps.url.outputs.url }}
     steps:
       - name: Check Cloudflare configuration
@@ -262,7 +281,7 @@ jobs:
       # Production only: previews share the database, so a pull request
       # mustn't change its schema before it's merged.
       - name: Apply database migrations
-        if: github.event_name == 'push'
+        if: github.event_name != 'pull_request'
         working-directory: packages/worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -287,7 +306,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: bun
           workingDirectory: packages/worker
-          command: ${{ github.event_name == 'push' && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
+          command: ${{ github.event_name != 'pull_request' && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
 
       - name: Deployment URL
         id: url

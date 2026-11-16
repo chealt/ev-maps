@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Chargers exported for the country pages (bun run export:chargers)
+packages/app/data/
+
 # Astro generated types
 .astro/
 

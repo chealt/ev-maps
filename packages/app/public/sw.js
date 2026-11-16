@@ -64,6 +64,15 @@ const deleteExpiredResponses = async () => {
   }
 };
 
+// Any cached page, e.g. for / offline: online, the Worker redirects it to the
+// visitor's language and country, which can't be cached.
+const anyCachedPage = async (cache) => {
+  const pages = (await cache.keys()).filter((request) =>
+    new URL(request.url).pathname.endsWith("/")
+  );
+  return pages.length ? cache.match(pages.at(-1), APP_MATCH_OPTIONS) : undefined;
+};
+
 // Pages: the network first, so new deploys show up right away.
 const networkFirst = async (request) => {
   const cache = await caches.open(APP_CACHE_NAME);
@@ -74,7 +83,9 @@ const networkFirst = async (request) => {
     }
     return response;
   } catch (error) {
-    const cached = await cache.match(request, { ...APP_MATCH_OPTIONS, ignoreSearch: true });
+    const cached =
+      (await cache.match(request, { ...APP_MATCH_OPTIONS, ignoreSearch: true })) ??
+      (new URL(request.url).pathname === "/" ? await anyCachedPage(cache) : undefined);
     if (cached) {
       return cached;
     }
@@ -97,15 +108,17 @@ const cacheFirst = async (request) => {
 };
 
 // The first visit's page and files load before the service worker takes
-// control, so cache them on install. The build lists them in
-// precache-manifest.json (see astro.config.mjs); the dev server has none.
+// control, so cache them on install: the open pages, and the files the build
+// lists in precache-manifest.json (see astro.config.mjs; the dev server has
+// none).
 const precacheApp = async () => {
-  const response = await fetch("/precache-manifest.json");
-  if (!response.ok) {
-    return;
-  }
   const cache = await caches.open(APP_CACHE_NAME);
-  await cache.addAll(await response.json());
+  const pages = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  await Promise.all(pages.map(({ url }) => cache.add(new URL(url).pathname).catch(() => {})));
+  const response = await fetch("/precache-manifest.json");
+  if (response.ok) {
+    await cache.addAll(await response.json());
+  }
 };
 
 self.addEventListener("install", (event) => {

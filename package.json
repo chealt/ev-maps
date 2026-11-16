@@ -11,6 +11,7 @@
     "dev:app": "bun run --cwd packages/app dev",
     "dev:worker": "bun run --cwd packages/worker dev",
     "build": "bun run --cwd packages/app build",
+    "export:chargers": "bun run --cwd packages/worker export -- --out ../app/data/chargers",
     "preview": "bun run --cwd packages/app preview",
     "test": "bun run --cwd packages/app test",
     "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run --cwd packages/worker lint && bun run --cwd packages/tiles lint && bun run lint:md",

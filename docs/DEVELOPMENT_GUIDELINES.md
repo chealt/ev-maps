@@ -626,6 +626,8 @@ bun run format:check  # verify only (used in CI)
   `export { ... };`.
 - Config files that a tool requires to have a default export (e.g.
   `astro.config.mjs`) keep their single `export default`.
+- Astro pages export `getStaticPaths` inline (`export const getStaticPaths =
+  ...`), as Astro requires; oxlint allows that in `src/pages`.
 
 ```javascript
 // ✅ Good
