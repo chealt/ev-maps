@@ -16,13 +16,13 @@
    ```
 
 2. Copy `packages/app/.env.example` to `packages/app/.env.local` and set your
-   Google Maps key, and create `packages/app/.dev.vars` with your Open Charge
-   Map key for the Worker:
+   Google Maps key, and create `packages/worker/.dev.vars` with your Open
+   Charge Map key for the Worker:
 
    ```bash
    # packages/app/.env.local
    VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
-   # packages/app/.dev.vars
+   # packages/worker/.dev.vars
    OPEN_CHARGE_MAP_API_KEY=your_api_key_here
    ```
 
@@ -37,8 +37,8 @@
    bun run dev
    ```
 
-   Their output is prefixed with `astro` and `worker`. To run only the
-   Worker, use `bun run dev:worker` in `packages/app`.
+   Their output is prefixed with `astro` and `worker`. To run only one of
+   them, use `bun run dev:app` or `bun run dev:worker`.
 
 4. The local database starts empty. Run an import step (a scheduled run) to
    fill it; each run imports for `IMPORT_BUDGET_MS` (set it in `.dev.vars`,
@@ -51,7 +51,7 @@
 ## Environment Variables
 
 The `VITE_` ones (`packages/app/.env.local`) are built into the page, so none
-of them is secret once deployed. The Worker's (`packages/app/.dev.vars`) stay
+of them is secret once deployed. The Worker's (`packages/worker/.dev.vars`) stay
 on the server.
 
 | Name                       | Where  | Required | Purpose                                                                       |
@@ -74,6 +74,8 @@ Run from the repository root:
 | Script                    | Description                                   |
 | ------------------------- | --------------------------------------------- |
 | `bun run dev`             | Start the dev server and the Worker (API)     |
+| `bun run dev:app`         | Start only the dev server                     |
+| `bun run dev:worker`      | Start only the Worker                         |
 | `bun run build`           | Build for production into `packages/app/dist` |
 | `bun run preview`         | Preview production build                      |
 | `bun run test`            | Run Playwright tests                          |

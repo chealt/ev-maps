@@ -74,7 +74,7 @@ const deleteUnseen = async (db, { source, where, params, seenBefore }) => {
   ]);
 };
 
-// The shape the client uses (see src/components/google-map/chargers.js).
+// The shape the client uses (see packages/app/src/components/google-map/chargers.js).
 const toClientCharger = (row) => ({
   id: `${row.source}:${row.source_id}`,
   source: row.source,

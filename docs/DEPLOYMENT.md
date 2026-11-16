@@ -2,8 +2,9 @@
 
 ## Cloudflare Workers
 
-The app is served by the `ev-maps` Cloudflare Worker as static assets
-(`packages/app/wrangler.toml`). The `Deploy` job in
+The app is served by the `ev-maps` Cloudflare Worker (`packages/worker`) as
+static assets (`packages/worker/wrangler.toml` points at `packages/app/dist`).
+The `Deploy` job in
 `.github/workflows/app.yml` deploys it once lint, build and tests pass:
 
 - **Pushes to `main`** deploy to production at
@@ -28,14 +29,14 @@ never change its schema.
 The Worker needs this secret, set once in Cloudflare:
 
 ```bash
-cd packages/app && bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
+cd packages/worker && bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
 ```
 
 To deploy by hand:
 
 ```bash
 bun run build
-cd packages/app
+cd packages/worker
 bunx wrangler d1 migrations apply ev-maps --remote
 bunx wrangler deploy
 ```

@@ -7,11 +7,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --cwd packages/app dev",
+    "dev": "concurrently --names worker,astro --prefix-colors yellow,cyan --kill-others-on-fail \"bun run --cwd packages/worker dev\" \"bun run --cwd packages/app dev\"",
+    "dev:app": "bun run --cwd packages/app dev",
+    "dev:worker": "bun run --cwd packages/worker dev",
     "build": "bun run --cwd packages/app build",
     "preview": "bun run --cwd packages/app preview",
     "test": "bun run --cwd packages/app test",
-    "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run lint:md",
+    "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run --cwd packages/worker lint && bun run --cwd packages/tiles lint && bun run lint:md",
     "lint:md": "rumdl check --deny-config-warnings --config packages/dev-config/.rumdl.toml .",
     "format": "oxfmt -c packages/dev-config/.oxfmtrc.json .",
     "format:check": "oxfmt -c packages/dev-config/.oxfmtrc.json --check .",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "@astrojs/compiler-rs": "^0.5.3",
     "@biomejs/biome": "^2.6.8",
+    "concurrently": "^10.0.7",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
     "rumdl": "^0.3.4"

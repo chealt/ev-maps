@@ -5,19 +5,19 @@
   "description": "EV Maps - Astro + Web Components",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names worker,astro --prefix-colors yellow,cyan --kill-others-on-fail \"bun run dev:worker\" \"astro dev\"",
+    "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "lint": "oxlint -c ../dev-config/oxlint.json src tests public worker",
+    "lint": "oxlint -c ../dev-config/oxlint.json src tests public",
     "lint:css": "biome lint --config-path=../dev-config src",
     "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
     "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check .",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:debug": "playwright test --debug",
-    "dev:worker": "mkdir -p dist && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled"
+    "test:debug": "playwright test --debug"
   },
   "dependencies": {
+    "@ev-maps/tiles": "workspace:*",
     "astro": "^7.4.12",
     "idb-keyval": "^6.3.0",
     "lucide-static": "^1.73.0",
@@ -25,9 +25,7 @@
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",
-    "@playwright/test": "^1.65.1",
-    "concurrently": "^10.0.7",
-    "wrangler": "4.162.0"
+    "@playwright/test": "^1.65.1"
   },
   "engines": {
     "bun": ">=1.4.4",

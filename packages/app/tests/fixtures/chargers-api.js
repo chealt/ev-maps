@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { tileBounds } from "../../src/lib/tiles.js";
+import { tileBounds } from "@ev-maps/tiles";
 
 const fixtureChargers = JSON.parse(await readFile(new URL("./chargers.json", import.meta.url)));
 

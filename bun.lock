@@ -7,6 +7,7 @@
       "devDependencies": {
         "@astrojs/compiler-rs": "^0.5.3",
         "@biomejs/biome": "^2.6.8",
+        "concurrently": "^10.0.7",
         "oxfmt": "^0.78.0",
         "oxlint": "^1.93.0",
         "rumdl": "^0.3.4",
@@ -16,6 +17,7 @@
       "name": "@ev-maps/app",
       "version": "0.0.1",
       "dependencies": {
+        "@ev-maps/tiles": "workspace:*",
         "astro": "^7.4.12",
         "idb-keyval": "^6.3.0",
         "lucide-static": "^1.73.0",
@@ -24,8 +26,6 @@
       "devDependencies": {
         "@ev-maps/dev-config": "workspace:*",
         "@playwright/test": "^1.65.1",
-        "concurrently": "^10.0.7",
-        "wrangler": "4.162.0",
       },
     },
     "packages/biome-plugin-css-units": {
@@ -37,6 +37,24 @@
       "version": "0.0.1",
       "dependencies": {
         "@ev-maps/biome-plugin-css-units": "workspace:*",
+      },
+    },
+    "packages/tiles": {
+      "name": "@ev-maps/tiles",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
+      },
+    },
+    "packages/worker": {
+      "name": "@ev-maps/worker",
+      "version": "0.0.1",
+      "dependencies": {
+        "@ev-maps/tiles": "workspace:*",
+      },
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
+        "wrangler": "4.162.0",
       },
     },
   },
@@ -214,6 +232,10 @@
     "@ev-maps/biome-plugin-css-units": ["@ev-maps/biome-plugin-css-units@workspace:packages/biome-plugin-css-units"],
 
     "@ev-maps/dev-config": ["@ev-maps/dev-config@workspace:packages/dev-config"],
+
+    "@ev-maps/tiles": ["@ev-maps/tiles@workspace:packages/tiles"],
+
+    "@ev-maps/worker": ["@ev-maps/worker@workspace:packages/worker"],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
@@ -785,7 +807,7 @@
 
     "uncrypto": ["uncrypto@0.1.3", "", {}, "sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q=="],
 
-    "undici": ["undici@7.30.1", "", {}, "sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg=="],
+    "undici": ["undici@8.12.4", "", {}, "sha512-8Mx+uNKKER2bA4AdtedkqRbwUCIJFr2nJckXRe5yrDqzePqwLP7VNcctN8/XdmDSbF7mS+jJKIszlL+vbam1VA=="],
 
     "unenv": ["unenv@2.0.0-rc.24", "", { "dependencies": { "pathe": "^2.0.3" } }, "sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw=="],
 
@@ -857,7 +879,7 @@
 
     "csso/css-tree": ["css-tree@2.2.1", "", { "dependencies": { "mdn-data": "2.0.28", "source-map-js": "^1.0.1" } }, "sha512-OA0mILzGc1kCOCSJerOeqDxDQ4HOh+G8NbOJFOTgOCzpw7fCBubk0fEyxp8AgOL/jvLgYA/uV0cMbe43ElF1JA=="],
 
-    "unifont/undici": ["undici@8.12.4", "", {}, "sha512-8Mx+uNKKER2bA4AdtedkqRbwUCIJFr2nJckXRe5yrDqzePqwLP7VNcctN8/XdmDSbF7mS+jJKIszlL+vbam1VA=="],
+    "miniflare/undici": ["undici@7.30.1", "", {}, "sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg=="],
 
     "youch/cookie": ["cookie@1.1.1", "", {}, "sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ=="],
 

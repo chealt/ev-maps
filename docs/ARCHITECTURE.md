@@ -6,7 +6,7 @@
 - **Framework**: [Astro v7](https://astro.build/) (static output)
 - **Components**: Native Web Components (behavior only, no shadow DOM)
 - **Maps**: Google Maps JavaScript API
-- **Backend**: a Cloudflare Worker (`packages/app/worker/`) with a
+- **Backend**: a Cloudflare Worker (`packages/worker`) with a
   [D1](https://developers.cloudflare.com/d1/) database (SQLite) and an R*Tree
   spatial index
 - **Charger data**: [Open Charge Map](https://openchargemap.org) and
@@ -28,12 +28,9 @@
 ```text
 ev-maps/
 ├── packages/
-│   ├── app/                           # The app
+│   ├── app/                           # The app (static site)
 │   │   ├── astro.config.mjs
 │   │   ├── playwright.config.js
-│   │   ├── wrangler.toml              # Cloudflare Worker config
-│   │   ├── migrations/                # D1 database migrations
-│   │   ├── worker/                    # Worker: charger API, first load, import
 │   │   ├── .env.example
 │   │   ├── src/
 │   │   │   ├── components/
@@ -51,9 +48,16 @@ ev-maps/
 │   │   │   └── pages/index.astro
 │   │   └── tests/                     # Playwright tests
 │   │       └── fixtures/              # Fakes for the external APIs
+│   ├── worker/                        # The Cloudflare Worker
+│   │   ├── wrangler.toml              # Worker config; serves app/dist as assets
+│   │   ├── migrations/                # D1 database migrations
+│   │   └── src/                       # Charger API, first load, import
+│   ├── tiles/                         # Tile maths shared by the app and Worker
 │   ├── biome-plugin-css-units/        # Biome plugin: disallowed CSS units
 │   └── dev-config/                    # Shared oxlint, oxfmt, Biome and rumdl configs
-├── .github/workflows/app.yml          # CI/CD for the app
+├── .github/workflows/
+│   ├── app.yml                        # CI for the app, and the deploy
+│   └── worker.yml                     # CI for the Worker
 ├── docs/                              # Developer documentation
 └── package.json                       # Workspace root (tooling lives here)
 ```
@@ -64,8 +68,8 @@ ev-maps/
   only add behavior to that markup; see the
   [Development Guidelines](DEVELOPMENT_GUIDELINES.md).
 - **Import**: every 15 minutes, the Worker's scheduled handler
-  (`worker/import/`) works through due import jobs: Open Charge Map one
-  country per job (Eastern Europe first; only openly licensed data providers)
+  (`packages/worker/src/import/`) works through due import jobs: Open Charge
+  Map one country per job (Eastern Europe first; only openly licensed data providers)
   and OpenStreetMap one 1°×1° cell of Eastern Europe per job (via Overpass).
   Each area is refreshed weekly; chargers a source no longer lists are
   removed. Every charger keeps its source and license.

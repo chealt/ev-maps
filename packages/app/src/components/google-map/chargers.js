@@ -1,5 +1,5 @@
 // Loads EV chargers for the visible map area from the ev-maps API
-// (/api/chargers/{z}/{x}/{y}, see worker/index.js), which serves chargers from
+// (/api/chargers/{z}/{x}/{y}, see packages/worker), which serves chargers from
 // several sources, already merged and in the shape the app uses.
 //
 // The area is split into fixed Web Mercator tiles, so the same area always
@@ -7,7 +7,7 @@
 // dense area, so it's split into its four smaller tiles, at most
 // MAX_SPLIT_DEPTH times. The service worker (public/sw.js) caches tiles.
 
-import { childTiles, clamp, intersects, tileBounds, tilesInBounds } from "../../lib/tiles.js";
+import { childTiles, clamp, intersects, tileBounds, tilesInBounds } from "@ev-maps/tiles";
 
 // Tiles are 2 zoom levels larger than the map, so a viewport covers ~2×2 tiles.
 const TILE_ZOOM_OFFSET = 2;

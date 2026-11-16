@@ -5,7 +5,7 @@
 //   (IP based) location inlined, so the first view needs no extra request
 // It also runs the charger import on a schedule (see import/index.js).
 
-import { tileBounds } from "../src/lib/tiles.js";
+import { tileBounds } from "@ev-maps/tiles";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { runImport } from "./import/index.js";
 

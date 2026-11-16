@@ -1,9 +1,10 @@
 name: App
 
-# Everything packages/app needs from CI. It runs for every push and pull
-# request so the required checks always report. When nothing the app depends
-# on changed (e.g. docs-only changes), the checks skip their steps and pass in
-# seconds, and nothing is deployed.
+# Everything packages/app needs from CI, plus deploying it with the Worker
+# that serves it (packages/worker, checked in worker.yml). It runs for every
+# push and pull request so the required checks always report. When nothing the
+# app or the Worker depends on changed (e.g. docs-only changes), the checks
+# skip their steps and pass in seconds, and nothing is deployed.
 on:
   push:
     branches: [main]
@@ -33,10 +34,13 @@ jobs:
       - uses: dorny/paths-filter@v4
         id: filter
         with:
-          # The app and everything it depends on.
+          # The app, everything it depends on, and the Worker it's deployed
+          # with.
           filters: |
             app:
               - "packages/app/**"
+              - "packages/tiles/**"
+              - "packages/worker/**"
               - "packages/dev-config/**"
               - "packages/biome-plugin-css-units/**"
               - "package.json"
@@ -54,10 +58,19 @@ jobs:
       matrix:
         include:
           - name: Lint JavaScript
+            package: app
             script: lint
           - name: Lint CSS
+            package: app
             script: lint:css
           - name: Check formatting
+            package: app
+            script: format:check
+          - name: Lint tiles
+            package: tiles
+            script: lint
+          - name: Check tiles formatting
+            package: tiles
             script: format:check
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
@@ -87,6 +100,7 @@ jobs:
 
       - name: ${{ matrix.name }}
         if: needs.changes.outputs.app == 'true'
+        working-directory: packages/${{ matrix.package }}
         run: bun run ${{ matrix.script }}
 
   build:
@@ -206,10 +220,10 @@ jobs:
           path: packages/app/playwright-report
           retention-days: 14
 
-  # Deploys the tested build to the ev-maps Cloudflare Worker (static assets,
-  # see packages/app/wrangler.toml): production for pushes to main, a preview
-  # version with its own URL for pull requests. Pull requests from forks are
-  # skipped because they don't get the Cloudflare secrets.
+  # Deploys the tested build with the ev-maps Cloudflare Worker (static assets
+  # plus the API, see packages/worker/wrangler.toml): production for pushes to
+  # main, a preview version with its own URL for pull requests. Pull requests
+  # from forks are skipped because they don't get the Cloudflare secrets.
   deploy:
     name: Deploy
     needs: [changes, check, build, test]
@@ -236,7 +250,7 @@ jobs:
         with:
           bun-version-file: package.json
 
-      # Installs the pinned wrangler from packages/app/package.json.
+      # Installs the pinned wrangler from packages/worker/package.json.
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
@@ -249,6 +263,7 @@ jobs:
       # mustn't change its schema before it's merged.
       - name: Apply database migrations
         if: github.event_name == 'push'
+        working-directory: packages/worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -271,7 +286,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: bun
-          workingDirectory: packages/app
+          workingDirectory: packages/worker
           command: ${{ github.event_name == 'push' && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
 
       - name: Deployment URL
@@ -298,7 +313,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: bun
-          workingDirectory: packages/app
+          workingDirectory: packages/worker
           command: versions upload --preview-alias preview
 
       - name: Shared preview URL
