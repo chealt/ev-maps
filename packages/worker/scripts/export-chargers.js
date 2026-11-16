@@ -30,13 +30,37 @@ if (!out) {
   process.exit(1);
 }
 
-const query = (sql) => {
-  const output = execFileSync(
-    "wrangler",
-    ["d1", "execute", "ev-maps", remote ? "--remote" : "--local", "--json", "--command", sql],
-    { encoding: "utf8", maxBuffer: 512 * 1024 * 1024, stdio: ["ignore", "pipe", "inherit"] }
+// Cloudflare's code for an API token without access to D1.
+const UNAUTHORIZED_CODE = 7403;
+
+// wrangler --json prints errors as JSON on stdout.
+const failWithWranglerError = (output) => {
+  const { error } = JSON.parse(output || "{}");
+  if (!error) {
+    return;
+  }
+  console.error(
+    [error.text, ...(error.notes ?? []).map((note) => note.text)].filter(Boolean).join("\n")
   );
-  return JSON.parse(output)[0].results;
+  if (error.code === UNAUTHORIZED_CODE) {
+    console.error("The Cloudflare API token needs D1 access (D1: Edit, or at least D1: Read).");
+  }
+  process.exit(1);
+};
+
+const query = (sql) => {
+  const args = ["d1", "execute", "ev-maps", remote ? "--remote" : "--local", "--json"];
+  try {
+    const output = execFileSync("wrangler", [...args, "--command", sql], {
+      encoding: "utf8",
+      maxBuffer: 512 * 1024 * 1024,
+      stdio: ["ignore", "pipe", "inherit"],
+    });
+    return JSON.parse(output)[0].results;
+  } catch (error) {
+    failWithWranglerError(error.stdout);
+    throw error;
+  }
 };
 
 const readAllChargers = () => {
