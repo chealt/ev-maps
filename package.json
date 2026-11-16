@@ -20,10 +20,10 @@
   },
   "devDependencies": {
     "@astrojs/compiler-rs": "^0.5.3",
-    "@biomejs/biome": "^2.6.6",
+    "@biomejs/biome": "^2.6.8",
     "oxfmt": "^0.78.0",
     "oxlint": "^1.93.0",
-    "rumdl": "^0.3.2"
+    "rumdl": "^0.3.4"
   },
   "engines": {
     "bun": ">=1.4.4",

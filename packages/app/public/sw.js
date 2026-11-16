@@ -95,18 +95,15 @@ const cacheFirst = async (request) => {
 };
 
 // The first visit's page and files load before the service worker takes
-// control, so cache them on install: the page and the files it references.
+// control, so cache them on install. The build lists them in
+// precache-manifest.json (see astro.config.mjs); the dev server has none.
 const precacheApp = async () => {
-  const cache = await caches.open(APP_CACHE_NAME);
-  const response = await fetch("/");
+  const response = await fetch("/precache-manifest.json");
   if (!response.ok) {
     return;
   }
-  await cache.put("/", response.clone());
-  const html = await response.text();
-  const files = new Set(html.match(/\/_astro\/[^"'\s)]+/g) ?? []);
-  files.add("/favicon.svg");
-  await cache.addAll([...files]);
+  const cache = await caches.open(APP_CACHE_NAME);
+  await cache.addAll(await response.json());
 };
 
 self.addEventListener("install", (event) => {
