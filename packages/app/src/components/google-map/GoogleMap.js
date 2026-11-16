@@ -218,18 +218,47 @@ class GoogleMapElement extends HTMLElement {
     this.maps = maps;
     this.MapClass = Map;
     const savedView = await readMapView();
+    // Without a saved view, start near the visitor's approximate (IP based)
+    // location, added to the page by the Worker, or at the default center.
+    const ipLocation = {
+      lat: Number.parseFloat(this.dataset.ipLat),
+      lng: Number.parseFloat(this.dataset.ipLng),
+    };
+    const hasIpLocation = Number.isFinite(ipLocation.lat) && Number.isFinite(ipLocation.lng);
     this.createMap({
-      center: savedView?.center ?? {
-        lat: Number(this.dataset.centerLat) || 0,
-        lng: Number(this.dataset.centerLng) || 0,
-      },
+      center:
+        savedView?.center ??
+        (hasIpLocation
+          ? ipLocation
+          : { lat: Number(this.dataset.centerLat) || 0, lng: Number(this.dataset.centerLng) || 0 }),
       zoom: savedView?.zoom ?? (savedView ? this.locatedZoom : Number(this.dataset.zoom) || 12),
     });
     this.resolveMapReady();
+    if (!savedView) {
+      this.showInitialChargers();
+    }
 
     // A saved view is where the user left the map, so don't move it.
     if (!savedView) {
       this.querySelector("ev-locate-button[data-auto-locate]")?.locateIfPermitted();
+    }
+  }
+
+  // The Worker inlines the chargers nearest the visitor, so they show before
+  // the first tiles load.
+  showInitialChargers() {
+    const data = this.querySelector(".initial-chargers")?.textContent;
+    if (!data) {
+      return;
+    }
+    try {
+      const chargers = JSON.parse(data);
+      if (chargers.length && !this.loaded) {
+        this.loaded = { chargers, truncated: false };
+        this.showMatchingChargers();
+      }
+    } catch (error) {
+      console.error("Invalid initial chargers:", error);
     }
   }
 
@@ -357,19 +386,10 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
 
-    const apiKey = this.dataset.openChargeMapKey;
-    if (!apiKey) {
-      this.setStatus(
-        "Open Charge Map API key is missing. Set VITE_OPEN_CHARGE_MAP_API_KEY.",
-        "error"
-      );
-      return;
-    }
-
     this.setListedChargers([]);
     this.setStatus("Loading EV chargers...", "loading");
     try {
-      const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom, apiKey });
+      const { chargers, truncated } = await fetchChargersInBounds({ bounds, zoom });
       if (searchId !== this.searchId) {
         return;
       }
@@ -666,6 +686,9 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));
+    for (const attribution of panel.querySelectorAll(".attribution")) {
+      attribution.hidden = attribution.dataset.source !== charger.source;
+    }
     panel.hidden = false;
   }
 

@@ -14,8 +14,9 @@ Find electric vehicle charging stations on a map.
 - Sign in with Google; the account menu has sign-out and a light, dark or
   system theme
 
-Charging data comes from [Open Charge Map](https://openchargemap.org); the map
-is [Google Maps](https://developers.google.com/maps).
+Charging data comes from [Open Charge Map](https://openchargemap.org) and
+[OpenStreetMap](https://www.openstreetmap.org) (© OpenStreetMap contributors,
+ODbL); the map is [Google Maps](https://developers.google.com/maps).
 
 ## Documentation
 

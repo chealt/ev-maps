@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity } from "./fixtures/google.js";
-import { fakeOpenChargeMap, requestCovers } from "./fixtures/open-charge-map.js";
+import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
 const fakeGoogleMaps = await readFile(new URL("./fixtures/fake-google-maps.js", import.meta.url));
 
@@ -9,14 +9,14 @@ const downtownChargerLabel = "Downtown Supercharger";
 const xssElement = '<img src="x" onerror="window.__xss = true">';
 const userLocation = { lat: 47.4979, lng: 19.0402 };
 
-let openChargeMapRequests;
+let chargerRequests;
 
 test.beforeEach(async ({ page }) => {
   await page.route("https://maps.googleapis.com/maps/api/js?**", (route) =>
     route.fulfill({ contentType: "text/javascript", body: fakeGoogleMaps })
   );
   await fakeGoogleIdentity(page);
-  openChargeMapRequests = await fakeOpenChargeMap(page);
+  chargerRequests = await fakeChargersApi(page);
   await page.goto("/");
 });
 
@@ -24,7 +24,7 @@ const mapState = (page) =>
   page.evaluate(() => ({ center: window.__fakeMap.center, zoom: window.__fakeMap.zoom }));
 
 const loadedChargersAround = (location) =>
-  openChargeMapRequests.some((request) => requestCovers(request, location));
+  chargerRequests.some((request) => requestCovers(request, location));
 
 test("initializes the map with the configured center and map ID", async ({ page }) => {
   await expect(page.getByRole("region", { name: "EV charging station map" })).toBeVisible();

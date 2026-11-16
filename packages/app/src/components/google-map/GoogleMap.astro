@@ -8,7 +8,6 @@ import "./GoogleMap.css";
 
 interface Props {
   apiKey?: string;
-  openChargeMapKey?: string;
   mapId?: string;
   centerLat?: number;
   centerLng?: number;
@@ -27,7 +26,6 @@ const powerRanges = [
 
 const {
   apiKey = "",
-  openChargeMapKey = "",
   mapId = "DEMO_MAP_ID",
   centerLat = 0,
   centerLng = 0,
@@ -40,7 +38,6 @@ const {
 
 <ev-google-map
   data-api-key={apiKey}
-  data-open-charge-map-key={openChargeMapKey}
   data-map-id={mapId}
   data-center-lat={centerLat}
   data-center-lng={centerLng}
@@ -180,11 +177,18 @@ const {
         </h3>
         <ul class="details"></ul>
       </section>
-      <p class="attribution">
+      <p class="attribution" data-source="ocm" hidden>
         Charging data from
         <a href="https://openchargemap.org" target="_blank" rel="noopener">
           Open Charge Map
         </a>
+      </p>
+      <p class="attribution" data-source="osm" hidden>
+        Charging data ©
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
+          OpenStreetMap contributors
+        </a>
+        , ODbL
       </p>
       <template class="item-template">
         <li></li>

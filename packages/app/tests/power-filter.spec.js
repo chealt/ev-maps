@@ -1,12 +1,16 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeOpenChargeMap } from "./fixtures/open-charge-map.js";
+import { fakeChargersApi } from "./fixtures/chargers-api.js";
 
 // Far enough apart that they aren't clustered at the default zoom.
-const charger = (id, title, location, powerKw) => ({
-  ID: id,
-  AddressInfo: { Title: title, Latitude: location[0], Longitude: location[1] },
-  Connections: powerKw ? [{ ConnectionTypeID: 32, PowerKW: powerKw, Quantity: 1 }] : [],
+const charger = (id, name, [lat, lng], powerKw) => ({
+  id: `ocm:${id}`,
+  source: "ocm",
+  name,
+  location: { lat, lng },
+  address: "",
+  maxPowerKw: powerKw,
+  connectors: powerKw ? [{ type: "CCS (Type 1)", powerKw, quantity: 1 }] : [],
 });
 
 const chargers = [
@@ -33,7 +37,7 @@ const togglePowerFilters = async (page, names) => {
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
   await fakeGoogleIdentity(page);
-  await fakeOpenChargeMap(page, { chargers });
+  await fakeChargersApi(page, { chargers });
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
 });

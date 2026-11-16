@@ -6,7 +6,11 @@
 - **Framework**: [Astro v7](https://astro.build/) (static output)
 - **Components**: Native Web Components (behavior only, no shadow DOM)
 - **Maps**: Google Maps JavaScript API
-- **Charger data**: [Open Charge Map](https://openchargemap.org) API
+- **Backend**: a Cloudflare Worker (`packages/app/worker/`) with a
+  [D1](https://developers.cloudflare.com/d1/) database (SQLite) and an R*Tree
+  spatial index
+- **Charger data**: [Open Charge Map](https://openchargemap.org) and
+  [OpenStreetMap](https://www.openstreetmap.org), imported on a schedule
 - **Clustering**: [supercluster](https://github.com/mapbox/supercluster)
 - **Icons**: [Lucide](https://lucide.dev/) via `lucide-static`
 - **Styling**: Vanilla CSS with native nesting
@@ -28,6 +32,8 @@ ev-maps/
 │   │   ├── astro.config.mjs
 │   │   ├── playwright.config.js
 │   │   ├── wrangler.toml              # Cloudflare Worker config
+│   │   ├── migrations/                # D1 database migrations
+│   │   ├── worker/                    # Worker: charger API, first load, import
 │   │   ├── .env.example
 │   │   ├── src/
 │   │   │   ├── components/
@@ -57,11 +63,20 @@ ev-maps/
 - **Rendering**: Astro renders all HTML and CSS at build time. Web Components
   only add behavior to that markup; see the
   [Development Guidelines](DEVELOPMENT_GUIDELINES.md).
+- **Import**: every 15 minutes, the Worker's scheduled handler
+  (`worker/import/`) works through due import jobs: Open Charge Map one
+  country per job (Eastern Europe first; only openly licensed data providers)
+  and OpenStreetMap one 1°×1° cell of Eastern Europe per job (via Overpass).
+  Each area is refreshed weekly; chargers a source no longer lists are
+  removed. Every charger keeps its source and license.
 - **Chargers**: when the map stops moving, `google-map/chargers.js` loads the
-  chargers for the visible area from Open Charge Map. The area is split into
-  fixed map tiles; a tile that hits the result limit is split into smaller
-  tiles. Responses and Open Charge Map's reference data are cached in the
-  browser's Cache Storage for 24 hours.
+  visible area's tiles from `/api/chargers/{z}/{x}/{y}`, which reads D1
+  through the R*Tree index and merges duplicates (the same charger from two
+  sources within 60 m). A full tile is split into smaller tiles. Tiles are
+  cached at the edge for a day and in the browser by the service worker.
+- **First load**: the Worker adds the visitor's approximate (IP based)
+  location and the chargers nearest to it to the static page, so the first
+  view needs no extra request.
 - **Clustering**: `supercluster` groups nearby chargers; only the clusters and
   chargers in view are drawn as markers.
 - **Sign-in**: `<ev-user-menu>` uses Google Identity Services. The ID token is

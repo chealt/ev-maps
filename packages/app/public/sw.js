@@ -1,8 +1,8 @@
-// Keeps the app working offline and caches Open Charge Map responses.
+// Keeps the app working offline and caches charger tiles.
 //
-// - Open Charge Map: cached for a day, off the main thread, so panning back
-//   or reloading doesn't hit the API. If the network fails, an expired copy
-//   is better than nothing.
+// - Charger tiles (/api/chargers/…): cached for a day, off the main thread,
+//   so panning back or reloading doesn't hit the API. If the network fails,
+//   an expired copy is better than nothing.
 // - The app's own pages and files: pages come from the network first, so a
 //   new deploy shows up right away, with the cached copy as the offline
 //   fallback. Built files have a content hash in their name, so they never
@@ -10,14 +10,16 @@
 // - Google Maps and Google sign-in are never cached: Google's terms don't
 //   allow it, so the map needs a connection.
 
-const CACHE_NAME = "ev-maps-open-charge-map-v1";
+const CACHE_NAME = "ev-maps-chargers-v1";
+// Caches of earlier versions, removed on activation.
+const OLD_CACHE_NAMES = ["ev-maps-open-charge-map-v1"];
 const APP_CACHE_NAME = "ev-maps-app-v1";
 // The app's files have a single version each, but servers can send
 // "Vary: Origin", which would stop module scripts (sent with an Origin
 // header) from matching the precached copies.
 const APP_MATCH_OPTIONS = { ignoreVary: true };
 const HASHED_ASSETS_PATH = "/_astro/";
-const API_ORIGIN = "https://api.openchargemap.io";
+const CHARGERS_PATH = "/api/chargers/";
 const CACHED_AT_HEADER = "x-ev-maps-cached-at";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -113,7 +115,13 @@ self.addEventListener("install", (event) => {
 
 // Take over open pages right away, so the first visit is cached too.
 self.addEventListener("activate", (event) => {
-  event.waitUntil(Promise.all([self.clients.claim(), deleteExpiredResponses()]));
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      deleteExpiredResponses(),
+      ...OLD_CACHE_NAMES.map((name) => caches.delete(name)),
+    ])
+  );
 });
 
 self.addEventListener("fetch", (event) => {
@@ -122,10 +130,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   const url = new URL(request.url);
-  if (url.origin === API_ORIGIN) {
-    event.respondWith(fetchWithCache(request));
-  } else if (url.origin !== self.location.origin) {
+  if (url.origin !== self.location.origin) {
     return;
+  }
+  if (url.pathname.startsWith(CHARGERS_PATH)) {
+    event.respondWith(fetchWithCache(request));
   } else if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
   } else if (url.pathname.startsWith(HASHED_ASSETS_PATH) || url.pathname === "/favicon.svg") {
