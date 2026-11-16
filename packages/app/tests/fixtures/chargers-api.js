@@ -1,7 +1,5 @@
-import { readFile } from "node:fs/promises";
 import { tileBounds } from "@ev-maps/tiles";
-
-const fixtureChargers = JSON.parse(await readFile(new URL("./chargers.json", import.meta.url)));
+import fixtureChargers from "./chargers.json" with { type: "json" };
 
 // A request's tile, from /api/chargers/{z}/{x}/{y}.
 const tileOf = (url) => {
