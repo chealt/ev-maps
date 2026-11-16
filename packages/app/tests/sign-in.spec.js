@@ -1,55 +1,85 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
   await fakeChargersApi(page);
+});
+
+test("offers sign-in, the theme and the language when signed out", async ({ page }) => {
+  await fakeAuthApi(page);
   await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+  await expect(menu.getByRole("radio", { name: "System" })).toBeChecked();
+  await expect(menu.getByRole("navigation", { name: "Language" })).toBeVisible();
+  await expect(menu.getByRole("button", { name: "Sign out" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Sign in", expanded: true })).toBeVisible();
 });
 
-test("shows the Google sign-in button for the configured client", async ({ page }) => {
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Account/ })).toBeHidden();
-  const config = await page.evaluate(() => window.__gsi.config);
-  expect(config.client_id).toBe("test-client-id");
-});
-
-test("signs in with Google and shows the account menu", async ({ page }) => {
-  const signedIn = page.evaluate(
-    () =>
-      new Promise((resolve) => {
-        document.addEventListener("google-sign-in", (event) => resolve(event.detail), {
-          once: true,
-        });
-      })
-  );
+test("signs in with Google and stays signed in after a reload", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in" }).click();
 
   await page.getByRole("button", { name: "Sign in with Google" }).click();
 
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
-  expect(await signedIn).toMatchObject({ name: "Ada Lovelace", email: "ada@example.com" });
-
   const accountButton = page.getByRole("button", { name: "Account: Ada Lovelace" });
-  await accountButton.click();
+  await expect(accountButton).toBeVisible();
+  expect(signInRequests).toEqual([
+    { provider: "google", callbackURL: "/en/", errorCallbackURL: "/en/?sign-in-error=" },
+  ]);
 
+  await page.reload();
+  await accountButton.click();
   const menu = page.getByRole("dialog", { name: "Account" });
-  await expect(menu).toBeVisible();
   await expect(menu.getByText("Signed in as")).toBeVisible();
   await expect(menu.getByText("Ada Lovelace")).toBeVisible();
   await expect(menu.getByText("ada@example.com")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Account: Ada Lovelace", expanded: true })
-  ).toBeVisible();
-
-  await page.keyboard.press("Escape");
-  await expect(menu).toBeHidden();
+  await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
 });
 
-test("signs out from the account menu", async ({ page }) => {
+test("comes back to the same page after signing in", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page);
+  await page.goto("/pl/hu/");
+  await page.getByRole("button", { name: "Zaloguj się" }).click();
+
+  await page.getByRole("button", { name: "Zaloguj się przez Google" }).click();
+
+  await expect(page.getByRole("button", { name: "Konto: Ada Lovelace" })).toBeVisible();
+  await expect(page).toHaveURL("/pl/hu/");
+  expect(signInRequests[0].callbackURL).toBe("/pl/hu/");
+});
+
+test("says when sign-in can't start", async ({ page }) => {
+  await fakeAuthApi(page, { signInStatus: 500 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
   await page.getByRole("button", { name: "Sign in with Google" }).click();
+
+  await expect(page.getByRole("alert")).toHaveText("Sign-in failed. Please try again.");
+  await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
+});
+
+test("says when sign-in failed at the provider", async ({ page }) => {
+  await fakeAuthApi(page);
+
+  await page.goto("/en/?sign-in-error=");
+
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("alert")).toHaveText("Sign-in failed. Please try again.");
+  await expect(page).toHaveURL("/en/");
+});
+
+test("signs out", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await page.goto("/");
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
 
   await page
@@ -57,56 +87,16 @@ test("signs out from the account menu", async ({ page }) => {
     .getByRole("button", { name: "Sign out" })
     .click();
 
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Account" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });
 
-test("ignores an invalid sign-in response", async ({ page }) => {
-  await page.evaluate(() => window.__gsi.config.callback({ credential: "not-a-jwt" }));
+test("stays signed out when the session can't be loaded", async ({ page }) => {
+  await page.route("**/api/auth/get-session", (route) => route.fulfill({ status: 500 }));
+  await page.goto("/");
 
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Account/ })).toBeHidden();
-});
-
-test.describe("Google sign-in button theme", () => {
-  const buttonTheme = (page) => page.evaluate(() => window.__gsi.buttonOptions.theme);
-
-  test("uses the light button on a light page", async ({ page }) => {
-    expect(await buttonTheme(page)).toBe("outline");
-  });
-
-  test("uses the dark button when Dark is chosen", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("ev-maps:theme", "dark"));
-    await page.reload();
-
-    await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-    expect(await buttonTheme(page)).toBe("filled_black");
-  });
-
-  test("redraws the button after switching to Dark and signing out", async ({ page }) => {
-    await page.getByRole("button", { name: "Sign in with Google" }).click();
-    await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
-    const menu = page.getByRole("dialog", { name: "Account" });
-    await menu.getByRole("radio", { name: "Dark" }).check();
-    await menu.getByRole("button", { name: "Sign out" }).click();
-
-    await expect(page.getByRole("button", { name: "Sign in with Google" })).toHaveCount(1);
-    expect(await buttonTheme(page)).toBe("filled_black");
-  });
-
-  test("follows the system switching to dark", async ({ page }) => {
-    await page.emulateMedia({ colorScheme: "dark" });
-
-    await expect.poll(() => buttonTheme(page)).toBe("filled_black");
-    await expect(page.getByRole("button", { name: "Sign in with Google" })).toHaveCount(1);
-  });
-});
-
-test.describe("on a dark system", () => {
-  test.use({ colorScheme: "dark" });
-
-  test("uses the dark Google sign-in button", async ({ page }) => {
-    expect(await page.evaluate(() => window.__gsi.buttonOptions.theme)).toBe("filled_black");
-  });
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });

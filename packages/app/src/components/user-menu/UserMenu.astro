@@ -1,53 +1,61 @@
 ---
-import { LogOut } from "lucide-static";
+import { LogOut, Zap } from "lucide-static";
 import Button from "../button/Button.astro";
 import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
-import { translations } from "../../i18n/index.js";
+import { fill, translations } from "../../i18n/index.js";
+import GoogleLogo from "./google-logo.svg";
 import "./UserMenu.css";
 
-interface Props {
-  clientId: string;
-}
+// The sign-in providers the Worker offers (packages/worker/src/auth.js).
+const providers = [{ id: "google", name: "Google", logo: GoogleLogo }];
 
-const { clientId } = Astro.props;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
-<ev-user-menu class="user-menu" data-client-id={clientId}>
-  <div class="signed-out">
-    <div class="google-signin-button"></div>
-  </div>
-
-  <div class="signed-in" hidden>
-    <button
-      type="button"
-      class="avatar"
-      popovertarget="account-menu"
-      aria-haspopup="dialog"
-      aria-expanded="false"
-      aria-label={page.account}
-      title={page.account}
-    >
+<ev-user-menu class="user-menu">
+  <button
+    type="button"
+    class="menu-button"
+    popovertarget="account-menu"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+  >
+    <span class="mark">
+      <Icon icon={Zap} filled />
+    </span>
+    <span class="sign-in-label">{page.signIn}</span>
+    <span class="avatar" hidden>
       <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
       <span class="initials" aria-hidden="true"></span>
-    </button>
+    </span>
+  </button>
 
-    <div class="account-menu" id="account-menu" popover role="dialog" aria-label={page.account}>
-      <div class="profile">
-        <p class="label">{page.signedInAs}</p>
-        <p class="name"></p>
-        <p class="email"></p>
-      </div>
-      <ThemePicker />
-      <LanguagePicker />
-      <Button variant="ghost" class="sign-out">
-        <Icon icon={LogOut} size="sm" />
-        {page.signOut}
-      </Button>
+  <div class="account-menu" id="account-menu" popover role="dialog" aria-label={page.account}>
+    <div class="profile" hidden>
+      <p class="label">{page.signedInAs}</p>
+      <p class="name"></p>
+      <p class="email"></p>
     </div>
+    <section class="sign-in" aria-labelledby="sign-in-title">
+      <h2 class="legend" id="sign-in-title">
+        {page.signIn}
+      </h2>
+      {providers.map(({ id, name, logo: Logo }) => (
+        <button type="button" class="provider" data-provider={id}>
+          <Logo class="provider-logo" aria-hidden="true" />
+          {fill(page.signInWith, { provider: name })}
+        </button>
+      ))}
+      <p class="error" role="alert"></p>
+    </section>
+    <ThemePicker />
+    <LanguagePicker />
+    <Button variant="ghost" class="sign-out" hidden>
+      <Icon icon={LogOut} size="sm" />
+      {page.signOut}
+    </Button>
   </div>
-
   <script src="./UserMenu.js"></script>
 </ev-user-menu>

@@ -33,6 +33,8 @@ const en = {
       link: "OpenStreetMap contributors",
       after: ", ODbL",
     },
+    signIn: "Sign in",
+    signInWith: "Sign in with {provider}",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",
@@ -76,6 +78,7 @@ const en = {
     cost: "Cost: {value}",
     status: "Status: {value}",
     chargingPoints: "Charging points: {count}",
+    signInFailed: "Sign-in failed. Please try again.",
     accountOf: "Account: {name}",
   },
   values: {

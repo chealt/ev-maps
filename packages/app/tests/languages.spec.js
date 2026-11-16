@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 
 // Every page is built in English (/en/), Polish (/pl/) and Hungarian (/hu/).
@@ -17,7 +18,7 @@ const fixtureChargers = (count) =>
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
+  await fakeAuthApi(page);
 });
 
 test("shows the page in Polish", async ({ page }) => {
@@ -78,21 +79,28 @@ test("builds the country pages in every language", async ({ page }) => {
   await expect(page).toHaveTitle("Elektromosautó-töltők – Magyarország – EV Maps");
 });
 
-test("loads Google Maps and Google sign-in in the page's language", async ({ page }) => {
+test("loads Google Maps in the page's language", async ({ page }) => {
   const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
   await fakeChargersApi(page);
   await page.goto("/hu/");
 
   expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("hu");
-  await expect(page.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
-  expect(await page.evaluate(() => window.__gsi.buttonOptions.locale)).toBe("hu");
+});
+
+test("offers sign-in in the page's language", async ({ page }) => {
+  await fakeChargersApi(page);
+  await page.goto("/hu/");
+
+  await page.getByRole("button", { name: "Bejelentkezés" }).click();
+
+  const menu = page.getByRole("dialog", { name: "Fiók" });
+  await expect(menu.getByRole("button", { name: "Bejelentkezés Google-fiókkal" })).toBeVisible();
 });
 
 test("switches to another language from the account menu", async ({ page }) => {
   await fakeChargersApi(page);
   await page.goto("/en/hu/");
-  await page.getByRole("button", { name: "Sign in with Google" }).click();
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   const languages = page
     .getByRole("dialog", { name: "Account" })
     .getByRole("navigation", { name: "Language" });

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 
 // Far enough apart that they aren't clustered at the default zoom.
@@ -36,7 +37,7 @@ const togglePowerFilters = async (page, names) => {
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
+  await fakeAuthApi(page);
   await fakeChargersApi(page, { chargers });
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("6 EV chargers found");

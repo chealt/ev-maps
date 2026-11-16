@@ -28,6 +28,8 @@ const hu = {
       link: "az OpenStreetMap közreműködői",
       after: ", ODbL",
     },
+    signIn: "Bejelentkezés",
+    signInWith: "Bejelentkezés {provider}-fiókkal",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -75,6 +77,7 @@ const hu = {
     cost: "Díj: {value}",
     status: "Állapot: {value}",
     chargingPoints: "Töltőpontok: {count}",
+    signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
     accountOf: "Fiók: {name}",
   },
   values: {

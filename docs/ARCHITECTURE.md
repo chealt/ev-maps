@@ -35,7 +35,6 @@ ev-maps/
 │   │   ├── src/
 │   │   │   ├── components/
 │   │   │   │   ├── HomePage.astro
-│   │   │   │   ├── app-header/        # Brand header (Astro only)
 │   │   │   │   ├── button/            # Generic button (Astro only)
 │   │   │   │   ├── filter-button/     # <ev-filter-button>
 │   │   │   │   ├── google-map/        # <ev-google-map>, charger data, clustering
@@ -56,7 +55,7 @@ ev-maps/
 │   │   ├── wrangler.toml              # Worker config; serves app/dist as assets
 │   │   ├── migrations/                # D1 database migrations
 │   │   ├── scripts/                   # export-chargers.js: D1 to JSON per country
-│   │   └── src/                       # Charger API, redirect for /, import
+│   │   └── src/                       # Charger API, sign-in, redirect for /, import
 │   ├── tiles/                         # Tile maths shared by the app and Worker
 │   ├── biome-plugin-css-units/        # Biome plugin: disallowed CSS units
 │   └── dev-config/                    # Shared oxlint, oxfmt, Biome and rumdl configs
@@ -94,9 +93,9 @@ ev-maps/
   country pages are rebuilt every week (`refresh.yml`) and on every deploy.
 - **Languages**: English, Polish and Hungarian, each built as its own static
   pages (`/en/`, `/pl/`, `/hu/`); see
-  [Languages](DEVELOPMENT_GUIDELINES.md#languages). Google Maps and Google
-  sign-in load in the page's language, and the account menu links to the page
-  in the other languages.
+  [Languages](DEVELOPMENT_GUIDELINES.md#languages). Google Maps loads in the
+  page's language, and the account menu links to the page in the other
+  languages.
 - **Language and country**: the Worker redirects `/` to
   `/{language}/{country}/`: the language picked in the account menu (the
   `ev-maps-language` cookie), else the first language in the browser's
@@ -109,8 +108,13 @@ ev-maps/
   [country-coder](https://github.com/rapideditor/country-coder).
 - **Clustering**: `supercluster` groups nearby chargers; only the clusters and
   chargers in view are drawn as markers.
-- **Sign-in**: `<ev-user-menu>` uses Google Identity Services. The ID token is
-  decoded in the browser; there is no backend.
+- **Sign-in**: the button in the top-left corner opens the account menu, with
+  the sign-in options, the theme and the language (signed in: the profile and
+  Sign out). Signing in goes through the Worker's
+  [Better Auth](https://www.better-auth.com) (`/api/auth/*`): the provider's
+  OAuth page, then back to the same page with an httpOnly session cookie.
+  Users, accounts and sessions are in D1, and the page reads the session from
+  `/api/auth/get-session` on every load.
 - **Themes**: every color token is defined once with `light-dark()`;
   `<ev-theme-picker>` sets `data-theme` on `<html>` and the map follows with
   Google Maps' color scheme.

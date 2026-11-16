@@ -149,7 +149,6 @@ jobs:
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
         run: |
           missing=0
           for name in VITE_GOOGLE_MAPS_API_KEY; do
@@ -158,7 +157,7 @@ jobs:
               missing=1
             fi
           done
-          for name in VITE_GOOGLE_MAPS_MAP_ID VITE_GOOGLE_CLIENT_ID; do
+          for name in VITE_GOOGLE_MAPS_MAP_ID; do
             if [ -z "${!name}" ]; then
               echo "::error::Set the $name repository variable."
               missing=1
@@ -190,7 +189,6 @@ jobs:
         env:
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_GOOGLE_MAPS_MAP_ID: ${{ vars.VITE_GOOGLE_MAPS_MAP_ID }}
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
       - uses: actions/upload-artifact@v7
         if: needs.changes.outputs.app == 'true'
