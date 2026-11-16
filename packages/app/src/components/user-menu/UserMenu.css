@@ -134,22 +134,34 @@
     }
 
     .provider {
+      --provider-background: var(--color-google-button);
+      --provider-background-hover: var(--color-google-button-hover);
+      --provider-border: var(--color-google-button-border);
+      --provider-text: var(--color-google-button-text);
+
       display: flex;
       align-items: center;
       justify-content: center;
       gap: var(--spacing-sm);
       padding: var(--spacing-sm) var(--spacing-md);
-      border: var(--border-width) solid var(--color-google-button-border);
+      border: var(--border-width) solid var(--provider-border);
       border-radius: var(--border-radius-full);
-      background: var(--color-google-button);
-      color: var(--color-google-button-text);
+      background: var(--provider-background);
+      color: var(--provider-text);
       font-family: var(--font-family);
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
       cursor: pointer;
 
       &:hover {
-        background: var(--color-google-button-hover);
+        background: var(--provider-background-hover);
+      }
+
+      &[data-provider="github"] {
+        --provider-background: var(--color-github-button);
+        --provider-background-hover: var(--color-github-button-hover);
+        --provider-border: var(--color-github-button);
+        --provider-text: var(--color-github-button-text);
       }
     }
 

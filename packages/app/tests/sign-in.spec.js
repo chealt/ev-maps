@@ -33,6 +33,17 @@ test("offers only the providers the Worker can sign in with", async ({ page }) =
   await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
 });
 
+test("signs in with GitHub", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page, { providers: ["google", "github"] });
+  await page.goto("/hu/");
+  await page.getByRole("button", { name: "Bejelentkezés" }).click();
+
+  await page.getByRole("button", { name: "Bejelentkezés GitHub-fiókkal" }).click();
+
+  await expect(page.getByRole("button", { name: "Fiók: Ada Lovelace" })).toBeVisible();
+  expect(signInRequests[0].provider).toBe("github");
+});
+
 test("signs in with Google and stays signed in after a reload", async ({ page }) => {
   const signInRequests = await fakeAuthApi(page);
   await page.goto("/");

@@ -5,11 +5,16 @@ import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
 import { fill, translations } from "../../i18n/index.js";
+import GitHubLogo from "./github-logo.svg";
 import GoogleLogo from "./google-logo.svg";
 import "./UserMenu.css";
 
-// The sign-in providers the Worker offers (packages/worker/src/auth.js).
-const providers = [{ id: "google", name: "Google", logo: GoogleLogo }];
+// Every sign-in provider the Worker knows (packages/worker/src/auth.js); the
+// menu hides those without credentials.
+const providers = [
+  { id: "google", name: "Google", logo: GoogleLogo },
+  { id: "github", name: "GitHub", logo: GitHubLogo },
+];
 
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
