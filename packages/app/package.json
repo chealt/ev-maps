@@ -5,7 +5,7 @@
   "description": "EV Maps - Astro + Web Components",
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "dev": "concurrently --names worker,astro --prefix-colors yellow,cyan --kill-others-on-fail \"bun run dev:worker\" \"astro dev\"",
     "build": "astro build",
     "preview": "astro preview",
     "lint": "oxlint -c ../dev-config/oxlint.json src tests public worker",
@@ -15,7 +15,7 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "dev:api": "astro build && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled"
+    "dev:worker": "mkdir -p dist && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled"
   },
   "dependencies": {
     "astro": "^7.4.12",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",
     "@playwright/test": "^1.65.1",
+    "concurrently": "^10.0.7",
     "wrangler": "4.162.0"
   },
   "engines": {

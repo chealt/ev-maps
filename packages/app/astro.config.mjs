@@ -22,7 +22,7 @@ export default defineConfig({
   },
   integrations: [precacheManifest()],
   vite: {
-    // The API runs in the Worker: `bun run dev:api` serves it on port 8787.
+    // The API runs in the Worker, which `bun run dev` starts on port 8787.
     server: { proxy: { "/api": "http://localhost:8787" } },
   },
 });

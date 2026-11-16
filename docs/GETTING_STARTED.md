@@ -29,14 +29,16 @@
    See [Environment Variables](#environment-variables) for what each one is
    and where to get it.
 
-3. Start the API (the Cloudflare Worker with a local D1 database) on port
-   8787, and the development server at `http://localhost:4321/`, which
+3. Start the development server at `http://localhost:4321/`. It also starts
+   the API, the Cloudflare Worker with a local D1 database, on port 8787 and
    forwards `/api` to it:
 
    ```bash
-   cd packages/app && bun run dev:api   # builds, migrates and starts the Worker
-   bun run dev                          # in another terminal
+   bun run dev
    ```
+
+   Their output is prefixed with `astro` and `worker`. To run only the
+   Worker, use `bun run dev:worker` in `packages/app`.
 
 4. The local database starts empty. Run an import step (a scheduled run) to
    fill it; each run imports for `IMPORT_BUDGET_MS` (set it in `.dev.vars`,
@@ -71,7 +73,7 @@ Run from the repository root:
 
 | Script                    | Description                                   |
 | ------------------------- | --------------------------------------------- |
-| `bun run dev`             | Start development server                      |
+| `bun run dev`             | Start the dev server and the Worker (API)     |
 | `bun run build`           | Build for production into `packages/app/dist` |
 | `bun run preview`         | Preview production build                      |
 | `bun run test`            | Run Playwright tests                          |
