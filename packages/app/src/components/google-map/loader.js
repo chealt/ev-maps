@@ -9,7 +9,12 @@ const loadScript = (src, beforeLoad) => {
         const script = document.createElement("script");
         script.src = src;
         script.async = true;
-        script.onerror = () => reject(new Error(`Failed to load ${src}`));
+        script.onerror = () => {
+          // Forget the failed load, so it can be retried (e.g. back online).
+          scriptLoads.delete(src);
+          script.remove();
+          reject(new Error(`Failed to load ${src}`));
+        };
         beforeLoad?.(resolve, script);
         document.head.append(script);
       })
