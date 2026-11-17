@@ -33,6 +33,30 @@ test("offers only the providers the Worker can sign in with", async ({ page }) =
   await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
 });
 
+test("offers no sign-in when the providers can't be loaded", async ({ page }) => {
+  await fakeAuthApi(page);
+  await page.route("**/api/sign-in-providers", (route) => route.fulfill({ status: 502 }));
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("radio", { name: "System" })).toBeVisible();
+  await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
+  await expect(menu.getByRole("button", { name: "Sign in with GitHub" })).toBeHidden();
+});
+
+test("signs in with GitHub", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page, { providers: ["google", "github"] });
+  await page.goto("/hu/");
+  await page.getByRole("button", { name: "Bejelentkezés" }).click();
+
+  await page.getByRole("button", { name: "Bejelentkezés GitHub-fiókkal" }).click();
+
+  await expect(page.getByRole("button", { name: "Fiók: Ada Lovelace" })).toBeVisible();
+  expect(signInRequests[0].provider).toBe("github");
+});
+
 test("signs in with Google and stays signed in after a reload", async ({ page }) => {
   const signInRequests = await fakeAuthApi(page);
   await page.goto("/");

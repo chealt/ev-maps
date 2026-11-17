@@ -78,6 +78,8 @@ on the server.
 | `OPEN_CHARGE_MAP_API_KEY`  | Worker | Yes      | [Open Charge Map key](https://openchargemap.org/site/develop/api) for imports |
 | `BETTER_AUTH_SECRET`       | Worker | Yes      | Signs the session cookies; any long random value (`openssl rand -base64 32`)  |
 | `GOOGLE_CLIENT_SECRET`     | Worker | No       | The OAuth client's secret; without it there is no Google sign-in              |
+| `GITHUB_CLIENT_ID`         | Worker | No       | The GitHub App's client ID, for Sign in with GitHub                           |
+| `GITHUB_CLIENT_SECRET`     | Worker | No       | The GitHub App's client secret                                                |
 | `IMPORT_BUDGET_MS`         | Worker | No       | Shortens each import run, e.g. locally                                        |
 
 For local development, use a Google Maps key restricted to
