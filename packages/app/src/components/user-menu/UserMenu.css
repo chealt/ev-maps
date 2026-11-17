@@ -170,6 +170,13 @@
         --provider-border: var(--color-microsoft-button-border);
         --provider-text: var(--color-microsoft-button-text);
       }
+
+      &[data-provider="apple"] {
+        --provider-background: var(--color-apple-button);
+        --provider-background-hover: var(--color-apple-button-hover);
+        --provider-border: var(--color-apple-button);
+        --provider-text: var(--color-apple-button-text);
+      }
     }
 
     .provider-logo {

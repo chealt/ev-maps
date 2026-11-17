@@ -81,6 +81,7 @@ on the server.
 | `GITHUB_CLIENT_ID`         | Worker | No       | The GitHub App's client ID, for Sign in with GitHub                           |
 | `GITHUB_CLIENT_SECRET`     | Worker | No       | The GitHub App's client secret                                                |
 | `MICROSOFT_CLIENT_SECRET`  | Worker | No       | The development Entra ID app's secret (its ID is in `wrangler.toml`)          |
+| `APPLE_CLIENT_ID`, …       | Worker | No       | Sign in with Apple; production only, see [Deployment](DEPLOYMENT.md#apple)    |
 | `IMPORT_BUDGET_MS`         | Worker | No       | Shortens each import run, e.g. locally                                        |
 
 For local development, use a Google Maps key restricted to
