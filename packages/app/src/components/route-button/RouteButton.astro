@@ -1,0 +1,21 @@
+---
+import Button from "../button/Button.astro";
+import { Route } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import { translations } from "../../i18n/index.js";
+
+interface Props {
+  controls?: string;
+}
+
+const { controls } = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<ev-route-button>
+  <Button variant="secondary" class="route-button" aria-haspopup="dialog" aria-controls={controls}>
+    <Icon icon={Route} />
+    <span class="label">{page.route}</span>
+  </Button>
+  <script src="./RouteButton.js"></script>
+</ev-route-button>

@@ -11,6 +11,8 @@ Find electric vehicle charging stations on a map.
 - Charger details: address, connectors and power, operator, access, cost and
   status
 - Locate me, and the map remembers where you were last time
+- Plan a route between two places and see the chargers along it, with the
+  same power filters
 - Sign in with Google or GitHub, and stay signed in; the account menu has the light,
   dark or system theme and the language, signed in or not
 - In English, Polish and Hungarian, with a static page for every country

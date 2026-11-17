@@ -58,6 +58,9 @@ jobs:
           - name: Check Worker formatting
             package: worker
             script: format:check
+          - name: Test Worker
+            package: worker
+            script: test
           # Bundles the Worker the way a deploy would, without deploying it.
           - name: Build Worker
             package: worker

@@ -37,4 +37,32 @@ const fakeChargersApi = async (
   return requests;
 };
 
-export { fakeChargersApi, requestCovers, tileWidth };
+// Serves `chargers` for every route, placed on its points in order, each
+// `kmApart` along it and 1 km off it, and records the requests' bodies.
+const fakeRouteChargersApi = async (page, { chargers = fixtureChargers, kmApart = 50 } = {}) => {
+  const requests = [];
+  await page.context().route("**/api/chargers/route", (route) => {
+    const body = route.request().postDataJSON();
+    requests.push(body);
+    const step = Math.floor(body.path.length / (chargers.length + 1));
+    return route.fulfill({
+      json: {
+        chargers: chargers.map((charger, index) => ({
+          ...charger,
+          location: {
+            lat: body.path[(index + 1) * step][0],
+            lng: body.path[(index + 1) * step][1],
+          },
+          route: {
+            distanceFromStartMeters: (index + 1) * kmApart * 1000,
+            distanceFromRouteMeters: 1000,
+          },
+        })),
+        full: false,
+      },
+    });
+  });
+  return requests;
+};
+
+export { fakeChargersApi, fakeRouteChargersApi, requestCovers, tileWidth };

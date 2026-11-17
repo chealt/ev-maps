@@ -1,9 +1,11 @@
 ---
 import Button from "../button/Button.astro";
-import { FilterX, Info, List, MapPin, PlugZap, X, Zap } from "lucide-static";
+import { FilterX, Info, List, MapPin, PlugZap, RouteOff, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
+import RouteButton from "../route-button/RouteButton.astro";
+import RoutePlanner from "../route-planner/RoutePlanner.astro";
 import { translations } from "../../i18n/index.js";
 import "./GoogleMap.css";
 
@@ -79,12 +81,19 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 
     <div class="map-controls">
       <LocateButton autoLocate={autoLocate} />
+      <RouteButton controls="route-planner" />
       <FilterButton controls="map-filter-panel" />
       <Button variant="secondary" class="clear-filters" hidden>
         <Icon icon={FilterX} />
         <span class="label">{page.clearFilters}</span>
       </Button>
+      <Button variant="secondary" class="clear-route" hidden>
+        <Icon icon={RouteOff} />
+        <span class="label">{page.clearRoute}</span>
+      </Button>
     </div>
+
+    <RoutePlanner id="route-planner" />
 
     <dialog
       class="fullscreen-dialog filter-dialog"

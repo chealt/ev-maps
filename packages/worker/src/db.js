@@ -115,6 +115,25 @@ const chargersInBounds = async (db, { north, south, east, west }, limit) => {
   return { rows: results.slice(0, limit), full: results.length > limit };
 };
 
+// Chargers in each of several bounding boxes, in one round trip to D1: one
+// list of rows per box, each cut at `limit`.
+const chargersInEachBounds = async (db, boundsList, limit) => {
+  const statement = db.prepare(
+    `SELECT c.* FROM chargers_rtree r JOIN chargers c ON c.rid = r.id
+     WHERE r.max_lat >= ? AND r.min_lat <= ? AND r.max_lng >= ? AND r.min_lng <= ?
+     LIMIT ?`
+  );
+  const results = await db.batch(
+    boundsList.map(({ north, south, east, west }) =>
+      statement.bind(south, north, west, east, limit + 1)
+    )
+  );
+  return results.map(({ results: rows }) => ({
+    rows: rows.slice(0, limit),
+    full: rows.length > limit,
+  }));
+};
+
 // Every charger, a page at a time: the ones after `afterRid`, in rid order.
 const chargersAfter = async (db, afterRid, limit) => {
   const { results } = await db
@@ -124,4 +143,11 @@ const chargersAfter = async (db, afterRid, limit) => {
   return results;
 };
 
-export { chargersAfter, chargersInBounds, deleteUnseen, toClientCharger, upsertChargers };
+export {
+  chargersAfter,
+  chargersInBounds,
+  chargersInEachBounds,
+  deleteUnseen,
+  toClientCharger,
+  upsertChargers,
+};

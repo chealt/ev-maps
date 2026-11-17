@@ -83,12 +83,14 @@ requests from forks, which don't get them).
 
 ## Google Cloud
 
-- **APIs**: enable only the **Maps JavaScript API**. Google sign-in doesn't
-  need an API, just the OAuth client (a **Web application** client).
+- **APIs**: enable the **Maps JavaScript API**, **Places API (New)** (place
+  suggestions in the route planner) and **Routes API** (planning the route).
+  Google sign-in doesn't need an API, just the OAuth client (a **Web
+  application** client).
 - **Map ID**: create a **JavaScript, Vector** Map ID in Map Management, with
   tilt and rotation off.
 - **API keys**: use separate keys for development and production, both
-  restricted to the Maps JavaScript API, with these website restrictions:
+  restricted to those three APIs, with these website restrictions:
   - Production: `https://*.chealt.workers.dev/*`
   - Development: `http://localhost:4321/*`
 - **OAuth clients**: one for production and one for development, like the
