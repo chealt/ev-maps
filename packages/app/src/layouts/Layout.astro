@@ -31,6 +31,8 @@ const messagesJson = JSON.stringify({ messages, values }).replaceAll("<", "\\u00
     <meta name="description" content={page.description} />
     <meta name="theme-color" content="#059669" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href={`/${lang}/manifest.webmanifest`} />
     <title>{title}</title>
     {alternates.map(({ language, href }) => (
       <link rel="alternate" hreflang={language} href={href} />

@@ -115,6 +115,10 @@ ev-maps/
   OAuth page, then back to the same page with an httpOnly session cookie.
   Users, accounts and sessions are in D1, and the page reads the session from
   `/api/auth/get-session` on every load.
+- **Installable app**: each language has a web app manifest
+  (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
+  app opens in the user's language and country. Its PNG icons are generated
+  from `public/favicon.svg` with `bun run icons` in `packages/app`.
 - **Themes**: every color token is defined once with `light-dark()`;
   `<ev-theme-picker>` sets `data-theme` on `<html>` and the map follows with
   Google Maps' color scheme.
