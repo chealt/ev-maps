@@ -29,6 +29,17 @@ const socialProviders = (env) => ({
     env.GITHUB_CLIENT_SECRET && {
       github: { clientId: env.GITHUB_CLIENT_ID, clientSecret: env.GITHUB_CLIENT_SECRET },
     }),
+  // An app registration in Microsoft Entra ID; the "common" tenant takes both
+  // personal and work or school accounts.
+  ...(env.MICROSOFT_CLIENT_ID &&
+    env.MICROSOFT_CLIENT_SECRET && {
+      microsoft: {
+        clientId: env.MICROSOFT_CLIENT_ID,
+        clientSecret: env.MICROSOFT_CLIENT_SECRET,
+        tenantId: "common",
+        prompt: "select_account",
+      },
+    }),
 });
 
 // Better Auth needs the site's URL for the OAuth callbacks and its origin

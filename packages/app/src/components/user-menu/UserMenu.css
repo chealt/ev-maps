@@ -163,6 +163,13 @@
         --provider-border: var(--color-github-button);
         --provider-text: var(--color-github-button-text);
       }
+
+      &[data-provider="microsoft"] {
+        --provider-background: var(--color-microsoft-button);
+        --provider-background-hover: var(--color-microsoft-button-hover);
+        --provider-border: var(--color-microsoft-button-border);
+        --provider-text: var(--color-microsoft-button-text);
+      }
     }
 
     .provider-logo {

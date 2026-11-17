@@ -80,6 +80,8 @@ on the server.
 | `GOOGLE_CLIENT_SECRET`     | Worker | No       | The development OAuth client's secret; without it there is no Google sign-in  |
 | `GITHUB_CLIENT_ID`         | Worker | No       | The GitHub App's client ID, for Sign in with GitHub                           |
 | `GITHUB_CLIENT_SECRET`     | Worker | No       | The GitHub App's client secret                                                |
+| `MICROSOFT_CLIENT_ID`      | Worker | No       | The Entra ID app's client ID, for Sign in with Microsoft                      |
+| `MICROSOFT_CLIENT_SECRET`  | Worker | No       | The Entra ID app's client secret                                              |
 | `IMPORT_BUDGET_MS`         | Worker | No       | Shortens each import run, e.g. locally                                        |
 
 For local development, use a Google Maps key restricted to
