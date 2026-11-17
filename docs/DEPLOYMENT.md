@@ -44,6 +44,9 @@ bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
 bunx wrangler secret put BETTER_AUTH_SECRET
 # The OAuth client's secret (see Google Cloud below)
 bunx wrangler secret put GOOGLE_CLIENT_SECRET
+# Optional: Sign in with GitHub (see GitHub below)
+bunx wrangler secret put GITHUB_CLIENT_ID
+bunx wrangler secret put GITHUB_CLIENT_SECRET
 ```
 
 Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
@@ -94,3 +97,19 @@ requests from forks, which don't get them).
 
   The authorized JavaScript origins aren't needed any more: the page no longer
   signs in with Google's own button.
+
+## GitHub
+
+Sign in with GitHub uses a **GitHub App** (Settings → Developer settings →
+GitHub Apps → New GitHub App), not an OAuth App: only a GitHub App takes more
+than one callback URL.
+
+- **Callback URLs**:
+  - `https://ev-maps.chealt.workers.dev/api/auth/callback/github`
+  - `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/github`
+  - `http://localhost:4321/api/auth/callback/github`
+- **Webhook**: off. **Permissions**: Account permissions → Email addresses →
+  Read-only, so sign-in gets the user's email.
+- Set its client ID and a generated client secret as the Worker's
+  `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (and in `.dev.vars` locally).
+  Without them, the menu doesn't offer GitHub.

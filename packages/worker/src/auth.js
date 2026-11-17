@@ -9,7 +9,9 @@ const AUTH_PATH = "/api/auth";
 // Which providers have credentials, so the page only offers those.
 const PROVIDERS_PATH = "/api/sign-in-providers";
 
-// Only providers with credentials are offered; see docs/DEPLOYMENT.md.
+// Only providers with credentials are offered; see docs/DEPLOYMENT.md. A
+// user who signs in with another provider later, with the same verified
+// email, gets the same account (Better Auth's implicit account linking).
 const socialProviders = (env) => ({
   ...(env.GOOGLE_CLIENT_ID &&
     env.GOOGLE_CLIENT_SECRET && {
@@ -20,6 +22,12 @@ const socialProviders = (env) => ({
         // picking the one the browser last used.
         prompt: "select_account",
       },
+    }),
+  // A GitHub App, not an OAuth App: only a GitHub App takes several callback
+  // URLs (production, the shared preview and localhost).
+  ...(env.GITHUB_CLIENT_ID &&
+    env.GITHUB_CLIENT_SECRET && {
+      github: { clientId: env.GITHUB_CLIENT_ID, clientSecret: env.GITHUB_CLIENT_SECRET },
     }),
 });
 
