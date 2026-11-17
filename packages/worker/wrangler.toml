@@ -1,8 +1,11 @@
 # The ev-maps Worker: serves the app's static site (packages/app/dist, built
 # by `bun run build`), the charger tile API and the redirect from / to the
 # visitor's language and country, and imports chargers into D1 on a schedule.
-# CI deploys it; to deploy by hand:
-#   bunx wrangler d1 migrations apply ev-maps --remote && bunx wrangler deploy
+#
+# The top level is production. [env.local] is local development (`bun run dev`
+# runs `wrangler dev --env local`). Deploys pass an empty --env= so Wrangler
+# knows the top level is meant. CI deploys it; to deploy by hand:
+#   bunx wrangler d1 migrations apply ev-maps --remote && bunx wrangler deploy --env=
 name = "ev-maps"
 main = "src/index.js"
 compatibility_date = "2026-11-09"
@@ -10,8 +13,8 @@ compatibility_date = "2026-11-09"
 compatibility_flags = ["nodejs_compat"]
 
 # Public: the page shows it to Google anyway. The client secret and
-# BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md). This is the
-# production OAuth client; local development uses its own, set in .dev.vars.
+# BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md); locally they're in
+# .dev.vars.
 [vars]
 GOOGLE_CLIENT_ID = "605162380909-92ejnikf2hpgjd6hk6t17rgp1hjtauua.apps.googleusercontent.com"
 
@@ -33,3 +36,19 @@ crons = ["*/15 * * * *"]
 
 [observability]
 enabled = true
+
+# Local development. Environments don't inherit bindings or variables, so they
+# are repeated here; the D1 binding is the same database, whose local copy
+# lives in .wrangler/.
+[env.local.vars]
+# The development OAuth client, with http://localhost:4321 redirect URIs.
+GOOGLE_CLIENT_ID = "605162380909-9qcphon62a7gsq06974niqg20bi2b879.apps.googleusercontent.com"
+# Requests reach the Worker through Astro's proxy, so it can't tell the
+# site's address from them.
+BETTER_AUTH_URL = "http://localhost:4321"
+
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "ev-maps"
+database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
+migrations_dir = "migrations"

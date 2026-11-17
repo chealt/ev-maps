@@ -51,9 +51,9 @@ bunx wrangler secret put GITHUB_CLIENT_SECRET
 
 Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
 which keeps users and sessions in D1 (`/api/auth/*`, see
-`packages/worker/src/auth.js`). The production OAuth client's ID is public
-and set in `wrangler.toml` (`GOOGLE_CLIENT_ID`); local development uses a
-separate client, whose ID and secret go in `.dev.vars`, which overrides it.
+`packages/worker/src/auth.js`). The OAuth client IDs are public and set in
+`wrangler.toml` (`GOOGLE_CLIENT_ID`): production's at the top level, the
+development client's in `[env.local]`, which `bun run dev` uses.
 Without `GOOGLE_CLIENT_SECRET` the Worker doesn't offer Google sign-in.
 
 To deploy by hand:
@@ -63,7 +63,8 @@ bun run export:chargers -- --remote
 bun run build
 cd packages/worker
 bunx wrangler d1 migrations apply ev-maps --remote
-bunx wrangler deploy
+# --env= is the top level of wrangler.toml (production), not [env.local]
+bunx wrangler deploy --env=
 ```
 
 ## GitHub Secrets and Variables
@@ -94,11 +95,11 @@ requests from forks, which don't get them).
   API keys. Add these **authorized redirect URIs** (wildcards aren't allowed):
   - Production: `https://ev-maps.chealt.workers.dev/api/auth/callback/google`
     and `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/google`.
-    Its ID goes in `wrangler.toml`, its secret in the Worker's
+    Its ID goes in `wrangler.toml`'s `[vars]`, its secret in the Worker's
     `GOOGLE_CLIENT_SECRET`.
-  - Development: `http://localhost:4321/api/auth/callback/google`. Its ID and
-    secret go in `packages/worker/.dev.vars` (`GOOGLE_CLIENT_ID`,
-    `GOOGLE_CLIENT_SECRET`).
+  - Development: `http://localhost:4321/api/auth/callback/google`. Its ID goes
+    in `wrangler.toml`'s `[env.local.vars]`, its secret in
+    `packages/worker/.dev.vars` (`GOOGLE_CLIENT_SECRET`).
 
   The authorized JavaScript origins aren't needed any more: the page no longer
   signs in with Google's own button.

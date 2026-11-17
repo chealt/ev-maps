@@ -311,7 +311,8 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: bun
           workingDirectory: packages/worker
-          command: ${{ github.event_name != 'pull_request' && 'deploy' || format('versions upload --preview-alias {0}', steps.alias.outputs.alias) }}
+          # --env= is wrangler.toml's top level (production), not [env.local].
+          command: ${{ github.event_name != 'pull_request' && 'deploy --env=' || format('versions upload --env= --preview-alias {0}', steps.alias.outputs.alias) }}
 
       - name: Deployment URL
         id: url
@@ -338,7 +339,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           packageManager: bun
           workingDirectory: packages/worker
-          command: versions upload --preview-alias preview
+          command: versions upload --env= --preview-alias preview
 
       - name: Shared preview URL
         if: github.event_name == 'pull_request'

@@ -73,9 +73,9 @@ const groupByCountry = (rows) => {
 };
 
 const readDatabase = async () => {
-  const { env, dispose } = await getPlatformProxy({
-    configPath: remote ? REMOTE_CONFIG_PATH : CONFIG_PATH,
-  });
+  const { env, dispose } = remote
+    ? await getPlatformProxy({ configPath: REMOTE_CONFIG_PATH })
+    : await getPlatformProxy({ configPath: CONFIG_PATH, environment: "local" });
   try {
     return await readAllChargers(env.DB);
   } finally {
