@@ -51,8 +51,9 @@ bunx wrangler secret put GITHUB_CLIENT_SECRET
 
 Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
 which keeps users and sessions in D1 (`/api/auth/*`, see
-`packages/worker/src/auth.js`). The OAuth client ID is public and set in
-`wrangler.toml` (`GOOGLE_CLIENT_ID`). Without `GOOGLE_CLIENT_SECRET` the
+`packages/worker/src/auth.js`). The production OAuth client's ID is public
+and set in `wrangler.toml` (`GOOGLE_CLIENT_ID`); local development uses a
+separate client, whose ID and secret go in `.dev.vars`, which overrides it. Without `GOOGLE_CLIENT_SECRET` the
 Worker offers no Google sign-in, and the page says sign-in failed.
 
 To deploy by hand:
@@ -89,11 +90,15 @@ requests from forks, which don't get them).
   restricted to the Maps JavaScript API, with these website restrictions:
   - Production: `https://*.chealt.workers.dev/*`
   - Development: `http://localhost:4321/*`
-- **OAuth client**: add these **authorized redirect URIs** (wildcards aren't
-  allowed), and set its client secret as the Worker's `GOOGLE_CLIENT_SECRET`:
-  - `https://ev-maps.chealt.workers.dev/api/auth/callback/google`
-  - `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/google`
-  - `http://localhost:4321/api/auth/callback/google`
+- **OAuth clients**: one for production and one for development, like the
+  API keys. Add these **authorized redirect URIs** (wildcards aren't allowed):
+  - Production: `https://ev-maps.chealt.workers.dev/api/auth/callback/google`
+    and `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/google`.
+    Its ID goes in `wrangler.toml`, its secret in the Worker's
+    `GOOGLE_CLIENT_SECRET`.
+  - Development: `http://localhost:4321/api/auth/callback/google`. Its ID and
+    secret go in `packages/worker/.dev.vars` (`GOOGLE_CLIENT_ID`,
+    `GOOGLE_CLIENT_SECRET`).
 
   The authorized JavaScript origins aren't needed any more: the page no longer
   signs in with Google's own button.

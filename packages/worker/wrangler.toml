@@ -10,9 +10,10 @@ compatibility_date = "2026-11-09"
 compatibility_flags = ["nodejs_compat"]
 
 # Public: the page shows it to Google anyway. The client secret and
-# BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md).
+# BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md). This is the
+# production OAuth client; local development uses its own, set in .dev.vars.
 [vars]
-GOOGLE_CLIENT_ID = "605162380909-9qcphon62a7gsq06974niqg20bi2b879.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = "605162380909-92ejnikf2hpgjd6hk6t17rgp1hjtauua.apps.googleusercontent.com"
 
 [assets]
 directory = "../app/dist"
