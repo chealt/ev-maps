@@ -53,8 +53,8 @@ Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
 which keeps users and sessions in D1 (`/api/auth/*`, see
 `packages/worker/src/auth.js`). The production OAuth client's ID is public
 and set in `wrangler.toml` (`GOOGLE_CLIENT_ID`); local development uses a
-separate client, whose ID and secret go in `.dev.vars`, which overrides it. Without `GOOGLE_CLIENT_SECRET` the
-Worker offers no Google sign-in, and the page says sign-in failed.
+separate client, whose ID and secret go in `.dev.vars`, which overrides it.
+Without `GOOGLE_CLIENT_SECRET` the Worker doesn't offer Google sign-in.
 
 To deploy by hand:
 
