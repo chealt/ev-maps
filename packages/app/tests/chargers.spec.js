@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
 import { fakeChargersApi, requestCovers, tileWidth } from "./fixtures/chargers-api.js";
 
 test.beforeEach(async ({ page }) => {
@@ -16,6 +17,16 @@ test("loads chargers for the visible area", async ({ page }) => {
   expect(requests.some((request) => requestCovers(request, { lat: 40.7128, lng: -74.006 }))).toBe(
     true
   );
+});
+
+test("asks for chargers in the current format", async ({ page }) => {
+  const requests = await fakeChargersApi(page);
+  await page.goto("/");
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  for (const request of requests) {
+    expect(request.searchParams.get("v")).toBe(String(TILE_FORMAT_VERSION));
+  }
 });
 
 test("loads chargers again when the map moves to a new area", async ({ page }) => {

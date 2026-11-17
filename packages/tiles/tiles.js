@@ -1,6 +1,12 @@
 // Web Mercator tile maths, shared by the client and the Worker: chargers are
 // loaded and cached per tile, so the same area always means the same request.
 
+// The format of the tile API's chargers. Bump it with every change to their
+// shape: the app asks for /api/chargers/{z}/{x}/{y}?v={version}, and the
+// Worker caches tiles by it, so no cache (the edge, the browser or the service
+// worker) serves the old format afterwards.
+const TILE_FORMAT_VERSION = 2;
+
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const lngToTileX = (lng, zoom) => Math.floor(((lng + 180) / 360) * 2 ** zoom);
@@ -45,4 +51,4 @@ const intersects = (a, b) =>
 const childTiles = ({ x, y, zoom }) =>
   [0, 1].flatMap((dx) => [0, 1].map((dy) => ({ x: 2 * x + dx, y: 2 * y + dy, zoom: zoom + 1 })));
 
-export { childTiles, clamp, intersects, tileBounds, tilesInBounds };
+export { TILE_FORMAT_VERSION, childTiles, clamp, intersects, tileBounds, tilesInBounds };

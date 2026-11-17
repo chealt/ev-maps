@@ -7,7 +7,14 @@
 // dense area, so it's split into its four smaller tiles, at most
 // MAX_SPLIT_DEPTH times. The service worker (public/sw.js) caches tiles.
 
-import { childTiles, clamp, intersects, tileBounds, tilesInBounds } from "@ev-maps/tiles";
+import {
+  TILE_FORMAT_VERSION,
+  childTiles,
+  clamp,
+  intersects,
+  tileBounds,
+  tilesInBounds,
+} from "@ev-maps/tiles";
 
 // Tiles are 2 zoom levels larger than the map, so a viewport covers ~2×2 tiles.
 const TILE_ZOOM_OFFSET = 2;
@@ -16,7 +23,7 @@ const MAX_SPLIT_DEPTH = 2;
 
 const inFlightRequests = new Map();
 
-const tileUrl = ({ x, y, zoom }) => `/api/chargers/${zoom}/${x}/${y}`;
+const tileUrl = ({ x, y, zoom }) => `/api/chargers/${zoom}/${x}/${y}?v=${TILE_FORMAT_VERSION}`;
 
 const fetchJson = async (url) => {
   const response = await fetch(url);
