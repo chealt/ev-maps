@@ -54,8 +54,9 @@ class UserMenuElement extends HTMLElement {
     this.loadProviders();
   }
 
-  // The page lists every provider; the Worker says which have credentials.
-  // Without an answer (e.g. offline), all of them stay.
+  // The page lists every provider, hidden; the Worker says which have
+  // credentials. Without an answer (e.g. offline, or the Worker is down),
+  // none is offered: signing in couldn't work anyway.
   async loadProviders() {
     try {
       const response = await fetch(PROVIDERS_URL);

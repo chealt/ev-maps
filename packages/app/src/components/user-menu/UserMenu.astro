@@ -9,8 +9,8 @@ import GitHubLogo from "./github-logo.svg";
 import GoogleLogo from "./google-logo.svg";
 import "./UserMenu.css";
 
-// Every sign-in provider the Worker knows (packages/worker/src/auth.js); the
-// menu hides those without credentials.
+// Every sign-in provider the Worker knows (packages/worker/src/auth.js).
+// Hidden until the Worker says it has credentials for them.
 const providers = [
   { id: "google", name: "Google", logo: GoogleLogo },
   { id: "github", name: "GitHub", logo: GitHubLogo },
@@ -43,12 +43,12 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <p class="name"></p>
       <p class="email"></p>
     </div>
-    <section class="sign-in" aria-labelledby="sign-in-title">
+    <section class="sign-in unavailable" aria-labelledby="sign-in-title">
       <h2 class="legend" id="sign-in-title">
         {page.signIn}
       </h2>
       {providers.map(({ id, name, logo: Logo }) => (
-        <button type="button" class="provider" data-provider={id}>
+        <button type="button" class="provider" data-provider={id} hidden>
           <Logo class="provider-logo" aria-hidden="true" />
           {fill(page.signInWith, { provider: name })}
         </button>
