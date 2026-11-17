@@ -48,7 +48,6 @@ bunx wrangler secret put GOOGLE_CLIENT_SECRET
 bunx wrangler secret put GITHUB_CLIENT_ID
 bunx wrangler secret put GITHUB_CLIENT_SECRET
 # Optional: Sign in with Microsoft (see Microsoft below)
-bunx wrangler secret put MICROSOFT_CLIENT_ID
 bunx wrangler secret put MICROSOFT_CLIENT_SECRET
 ```
 
@@ -133,12 +132,16 @@ registration).
 
 - **Supported account types**: accounts in any organizational directory and
   personal Microsoft accounts (the Worker uses the `common` tenant).
-- **Redirect URIs** (platform **Web**):
-  - `https://ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
-  - `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
-  - `http://localhost:4321/api/auth/callback/microsoft`
-- **Certificates & secrets**: add a client secret. Entra ID secrets expire
-  (at most after two years), so note when to replace it.
-- Set the **Application (client) ID** and the secret's **Value** as the
-  Worker's `MICROSOFT_CLIENT_ID` and `MICROSOFT_CLIENT_SECRET` (and in
-  `.dev.vars` locally). Without them, the menu doesn't offer Microsoft.
+- **Two registrations**, like the Google OAuth clients: one for production and
+  one for development. Their **Redirect URIs** (platform **Web**):
+  - Production:
+    `https://ev-maps.chealt.workers.dev/api/auth/callback/microsoft` and
+    `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
+  - Development: `http://localhost:4321/api/auth/callback/microsoft`
+- **Certificates & secrets**: add a client secret to each. Entra ID secrets
+  expire (at most after two years), so note when to replace them.
+- The **Application (client) ID** is public and goes in `wrangler.toml` as
+  `MICROSOFT_CLIENT_ID`: production's in `[vars]`, development's in
+  `[env.local.vars]`. The secret's **Value** goes in the Worker's
+  `MICROSOFT_CLIENT_SECRET` (production) and in `.dev.vars` (development).
+  Without both, the menu doesn't offer Microsoft.
