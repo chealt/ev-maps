@@ -6,6 +6,13 @@
 name = "ev-maps"
 main = "src/index.js"
 compatibility_date = "2026-11-09"
+# Better Auth (src/auth.js) uses Node.js APIs such as AsyncLocalStorage.
+compatibility_flags = ["nodejs_compat"]
+
+# Public: the page shows it to Google anyway. The client secret and
+# BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md).
+[vars]
+GOOGLE_CLIENT_ID = "605162380909-9qcphon62a7gsq06974niqg20bi2b879.apps.googleusercontent.com"
 
 [assets]
 directory = "../app/dist"

@@ -1,16 +1,48 @@
 .user-menu {
-  --avatar-size: 2.75rem;
-  --avatar-hover-scale: 1.05;
-  --account-menu-width: 16rem;
+  --avatar-size: 2.25rem;
+  --account-menu-width: 17rem;
+  --provider-logo-size: 1.125rem;
 
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
   z-index: var(--z-sticky);
 
-  .google-signin-button {
-    border-radius: var(--border-radius-full);
+  .menu-button {
+    display: flex;
+    align-items: center;
+    gap: var(--overlay-gap);
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-surface-glass);
+    backdrop-filter: var(--blur-glass);
+    color: var(--color-text);
     box-shadow: var(--shadow-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+
+    &:hover {
+      background: var(--color-surface-translucent);
+    }
+
+    &:has(.avatar:not([hidden])) {
+      padding-right: var(--spacing-sm);
+    }
+  }
+
+  .mark {
+    display: grid;
+    place-items: center;
+    width: var(--brand-mark-size);
+    height: var(--brand-mark-size);
+    border-radius: var(--border-radius-md);
+    background: var(--gradient-brand);
+    color: var(--color-primary-contrast);
+    box-shadow: var(--shadow-sm);
   }
 
   .avatar {
@@ -18,21 +50,13 @@
     place-items: center;
     width: var(--avatar-size);
     height: var(--avatar-size);
-    padding: 0;
     overflow: hidden;
-    border: var(--border-width-thick) solid var(--color-surface);
     border-radius: var(--border-radius-full);
-    background: var(--gradient-brand);
-    color: var(--color-primary-contrast);
-    box-shadow: var(--shadow-md);
-    font-family: var(--font-family);
-    font-size: var(--font-size-sm);
+    background: var(--color-surface-muted);
     font-weight: var(--font-weight-bold);
-    cursor: pointer;
-    transition: transform var(--transition-fast);
 
-    &:hover {
-      transform: scale(var(--avatar-hover-scale));
+    &[hidden] {
+      display: none;
     }
 
     .picture {
@@ -49,7 +73,7 @@
   /* Popovers render in the top layer, so this is positioned against the viewport. */
   .account-menu {
     inset: auto;
-    top: calc(var(--spacing-md) + var(--avatar-size) + var(--spacing-sm));
+    top: calc(var(--spacing-md) + var(--brand-mark-size) + var(--spacing-md) + var(--spacing-sm));
     right: var(--spacing-md);
     width: var(--account-menu-width);
     max-width: calc(100vw - 2 * var(--spacing-md));
@@ -87,9 +111,70 @@
       color: var(--color-text-muted);
     }
 
+    .sign-in {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      padding-bottom: var(--spacing-md);
+      border-bottom: var(--border-width) solid var(--color-border);
+
+      /* The Worker has no provider with credentials, e.g. locally. */
+      &.unavailable {
+        display: none;
+      }
+    }
+
+    .legend {
+      margin-bottom: var(--spacing-xs);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: var(--letter-spacing-wide);
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .provider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: var(--border-width) solid var(--color-google-button-border);
+      border-radius: var(--border-radius-full);
+      background: var(--color-google-button);
+      color: var(--color-google-button-text);
+      font-family: var(--font-family);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+
+      &:hover {
+        background: var(--color-google-button-hover);
+      }
+    }
+
+    .provider-logo {
+      width: var(--provider-logo-size);
+      height: var(--provider-logo-size);
+    }
+
+    .error {
+      font-size: var(--font-size-sm);
+      color: var(--color-danger-light-text);
+
+      &:empty {
+        display: none;
+      }
+    }
+
     .sign-out {
       justify-content: flex-start;
       border-radius: var(--border-radius-sm);
+    }
+
+    /* Last, so it wins over the display of the parts it hides. */
+    [hidden] {
+      display: none;
     }
   }
 }

@@ -2,9 +2,11 @@
 // directly; the Worker only runs for:
 // - /api/chargers/{z}/{x}/{y}: chargers in a map tile, from D1
 // - /: redirects to the page for the visitor's language and country
+// - /api/auth/*: sign-in and sessions (see auth.js)
 // It also runs the charger import on a schedule (see import/index.js).
 
 import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
+import { handleAuth, isAuthPath } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { withoutDuplicates } from "./duplicates.js";
 import { runImport } from "./import/index.js";
@@ -138,6 +140,9 @@ const redirectToLocalizedPage = async (request, env) => {
 export default {
   async fetch(request, env, context) {
     const url = new URL(request.url);
+    if (isAuthPath(url.pathname)) {
+      return handleAuth(request, env);
+    }
     if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
       const tile = parseTile(url.pathname);
       return tile

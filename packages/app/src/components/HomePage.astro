@@ -1,5 +1,4 @@
 ---
-import AppHeader from "./app-header/AppHeader.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
 import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
@@ -7,20 +6,21 @@ import { translations } from "../i18n/index.js";
 import "./HomePage.css";
 
 interface Props {
-  title?: string;
-  subtitle?: string;
   chargers?: object[];
   chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
 const { page } = translations(Astro.currentLocale ?? "en");
-const { title = "EV Maps", subtitle = page.subtitle, chargers, chargerBounds } = Astro.props;
+const { chargers, chargerBounds } = Astro.props;
 const { googleMaps, evChargers } = appConfig;
 ---
 
 <main class="home-page">
-  <AppHeader title={title} subtitle={subtitle} />
-  {googleMaps.clientId && <UserMenu clientId={googleMaps.clientId} />}
+  <hgroup class="visually-hidden">
+    <h1>EV Maps</h1>
+    <p>{page.subtitle}</p>
+  </hgroup>
+  <UserMenu />
 
   <GoogleMap
     apiKey={googleMaps.apiKey}

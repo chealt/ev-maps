@@ -5,7 +5,7 @@
   "description": "EV Maps Cloudflare Worker: charger API, redirect to the country pages and charger import",
   "type": "module",
   "scripts": {
-    "dev": "mkdir -p ../app/dist && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled",
+    "dev": "mkdir -p ../app/dist && wrangler d1 migrations apply ev-maps --local && wrangler dev --port 8787 --test-scheduled --var BETTER_AUTH_URL:http://localhost:4321",
     "build": "mkdir -p ../app/dist && wrangler deploy --dry-run --outdir dist",
     "export": "node scripts/export-chargers.js",
     "lint": "oxlint -c ../dev-config/oxlint.json src scripts",
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@ev-maps/tiles": "workspace:*",
-    "@rapideditor/country-coder": "^6.0.0"
+    "@rapideditor/country-coder": "^6.0.0",
+    "better-auth": "^1.7.25"
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",

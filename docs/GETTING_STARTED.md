@@ -24,6 +24,8 @@
    VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
    # packages/worker/.dev.vars
    OPEN_CHARGE_MAP_API_KEY=your_api_key_here
+   BETTER_AUTH_SECRET=any_long_random_value
+   GOOGLE_CLIENT_SECRET=the_oauth_client_secret
    ```
 
    See [Environment Variables](#environment-variables) for what each one is
@@ -73,13 +75,17 @@ on the server.
 | -------------------------- | ------ | -------- | ----------------------------------------------------------------------------- |
 | `VITE_GOOGLE_MAPS_API_KEY` | Page   | Yes      | Google Maps key with the **Maps JavaScript API** enabled                      |
 | `VITE_GOOGLE_MAPS_MAP_ID`  | Page   | No       | Map ID for advanced markers (defaults to Google's `DEMO_MAP_ID`)              |
-| `VITE_GOOGLE_CLIENT_ID`    | Page   | No       | OAuth client ID; without it there is no Google sign-in                        |
 | `OPEN_CHARGE_MAP_API_KEY`  | Worker | Yes      | [Open Charge Map key](https://openchargemap.org/site/develop/api) for imports |
+| `BETTER_AUTH_SECRET`       | Worker | Yes      | Signs the session cookies; any long random value (`openssl rand -base64 32`)  |
+| `GOOGLE_CLIENT_SECRET`     | Worker | No       | The OAuth client's secret; without it there is no Google sign-in              |
 | `IMPORT_BUDGET_MS`         | Worker | No       | Shortens each import run, e.g. locally                                        |
 
 For local development, use a Google Maps key restricted to
-`http://localhost:4321/*` and add `http://localhost:4321` to the OAuth
-client's authorized JavaScript origins. See
+`http://localhost:4321/*` and add
+`http://localhost:4321/api/auth/callback/google` to the OAuth client's
+authorized redirect URIs. `bun run dev` tells the Worker that the site is at
+`http://localhost:4321` (`BETTER_AUTH_URL`), since the requests reach it
+through Astro's proxy. See
 [Deployment](DEPLOYMENT.md#google-cloud) for the full Google Cloud setup.
 
 ## Scripts
@@ -110,7 +116,7 @@ Before running tests for the first time, install the browser:
 cd packages/app && bunx playwright install chromium
 ```
 
-Tests replace Google Maps, Google sign-in and the charger API with local
+Tests replace Google Maps, the sign-in API and the charger API with local
 fakes (`packages/app/tests/fixtures/`), so they need neither API keys nor
 network access. Before writing tests, read the
 [Testing Guidelines](TESTING_GUIDELINES.md).

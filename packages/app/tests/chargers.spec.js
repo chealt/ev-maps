@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
 import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi, requestCovers, tileWidth } from "./fixtures/chargers-api.js";
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
+  await fakeAuthApi(page);
 });
 
 test("loads chargers for the visible area", async ({ page }) => {

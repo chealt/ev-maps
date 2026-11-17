@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
 // The country pages are built from tests/fixtures/country-chargers (see
@@ -7,7 +8,7 @@ import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
+  await fakeAuthApi(page);
 });
 
 test("has a page for each country with chargers", async ({ page }) => {

@@ -11,8 +11,8 @@ Find electric vehicle charging stations on a map.
 - Charger details: address, connectors and power, operator, access, cost and
   status
 - Locate me, and the map remembers where you were last time
-- Sign in with Google; the account menu has sign-out, a light, dark or
-  system theme, and the language
+- Sign in with Google, and stay signed in; the account menu has the light,
+  dark or system theme and the language, signed in or not
 - In English, Polish and Hungarian, with a static page for every country
 
 Charging data comes from [Open Charge Map](https://openchargemap.org) and

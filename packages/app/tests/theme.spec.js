@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { fakeGoogleIdentity, fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 
 const mapState = (page) =>
@@ -11,12 +12,11 @@ const mapState = (page) =>
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeGoogleIdentity(page);
+  await fakeAuthApi(page);
   await fakeChargersApi(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  await page.getByRole("button", { name: "Sign in with Google" }).click();
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  await page.getByRole("button", { name: "Sign in" }).click();
 });
 
 test("follows the system theme by default", async ({ page }) => {
@@ -42,8 +42,7 @@ test("remembers the chosen theme", async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   expect((await mapState(page)).colorScheme).toBe("LIGHT");
 
-  await page.getByRole("button", { name: "Sign in with Google" }).click();
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
     page.getByRole("dialog", { name: "Account" }).getByRole("radio", { name: "Light" })
   ).toBeChecked();

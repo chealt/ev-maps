@@ -29,6 +29,8 @@ const pl = {
       link: "współtwórcy OpenStreetMap",
       after: ", ODbL",
     },
+    signIn: "Zaloguj się",
+    signInWith: "Zaloguj się przez {provider}",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -84,6 +86,7 @@ const pl = {
     cost: "Koszt: {value}",
     status: "Status: {value}",
     chargingPoints: "Punkty ładowania: {count}",
+    signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
     accountOf: "Konto: {name}",
   },
   values: {

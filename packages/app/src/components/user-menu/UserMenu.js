@@ -1,19 +1,14 @@
-import { loadGoogleIdentity } from "../google-map/loader.js";
+// Sign-in through the Worker (packages/worker/src/auth.js): the provider's
+// OAuth page, then back to this page with a session cookie, which the menu
+// reads on every load.
 import { message } from "../../lib/messages.js";
 
-const decodeJwtPayload = (token) => {
-  const base64 = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
-  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-};
-
-const systemDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-// The theme the page currently shows: the user's choice, or the system's.
-const isDarkTheme = () => {
-  const { theme } = document.documentElement.dataset;
-  return theme ? theme === "dark" : systemDarkQuery.matches;
-};
+const SESSION_URL = "/api/auth/get-session";
+const PROVIDERS_URL = "/api/sign-in-providers";
+const SIGN_IN_URL = "/api/auth/sign-in/social";
+const SIGN_OUT_URL = "/api/auth/sign-out";
+// Added to the page's URL when sign-in fails, so the menu can say so.
+const SIGN_IN_ERROR_PARAM = "sign-in-error";
 
 const initialsOf = (name) =>
   name
@@ -23,95 +18,142 @@ const initialsOf = (name) =>
     .map((part) => part[0].toUpperCase())
     .join("");
 
+const postJson = (url, body) =>
+  fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+// This page, to come back to after signing in, with or without the error.
+const returnUrl = ({ failed }) => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(SIGN_IN_ERROR_PARAM);
+  if (failed) {
+    url.searchParams.set(SIGN_IN_ERROR_PARAM, "");
+  }
+  return `${url.pathname}${url.search}`;
+};
+
 class UserMenuElement extends HTMLElement {
-  renderSignInButton = () => {
-    const container = this.querySelector(".google-signin-button");
-    if (!this.accounts || !container) {
-      return;
-    }
-    // Google draws the button in an iframe once, so a theme change redraws it.
-    container.replaceChildren();
-    this.accounts.id.renderButton(container, {
-      theme: isDarkTheme() ? "filled_black" : "outline",
-      size: "large",
-      type: "standard",
-      shape: "pill",
-      locale: document.documentElement.lang,
-    });
-  };
-
   connectedCallback() {
-    this.signedOutEl = this.querySelector(".signed-out");
-    this.signedInEl = this.querySelector(".signed-in");
-    this.menuEl = this.querySelector(".account-menu");
+    this.button = this.querySelector(".menu-button");
+    this.menu = this.querySelector(".account-menu");
+    this.errorEl = this.querySelector(".sign-in .error");
 
-    this.querySelector(".sign-out")?.addEventListener("click", () => this.signOut());
-    this.menuEl?.addEventListener("toggle", (event) =>
-      this.querySelector(".avatar").setAttribute("aria-expanded", String(event.newState === "open"))
+    this.menu.addEventListener("toggle", (event) =>
+      this.button.setAttribute("aria-expanded", String(event.newState === "open"))
     );
+    for (const provider of this.querySelectorAll("[data-provider]")) {
+      provider.addEventListener("click", () => this.signIn(provider.dataset.provider));
+    }
+    this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
 
-    document.addEventListener("theme-change", this.renderSignInButton);
-    systemDarkQuery.addEventListener("change", this.renderSignInButton);
-
-    loadGoogleIdentity()
-      .then((accounts) => this.initializeGoogleSignIn(accounts))
-      .catch((error) => console.error(error));
+    this.showReturnedError();
+    this.loadSession();
+    this.loadProviders();
   }
 
-  disconnectedCallback() {
-    document.removeEventListener("theme-change", this.renderSignInButton);
-    systemDarkQuery.removeEventListener("change", this.renderSignInButton);
+  // The page lists every provider; the Worker says which have credentials.
+  // Without an answer (e.g. offline), all of them stay.
+  async loadProviders() {
+    try {
+      const response = await fetch(PROVIDERS_URL);
+      if (!response.ok) {
+        return;
+      }
+      const { providers } = await response.json();
+      for (const button of this.querySelectorAll("[data-provider]")) {
+        button.hidden = !providers.includes(button.dataset.provider);
+      }
+      this.querySelector(".sign-in").classList.toggle("unavailable", providers.length === 0);
+    } catch (error) {
+      console.error("Could not load the sign-in providers:", error);
+    }
   }
 
-  initializeGoogleSignIn(accounts) {
-    if (!accounts?.id) {
+  // Offline or without the API, the menu stays signed out.
+  async loadSession() {
+    try {
+      const response = await fetch(SESSION_URL);
+      const session = response.ok ? await response.json() : null;
+      if (session?.user) {
+        this.showUser(session.user);
+      }
+    } catch (error) {
+      console.error("Could not load the session:", error);
+    }
+  }
+
+  async signIn(provider) {
+    this.errorEl.textContent = "";
+    try {
+      const response = await postJson(SIGN_IN_URL, {
+        provider,
+        callbackURL: returnUrl({ failed: false }),
+        errorCallbackURL: returnUrl({ failed: true }),
+      });
+      const { url } = response.ok ? await response.json() : {};
+      if (!url) {
+        throw new Error(`Sign-in request failed: ${response.status}`);
+      }
+      window.location.assign(url);
+    } catch (error) {
+      console.error(error);
+      this.errorEl.textContent = message("signInFailed");
+    }
+  }
+
+  async signOut() {
+    try {
+      await postJson(SIGN_OUT_URL, {});
+    } catch (error) {
+      console.error("Could not sign out:", error);
       return;
     }
-    this.accounts = accounts;
-    accounts.id.initialize({
-      client_id: this.dataset.clientId,
-      callback: (response) => this.handleCredential(response),
-      auto_select: false,
-      cancel_on_tap_outside: false,
-    });
-    this.renderSignInButton();
+    this.menu.hidePopover();
+    this.showSignedOut();
+    this.dispatchEvent(new CustomEvent("sign-out", { bubbles: true, composed: true }));
   }
 
-  handleCredential({ credential }) {
-    try {
-      const { name, email, picture } = decodeJwtPayload(credential);
-      this.showUser({ name: name || email, email, picture });
-      this.dispatchEvent(
-        new CustomEvent("google-sign-in", {
-          detail: { name, email, credential },
-          bubbles: true,
-          composed: true,
-        })
-      );
-    } catch (error) {
-      console.error("Invalid Google Sign-In response:", error);
+  // Coming back from a failed sign-in: say so in the open menu, and drop the
+  // marker from the URL so a reload doesn't repeat it.
+  showReturnedError() {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has(SIGN_IN_ERROR_PARAM)) {
+      return;
     }
+    window.history.replaceState(null, "", returnUrl({ failed: false }));
+    this.errorEl.textContent = message("signInFailed");
+    this.menu.showPopover();
   }
 
-  showUser({ name, email, picture }) {
-    const pictureEl = this.querySelector(".picture");
-    pictureEl.hidden = !picture;
-    pictureEl.src = picture ?? "";
-    this.querySelector(".initials").textContent = picture ? "" : initialsOf(name);
-    this.querySelector(".avatar").setAttribute("aria-label", message("accountOf", { name }));
-    this.querySelector(".name").textContent = name;
+  showUser({ name, email, image }) {
+    const displayName = name || email;
+    const picture = this.querySelector(".picture");
+    picture.hidden = !image;
+    picture.src = image ?? "";
+    this.querySelector(".initials").textContent = image ? "" : initialsOf(displayName);
+    this.button.setAttribute("aria-label", message("accountOf", { name: displayName }));
+    this.querySelector(".name").textContent = displayName;
     this.querySelector(".email").textContent = email ?? "";
-
-    this.signedOutEl.hidden = true;
-    this.signedInEl.hidden = false;
+    this.setSignedIn(true);
+    this.dispatchEvent(
+      new CustomEvent("sign-in", { detail: { name, email }, bubbles: true, composed: true })
+    );
   }
 
-  signOut() {
-    this.menuEl?.hidePopover();
-    this.accounts?.id.disableAutoSelect?.();
-    this.signedInEl.hidden = true;
-    this.signedOutEl.hidden = false;
-    this.dispatchEvent(new CustomEvent("google-sign-out", { bubbles: true, composed: true }));
+  showSignedOut() {
+    this.button.removeAttribute("aria-label");
+    this.setSignedIn(false);
+  }
+
+  setSignedIn(signedIn) {
+    this.querySelector(".sign-in-label").hidden = signedIn;
+    this.querySelector(".avatar").hidden = !signedIn;
+    this.querySelector(".profile").hidden = !signedIn;
+    this.querySelector(".sign-in").hidden = signedIn;
+    this.querySelector(".sign-out").hidden = !signedIn;
   }
 }
 

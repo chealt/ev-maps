@@ -43,10 +43,4 @@ const loadGoogleMaps = (apiKey) => {
   });
 };
 
-const loadGoogleIdentity = () => {
-  return loadScript("https://accounts.google.com/gsi/client", (resolve, script) => {
-    script.onload = () => resolve(window.google.accounts);
-  });
-};
-
-export { loadGoogleMaps, loadGoogleIdentity };
+export { loadGoogleMaps };
