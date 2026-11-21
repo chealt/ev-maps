@@ -81,42 +81,74 @@ test("restores the connector types after a reload", async ({ page }) => {
   await expect(dialog.getByRole("button", { name: "CHAdeMO", pressed: true })).toBeVisible();
 });
 
-test("asks to sign in to save the filters to the account", async ({ page }) => {
+test("asks to sign in to keep the filters on every device", async ({ page }) => {
   await page.goto("/");
   const dialog = await openFilters(page);
-  const save = dialog.getByRole("button", { name: "Save to my account" });
+  await expect(dialog.getByRole("button", { name: "Save to my account" })).toHaveCount(0);
+  await expect(dialog.getByText("Sign in to keep your filters on all your devices.")).toBeVisible();
 
-  await expect(save).toHaveAttribute("aria-disabled", "true");
-  await expect(save).toHaveAccessibleDescription("Sign in to save your filters to your account");
-  await save.hover();
-  await expect(dialog.getByRole("tooltip")).toHaveText(
-    "Sign in to save your filters to your account"
-  );
-
-  // aria-disabled, not disabled, so pressing it can open the sign-in options;
-  // Playwright waits for aria-disabled buttons unless forced.
-  await save.click({ force: true });
+  await dialog.getByRole("button", { name: "Sign in", exact: true }).click();
 
   await expect(dialog).toBeHidden();
   const menu = page.getByRole("dialog", { name: "Account" });
   await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
 
-test("saves the filters to the account when signed in", async ({ page }) => {
+test("saves the filters to the account as they change when signed in", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
   const saves = await fakeSettingsApi(page);
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
   const dialog = await openFilters(page);
+  await expect(dialog.getByText("Sign in to keep your filters")).toBeHidden();
+
   await dialog.getByRole("button", { name: "CCS" }).click();
   await dialog.getByRole("button", { name: "150–300 kW" }).click();
+  await dialog.getByRole("button", { name: "Done" }).click();
 
-  await dialog.getByRole("button", { name: "Save to my account" }).click();
-
-  await expect(dialog.getByText("Saved to your account")).toBeVisible();
-  expect(saves).toHaveLength(1);
+  // Both changes in one request, sent as the dialog closes.
+  await expect.poll(() => saves.length).toBe(1);
   expect(saves[0].filters).toMatchObject({ connectorTypes: ["ccs"], powerRanges: ["150-300"] });
   expect(saves[0].filters.updatedAt).toBeGreaterThan(0);
+
+  await page.getByRole("button", { name: "Clear filters" }).click();
+  await expect.poll(() => saves.length).toBe(2);
+  expect(saves[1].filters).toMatchObject({ connectorTypes: [], powerRanges: [] });
+});
+
+test("says when the filters couldn't be saved to the account", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeSettingsApi(page);
+  await page.route("**/api/settings", (route) =>
+    route.request().method() === "PUT" ? route.fulfill({ status: 500 }) : route.fallback()
+  );
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
+  const dialog = await openFilters(page);
+
+  await dialog.getByRole("button", { name: "CCS" }).click();
+
+  await expect(
+    dialog.getByText("Your filters couldn't be saved to your account.", { exact: false })
+  ).toBeVisible();
+});
+
+test("saves this device's filters to the account when they're newer", async ({ page }) => {
+  await page.goto("/");
+  let dialog = await openFilters(page);
+  await dialog.getByRole("button", { name: "Type 1" }).click();
+  await dialog.getByRole("button", { name: "Done" }).click();
+
+  await fakeAuthApi(page, { signedIn: true });
+  const saves = await fakeSettingsApi(page, {
+    filters: { connectorTypes: ["chademo"], powerRanges: [], updatedAt: 1 },
+  });
+  await page.reload();
+
+  await expect.poll(() => saves.length).toBe(1);
+  expect(saves[0].filters.connectorTypes).toEqual(["type1"]);
+  dialog = await openFilters(page);
+  await expect(dialog.getByRole("button", { name: "Type 1", pressed: true })).toBeVisible();
 });
 
 test("applies the account's newer filters after signing in", async ({ page }) => {
@@ -130,30 +162,6 @@ test("applies the account's newer filters after signing in", async ({ page }) =>
   await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
   const dialog = await openFilters(page);
   await expect(dialog.getByRole("button", { name: "CHAdeMO", pressed: true })).toBeVisible();
-});
-
-test("keeps this device's filters when they're newer than the account's", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeSettingsApi(page, {
-    filters: { connectorTypes: ["chademo"], powerRanges: [], updatedAt: 1 },
-  });
-  await page.goto("/");
-  // This device has no filters yet, so the account's apply first.
-  await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
-  const dialog = await openFilters(page);
-  await dialog.getByRole("button", { name: "CHAdeMO" }).click();
-  await dialog.getByRole("button", { name: "Type 2" }).click();
-  await dialog.getByRole("button", { name: "Done" }).click();
-
-  await page.reload();
-
-  await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  await expect(
-    page
-      .getByRole("dialog", { name: "Filters" })
-      .getByRole("button", { name: "Type 2", pressed: true })
-  ).toBeVisible();
 });
 
 test("shows on the Filters button how many filters are on", async ({ page }) => {

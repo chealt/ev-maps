@@ -176,22 +176,16 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Button variant="secondary" size="large" class="clear-filters" disabled>
           {page.clearFilters}
         </Button>
-        <span class="save-filters-wrapper">
-          <Button
-            variant="secondary"
-            size="large"
-            class="save-filters"
-            aria-describedby="save-filters-tooltip"
-          >
-            {page.saveFilters}
-          </Button>
-          <span class="tooltip" id="save-filters-tooltip" role="tooltip" hidden>
-            {page.signInToSaveFilters}
-          </span>
-        </span>
         <Button variant="primary" size="large" class="done">
           {page.done}
         </Button>
+        <!-- Signed in, filters are saved to the account as they change. -->
+        <p class="sync-sign-in" hidden>
+          {page.signInToSaveFilters}
+          <Button variant="ghost" size="small" class="sync-sign-in-button">
+            {page.signIn}
+          </Button>
+        </p>
         <p class="save-status" aria-live="polite"></p>
       </div>
     </dialog>

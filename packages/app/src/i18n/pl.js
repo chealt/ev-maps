@@ -59,8 +59,7 @@ const pl = {
     connectorType2: "Typ 2",
     connectorType1: "Typ 1",
     connectorHousehold: "Gniazdo domowe",
-    saveFilters: "Zapisz na moim koncie",
-    signInToSaveFilters: "Zaloguj się, aby zapisać filtry na swoim koncie",
+    signInToSaveFilters: "Zaloguj się, aby mieć swoje filtry na wszystkich urządzeniach.",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -147,8 +146,8 @@ const pl = {
     },
     pointsOutOfService: "Niedziałające: {count}",
     statusUpdated: "Zaktualizowano {time}",
-    filtersSaved: "Zapisano na Twoim koncie",
-    filtersNotSaved: "Nie udało się zapisać filtrów. Spróbuj ponownie.",
+    filtersNotSaved:
+      "Nie udało się zapisać filtrów na Twoim koncie. Nadal są zapisane na tym urządzeniu.",
     accountOf: "Konto: {name}",
   },
   values: {

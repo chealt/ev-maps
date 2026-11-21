@@ -66,8 +66,7 @@ const en = {
     connectorType2: "Type 2",
     connectorType1: "Type 1",
     connectorHousehold: "Household socket",
-    saveFilters: "Save to my account",
-    signInToSaveFilters: "Sign in to save your filters to your account",
+    signInToSaveFilters: "Sign in to keep your filters on all your devices.",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",
@@ -138,8 +137,8 @@ const en = {
     },
     pointsOutOfService: "Out of service: {count}",
     statusUpdated: "Updated {time}",
-    filtersSaved: "Saved to your account",
-    filtersNotSaved: "Your filters couldn't be saved. Try again.",
+    filtersNotSaved:
+      "Your filters couldn't be saved to your account. They're still saved on this device.",
     accountOf: "Account: {name}",
   },
   values: {
