@@ -10,7 +10,7 @@ const en = {
   languageName: "English",
   page: {
     title: "EV Maps - Electric Vehicle Charging Stations",
-    countryTitle: "EV chargers in {country} - EV Maps",
+    countryTitle: "EV Maps - EV chargers in {country}",
     description: "Electric Vehicle Charging Station Map",
     subtitle: "Find electric vehicle charging stations near you",
     mapLabel: "EV charging station map",

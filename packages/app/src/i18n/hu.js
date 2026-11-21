@@ -5,7 +5,7 @@ const hu = {
   languageName: "Magyar",
   page: {
     title: "EV Maps – elektromosautó-töltőállomások",
-    countryTitle: "Elektromosautó-töltők – {country} – EV Maps",
+    countryTitle: "EV Maps – elektromosautó-töltők – {country}",
     description: "Elektromosautó-töltőállomások térképe",
     subtitle: "Találd meg a közeli elektromosautó-töltőállomásokat",
     mapLabel: "Töltőállomások térképe",
