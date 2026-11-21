@@ -31,11 +31,17 @@ const { page } = translations(lang);
     popovertarget="account-menu"
     aria-haspopup="dialog"
     aria-expanded="false"
+    aria-busy="true"
+    aria-label={page.loadingAccount}
   >
     <span class="mark">
       <Icon icon={Zap} filled />
     </span>
-    <span class="sign-in-label">{page.signIn}</span>
+    <!-- Until the session is known: neither "Sign in" nor the avatar. -->
+    <span class="loading" aria-hidden="true"></span>
+    <span class="sign-in-label" hidden>
+      {page.signIn}
+    </span>
     <span class="avatar" hidden>
       <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
       <span class="initials" aria-hidden="true"></span>

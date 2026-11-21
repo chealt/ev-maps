@@ -38,6 +38,7 @@ const hu = {
       link: "az OpenStreetMap közreműködői",
       after: ", ODbL",
     },
+    loadingAccount: "Fiók betöltése",
     signIn: "Bejelentkezés",
     signInWith: "Bejelentkezés {provider}-fiókkal",
     route: "Útvonal",

@@ -43,6 +43,7 @@ const en = {
       link: "OpenStreetMap contributors",
       after: ", ODbL",
     },
+    loadingAccount: "Loading your account",
     signIn: "Sign in",
     signInWith: "Sign in with {provider}",
     route: "Route",

@@ -74,17 +74,19 @@ class UserMenuElement extends HTMLElement {
     }
   }
 
-  // Offline or without the API, the menu stays signed out.
+  // Offline or without the API, the menu shows signed out.
   async loadSession() {
     try {
       const response = await fetch(SESSION_URL);
       const session = response.ok ? await response.json() : null;
       if (session?.user) {
         this.showUser(session.user);
+        return;
       }
     } catch (error) {
       console.error("Could not load the session:", error);
     }
+    this.showSignedOut();
   }
 
   async signIn(provider) {
@@ -152,6 +154,8 @@ class UserMenuElement extends HTMLElement {
 
   setSignedIn(signedIn) {
     setSignedIn(signedIn);
+    this.button.removeAttribute("aria-busy");
+    this.querySelector(".loading").hidden = true;
     this.querySelector(".sign-in-label").hidden = signedIn;
     this.querySelector(".avatar").hidden = !signedIn;
     this.querySelector(".profile").hidden = !signedIn;

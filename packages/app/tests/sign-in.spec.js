@@ -22,6 +22,40 @@ test("offers sign-in, the theme and the language when signed out", async ({ page
   await expect(page.getByRole("button", { name: "Sign in", expanded: true })).toBeVisible();
 });
 
+test("shows that the account is loading until the session is known", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  let releaseSession;
+  const sessionHeld = new Promise((resolve) => {
+    releaseSession = resolve;
+  });
+  await page.route("**/api/auth/get-session", async (route) => {
+    await sessionHeld;
+    await route.fallback();
+  });
+  await page.goto("/");
+
+  const loading = page.getByRole("button", { name: "Loading your account" });
+  await expect(loading).toBeVisible();
+  await expect(loading).toHaveAttribute("aria-busy", "true");
+  await expect(loading.getByText("Sign in", { exact: true })).toBeHidden();
+
+  releaseSession();
+
+  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).not.toHaveAttribute(
+    "aria-busy"
+  );
+});
+
+test("shows Sign in once the session says signed out, or can't be loaded", async ({ page }) => {
+  await fakeAuthApi(page);
+  await page.route("**/api/auth/get-session", (route) => route.abort());
+  await page.goto("/");
+
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Loading your account" })).toHaveCount(0);
+});
+
 test("offers only the providers the Worker can sign in with", async ({ page }) => {
   await fakeAuthApi(page, { providers: [] });
   await page.goto("/");
