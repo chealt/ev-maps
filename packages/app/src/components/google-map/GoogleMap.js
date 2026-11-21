@@ -147,6 +147,24 @@ const readActiveConnectorTypes = (panel) =>
     )
   );
 
+// A charger's operator as the operator filter knows it; "" is unknown.
+const operatorOf = (charger) => charger.operator?.trim() ?? "";
+
+// How many of the chargers each operator has: most first, then by name, the
+// unknown operator last. The `kept` operators are listed even without
+// chargers, e.g. ones turned off, so they can be turned back on.
+const countOperators = (chargers, kept) => {
+  const counts = new Map([...kept].map((operator) => [operator, 0]));
+  for (const charger of chargers) {
+    const operator = operatorOf(charger);
+    counts.set(operator, (counts.get(operator) ?? 0) + 1);
+  }
+  return [...counts].sort(
+    ([nameA, countA], [nameB, countB]) =>
+      countB - countA || (nameA === "") - (nameB === "") || nameA.localeCompare(nameB)
+  );
+};
+
 // With no connector type active, every charger matches; otherwise it needs a
 // connector of one of the active types.
 const matchesConnectors = (charger, types) =>
@@ -175,6 +193,8 @@ class GoogleMapElement extends HTMLElement {
   handleThemeChange = () => this.recreateMap();
 
   connectedCallback() {
+    // Operators the user turned off; every other operator is on.
+    this.excludedOperators = new Set();
     this.statusButton = this.querySelector(".map-status");
     this.statusEl = this.statusButton?.querySelector(".text");
     this.chargerList = this.querySelector(".charger-list");
@@ -301,6 +321,7 @@ class GoogleMapElement extends HTMLElement {
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
     this.filterPanel?.addEventListener("click", (event) => this.handleFilterClick(event));
+    this.filterPanel?.addEventListener("change", (event) => this.handleOperatorChange(event));
     for (const button of this.querySelectorAll(".clear-filters")) {
       button.addEventListener("click", () => this.clearFilters());
     }
@@ -310,6 +331,8 @@ class GoogleMapElement extends HTMLElement {
     // However the dialog closes (buttons, Escape), the Filters button follows.
     this.filterPanel?.addEventListener("close", () => {
       this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
+      // Operators kept in place while the dialog was open can go now.
+      this.listOperators(this.loaded?.chargers ?? []);
       this.flushAccountSave();
     });
     // Leaving the page doesn't lose a save that's waiting.
@@ -426,6 +449,12 @@ class GoogleMapElement extends HTMLElement {
       requestSignIn();
       return;
     }
+    if (event.target.closest(".show-all-operators")) {
+      this.excludedOperators.clear();
+      this.showOperatorChoices();
+      this.filtersChanged();
+      return;
+    }
     const button = event.target.closest(".power-filter, .connector-filter");
     if (!button) {
       return;
@@ -434,11 +463,74 @@ class GoogleMapElement extends HTMLElement {
     this.filtersChanged();
   }
 
+  handleOperatorChange(event) {
+    const checkbox = event.target.closest(".operator-filter");
+    if (!checkbox) {
+      return;
+    }
+    const { operator } = checkbox.dataset;
+    if (checkbox.checked) {
+      this.excludedOperators.delete(operator);
+    } else {
+      this.excludedOperators.add(operator);
+    }
+    this.showOperatorChoices();
+    this.filtersChanged();
+  }
+
   clearFilters() {
     for (const button of this.querySelectorAll(".power-filter, .connector-filter")) {
       button.setAttribute("aria-pressed", "false");
     }
+    this.excludedOperators.clear();
+    this.showOperatorChoices();
     this.filtersChanged();
+  }
+
+  // Lists the operators of the loaded chargers, each ticked unless it's
+  // turned off. The list is only rebuilt when the operators change, and
+  // while the dialog is open none is removed, so ticking one keeps it, and
+  // the focus, in place.
+  listOperators(chargers) {
+    const list = this.filterPanel?.querySelector(".operator-options");
+    if (!list) {
+      return;
+    }
+    const kept = new Set(this.excludedOperators);
+    if (this.filterPanel.open) {
+      for (const checkbox of list.querySelectorAll(".operator-filter")) {
+        kept.add(checkbox.dataset.operator);
+      }
+    }
+    const operators = countOperators(chargers, kept);
+    const signature = JSON.stringify(operators);
+    if (signature !== this.operatorsSignature) {
+      this.operatorsSignature = signature;
+      const template = this.filterPanel.querySelector(".operator-option-template");
+      list.replaceChildren(
+        ...operators.map(([operator, count]) => {
+          const option = template.content.cloneNode(true);
+          option.querySelector(".operator-filter").dataset.operator = operator;
+          option.querySelector(".operator-name").textContent =
+            operator || message("unknownOperator");
+          option.querySelector(".operator-count").textContent = formatNumber(count);
+          return option;
+        })
+      );
+    }
+    this.showOperatorChoices();
+  }
+
+  // Ticks the operators that are on, and offers "Show all" while any is off.
+  showOperatorChoices() {
+    if (!this.filterPanel) {
+      return;
+    }
+    for (const checkbox of this.filterPanel.querySelectorAll(".operator-filter")) {
+      checkbox.checked = !this.excludedOperators.has(checkbox.dataset.operator);
+    }
+    this.filterPanel.querySelector(".show-all-operators").hidden =
+      this.excludedOperators.size === 0;
   }
 
   filtersChanged() {
@@ -454,14 +546,19 @@ class GoogleMapElement extends HTMLElement {
     return {
       powerRanges: this.activePowerRanges(),
       connectorTypes: this.activeConnectorGroups(),
+      excludedOperators: [...this.excludedOperators].sort(),
       updatedAt: this.filtersUpdatedAt ?? 0,
     };
   }
 
   // "Clear filters" shows on the map and is enabled in the dialog only while
-  // a filter is active, and the Filters button shows how many are.
+  // a filter is active, and the Filters button shows how many are (the
+  // operator filter counts once, however many operators are off).
   updateClearFiltersButtons() {
-    const count = this.activePowerRanges().length + this.activeConnectorGroups().length;
+    const count =
+      this.activePowerRanges().length +
+      this.activeConnectorGroups().length +
+      (this.excludedOperators.size > 0 ? 1 : 0);
     const active = count > 0;
     customElements
       .whenDefined("ev-filter-button")
@@ -489,7 +586,9 @@ class GoogleMapElement extends HTMLElement {
 
   // Presses the buttons of the given filters; ones that no longer exist are
   // ignored.
-  applyFilters({ powerRanges = [], connectorTypes = [], updatedAt = 0 }) {
+  applyFilters({ powerRanges = [], connectorTypes = [], excludedOperators = [], updatedAt = 0 }) {
+    this.excludedOperators = new Set(excludedOperators);
+    this.showOperatorChoices();
     for (const button of this.querySelectorAll(".power-filter")) {
       button.setAttribute("aria-pressed", String(powerRanges.includes(button.dataset.powerRange)));
     }
@@ -594,6 +693,7 @@ class GoogleMapElement extends HTMLElement {
       }
       this.loaded = null;
       this.clearMarkers();
+      this.listOperators([]);
       this.hideChargerDetails();
       this.setStatus(message("zoomIn"));
       return;
@@ -644,8 +744,12 @@ class GoogleMapElement extends HTMLElement {
     const { chargers, truncated } = this.loaded;
     const ranges = this.filterPanel ? readActivePowerRanges(this.filterPanel) : [];
     const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
+    this.listOperators(chargers);
     const matching = chargers.filter(
-      (charger) => matchesPower(charger, ranges) && matchesConnectors(charger, types)
+      (charger) =>
+        matchesPower(charger, ranges) &&
+        matchesConnectors(charger, types) &&
+        !this.excludedOperators.has(operatorOf(charger))
     );
 
     this.clusterIndex = new Supercluster({

@@ -144,7 +144,9 @@ ev-maps/
   Users, accounts and sessions are in D1, and the page reads the session from
   `/api/auth/get-session` on every load.
 - **Filters and settings**: the Filters dialog has connector types (OR'ed:
-  a charger needs one of them) and power ranges, which must both match. The
+  a charger needs one of them), power ranges and operators, which must all
+  match. Operators are listed from the loaded chargers, all ticked, and the
+  ones turned off are saved (`excludedOperators`), so new operators show. The
   choice is saved in IndexedDB with when it changed, and the Filters button
   shows how many filters are on. Signed in, each change is also saved to the
   account a second later (or as the dialog closes) with the Worker's

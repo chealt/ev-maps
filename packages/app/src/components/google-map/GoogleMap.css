@@ -12,6 +12,9 @@ ev-google-map {
   /* Filter panel */
   --dialog-content-width: 40rem;
   --filter-option-min-width: 9rem;
+  --operator-option-min-width: 14rem;
+  --operator-option-height: 2.75rem;
+  --checkbox-size: 1.25rem;
 
   /* Charger list */
   --list-item-height: 4.5rem;
@@ -255,6 +258,70 @@ ev-google-map {
   .subtitle {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+
+    .show-all-operators {
+      color: var(--color-primary-light-text);
+
+      &[hidden] {
+        display: none;
+      }
+    }
+  }
+
+  .hint {
+    margin-top: calc(-1 * var(--spacing-sm));
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .no-operators {
+    margin-top: 0;
+
+    &:not(:has(~ .operator-options:empty)) {
+      display: none;
+    }
+  }
+
+  .operator-options {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--operator-option-min-width), 1fr));
+    gap: var(--spacing-2xs) var(--spacing-md);
+  }
+
+  .operator-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-height: var(--operator-option-height);
+    cursor: pointer;
+
+    input {
+      flex-shrink: 0;
+      width: var(--checkbox-size);
+      height: var(--checkbox-size);
+      accent-color: var(--color-primary);
+    }
+
+    .operator-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .operator-count {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
   }
 
   .options {
