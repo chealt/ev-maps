@@ -38,7 +38,19 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
   ].filter(Boolean);
 };
 
-const chargerName = (charger) => charger.name || message("unnamedCharger");
+const chargerName = (charger) => charger.name || charger.operator || message("unnamedCharger");
+
+// Sources the Worker has live statuses for (packages/worker/src/live-status.js).
+const LIVE_STATUS_SOURCES = ["eipa"];
+// The page keeps statuses this long, in memory only; the Worker refreshes
+// them every few minutes.
+const STATUS_MAX_AGE_MS = 60 * 1000;
+
+const minutesAgo = (timestamp) =>
+  new Intl.RelativeTimeFormat(document.documentElement.lang, { numeric: "auto" }).format(
+    -Math.max(0, Math.round((Date.now() - timestamp) / 60000)),
+    "minute"
+  );
 
 // Space around a route when the map fits it, in pixels.
 const ROUTE_PADDING = 48;
@@ -136,6 +148,7 @@ class GoogleMapElement extends HTMLElement {
   map = null;
   maps = null;
   markersById = new Map();
+  statuses = new Map();
   searchId = 0;
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
@@ -840,10 +853,64 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));
+    // A charger merged from several sources credits each of them.
+    const sources = charger.sources ?? [charger.source];
     for (const attribution of panel.querySelectorAll(".attribution")) {
-      attribution.hidden = attribution.dataset.source !== charger.source;
+      attribution.hidden = !sources.includes(attribution.dataset.source);
     }
     panel.hidden = false;
+    this.showAvailability(charger);
+  }
+
+  // The charger's live statuses, by ID: from memory if recent, else the
+  // Worker (GET /api/chargers/status).
+  async fetchStatuses(ids) {
+    const fresh = (id) => Date.now() - (this.statuses.get(id)?.fetchedAt ?? 0) < STATUS_MAX_AGE_MS;
+    const missing = ids.filter((id) => !fresh(id));
+    if (missing.length) {
+      const response = await fetch(`/api/chargers/status?ids=${missing.join(",")}`);
+      const { statuses } = response.ok ? await response.json() : { statuses: {} };
+      for (const id of missing) {
+        this.statuses.set(id, { status: statuses[id] ?? null, fetchedAt: Date.now() });
+      }
+    }
+    return ids.map((id) => this.statuses.get(id)?.status).filter(Boolean);
+  }
+
+  // How many of the charger's points are free right now, where a source
+  // publishes it; the section stays hidden otherwise.
+  async showAvailability(charger) {
+    const section = this.detailsPanel.querySelector(".availability");
+    section.hidden = true;
+    const ids = (charger.ids ?? [charger.id]).filter((id) =>
+      LIVE_STATUS_SOURCES.includes(id.split(":")[0])
+    );
+    if (!ids.length) {
+      return;
+    }
+    let statuses;
+    try {
+      statuses = await this.fetchStatuses(ids);
+    } catch (error) {
+      console.error("Could not load the charger's availability:", error);
+      return;
+    }
+    if (!statuses.length || this.activeChargerId !== charger.id) {
+      return;
+    }
+    const sum = (field) => statuses.reduce((total, status) => total + status[field], 0);
+    const outOfService = sum("outOfService");
+    section.querySelector(".free").textContent = message("pointsFree", {
+      available: sum("available"),
+      count: sum("total"),
+    });
+    const outOfServiceEl = section.querySelector(".out-of-service");
+    outOfServiceEl.textContent = message("pointsOutOfService", { count: outOfService });
+    outOfServiceEl.hidden = outOfService === 0;
+    section.querySelector(".updated").textContent = message("statusUpdated", {
+      time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
+    });
+    section.hidden = false;
   }
 
   hideChargerDetails() {

@@ -2,10 +2,15 @@
 // due jobs (never imported, or last finished over a week ago) until its time
 // budget is spent; a job's cursor lets the next run continue a big country.
 
+import * as eipa from "./eipa.js";
 import * as openChargeMap from "./open-charge-map.js";
 import * as openStreetMap from "./openstreetmap.js";
 
-const SOURCES = { [openChargeMap.SOURCE]: openChargeMap, [openStreetMap.SOURCE]: openStreetMap };
+const SOURCES = {
+  [eipa.SOURCE]: eipa,
+  [openChargeMap.SOURCE]: openChargeMap,
+  [openStreetMap.SOURCE]: openStreetMap,
+};
 const REFRESH_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 // Scheduled runs may use up to 15 minutes; leave room to finish a step.
 const RUN_BUDGET_MS = 10 * 60 * 1000;

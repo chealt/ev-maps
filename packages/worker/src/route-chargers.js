@@ -3,7 +3,7 @@
 // page sends the route Google planned, thinned to MAX_POINTS.
 
 import { chargersInEachBounds, toClientCharger } from "./db.js";
-import { withoutDuplicates } from "./duplicates.js";
+import { mergeDuplicates } from "./duplicates.js";
 import { cumulativeMeters, nearestOnRoute, routeChunks } from "./route.js";
 
 const MAX_POINTS = 5000;
@@ -76,7 +76,7 @@ const chargersAlongRoute = async (db, { path, corridorMeters }) => {
       });
     }
   }
-  const sorted = withoutDuplicates(along).sort(
+  const sorted = mergeDuplicates(along).sort(
     (a, b) => a.route.distanceFromStartMeters - b.route.distanceFromStartMeters
   );
   return {

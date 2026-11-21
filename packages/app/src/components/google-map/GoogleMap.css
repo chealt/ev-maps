@@ -389,6 +389,23 @@ ev-google-map {
     }
   }
 
+  .availability {
+    .free {
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-primary-light-text);
+    }
+
+    .out-of-service {
+      color: var(--color-danger-light-text);
+    }
+
+    .updated {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+  }
+
   .connectors,
   .details {
     list-style: none;

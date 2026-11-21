@@ -24,6 +24,8 @@ const pl = {
     connectors: "Złącza",
     details: "Szczegóły",
     openChargeMapCredit: { before: "Dane o stacjach:", after: "" },
+    availability: "Dostępność",
+    eipaCredit: { before: "Dane o stacjach i dostępności:", after: ", Urząd Dozoru Technicznego" },
     openStreetMapCredit: {
       before: "Dane o stacjach ©",
       link: "współtwórcy OpenStreetMap",
@@ -115,6 +117,12 @@ const pl = {
     choosePlaces: "Wybierz oba miejsca z podpowiedzi",
     alongRoute: "W kolejności na trasie",
     offRoute: "{distance} od trasy",
+    pointsFree: {
+      one: "Wolne punkty: {available} z {count}",
+      other: "Wolne punkty: {available} z {count}",
+    },
+    pointsOutOfService: "Niedziałające: {count}",
+    statusUpdated: "Zaktualizowano {time}",
     accountOf: "Konto: {name}",
   },
   values: {

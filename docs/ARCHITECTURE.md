@@ -9,8 +9,10 @@
 - **Backend**: a Cloudflare Worker (`packages/worker`) with a
   [D1](https://developers.cloudflare.com/d1/) database (SQLite) and an R*Tree
   spatial index
-- **Charger data**: [Open Charge Map](https://openchargemap.org) and
-  [OpenStreetMap](https://www.openstreetmap.org), imported on a schedule
+- **Charger data**: [Open Charge Map](https://openchargemap.org),
+  [OpenStreetMap](https://www.openstreetmap.org) and Poland's official
+  register, [EIPA](https://eipa.udt.gov.pl), imported on a schedule; EIPA also
+  publishes live availability
 - **Clustering**: [supercluster](https://github.com/mapbox/supercluster)
 - **Icons**: [Lucide](https://lucide.dev/) via `lucide-static`
 - **Styling**: Vanilla CSS with native nesting
@@ -83,9 +85,12 @@ ev-maps/
   removed. Every charger keeps its source and license.
 - **Chargers**: when the map stops moving, `google-map/chargers.js` loads the
   visible area's tiles from `/api/chargers/{z}/{x}/{y}`, which reads D1
-  through the R*Tree index and merges duplicates (the same charger from two
-  sources within 60 m). Access, status and connector types are sent as IDs,
-  which the page translates. A full tile is split into smaller tiles. Tiles
+  through the R*Tree index and merges each charger's records from different
+  sources (within 60 m) into one: every field comes from the best source that
+  has it (official registers such as EIPA first, then Open Charge Map, then
+  OpenStreetMap), and the charger lists all of its sources, which the page credits.
+  Access, status and connector types are sent as IDs, which the page
+  translates. A full tile is split into smaller tiles. Tiles
   are cached at the edge for a day and in the browser by the service worker.
 - **Country pages**: every page is under its language: `/en/` is the map
   without data, and `/en/hu/`, `/en/pl/`, … are static pages, one per
@@ -108,6 +113,12 @@ ev-maps/
   visitor's IP address (Cloudflare's `request.cf.country`). Without a page for
   that country it redirects to `/{language}/`. It only picks the URL; every
   page is served as a static file.
+- **Live availability**: sources that publish it (EIPA) are polled every 5
+  minutes (`packages/worker/src/live-status.js`), and each source's statuses
+  are stored as one row, so a refresh is one write. When a charger's details
+  open, the page asks `/api/chargers/status` for its records' statuses and
+  shows how many points are free, keeping them in memory for a minute; they
+  never go into the cached tiles or the service worker's cache.
 - **Countries**: Open Charge Map gives each charger's country; OpenStreetMap
   chargers get it from their location, with
   [country-coder](https://github.com/rapideditor/country-coder).

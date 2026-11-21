@@ -17,7 +17,7 @@ import { parseArgs } from "node:util";
 import { iso1A2Code } from "@rapideditor/country-coder";
 import { getPlatformProxy } from "wrangler";
 import { chargersAfter, toClientCharger } from "../src/db.js";
-import { withoutDuplicates } from "../src/duplicates.js";
+import { mergeDuplicates } from "../src/duplicates.js";
 
 const PAGE_SIZE = 5000;
 // About 10 cm, plenty for a map and much shorter than the stored doubles.
@@ -114,7 +114,7 @@ for (const file of await readdir(directory)) {
   }
 }
 for (const [country, chargers] of [...byCountry].sort(([a], [b]) => a.localeCompare(b))) {
-  const unique = withoutDuplicates(chargers).sort((a, b) => a.id.localeCompare(b.id));
+  const unique = mergeDuplicates(chargers).sort((a, b) => a.id.localeCompare(b.id));
   await writeFile(join(directory, `${country}.json`), JSON.stringify(unique));
   console.log(`${country}: ${unique.length} chargers`);
 }
