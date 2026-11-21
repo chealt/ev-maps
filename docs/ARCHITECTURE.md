@@ -86,11 +86,13 @@ ev-maps/
   are cached at the edge for a day and in the browser by the service worker.
 - **Country pages**: every page is under its language: `/en/` is the map
   without data, and `/en/hu/`, `/en/pl/`, … are static pages, one per
-  country with chargers. Each contains the country's chargers (at most 4,000: larger countries get an
-  even spread of their fastest ones, one per area), built from an export of D1 (`packages/worker/scripts/export-chargers.js`). The map
-  starts on the country and shows them right away, also when zoomed out too
-  far to load tiles; zoomed in, it loads the area's tiles as usual. The
-  country pages are rebuilt every week (`refresh.yml`) and on every deploy.
+  country with chargers. Each contains the country's chargers, built from an
+  export of D1 (`packages/worker/scripts/export-chargers.js`); a country with
+  more than 4,000 gets an even spread of them (the fastest in each area), as
+  Cloudflare serves files up to 25 MiB. The map starts on the country and
+  shows them right away, also when zoomed out too far to load tiles; zoomed
+  in, it loads the area's tiles as usual. The country pages are rebuilt every
+  week (`refresh.yml`) and on every deploy.
 - **Languages**: English, Polish and Hungarian, each built as its own static
   pages (`/en/`, `/pl/`, `/hu/`); see
   [Languages](DEVELOPMENT_GUIDELINES.md#languages). Google Maps loads in the
