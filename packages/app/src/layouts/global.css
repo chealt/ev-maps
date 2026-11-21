@@ -38,6 +38,8 @@
   --color-border: light-dark(#e2e8f0, #334155);
   --color-border-strong: light-dark(#cbd5e1, #475569);
   --color-focus-ring: rgba(5, 150, 105, 0.45);
+  /* The planned route's line on the map (plain, as Google Maps draws it) */
+  --color-route: #2563eb;
   /* Google's sign-in button branding (light: white, dark: near-black) */
   --color-google-button: light-dark(#ffffff, #131314);
   --color-google-button-hover: light-dark(#f8f9fa, #1f1f20);

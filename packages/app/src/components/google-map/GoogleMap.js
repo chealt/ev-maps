@@ -2,6 +2,7 @@ import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { loadGoogleMaps } from "./loader.js";
+import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
 
 // Chargers closer than this many pixels are grouped; above the max zoom never.
@@ -38,6 +39,13 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
 };
 
 const chargerName = (charger) => charger.name || message("unnamedCharger");
+
+// Space around a route when the map fits it, in pixels.
+const ROUTE_PADDING = 48;
+const ROUTE_LINE = { strokeOpacity: 0.85, strokeWeight: 5 };
+
+// A chosen place, as the Routes library takes it: a Google Place, or a location.
+const routeEndpoint = ({ place, location }) => place ?? location;
 
 const EARTH_RADIUS_METERS = 6371000;
 const LIST_ZOOM = 15;
@@ -88,12 +96,18 @@ const toFeature = (charger) => ({
   properties: { charger },
 });
 
-const chargerCountMessage = ({ shown, total, filtered, truncated }) => {
+const chargerCountMessage = ({ shown, total, filtered, truncated, alongRoute }) => {
   if (!total) {
-    return message("noChargers");
+    return message(alongRoute ? "noRouteChargers" : "noChargers");
   }
   if (filtered) {
-    return message("chargersFiltered", { shown, count: total });
+    return message(alongRoute ? "routeChargersFiltered" : "chargersFiltered", {
+      shown,
+      count: total,
+    });
+  }
+  if (alongRoute) {
+    return message("routeChargersFound", { count: total });
   }
   if (truncated) {
     return message("chargersTruncated", { count: total });
@@ -137,6 +151,8 @@ class GoogleMapElement extends HTMLElement {
     this.filterPanel = this.querySelector(".filter-dialog");
     this.detailsPanel = this.querySelector(".charger-details");
     this.pageChargers = this.readPageChargers();
+    this.routePlanner = this.querySelector("ev-route-planner");
+    this.clearRouteButton = this.querySelector(".map-controls .clear-route");
 
     this.setupEventListeners();
     this.filtersRestored = this.restoreFilters();
@@ -204,6 +220,10 @@ class GoogleMapElement extends HTMLElement {
       this.setStatus(event.detail?.message || message("locationFailed"), "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
+    this.addEventListener("open-route-planner", () => this.routePlanner?.open());
+    this.addEventListener("route-requested", (event) => this.showRoute(event.detail));
+    this.addEventListener("route-cleared", () => this.clearRoute());
+    this.clearRouteButton?.addEventListener("click", () => this.clearRoute());
     this.statusButton?.addEventListener("click", () => this.openChargerList());
     this.chargerList
       ?.querySelector(".close")
@@ -315,6 +335,7 @@ class GoogleMapElement extends HTMLElement {
     const zoom = this.map.getZoom();
     this.mapEl.replaceChildren();
     this.createMap({ center, zoom });
+    this.route?.line.setMap(this.map);
     for (const marker of this.markersById.values()) {
       marker.map = this.map;
     }
@@ -398,6 +419,12 @@ class GoogleMapElement extends HTMLElement {
     const searchId = ++this.searchId;
     const zoom = this.map.getZoom();
 
+    // With a route, the chargers are the route's, at every zoom.
+    if (this.route) {
+      await this.showMatchingChargers();
+      return;
+    }
+
     if (zoom < this.minChargerZoom) {
       // Too large an area to load, but a country page has its own chargers.
       if (this.pageChargers?.length) {
@@ -479,6 +506,7 @@ class GoogleMapElement extends HTMLElement {
         total: chargers.length,
         filtered: matching.length !== chargers.length,
         truncated,
+        alongRoute: Boolean(this.route),
       }),
       matching.length ? "success" : "idle"
     );
@@ -493,19 +521,24 @@ class GoogleMapElement extends HTMLElement {
     }
   }
 
-  // Lists the chargers nearest first: to the user if they've been located,
-  // otherwise to the center of the map.
+  // Lists the chargers in order along the route, or nearest first: to the
+  // user if they've been located, otherwise to the center of the map.
   renderChargerList() {
     const origin = this.userLocation ?? this.map.getCenter().toJSON();
     this.sortedChargers = this.listedChargers
-      .map((charger) => ({ charger, meters: distanceInMeters(origin, charger.location) }))
+      .map((charger) => ({
+        charger,
+        meters: this.route
+          ? charger.route.distanceFromStartMeters
+          : distanceInMeters(origin, charger.location),
+      }))
       .sort((a, b) => a.meters - b.meters);
 
     const list = this.chargerList;
     const count = this.sortedChargers.length;
     list.querySelector(".title").textContent = message("chargerCount", { count });
     list.querySelector(".sort-basis").textContent = message(
-      this.userLocation ? "nearestToYou" : "nearestToCenter"
+      this.route ? "alongRoute" : this.userLocation ? "nearestToYou" : "nearestToCenter"
     );
 
     const template = list.querySelector(".item-template");
@@ -517,6 +550,11 @@ class GoogleMapElement extends HTMLElement {
         item.querySelector(".distance").textContent = formatDistance(meters);
         item.querySelector(".meta").textContent = [
           charger.maxPowerKw ? message("power", { power: charger.maxPowerKw }) : null,
+          this.route
+            ? message("offRoute", {
+                distance: formatDistance(charger.route.distanceFromRouteMeters),
+              })
+            : null,
           charger.address,
         ]
           .filter(Boolean)
@@ -525,6 +563,79 @@ class GoogleMapElement extends HTMLElement {
       })
     );
     list.querySelector(".body").scrollTop = 0;
+  }
+
+  // Plans the route with Google's Routes library, draws it, and shows the
+  // chargers along it (POST /api/chargers/route) instead of the map's.
+  async showRoute({ origin, destination }) {
+    await this.mapReady;
+    const searchId = ++this.searchId;
+    this.setStatus(message("routeLoading"), "loading");
+    try {
+      const { Route } = await this.maps.importLibrary("routes");
+      const { routes } = await Route.computeRoutes({
+        origin: routeEndpoint(origin),
+        destination: routeEndpoint(destination),
+        travelMode: "DRIVING",
+        fields: ["path"],
+        language: document.documentElement.lang,
+      });
+      const path = routes?.[0]?.path?.map(toLatLng);
+      if (!path?.length) {
+        if (searchId === this.searchId) {
+          this.setStatus(message("noRoute"), "error");
+        }
+        return;
+      }
+      const { chargers, full } = await fetchChargersAlongRoute(path);
+      if (searchId !== this.searchId) {
+        return;
+      }
+      const { Polyline } = await this.maps.importLibrary("maps");
+      this.removeRouteLine();
+      this.route = {
+        line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: this.routeColor }),
+      };
+      this.loaded = { chargers, truncated: full };
+      this.setRouteShown(true);
+      this.hideChargerDetails();
+      this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
+      await this.showMatchingChargers();
+    } catch (error) {
+      console.error("Could not plan the route:", error);
+      if (searchId === this.searchId) {
+        this.setStatus(message(navigator.onLine ? "routeFailed" : "offlineChargers"), "error");
+      }
+    }
+  }
+
+  clearRoute() {
+    if (!this.route) {
+      return;
+    }
+    this.removeRouteLine();
+    this.route = null;
+    this.loaded = null;
+    this.setRouteShown(false);
+    this.clearMarkers();
+    this.hideChargerDetails();
+    this.loadEvChargers();
+  }
+
+  removeRouteLine() {
+    this.route?.line.setMap(null);
+  }
+
+  setRouteShown(shown) {
+    if (this.clearRouteButton) {
+      this.clearRouteButton.hidden = !shown;
+    }
+    this.routePlanner?.setRouteShown(shown);
+  }
+
+  // The line's color is a design token (--color-route in global.css).
+  get routeColor() {
+    return getComputedStyle(this).getPropertyValue("--route-color").trim();
   }
 
   // The status pill morphs into the list: only one element at a time may

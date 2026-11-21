@@ -109,7 +109,84 @@
     }
   }
 
-  const libraries = { maps: { Map }, marker: { AdvancedMarkerElement } };
+  // Places the fake place search knows, and records of what was asked.
+  const PLACES = [
+    {
+      id: "budapest",
+      main: "Budapest",
+      secondary: "Hungary",
+      location: { lat: 47.4979, lng: 19.0402 },
+    },
+    {
+      id: "vienna",
+      main: "Vienna",
+      secondary: "Austria",
+      location: { lat: 48.2082, lng: 16.3738 },
+    },
+    { id: "nowhere", main: "Nowhere Island", secondary: "Ocean", location: { lat: 0, lng: -30 } },
+  ];
+  window.__placeRequests = [];
+  window.__routeRequests = [];
+
+  class AutocompleteSessionToken {}
+
+  const AutocompleteSuggestion = {
+    async fetchAutocompleteSuggestions(request) {
+      window.__placeRequests.push(request);
+      const text = request.input.toLowerCase();
+      return {
+        suggestions: PLACES.filter((place) => place.main.toLowerCase().startsWith(text)).map(
+          (place) => ({
+            placePrediction: {
+              text: { toString: () => `${place.main}, ${place.secondary}` },
+              mainText: { toString: () => place.main },
+              secondaryText: { toString: () => place.secondary },
+              toPlace: () => ({ id: place.id, location: place.location }),
+            },
+          })
+        ),
+      };
+    },
+  };
+
+  // A place or a location, as the app passes them, as { lat, lng }.
+  const pointOf = (endpoint) => endpoint.location ?? endpoint;
+
+  // Drives along a straight line in 20 steps; the ocean has no route.
+  const Route = {
+    async computeRoutes(request) {
+      window.__routeRequests.push(request);
+      if (request.destination.id === "nowhere" || request.origin.id === "nowhere") {
+        return { routes: [] };
+      }
+      const from = pointOf(request.origin);
+      const to = pointOf(request.destination);
+      const path = Array.from({ length: 21 }, (_, index) => ({
+        lat: from.lat + ((to.lat - from.lat) * index) / 20,
+        lng: from.lng + ((to.lng - from.lng) * index) / 20,
+      }));
+      return { routes: [{ path }] };
+    },
+  };
+
+  // The route line on the map, readable by tests as window.__fakeRouteLine.
+  class Polyline {
+    constructor(options) {
+      this.options = options;
+      this.setMap(options.map);
+    }
+    setMap(map) {
+      this.map = map;
+      window.__fakeRouteLine = map ? this.options : null;
+    }
+  }
+
+  const libraries = {
+    maps: { Map, Polyline },
+    marker: { AdvancedMarkerElement },
+    places: { AutocompleteSuggestion, AutocompleteSessionToken },
+    routes: { Route },
+  };
 
   window.google = {
     maps: { importLibrary: async (name) => libraries[name] },

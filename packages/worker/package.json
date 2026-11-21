@@ -8,6 +8,7 @@
     "dev": "mkdir -p ../app/dist && wrangler d1 migrations apply ev-maps --local --env local && wrangler dev --env local --port 8787 --test-scheduled",
     "build": "mkdir -p ../app/dist && wrangler deploy --dry-run --outdir dist --env=",
     "export": "node scripts/export-chargers.js",
+    "test": "bun test",
     "lint": "oxlint -c ../dev-config/oxlint.json src scripts",
     "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
     "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."

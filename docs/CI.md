@@ -30,7 +30,7 @@ includes everything that artifact needs from CI.
 | Workflow     | Artifact          | Jobs                                                             |
 | ------------ | ----------------- | ---------------------------------------------------------------- |
 | `app.yml`    | `packages/app`    | JS lint, CSS lint, format check, build, Playwright tests, deploy |
-| `worker.yml` | `packages/worker` | JS lint, format check, bundle (`wrangler deploy --dry-run`)      |
+| `worker.yml` | `packages/worker` | JS lint, format check, unit tests (`bun test`), bundle           |
 
 Both also lint and format-check `packages/tiles`, which they share.
 

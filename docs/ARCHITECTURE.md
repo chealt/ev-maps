@@ -41,6 +41,9 @@ ev-maps/
 │   │   │   │   ├── icon/              # Lucide icon wrapper (Astro only)
 │   │   │   │   ├── language-picker/   # <ev-language-picker>: links to other languages
 │   │   │   │   ├── locate-button/     # <ev-locate-button>
+│   │   │   │   ├── place-input/       # <ev-place-input>: place search combobox
+│   │   │   │   ├── route-button/      # <ev-route-button>
+│   │   │   │   ├── route-planner/     # <ev-route-planner>: From, To, Show route
 │   │   │   │   ├── theme-picker/      # <ev-theme-picker>
 │   │   │   │   └── user-menu/         # <ev-user-menu>: sign-in and account menu
 │   │   │   ├── config/app.config.js   # Map defaults and env-based settings
@@ -106,6 +109,15 @@ ev-maps/
 - **Countries**: Open Charge Map gives each charger's country; OpenStreetMap
   chargers get it from their location, with
   [country-coder](https://github.com/rapideditor/country-coder).
+- **Route planner**: the Route button opens `<ev-route-planner>`, with From
+  and To fields (`<ev-place-input>`) that suggest places with Google's Places
+  API (New). Google's Routes library plans the route, and the Worker's
+  `POST /api/chargers/route` returns the chargers within 5 km of it, in order
+  along the route: it splits the route into chunks of about 20 km, queries the
+  R*Tree for each chunk's box in one D1 batch, and measures each charger's
+  distance to the route (`packages/worker/src/route.js`). The map then shows
+  the route and its chargers, with the same power filters, until the route is
+  cleared.
 - **Clustering**: `supercluster` groups nearby chargers; only the clusters and
   chargers in view are drawn as markers.
 - **Sign-in**: the button in the top-right corner opens the account menu, with

@@ -1,0 +1,27 @@
+.route-planner {
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .error {
+    color: var(--color-danger-light-text);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .footer {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding-bottom: var(--spacing-lg);
+  }
+}

@@ -1,0 +1,48 @@
+---
+import { LocateFixed, X } from "lucide-static";
+import Button from "../button/Button.astro";
+import Icon from "../icon/Icon.astro";
+import PlaceInput from "../place-input/PlaceInput.astro";
+import { translations } from "../../i18n/index.js";
+import "./RoutePlanner.css";
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<ev-route-planner>
+  <dialog class="fullscreen-dialog route-planner" id={id} aria-labelledby="route-planner-title">
+    <div class="header">
+      <h2 class="title" id="route-planner-title">
+        {page.routePlanner}
+      </h2>
+      <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeRoutePlanner}>
+        <Icon icon={X} />
+      </Button>
+    </div>
+    <form class="body" id="route-planner-form" novalidate>
+      <PlaceInput id="route-from" label={page.routeFrom} placeholder={page.placeSearch}>
+        <Button variant="ghost" size="small" class="use-my-location">
+          <Icon icon={LocateFixed} size="sm" />
+          {page.useMyLocation}
+        </Button>
+      </PlaceInput>
+      <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
+      <p class="hint">{page.routeCorridor}</p>
+      <p class="error" role="alert"></p>
+    </form>
+    <div class="footer">
+      <Button variant="secondary" size="large" class="clear-route" disabled>
+        {page.clearRoute}
+      </Button>
+      <Button variant="primary" size="large" type="submit" form="route-planner-form">
+        {page.showRoute}
+      </Button>
+    </div>
+  </dialog>
+  <script src="./RoutePlanner.js"></script>
+</ev-route-planner>

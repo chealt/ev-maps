@@ -21,6 +21,9 @@ ev-google-map {
   --details-panel-width: 22rem;
   --details-sheet-max-height: 60dvh;
 
+  /* Route */
+  --route-color: var(--color-route);
+
   /* Markers */
   --marker-size: 2.25rem;
   --cluster-size: 2.5rem;
