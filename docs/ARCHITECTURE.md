@@ -83,9 +83,12 @@ ev-maps/
   removed. Every charger keeps its source and license.
 - **Chargers**: when the map stops moving, `google-map/chargers.js` loads the
   visible area's tiles from `/api/chargers/{z}/{x}/{y}`, which reads D1
-  through the R*Tree index and merges duplicates (the same charger from two
-  sources within 60 m). Access, status and connector types are sent as IDs,
-  which the page translates. A full tile is split into smaller tiles. Tiles
+  through the R*Tree index and merges each charger's records from different
+  sources (within 60 m) into one: every field comes from the best source that
+  has it (Open Charge Map before OpenStreetMap; official registers will rank
+  first), and the charger lists all of its sources, which the page credits.
+  Access, status and connector types are sent as IDs, which the page
+  translates. A full tile is split into smaller tiles. Tiles
   are cached at the edge for a day and in the browser by the service worker.
 - **Country pages**: every page is under its language: `/en/` is the map
   without data, and `/en/hu/`, `/en/pl/`, … are static pages, one per
