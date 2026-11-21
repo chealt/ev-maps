@@ -21,6 +21,8 @@ const saveAccountSettings = async (sections) => {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(sections),
+      // Finishes even if the page is being closed.
+      keepalive: true,
     });
     return response.ok;
   } catch {

@@ -7,6 +7,9 @@ import { loadGoogleMaps } from "./loader.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
 
+// Signed in, filters are saved to the account this long after the last change.
+const ACCOUNT_SAVE_DELAY = 1000;
+
 // Chargers closer than this many pixels are grouped; above the max zoom never.
 const CLUSTER_RADIUS = 60;
 const CLUSTER_MAX_ZOOM = 16;
@@ -273,13 +276,13 @@ class GoogleMapElement extends HTMLElement {
       }
     });
     document.addEventListener("theme-change", this.handleThemeChange);
-    this.showSaveFiltersSignedIn(isSignedIn());
+    this.showFilterSyncSignedIn(isSignedIn());
     // The session may have loaded before the map did.
     if (isSignedIn()) {
       this.syncAccountFilters();
     }
     onSessionChange((signedIn) => {
-      this.showSaveFiltersSignedIn(signedIn);
+      this.showFilterSyncSignedIn(signedIn);
       if (signedIn) {
         this.syncAccountFilters();
       }
@@ -305,9 +308,12 @@ class GoogleMapElement extends HTMLElement {
       button.addEventListener("click", () => this.filterPanel.close());
     }
     // However the dialog closes (buttons, Escape), the Filters button follows.
-    this.filterPanel?.addEventListener("close", () =>
-      this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false")
-    );
+    this.filterPanel?.addEventListener("close", () => {
+      this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
+      this.flushAccountSave();
+    });
+    // Leaving the page doesn't lose a save that's waiting.
+    window.addEventListener("pagehide", () => this.flushAccountSave());
   }
 
   setStatus(message, state = "idle") {
@@ -415,8 +421,9 @@ class GoogleMapElement extends HTMLElement {
   }
 
   handleFilterClick(event) {
-    if (event.target.closest(".save-filters")) {
-      this.saveFiltersToAccount();
+    if (event.target.closest(".sync-sign-in-button")) {
+      this.filterPanel.close();
+      requestSignIn();
       return;
     }
     const button = event.target.closest(".power-filter, .connector-filter");
@@ -437,7 +444,7 @@ class GoogleMapElement extends HTMLElement {
   filtersChanged() {
     this.filtersUpdatedAt = Date.now();
     saveFilters(this.currentFilters());
-    this.setSaveStatus("");
+    this.scheduleAccountSave();
     this.updateClearFiltersButtons();
     this.showMatchingChargers();
   }
@@ -501,28 +508,36 @@ class GoogleMapElement extends HTMLElement {
     this.applyFilters(await readFilters());
   }
 
-  // Signed in, the account's filters replace this device's if they're newer
-  // (e.g. saved on another device).
+  // Signed in, the newer of this device's and the account's filters wins:
+  // the account's replace the device's (e.g. changed on another device), or
+  // the device's are saved to the account (e.g. changed before signing in).
   async syncAccountFilters() {
     const settings = await fetchAccountSettings();
     await this.filtersRestored;
-    const filters = settings?.filters;
-    if (filters && filters.updatedAt > (this.filtersUpdatedAt ?? 0)) {
-      this.applyFilters(filters);
+    if (!settings) {
+      return;
+    }
+    const accountUpdatedAt = settings.filters?.updatedAt ?? 0;
+    const deviceUpdatedAt = this.filtersUpdatedAt ?? 0;
+    if (accountUpdatedAt > deviceUpdatedAt) {
+      this.applyFilters(settings.filters);
       saveFilters(this.currentFilters());
       this.showMatchingChargers();
+    } else if (deviceUpdatedAt > accountUpdatedAt) {
+      this.saveFiltersToAccount();
     }
   }
 
-  // Signed out, the button looks disabled and its tooltip says to sign in;
-  // pressing it opens the sign-in options.
-  showSaveFiltersSignedIn(signedIn) {
-    const button = this.filterPanel?.querySelector(".save-filters");
-    if (!button) {
-      return;
+  // Signed out, the dialog says that signing in keeps the filters on every
+  // device, with a button that opens the sign-in options.
+  showFilterSyncSignedIn(signedIn) {
+    const prompt = this.filterPanel?.querySelector(".sync-sign-in");
+    if (prompt) {
+      prompt.hidden = signedIn;
     }
-    button.setAttribute("aria-disabled", String(!signedIn));
-    this.filterPanel.querySelector("#save-filters-tooltip").hidden = signedIn;
+    if (!signedIn) {
+      this.setSaveStatus("");
+    }
   }
 
   setSaveStatus(text) {
@@ -532,14 +547,28 @@ class GoogleMapElement extends HTMLElement {
     }
   }
 
-  async saveFiltersToAccount() {
-    if (!isSignedIn()) {
-      this.filterPanel.close();
-      requestSignIn();
-      return;
+  // Signed in, saves the filters to the account a moment after the last
+  // change, so toggling several makes one request.
+  scheduleAccountSave() {
+    clearTimeout(this.accountSaveTimer);
+    if (isSignedIn()) {
+      this.accountSaveTimer = setTimeout(() => this.saveFiltersToAccount(), ACCOUNT_SAVE_DELAY);
     }
+  }
+
+  // Saves now if a save is waiting, e.g. as the dialog closes.
+  flushAccountSave() {
+    if (this.accountSaveTimer) {
+      clearTimeout(this.accountSaveTimer);
+      this.saveFiltersToAccount();
+    }
+  }
+
+  async saveFiltersToAccount() {
+    this.accountSaveTimer = undefined;
     const saved = await saveAccountSettings({ filters: this.currentFilters() });
-    this.setSaveStatus(message(saved ? "filtersSaved" : "filtersNotSaved"));
+    // Only failures are worth a message; the device keeps the filters anyway.
+    this.setSaveStatus(saved ? "" : message("filtersNotSaved"));
   }
 
   async loadEvChargers() {

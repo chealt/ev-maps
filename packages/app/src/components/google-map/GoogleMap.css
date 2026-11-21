@@ -215,36 +215,23 @@ ev-google-map {
     gap: var(--spacing-lg);
   }
 
-  .save-filters[aria-disabled="true"] {
-    opacity: var(--opacity-disabled);
-    cursor: not-allowed;
-  }
-
-  /* Signed out: why saving is disabled, on hover or focus. */
-  .tooltip {
-    position: absolute;
-    bottom: calc(100% + var(--spacing-xs));
-    left: 50%;
-    translate: -50% 0;
-    width: max-content;
-    max-width: var(--filter-option-min-width);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    background: var(--color-secondary);
-    color: var(--color-secondary-contrast);
-    font-size: var(--font-size-xs);
+  .sync-sign-in {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
     text-align: center;
+    color: var(--color-text-muted);
 
     &[hidden] {
       display: none;
     }
-  }
 
-  .save-filters-wrapper {
-    position: relative;
-
-    &:not(:hover, :focus-within) .tooltip {
-      display: none;
+    .sync-sign-in-button {
+      color: var(--color-primary-light-text);
     }
   }
 
@@ -641,17 +628,9 @@ ev-google-map {
 }
 
 @media (width < 40em) {
-  /* Three buttons don't fit side by side: saving gets its own row. */
-  .filter-dialog .footer {
-    .save-filters-wrapper {
-      display: flex;
-      flex-basis: 100%;
-      order: -1;
-    }
-
-    .button {
-      flex: 1;
-      min-width: 0;
-    }
+  /* "Clear filters" and "Done" side by side, sharing the width. */
+  .filter-dialog .footer > .button {
+    flex: 1;
+    min-width: 0;
   }
 }
