@@ -172,7 +172,7 @@ export default {
   // cancelled after ~30 s, but a scheduled handler itself may run 15 minutes.
   async scheduled(controller, env) {
     if (controller.cron === STATUS_CRON) {
-      await refreshStatuses(env);
+      await refreshStatuses(env, controller.scheduledTime);
       return;
     }
     // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
