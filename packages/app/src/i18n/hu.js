@@ -75,6 +75,10 @@ const hu = {
       one: "{count} töltőállomás található",
       other: "{count} töltőállomás található",
     },
+    activeFilters: {
+      one: "{count} szűrő bekapcsolva",
+      other: "{count} szűrő bekapcsolva",
+    },
     chargersFiltered: {
       one: "{count} töltőállomásból {shown} felel meg a szűrőknek",
       other: "{count} töltőállomásból {shown} felel meg a szűrőknek",

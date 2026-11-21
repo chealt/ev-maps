@@ -145,7 +145,8 @@ ev-maps/
   `/api/auth/get-session` on every load.
 - **Filters and settings**: the Filters dialog has connector types (OR'ed:
   a charger needs one of them) and power ranges, which must both match. The
-  choice is saved in IndexedDB with when it changed. Signed in, "Save to my
+  choice is saved in IndexedDB with when it changed, and the Filters button
+  shows how many filters are on. Signed in, "Save to my
   account" sends it to the Worker's `PUT /api/settings`
   (`packages/worker/src/settings.js`, D1 table `user_settings`), and after
   signing in the page applies the account's filters if they're newer than

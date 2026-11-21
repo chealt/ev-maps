@@ -77,6 +77,10 @@ const en = {
   },
   messages: {
     chargersFound: { one: "{count} EV charger found", other: "{count} EV chargers found" },
+    activeFilters: {
+      one: "{count} filter on",
+      other: "{count} filters on",
+    },
     chargersFiltered: {
       one: "{shown} of {count} EV charger matches the filters",
       other: "{shown} of {count} EV chargers match the filters",
