@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 test("has a page for each country with chargers", async ({ page }) => {
   await page.goto("/en/hu/");
 
-  await expect(page).toHaveTitle("EV chargers in Hungary - EV Maps");
+  await expect(page).toHaveTitle("EV Maps - EV chargers in Hungary");
 });
 
 test("shows the whole country's chargers without loading them", async ({ page }) => {

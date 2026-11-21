@@ -72,11 +72,11 @@ test("names a charger without a name in the page's language", async ({ page }) =
 
 test("builds the country pages in every language", async ({ page }) => {
   await page.goto("/pl/hu/");
-  await expect(page).toHaveTitle("Stacje ładowania – Węgry – EV Maps");
+  await expect(page).toHaveTitle("EV Maps – stacje ładowania – Węgry");
   await expect(page.getByRole("status")).toHaveText("Znaleziono 4 stacje ładowania");
 
   await page.goto("/hu/hu/");
-  await expect(page).toHaveTitle("Elektromosautó-töltők – Magyarország – EV Maps");
+  await expect(page).toHaveTitle("EV Maps – elektromosautó-töltők – Magyarország");
 });
 
 test("loads Google Maps in the page's language", async ({ page }) => {
