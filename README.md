@@ -2,7 +2,7 @@
 
 Find electric vehicle charging stations on a map.
 
-**Live:** <https://ev-maps.chealt.workers.dev>
+**Live:** <https://ev.chealt.com>
 
 ## Features
 

@@ -7,8 +7,12 @@ static assets (`packages/worker/wrangler.toml` points at `packages/app/dist`).
 The `Deploy` job in
 `.github/workflows/app.yml` deploys it once lint, build and tests pass:
 
-- **Pushes to `main`** deploy to production at
-  `https://ev-maps.<your-subdomain>.workers.dev`.
+- **Pushes to `main`** deploy to production, which answers on two
+  addresses: the custom domain `https://ev.chealt.com` (the main one) and
+  `https://ev-maps.chealt.workers.dev`. Both are in `wrangler.toml`
+  (`routes` and `workers_dev`), and everything below works on both: the
+  Worker builds sign-in callback URLs from the address a request comes in on,
+  so each provider lists both.
 - **Every Monday**, `.github/workflows/refresh.yml` runs `app.yml` on `main`
   again, which rebuilds the country pages from the latest chargers and
   deploys them to production.
@@ -98,12 +102,13 @@ requests from forks, which don't get them).
   tilt and rotation off.
 - **API keys**: use separate keys for development and production, both
   restricted to those three APIs, with these website restrictions:
-  - Production: `https://*.chealt.workers.dev/*`
+  - Production: `https://ev.chealt.com/*` and `https://*.chealt.workers.dev/*`
   - Development: `http://localhost:4321/*`
 - **OAuth clients**: one for production and one for development, like the
   API keys. Add these **authorized redirect URIs** (wildcards aren't allowed):
-  - Production: `https://ev-maps.chealt.workers.dev/api/auth/callback/google`
-    and `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/google`.
+  - Production: `https://ev.chealt.com/api/auth/callback/google`,
+    `https://ev-maps.chealt.workers.dev/api/auth/callback/google` and
+    `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/google`.
     Its ID goes in `wrangler.toml`'s `[vars]`, its secret in the Worker's
     `GOOGLE_CLIENT_SECRET`.
   - Development: `http://localhost:4321/api/auth/callback/google`. Its ID goes
@@ -120,6 +125,7 @@ GitHub Apps → New GitHub App), not an OAuth App: only a GitHub App takes more
 than one callback URL.
 
 - **Callback URLs**:
+  - `https://ev.chealt.com/api/auth/callback/github`
   - `https://ev-maps.chealt.workers.dev/api/auth/callback/github`
   - `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/github`
   - `http://localhost:4321/api/auth/callback/github`
@@ -139,7 +145,7 @@ registration).
   personal Microsoft accounts (the Worker uses the `common` tenant).
 - **Two registrations**, like the Google OAuth clients: one for production and
   one for development. Their **Redirect URIs** (platform **Web**):
-  - Production:
+  - Production: `https://ev.chealt.com/api/auth/callback/microsoft`,
     `https://ev-maps.chealt.workers.dev/api/auth/callback/microsoft` and
     `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
   - Development: `http://localhost:4321/api/auth/callback/microsoft`
