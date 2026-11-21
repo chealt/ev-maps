@@ -155,3 +155,26 @@ test("keeps this device's filters when they're newer than the account's", async 
       .getByRole("button", { name: "Type 2", pressed: true })
   ).toBeVisible();
 });
+
+test("shows on the Filters button how many filters are on", async ({ page }) => {
+  await page.goto("/");
+  const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
+  const badge = filtersButton.locator(".badge");
+  await expect(badge).toBeHidden();
+  await expect(filtersButton).toHaveAccessibleDescription("");
+
+  const dialog = await openFilters(page);
+  await dialog.getByRole("button", { name: "CCS" }).click();
+  await dialog.getByRole("button", { name: "50–150 kW" }).click();
+  await dialog.getByRole("button", { name: "Done" }).click();
+
+  await expect(badge).toHaveText("2");
+  await expect(filtersButton).toHaveAccessibleDescription("2 filters on");
+
+  await page.reload();
+  await expect(badge).toHaveText("2");
+
+  await page.getByRole("button", { name: "Clear filters" }).click();
+  await expect(badge).toBeHidden();
+  await expect(filtersButton).toHaveAccessibleDescription("");
+});

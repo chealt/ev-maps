@@ -452,9 +452,13 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // "Clear filters" shows on the map and is enabled in the dialog only while
-  // a filter is active.
+  // a filter is active, and the Filters button shows how many are.
   updateClearFiltersButtons() {
-    const active = this.activePowerRanges().length > 0 || this.activeConnectorGroups().length > 0;
+    const count = this.activePowerRanges().length + this.activeConnectorGroups().length;
+    const active = count > 0;
+    customElements
+      .whenDefined("ev-filter-button")
+      .then(() => this.querySelector("ev-filter-button")?.showActiveCount(count));
     for (const button of this.querySelectorAll(".clear-filters")) {
       if (this.filterPanel?.contains(button)) {
         button.disabled = !active;

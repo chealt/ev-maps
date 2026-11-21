@@ -3,6 +3,7 @@ import Button from "../button/Button.astro";
 import { SlidersHorizontal } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import { translations } from "../../i18n/index.js";
+import "./FilterButton.css";
 
 interface Props {
   controls?: string;
@@ -13,9 +14,20 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-filter-button>
-  <Button variant="secondary" class="filter-button" aria-expanded="false" aria-controls={controls}>
-    <Icon icon={SlidersHorizontal} />
+  <Button
+    variant="secondary"
+    class="filter-button"
+    aria-expanded="false"
+    aria-controls={controls}
+    aria-describedby="active-filter-count"
+  >
+    <span class="icon-wrapper">
+      <Icon icon={SlidersHorizontal} />
+      <!-- How many filters are on; screen readers get the description below. -->
+      <span class="badge" aria-hidden="true" hidden></span>
+    </span>
     <span class="label">{page.filters}</span>
   </Button>
+  <span class="visually-hidden" id="active-filter-count"></span>
   <script src="./FilterButton.js"></script>
 </ev-filter-button>

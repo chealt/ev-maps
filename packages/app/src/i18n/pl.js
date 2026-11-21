@@ -75,6 +75,12 @@ const pl = {
       many: "Znaleziono {count} stacji ładowania",
       other: "Znaleziono {count} stacji ładowania",
     },
+    activeFilters: {
+      one: "Włączony {count} filtr",
+      few: "Włączone {count} filtry",
+      many: "Włączonych {count} filtrów",
+      other: "Włączone filtry: {count}",
+    },
     chargersFiltered: {
       one: "Pasujące do filtrów: {shown} z {count} stacji ładowania",
       other: "Pasujące do filtrów: {shown} z {count} stacji ładowania",
