@@ -9,7 +9,8 @@ Find electric vehicle charging stations on a map.
 - Full-screen map of EV chargers in the visible area, with nearby chargers
   grouped into clusters when zoomed out
 - Charger details: address, connectors and power, operator, access, cost and
-  status
+  status; signed in, how many points are free right now, and red pins where
+  none is (Poland and France)
 - Filter chargers by connector type, charging power and operator; signed
   in, the filters are saved to your account too, so you have them on every
   device

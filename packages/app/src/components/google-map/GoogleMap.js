@@ -50,6 +50,11 @@ const LIVE_STATUS_SOURCES = ["eipa", "irve"];
 // The page keeps statuses this long, in memory only; the Worker refreshes
 // them every few minutes.
 const STATUS_MAX_AGE_MS = 60 * 1000;
+// The Worker's batch size for statuses (MAX_IDS in live-status.js).
+const STATUS_BATCH_SIZE = 100;
+// Signed in, the pins' availability is refreshed this often while the page
+// is visible (the Worker refreshes statuses every 5 to 15 minutes).
+const PIN_STATUS_REFRESH_MS = 2 * 60 * 1000;
 
 const minutesAgo = (timestamp) =>
   new Intl.RelativeTimeFormat(document.documentElement.lang, { numeric: "auto" }).format(
@@ -139,6 +144,19 @@ const readActivePowerRanges = (panel) =>
     maxKw: button.dataset.maxKw ? Number(button.dataset.maxKw) : Infinity,
   }));
 
+// The charger's IDs at sources with live statuses.
+const liveStatusIds = (charger) =>
+  (charger.ids ?? [charger.id]).filter((id) => LIVE_STATUS_SOURCES.includes(id.split(":")[0]));
+
+// True if the statuses say none of the points is free; null without any.
+const noneFree = (statuses) => {
+  if (!statuses.length) {
+    return null;
+  }
+  const sum = (field) => statuses.reduce((total, status) => total + status[field], 0);
+  return sum("total") > 0 && sum("available") === 0;
+};
+
 // The connector IDs of the active connector type buttons.
 const readActiveConnectorTypes = (panel) =>
   new Set(
@@ -185,6 +203,8 @@ class GoogleMapElement extends HTMLElement {
   maps = null;
   markersById = new Map();
   statuses = new Map();
+  // The charger each charger pin (not cluster) is for.
+  chargersByMarker = new Map();
   searchId = 0;
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
@@ -236,6 +256,7 @@ class GoogleMapElement extends HTMLElement {
 
   disconnectedCallback() {
     document.removeEventListener("theme-change", this.handleThemeChange);
+    clearInterval(this.pinStatusTimer);
   }
 
   get locatedZoom() {
@@ -301,7 +322,17 @@ class GoogleMapElement extends HTMLElement {
     if (isSignedIn()) {
       this.syncAccountFilters();
     }
+    // Signed in, pins turn red while none of their charger's points is free.
+    this.pinStatusTimer = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        this.showPinAvailability();
+      }
+    }, PIN_STATUS_REFRESH_MS);
     onSessionChange((signedIn) => {
+      if (!signedIn) {
+        this.statuses.clear();
+      }
+      this.showPinAvailability();
       this.showFilterSyncSignedIn(signedIn);
       if (signedIn) {
         this.syncAccountFilters();
@@ -980,6 +1011,7 @@ class GoogleMapElement extends HTMLElement {
       marker.map = null;
     }
     this.markersById.clear();
+    this.chargersByMarker.clear();
     this.clusterIndex = null;
     this.setListedChargers([]);
     this.activeMarker = null;
@@ -1007,7 +1039,40 @@ class GoogleMapElement extends HTMLElement {
       this.setActiveMarker(marker);
       this.displayChargerDetails(charger);
     });
+    this.chargersByMarker.set(marker, charger);
+    this.showMarkerAvailability(marker);
     return marker;
+  }
+
+  // Red while the charger's live statuses (already loaded) say none of its
+  // points is free, with that in the pin's name; as usual otherwise.
+  showMarkerAvailability(marker) {
+    const charger = this.chargersByMarker.get(marker);
+    const ids = liveStatusIds(charger);
+    const full = isSignedIn() && ids.length > 0 && noneFree(this.cachedStatuses(ids)) === true;
+    marker.content?.classList.toggle("none-free", full);
+    marker.title = full
+      ? message("chargerNoneFree", { name: chargerName(charger) })
+      : chargerName(charger);
+  }
+
+  // Signed in, loads the live statuses of the chargers pinned on the map
+  // (in batches, the recent ones from memory) and colors their pins.
+  async showPinAvailability() {
+    const markers = [...this.markersById.values()].filter((marker) =>
+      this.chargersByMarker.has(marker)
+    );
+    if (isSignedIn()) {
+      const ids = markers.flatMap((marker) => liveStatusIds(this.chargersByMarker.get(marker)));
+      try {
+        await this.loadStatuses(ids);
+      } catch (error) {
+        console.error("Could not load the chargers' availability:", error);
+      }
+    }
+    for (const marker of markers) {
+      this.showMarkerAvailability(marker);
+    }
   }
 
   createClusterMarker(AdvancedMarkerElement, cluster) {
@@ -1060,6 +1125,7 @@ class GoogleMapElement extends HTMLElement {
       if (!featuresByKey.has(key)) {
         marker.map = null;
         this.markersById.delete(key);
+        this.chargersByMarker.delete(marker);
       }
     }
 
@@ -1079,6 +1145,7 @@ class GoogleMapElement extends HTMLElement {
     if (activeMarker && activeMarker !== this.activeMarker) {
       this.setActiveMarker(activeMarker);
     }
+    this.showPinAvailability();
   }
 
   fillList(list, items) {
@@ -1112,22 +1179,35 @@ class GoogleMapElement extends HTMLElement {
     this.showAvailability(charger);
   }
 
-  // The charger's live statuses, by ID: from memory if recent, else the
-  // Worker (GET /api/chargers/status).
-  async fetchStatuses(ids) {
+  // Loads the live statuses of the IDs that aren't in memory or are older
+  // than a minute, from the Worker (GET /api/chargers/status) in batches.
+  // False if the Worker wants a signed-in user.
+  async loadStatuses(ids) {
     const fresh = (id) => Date.now() - (this.statuses.get(id)?.fetchedAt ?? 0) < STATUS_MAX_AGE_MS;
-    const missing = ids.filter((id) => !fresh(id));
-    if (missing.length) {
-      const response = await fetch(`/api/chargers/status?ids=${missing.join(",")}`);
+    const missing = [...new Set(ids)].filter((id) => !fresh(id));
+    for (let start = 0; start < missing.length; start += STATUS_BATCH_SIZE) {
+      const batch = missing.slice(start, start + STATUS_BATCH_SIZE);
+      const response = await fetch(`/api/chargers/status?ids=${batch.join(",")}`);
       if (response.status === 401) {
-        return null;
+        return false;
       }
       const { statuses } = response.ok ? await response.json() : { statuses: {} };
-      for (const id of missing) {
+      for (const id of batch) {
         this.statuses.set(id, { status: statuses[id] ?? null, fetchedAt: Date.now() });
       }
     }
+    return true;
+  }
+
+  // The statuses in memory for the IDs that have one.
+  cachedStatuses(ids) {
     return ids.map((id) => this.statuses.get(id)?.status).filter(Boolean);
+  }
+
+  // The charger's live statuses, by ID: from memory if recent, else the
+  // Worker; null if the Worker wants a signed-in user.
+  async fetchStatuses(ids) {
+    return (await this.loadStatuses(ids)) ? this.cachedStatuses(ids) : null;
   }
 
   // Signed out, the section asks to sign in instead of showing statuses.
@@ -1145,9 +1225,7 @@ class GoogleMapElement extends HTMLElement {
   async showAvailability(charger) {
     const section = this.detailsPanel.querySelector(".availability");
     section.hidden = true;
-    const ids = (charger.ids ?? [charger.id]).filter((id) =>
-      LIVE_STATUS_SOURCES.includes(id.split(":")[0])
-    );
+    const ids = liveStatusIds(charger);
     if (!ids.length) {
       return;
     }

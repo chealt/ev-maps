@@ -11,7 +11,8 @@ import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
 
 const STATUS_PATH = "/api/chargers/status";
-const MAX_IDS = 50;
+// The page asks for the chargers on the map in batches of up to this many.
+const MAX_IDS = 100;
 // The browser keeps an answer this long (only the browser: it's for a
 // signed-in user); the snapshots change every few minutes anyway.
 const STATUS_CACHE_CONTROL = "private, max-age=60";

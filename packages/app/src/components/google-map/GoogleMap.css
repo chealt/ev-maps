@@ -364,6 +364,11 @@ ev-google-map {
       scale(var(--marker-active-scale));
   }
 
+  /* Signed in: live statuses say none of the charger's points is free. */
+  &.none-free {
+    background: var(--color-danger);
+  }
+
   &.active {
     background: var(--color-secondary);
     color: var(--color-secondary-contrast);
