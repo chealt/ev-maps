@@ -203,3 +203,13 @@ test("shows the app's name, as on Google's sign-in consent screen", async ({ pag
   await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeVisible();
   await expect(page).toHaveTitle(/^EV Maps/);
 });
+
+test("shows the app's name once, in the account box, which opens the menu", async ({ page }) => {
+  await expect(page.locator(".mark")).toHaveCount(1);
+
+  // The account button lies over the name, so a click on the name is the
+  // button's; force skips Playwright's check that the heading gets it.
+  await page.getByRole("heading", { level: 1, name: "EV Maps" }).click({ force: true });
+
+  await expect(page.getByRole("dialog", { name: "Account" })).toBeVisible();
+});

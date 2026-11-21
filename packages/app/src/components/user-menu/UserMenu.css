@@ -8,29 +8,62 @@
   right: var(--spacing-md);
   z-index: var(--z-sticky);
 
-  .menu-button {
-    display: flex;
-    align-items: center;
-    gap: var(--overlay-gap);
-    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+  /* The name and the button share one grid cell: the button lies over the
+     whole box, so all of it opens the menu, with the avatar on the right. */
+  .bar {
+    display: grid;
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius-lg);
     background: var(--color-surface-glass);
     backdrop-filter: var(--blur-glass);
     color: var(--color-text);
     box-shadow: var(--shadow-md);
-    font-family: var(--font-family);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
     transition: background var(--transition-fast);
 
-    &:hover {
-      background: var(--color-surface-translucent);
+    > * {
+      grid-area: 1 / 1;
     }
 
-    &:has(.avatar:not([hidden]), .loading:not([hidden])) {
-      padding-right: var(--spacing-sm);
+    &:has(.menu-button:hover) {
+      background: var(--color-surface-translucent);
+    }
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--overlay-gap);
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+
+    /* Room for the avatar (or its placeholder) next to the name. */
+    .bar:has(.avatar:not([hidden]), .loading:not([hidden])) & {
+      padding-right: calc(var(--spacing-sm) + var(--overlay-gap) + var(--avatar-size));
+    }
+  }
+
+  .app-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+  }
+
+  .menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 var(--spacing-sm);
+    border: none;
+    border-radius: inherit;
+    background: none;
+    color: inherit;
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: var(--border-width-thick) solid var(--color-primary);
+      outline-offset: var(--border-width-thick);
     }
   }
 

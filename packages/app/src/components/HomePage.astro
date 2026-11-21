@@ -1,5 +1,4 @@
 ---
-import AppBrand from "./app-brand/AppBrand.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
 import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
@@ -18,8 +17,7 @@ const { googleMaps, evChargers } = appConfig;
 ---
 
 <main class="home-page">
-  <AppBrand subtitle={page.subtitle} />
-  <UserMenu />
+  <UserMenu subtitle={page.subtitle} />
 
   <GoogleMap
     apiKey={googleMaps.apiKey}
