@@ -404,6 +404,14 @@ ev-google-map {
       font-size: var(--font-size-xs);
       color: var(--color-text-muted);
     }
+
+    .sign-in-needed {
+      color: var(--color-text-muted);
+    }
+
+    .sign-in-button {
+      margin-top: var(--spacing-sm);
+    }
   }
 
   .connectors,

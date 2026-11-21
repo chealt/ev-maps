@@ -3,13 +3,14 @@ import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi, fakeRouteChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
 
+// Planning routes needs a signed-in user, so these tests sign in.
 // The fake place search knows Budapest, Vienna and Nowhere Island (which no
 // route reaches), and drives in a straight line. The fake route API puts the
 // two fixture chargers 50 and 100 km along any route.
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
-  await fakeAuthApi(page);
+  await fakeAuthApi(page, { signedIn: true });
   await fakeChargersApi(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
@@ -171,4 +172,25 @@ test("plans the route in the page's language", async ({ page }) => {
   expect(placeRequest.language).toBe("pl");
   const [routeRequest] = await page.evaluate(() => window.__routeRequests);
   expect(routeRequest.language).toBe("pl");
+});
+
+test("asks to sign in before planning a route", async ({ page }) => {
+  await fakeAuthApi(page);
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  await page.getByRole("button", { name: "Route" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await expect(
+    dialog.getByText("Sign in to plan routes and see the chargers along them.")
+  ).toBeVisible();
+  await expect(dialog.getByRole("combobox", { name: "From" })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "Show route" })).toBeDisabled();
+
+  await dialog.getByRole("button", { name: "Sign in", exact: true }).click();
+
+  await expect(dialog).toBeHidden();
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
