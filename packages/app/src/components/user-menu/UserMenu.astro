@@ -5,6 +5,7 @@ import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
 import { fill, translations } from "../../i18n/index.js";
+import AppleLogo from "./apple-logo.svg";
 import GitHubLogo from "./github-logo.svg";
 import GoogleLogo from "./google-logo.svg";
 import MicrosoftLogo from "./microsoft-logo.svg";
@@ -16,6 +17,7 @@ const providers = [
   { id: "google", name: "Google", logo: GoogleLogo },
   { id: "github", name: "GitHub", logo: GitHubLogo },
   { id: "microsoft", name: "Microsoft", logo: MicrosoftLogo },
+  { id: "apple", name: "Apple", logo: AppleLogo },
 ];
 
 const { page } = translations(Astro.currentLocale ?? "en");

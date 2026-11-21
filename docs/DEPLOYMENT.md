@@ -56,6 +56,11 @@ bunx wrangler secret put GITHUB_CLIENT_ID
 bunx wrangler secret put GITHUB_CLIENT_SECRET
 # Optional: Sign in with Microsoft (see Microsoft below)
 bunx wrangler secret put MICROSOFT_CLIENT_SECRET
+# Optional: Sign in with Apple (see Apple below)
+bunx wrangler secret put APPLE_CLIENT_ID
+bunx wrangler secret put APPLE_TEAM_ID
+bunx wrangler secret put APPLE_KEY_ID
+bunx wrangler secret put APPLE_PRIVATE_KEY < AuthKey_XXXXXXXXXX.p8
 ```
 
 Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
@@ -164,3 +169,32 @@ registration).
   `[env.local.vars]`. The secret's **Value** goes in the Worker's
   `MICROSOFT_CLIENT_SECRET` (production) and in `.dev.vars` (development).
   Without both, the menu doesn't offer Microsoft.
+
+## Apple
+
+Sign in with Apple needs a paid [Apple Developer](https://developer.apple.com)
+account. Apple only returns to HTTPS addresses, so it works on production and
+the shared preview, not on `localhost`.
+
+In Certificates, Identifiers & Profiles:
+
+1. **App ID** (Identifiers → App IDs): with the **Sign in with Apple**
+   capability.
+2. **Services ID** (Identifiers → Services IDs), e.g.
+   `com.chealt.evmaps.signin`: enable **Sign in with Apple**, with the App ID
+   above as its primary App ID, and add:
+   - **Domains**: `ev.chealt.com`, `ev-maps.chealt.workers.dev`,
+     `preview-ev-maps.chealt.workers.dev`
+   - **Return URLs**:
+     `https://ev.chealt.com/api/auth/callback/apple`,
+     `https://ev-maps.chealt.workers.dev/api/auth/callback/apple`,
+     `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/apple`
+3. **Key** (Keys): enable **Sign in with Apple** for the App ID, and download
+   the `.p8` file. Apple only lets you download it once.
+
+Then set the Worker's secrets: `APPLE_CLIENT_ID` (the Services ID),
+`APPLE_TEAM_ID` (top right of the developer portal), `APPLE_KEY_ID` (the
+key's ID) and `APPLE_PRIVATE_KEY` (the `.p8` file's contents). Apple's client
+secret is a JWT signed with that key, valid for at most six months; the Worker
+signs a new one itself (`src/apple-client-secret.js`), so nothing expires. If
+the key can't be used, the Worker logs why and leaves Apple out of the menu.

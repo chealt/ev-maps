@@ -68,6 +68,23 @@ test("signs in with Microsoft", async ({ page }) => {
   expect(signInRequests[0].provider).toBe("microsoft");
 });
 
+test("signs in with Apple", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page, {
+    providers: ["google", "github", "microsoft", "apple"],
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  const menu = page.getByRole("dialog", { name: "Account" });
+  for (const provider of ["Google", "GitHub", "Microsoft"]) {
+    await expect(menu.getByRole("button", { name: `Sign in with ${provider}` })).toBeVisible();
+  }
+
+  await menu.getByRole("button", { name: "Sign in with Apple" }).click();
+
+  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
+  expect(signInRequests[0].provider).toBe("apple");
+});
+
 test("signs in with Google and stays signed in after a reload", async ({ page }) => {
   const signInRequests = await fakeAuthApi(page);
   await page.goto("/");

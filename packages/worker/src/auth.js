@@ -4,15 +4,22 @@
 // /api/auth/*, e.g. /api/auth/get-session.
 
 import { betterAuth } from "better-auth";
+import { appleClientSecret, hasAppleCredentials } from "./apple-client-secret.js";
 
 const AUTH_PATH = "/api/auth";
 // Which providers have credentials, so the page only offers those.
 const PROVIDERS_PATH = "/api/sign-in-providers";
+// Apple sends the user back with a form POST from its own site. Better Auth
+// turns it into a GET on the same callback (so the state cookie is sent), and
+// its Apple guide asks to trust this origin.
+const APPLE_ORIGIN = "https://appleid.apple.com";
+// Instances are recreated daily, which also signs a new Apple client secret.
+const INSTANCE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 // Only providers with credentials are offered; see docs/DEPLOYMENT.md. A
 // user who signs in with another provider later, with the same verified
 // email, gets the same account (Better Auth's implicit account linking).
-const socialProviders = (env) => ({
+const socialProviders = (env, { appleSecret } = {}) => ({
   ...(env.GOOGLE_CLIENT_ID &&
     env.GOOGLE_CLIENT_SECRET && {
       google: {
@@ -40,46 +47,71 @@ const socialProviders = (env) => ({
         prompt: "select_account",
       },
     }),
+  // A Services ID, signed in with a JWT the Worker signs (apple-client-secret.js).
+  ...(appleSecret && { apple: { clientId: env.APPLE_CLIENT_ID, clientSecret: appleSecret } }),
 });
+
+// A broken Apple key shouldn't stop the other providers: without a secret,
+// Apple is left out.
+const appleSecretFor = async (env) => {
+  if (!hasAppleCredentials(env)) {
+    return undefined;
+  }
+  try {
+    return await appleClientSecret(env);
+  } catch (error) {
+    console.error("Sign in with Apple is off: could not sign its client secret:", error);
+    return undefined;
+  }
+};
+
+// The Better Auth instance, and the providers it can sign in with.
+const createAuth = async (env, baseURL) => {
+  const appleSecret = await appleSecretFor(env);
+  const providers = socialProviders(env, { appleSecret });
+  const auth = betterAuth({
+    baseURL,
+    basePath: AUTH_PATH,
+    secret: env.BETTER_AUTH_SECRET,
+    database: env.DB,
+    socialProviders: providers,
+    trustedOrigins: appleSecret ? [APPLE_ORIGIN] : [],
+    telemetry: { enabled: false },
+  });
+  return { auth, providers: Object.keys(providers) };
+};
 
 // Better Auth needs the site's URL for the OAuth callbacks and its origin
 // checks. Every deployment has its own (production, previews, local), so it's
 // the request's, unless BETTER_AUTH_URL sets it, e.g. behind the dev
-// server's proxy. One instance per URL, reused while the Worker runs.
+// server's proxy. One instance per URL, reused for a day.
 const instances = new Map();
 
 const authFor = (env, request) => {
   const baseURL = env.BETTER_AUTH_URL || new URL(request.url).origin;
-  if (!instances.has(baseURL)) {
-    instances.set(
-      baseURL,
-      betterAuth({
-        baseURL,
-        basePath: AUTH_PATH,
-        secret: env.BETTER_AUTH_SECRET,
-        database: env.DB,
-        socialProviders: socialProviders(env),
-        telemetry: { enabled: false },
-      })
-    );
+  const cached = instances.get(baseURL);
+  if (!cached || Date.now() - cached.createdAt > INSTANCE_MAX_AGE_MS) {
+    instances.set(baseURL, { auth: createAuth(env, baseURL), createdAt: Date.now() });
   }
-  return instances.get(baseURL);
+  return instances.get(baseURL).auth;
 };
 
 const isAuthPath = (pathname) =>
   pathname === PROVIDERS_PATH || pathname.startsWith(`${AUTH_PATH}/`);
 
-const providersResponse = (env) =>
-  new Response(JSON.stringify({ providers: Object.keys(socialProviders(env)) }), {
+const providersResponse = (providers) =>
+  new Response(JSON.stringify({ providers }), {
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "public, max-age=300",
     },
   });
 
-const handleAuth = (request, env) =>
-  new URL(request.url).pathname === PROVIDERS_PATH
-    ? providersResponse(env)
-    : authFor(env, request).handler(request);
+const handleAuth = async (request, env) => {
+  const { auth, providers } = await authFor(env, request);
+  return new URL(request.url).pathname === PROVIDERS_PATH
+    ? providersResponse(providers)
+    : auth.handler(request);
+};
 
 export { handleAuth, isAuthPath };
