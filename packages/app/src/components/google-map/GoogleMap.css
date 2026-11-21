@@ -209,6 +209,56 @@ ev-google-map {
 }
 
 .filter-dialog {
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .save-filters[aria-disabled="true"] {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+  }
+
+  /* Signed out: why saving is disabled, on hover or focus. */
+  .tooltip {
+    position: absolute;
+    bottom: calc(100% + var(--spacing-xs));
+    left: 50%;
+    translate: -50% 0;
+    width: max-content;
+    max-width: var(--filter-option-min-width);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-secondary);
+    color: var(--color-secondary-contrast);
+    font-size: var(--font-size-xs);
+    text-align: center;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .save-filters-wrapper {
+    position: relative;
+
+    &:not(:hover, :focus-within) .tooltip {
+      display: none;
+    }
+  }
+
+  .save-status {
+    flex-basis: 100%;
+    font-size: var(--font-size-sm);
+    text-align: center;
+    color: var(--color-text-muted);
+
+    &:empty {
+      display: none;
+    }
+  }
+
   .group {
     display: flex;
     flex-direction: column;
@@ -228,6 +278,7 @@ ev-google-map {
 
   .footer {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: var(--spacing-sm);
     padding-bottom: var(--spacing-lg);
@@ -586,5 +637,21 @@ ev-google-map {
 @keyframes sheet-up {
   from {
     transform: translateY(100%);
+  }
+}
+
+@media (width < 40em) {
+  /* Three buttons don't fit side by side: saving gets its own row. */
+  .filter-dialog .footer {
+    .save-filters-wrapper {
+      display: flex;
+      flex-basis: 100%;
+      order: -1;
+    }
+
+    .button {
+      flex: 1;
+      min-width: 0;
+    }
   }
 }

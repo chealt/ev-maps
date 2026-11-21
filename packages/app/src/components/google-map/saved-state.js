@@ -47,10 +47,18 @@ const readMapView = async () => {
 
 const saveMapView = ({ center, zoom }) => write(MAP_VIEW_KEY, { center, zoom });
 
-// { powerRanges: ["150-300", ...] }
+const stringList = (value) =>
+  Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+
+// { powerRanges: ["150-300", ...], connectorTypes: ["ccs", ...], updatedAt },
+// updatedAt being when the user last changed them (0 if never).
 const readFilters = async () => {
   const filters = await read(FILTERS_KEY);
-  return { powerRanges: Array.isArray(filters?.powerRanges) ? filters.powerRanges : [] };
+  return {
+    powerRanges: stringList(filters?.powerRanges),
+    connectorTypes: stringList(filters?.connectorTypes),
+    updatedAt: Number(filters?.updatedAt) || 0,
+  };
 };
 
 const saveFilters = (filters) => write(FILTERS_KEY, filters);

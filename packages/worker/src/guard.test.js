@@ -47,33 +47,38 @@ describe("isBlockedAgent", () => {
 
 describe("guard", () => {
   test("refuses bots", async () => {
-    const response = await guard(request({ "user-agent": "curl/8.7.1" }), {}, "tiles", signedOut);
+    const { refused: response } = await guard(
+      request({ "user-agent": "curl/8.7.1" }),
+      {},
+      "tiles",
+      signedOut
+    );
     expect(response.status).toBe(403);
   });
 
   test("lets anyone load tiles, limited per IP address", async () => {
     const env = { TILE_LIMITER: limiter() };
-    expect(await guard(request(), env, "tiles", signedOut)).toBeNull();
+    expect(await guard(request(), env, "tiles", signedOut)).toEqual({ userId: null });
     expect(env.TILE_LIMITER.keys).toEqual(["tiles:ip:203.0.113.7"]);
   });
 
   test("asks to sign in for live availability and routes", async () => {
-    for (const policy of ["status", "route"]) {
-      const response = await guard(request(), {}, policy, signedOut);
+    for (const policy of ["status", "route", "settings"]) {
+      const { refused: response } = await guard(request(), {}, policy, signedOut);
       expect(response.status).toBe(401);
     }
   });
 
   test("limits signed-in users per user", async () => {
     const env = { STATUS_LIMITER: limiter() };
-    expect(await guard(request(), env, "status", signedIn)).toBeNull();
+    expect(await guard(request(), env, "status", signedIn)).toEqual({ userId: "user-1" });
     expect(env.STATUS_LIMITER.keys).toEqual(["status:user:user-1"]);
   });
 
   test("says when the limit is reached", async () => {
     const env = { ROUTE_LIMITER: limiter(1) };
-    expect(await guard(request(), env, "route", signedIn)).toBeNull();
-    const response = await guard(request(), env, "route", signedIn);
+    expect(await guard(request(), env, "route", signedIn)).toEqual({ userId: "user-1" });
+    const { refused: response } = await guard(request(), env, "route", signedIn);
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("60");
   });
