@@ -5,6 +5,22 @@
     gap: var(--spacing-lg);
   }
 
+  .sign-in-needed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    background: var(--color-primary-light);
+    color: var(--color-primary-light-text);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
   .hint {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);

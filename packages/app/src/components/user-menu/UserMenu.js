@@ -2,6 +2,7 @@
 // OAuth page, then back to this page with a session cookie, which the menu
 // reads on every load.
 import { message } from "../../lib/messages.js";
+import { setSignedIn } from "../../lib/session.js";
 
 const SESSION_URL = "/api/auth/get-session";
 const PROVIDERS_URL = "/api/sign-in-providers";
@@ -150,6 +151,7 @@ class UserMenuElement extends HTMLElement {
   }
 
   setSignedIn(signedIn) {
+    setSignedIn(signedIn);
     this.querySelector(".sign-in-label").hidden = signedIn;
     this.querySelector(".avatar").hidden = !signedIn;
     this.querySelector(".profile").hidden = !signedIn;

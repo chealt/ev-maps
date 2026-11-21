@@ -147,6 +147,12 @@ ev-maps/
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated
   from `public/favicon.svg` with `bun run icons` in `packages/app`.
+- **Access and rate limits** (`packages/worker/src/guard.js`): bots and AI
+  crawlers get a 403 from the whole API. The charger tiles and sign-in are
+  open to everyone, limited per IP address; live availability and chargers
+  along a route need a signed-in user, limited per user (Cloudflare's rate
+  limiting, `ratelimits` in `wrangler.toml`). Signed out, the page shows those
+  features with a sign-in button instead.
 - **Legal pages**: the privacy policy and terms of use, one Markdown file per
   language (`src/legal/{lang}/`), built as `/{lang}/privacy/` and
   `/{lang}/terms/` and linked from the account menu. Crawlers are kept out as

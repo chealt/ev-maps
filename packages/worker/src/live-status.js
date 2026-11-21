@@ -12,9 +12,9 @@ import { loadSourceMetadata } from "./source-metadata.js";
 
 const STATUS_PATH = "/api/chargers/status";
 const MAX_IDS = 50;
-// Browsers and the edge keep an answer this long; the snapshots change every
-// few minutes anyway.
-const STATUS_CACHE_CONTROL = "public, max-age=60";
+// The browser keeps an answer this long (only the browser: it's for a
+// signed-in user); the snapshots change every few minutes anyway.
+const STATUS_CACHE_CONTROL = "private, max-age=60";
 // A Worker instance keeps the snapshot parts it read this long.
 const SNAPSHOT_MAX_AGE_MS = 60 * 1000;
 // The */5 cron's interval; sources refresh every multiple of it.

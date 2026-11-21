@@ -53,6 +53,8 @@ const pl = {
     privacyPolicy: "Polityka prywatności",
     termsOfUse: "Regulamin",
     legalUpdated: "Ostatnia aktualizacja: {date}",
+    signInForAvailability: "Zaloguj się, aby zobaczyć, ile punktów jest teraz wolnych.",
+    signInForRoutes: "Zaloguj się, aby planować trasy i widzieć stacje ładowania na nich.",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",

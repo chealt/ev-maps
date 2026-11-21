@@ -1,6 +1,7 @@
 import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
+import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { loadGoogleMaps } from "./loader.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
@@ -258,6 +259,15 @@ class GoogleMapElement extends HTMLElement {
       }
     });
     document.addEventListener("theme-change", this.handleThemeChange);
+    // Live availability needs a signed-in user; show it once there is one.
+    onSessionChange(() => {
+      if (this.activeCharger && !this.detailsPanel?.hidden) {
+        this.showAvailability(this.activeCharger);
+      }
+    });
+    this.detailsPanel
+      ?.querySelector(".availability .sign-in-button")
+      ?.addEventListener("click", () => requestSignIn());
 
     this.detailsPanel
       ?.querySelector(".close")
@@ -849,6 +859,7 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     this.activeChargerId = charger.id;
+    this.activeCharger = charger;
     panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
@@ -869,6 +880,9 @@ class GoogleMapElement extends HTMLElement {
     const missing = ids.filter((id) => !fresh(id));
     if (missing.length) {
       const response = await fetch(`/api/chargers/status?ids=${missing.join(",")}`);
+      if (response.status === 401) {
+        return null;
+      }
       const { statuses } = response.ok ? await response.json() : { statuses: {} };
       for (const id of missing) {
         this.statuses.set(id, { status: statuses[id] ?? null, fetchedAt: Date.now() });
@@ -877,8 +891,18 @@ class GoogleMapElement extends HTMLElement {
     return ids.map((id) => this.statuses.get(id)?.status).filter(Boolean);
   }
 
+  // Signed out, the section asks to sign in instead of showing statuses.
+  showAvailabilitySignIn(section, signInNeeded) {
+    for (const element of section.querySelectorAll(".free, .out-of-service, .updated")) {
+      element.hidden = signInNeeded;
+    }
+    section.querySelector(".sign-in-needed").hidden = !signInNeeded;
+    section.querySelector(".sign-in-button").hidden = !signInNeeded;
+  }
+
   // How many of the charger's points are free right now, where a source
-  // publishes it; the section stays hidden otherwise.
+  // publishes it; the section stays hidden otherwise. It needs a signed-in
+  // user (the Worker says 401 otherwise).
   async showAvailability(charger) {
     const section = this.detailsPanel.querySelector(".availability");
     section.hidden = true;
@@ -888,6 +912,11 @@ class GoogleMapElement extends HTMLElement {
     if (!ids.length) {
       return;
     }
+    if (!isSignedIn()) {
+      this.showAvailabilitySignIn(section, true);
+      section.hidden = false;
+      return;
+    }
     let statuses;
     try {
       statuses = await this.fetchStatuses(ids);
@@ -895,9 +924,18 @@ class GoogleMapElement extends HTMLElement {
       console.error("Could not load the charger's availability:", error);
       return;
     }
-    if (!statuses.length || this.activeChargerId !== charger.id) {
+    if (this.activeChargerId !== charger.id) {
       return;
     }
+    if (!statuses) {
+      this.showAvailabilitySignIn(section, true);
+      section.hidden = false;
+      return;
+    }
+    if (!statuses.length) {
+      return;
+    }
+    this.showAvailabilitySignIn(section, false);
     const sum = (field) => statuses.reduce((total, status) => total + status[field], 0);
     const outOfService = sum("outOfService");
     section.querySelector(".free").textContent = message("pointsFree", {
@@ -918,6 +956,7 @@ class GoogleMapElement extends HTMLElement {
       this.detailsPanel.hidden = true;
     }
     this.activeChargerId = null;
+    this.activeCharger = null;
     this.setActiveMarker(null);
   }
 }

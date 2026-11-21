@@ -9,9 +9,10 @@
 // refreshes the live statuses every few minutes.
 
 import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
-import { handleAuth, isAuthPath } from "./auth.js";
+import { handleAuth, isAuthPath, userIdOf } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
+import { guard } from "./guard.js";
 import { runImport } from "./import/index.js";
 import { STATUS_PATH, refreshStatuses, statusResponse } from "./live-status.js";
 import { routeChargersResponse } from "./route-chargers.js";
@@ -156,18 +157,42 @@ const withoutIndexing = (response) => {
   });
 };
 
-const route = (request, env, context) => {
-  const url = new URL(request.url);
+// The API parts by path, with their access policy (see guard.js).
+const apiPolicy = (request, url) => {
   if (isAuthPath(url.pathname)) {
-    return handleAuth(request, env);
+    return "auth";
   }
   if (request.method === "POST" && url.pathname === "/api/chargers/route") {
-    return routeChargersResponse(request, env);
+    return "route";
   }
   if (request.method === "GET" && url.pathname === STATUS_PATH) {
-    return statusResponse(request, env);
+    return "status";
   }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
+    return "tiles";
+  }
+  return null;
+};
+
+const route = async (request, env, context) => {
+  const url = new URL(request.url);
+  const policy = apiPolicy(request, url);
+  if (policy) {
+    const refused = await guard(request, env, policy, () => userIdOf(request, env));
+    if (refused) {
+      return refused;
+    }
+  }
+  if (policy === "auth") {
+    return handleAuth(request, env);
+  }
+  if (policy === "route") {
+    return routeChargersResponse(request, env);
+  }
+  if (policy === "status") {
+    return statusResponse(request, env);
+  }
+  if (policy === "tiles") {
     const tile = parseTile(url.pathname);
     return tile
       ? tileResponse(request, env, tile, context)

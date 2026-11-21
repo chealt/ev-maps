@@ -55,6 +55,8 @@ const hu = {
     privacyPolicy: "Adatvédelmi tájékoztató",
     termsOfUse: "Felhasználási feltételek",
     legalUpdated: "Utolsó frissítés: {date}",
+    signInForAvailability: "Jelentkezz be, hogy lásd, hány töltőpont szabad most.",
+    signInForRoutes: "Jelentkezz be az útvonaltervezéshez és az útvonal menti töltőállomásokhoz.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
