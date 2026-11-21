@@ -18,6 +18,9 @@ const ACCESS = {
   private: "private",
   no: "private",
   permit: "permit",
+  // France's IRVE.
+  "Accès libre": "public",
+  "Accès réservé": "restricted",
 };
 
 // Open Charge Map's statuses; OpenStreetMap has none.

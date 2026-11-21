@@ -41,7 +41,7 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
 const chargerName = (charger) => charger.name || charger.operator || message("unnamedCharger");
 
 // Sources the Worker has live statuses for (packages/worker/src/live-status.js).
-const LIVE_STATUS_SOURCES = ["eipa"];
+const LIVE_STATUS_SOURCES = ["eipa", "irve"];
 // The page keeps statuses this long, in memory only; the Worker refreshes
 // them every few minutes.
 const STATUS_MAX_AGE_MS = 60 * 1000;
