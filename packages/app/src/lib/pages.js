@@ -28,12 +28,13 @@ const languages = () =>
 // "…/hu.json" -> "hu"; other files in the directory are ignored.
 const countryOf = (path) => /(?:^|\/)([a-z]{2})\.json$/.exec(path)?.[1];
 
-const readCountries = () =>
-  Promise.all(
-    Object.entries(countryFiles)
-      .filter(([path]) => countryOf(path))
-      .map(async ([path, load]) => ({ country: countryOf(path), chargers: await load() }))
-  );
+// The countries with chargers, each with a function loading its chargers:
+// listing the pages loads none, and each page only its own (the files can be
+// hundreds of MB together, too much for the dev server to load per request).
+const listCountries = () =>
+  Object.entries(countryFiles)
+    .filter(([path]) => countryOf(path))
+    .map(([path, load]) => ({ country: countryOf(path), loadChargers: load }));
 
 // One charger per grid cell, the fastest, with the grid coarsened until there
 // are at most `max`: an even spread over the country for the map's overview.
@@ -76,4 +77,4 @@ const chargerBounds = (chargers) => {
 const countryName = (country, language) =>
   new Intl.DisplayNames([language], { type: "region" }).of(country.toUpperCase());
 
-export { chargerBounds, countryName, languages, pageChargers, readCountries };
+export { chargerBounds, countryName, languages, listCountries, pageChargers };
