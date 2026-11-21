@@ -57,6 +57,17 @@ test("signs in with GitHub", async ({ page }) => {
   expect(signInRequests[0].provider).toBe("github");
 });
 
+test("signs in with Microsoft", async ({ page }) => {
+  const signInRequests = await fakeAuthApi(page, { providers: ["google", "microsoft"] });
+  await page.goto("/pl/");
+  await page.getByRole("button", { name: "Zaloguj się" }).click();
+
+  await page.getByRole("button", { name: "Zaloguj się przez Microsoft" }).click();
+
+  await expect(page.getByRole("button", { name: "Konto: Ada Lovelace" })).toBeVisible();
+  expect(signInRequests[0].provider).toBe("microsoft");
+});
+
 test("signs in with Google and stays signed in after a reload", async ({ page }) => {
   const signInRequests = await fakeAuthApi(page);
   await page.goto("/");

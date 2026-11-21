@@ -49,6 +49,11 @@
   --color-github-button: light-dark(#24292f, #f6f8fa);
   --color-github-button-hover: light-dark(#32383f, #eaeef2);
   --color-github-button-text: light-dark(#ffffff, #24292f);
+  /* Microsoft's sign-in button branding (light and dark) */
+  --color-microsoft-button: light-dark(#ffffff, #2f2f2f);
+  --color-microsoft-button-hover: light-dark(#f3f3f3, #3b3b3b);
+  --color-microsoft-button-border: light-dark(#8c8c8c, #2f2f2f);
+  --color-microsoft-button-text: light-dark(#5e5e5e, #ffffff);
   --gradient-brand: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 
   /* Typography */

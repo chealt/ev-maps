@@ -47,6 +47,8 @@ bunx wrangler secret put GOOGLE_CLIENT_SECRET
 # Optional: Sign in with GitHub (see GitHub below)
 bunx wrangler secret put GITHUB_CLIENT_ID
 bunx wrangler secret put GITHUB_CLIENT_SECRET
+# Optional: Sign in with Microsoft (see Microsoft below)
+bunx wrangler secret put MICROSOFT_CLIENT_SECRET
 ```
 
 Sign-in runs in the Worker with [Better Auth](https://www.better-auth.com),
@@ -121,3 +123,25 @@ than one callback URL.
 - Set its client ID and a generated client secret as the Worker's
   `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (and in `.dev.vars` locally).
   Without them, the menu doesn't offer GitHub.
+
+## Microsoft
+
+Sign in with Microsoft uses an app registration in
+[Microsoft Entra ID](https://entra.microsoft.com) (App registrations → New
+registration).
+
+- **Supported account types**: accounts in any organizational directory and
+  personal Microsoft accounts (the Worker uses the `common` tenant).
+- **Two registrations**, like the Google OAuth clients: one for production and
+  one for development. Their **Redirect URIs** (platform **Web**):
+  - Production:
+    `https://ev-maps.chealt.workers.dev/api/auth/callback/microsoft` and
+    `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
+  - Development: `http://localhost:4321/api/auth/callback/microsoft`
+- **Certificates & secrets**: add a client secret to each. Entra ID secrets
+  expire (at most after two years), so note when to replace them.
+- The **Application (client) ID** is public and goes in `wrangler.toml` as
+  `MICROSOFT_CLIENT_ID`: production's in `[vars]`, development's in
+  `[env.local.vars]`. The secret's **Value** goes in the Worker's
+  `MICROSOFT_CLIENT_SECRET` (production) and in `.dev.vars` (development).
+  Without both, the menu doesn't offer Microsoft.
