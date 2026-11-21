@@ -5,19 +5,21 @@
 // changes.
 
 const SETTINGS_PATH = "/api/settings";
-const MAX_BODY_BYTES = 16 * 1024;
+const MAX_BODY_BYTES = 32 * 1024;
 // Sections and what's allowed in them.
 const SECTIONS = {
   filters: {
     powerRanges: (value) => isStringList(value, 10),
     connectorTypes: (value) => isStringList(value, 20),
+    // Operator names as the charger data has them; "" is "unknown operator".
+    excludedOperators: (value) => isStringList(value, 200, 120),
   },
 };
 
-const isStringList = (value, max) =>
+const isStringList = (value, max, maxLength = 40) =>
   Array.isArray(value) &&
   value.length <= max &&
-  value.every((item) => typeof item === "string" && item.length <= 40);
+  value.every((item) => typeof item === "string" && item.length <= maxLength);
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {

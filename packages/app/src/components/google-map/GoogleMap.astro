@@ -171,6 +171,29 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             ))}
           </div>
         </div>
+        <div class="group" role="group" aria-labelledby="operator-filter-title">
+          <div class="group-header">
+            <h3 class="subtitle" id="operator-filter-title">
+              {page.operatorFilter}
+            </h3>
+            <Button variant="ghost" size="small" class="show-all-operators" hidden>
+              {page.showAllOperators}
+            </Button>
+          </div>
+          <p class="hint">{page.operatorFilterHint}</p>
+          <p class="hint no-operators">{page.noOperators}</p>
+          <!-- The operators of the chargers on the map, from the template below. -->
+          <ul class="operator-options"></ul>
+          <template class="operator-option-template">
+            <li>
+              <label class="operator-option">
+                <input type="checkbox" class="operator-filter" checked />
+                <span class="operator-name"></span>
+                <span class="operator-count"></span>
+              </label>
+            </li>
+          </template>
+        </div>
       </div>
       <div class="footer">
         <Button variant="secondary" size="large" class="clear-filters" disabled>

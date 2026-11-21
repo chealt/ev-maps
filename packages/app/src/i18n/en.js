@@ -67,6 +67,10 @@ const en = {
     connectorType1: "Type 1",
     connectorHousehold: "Household socket",
     signInToSaveFilters: "Sign in to keep your filters on all your devices.",
+    operatorFilter: "Operator",
+    showAllOperators: "Show all",
+    operatorFilterHint: "Operators of the chargers on the map. Untick one to hide its chargers.",
+    noOperators: "Move the map to chargers to choose between their operators.",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",
@@ -137,6 +141,7 @@ const en = {
     },
     pointsOutOfService: "Out of service: {count}",
     statusUpdated: "Updated {time}",
+    unknownOperator: "Unknown operator",
     filtersNotSaved:
       "Your filters couldn't be saved to your account. They're still saved on this device.",
     accountOf: "Account: {name}",

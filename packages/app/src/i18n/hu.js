@@ -62,6 +62,11 @@ const hu = {
     connectorType1: "1-es típus",
     connectorHousehold: "Háztartási aljzat",
     signInToSaveFilters: "Jelentkezz be, hogy a szűrőid minden eszközödön meglegyenek.",
+    operatorFilter: "Üzemeltető",
+    showAllOperators: "Összes mutatása",
+    operatorFilterHint:
+      "A térképen lévő töltők üzemeltetői. Vedd ki a pipát, hogy elrejtsd a töltőit.",
+    noOperators: "Mozgasd a térképet töltőkhöz, hogy az üzemeltetőik közül választhass.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -136,6 +141,7 @@ const hu = {
     },
     pointsOutOfService: "Nem működik: {count}",
     statusUpdated: "Frissítve {time}",
+    unknownOperator: "Ismeretlen üzemeltető",
     filtersNotSaved:
       "Nem sikerült a fiókodba menteni a szűrőket. Ezen az eszközön továbbra is megvannak.",
     accountOf: "Fiók: {name}",

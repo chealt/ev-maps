@@ -60,6 +60,10 @@ const pl = {
     connectorType1: "Typ 1",
     connectorHousehold: "Gniazdo domowe",
     signInToSaveFilters: "Zaloguj się, aby mieć swoje filtry na wszystkich urządzeniach.",
+    operatorFilter: "Operator",
+    showAllOperators: "Pokaż wszystkie",
+    operatorFilterHint: "Operatorzy stacji na mapie. Odznacz operatora, aby ukryć jego stacje.",
+    noOperators: "Przesuń mapę do stacji ładowania, aby wybrać ich operatorów.",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -146,6 +150,7 @@ const pl = {
     },
     pointsOutOfService: "Niedziałające: {count}",
     statusUpdated: "Zaktualizowano {time}",
+    unknownOperator: "Nieznany operator",
     filtersNotSaved:
       "Nie udało się zapisać filtrów na Twoim koncie. Nadal są zapisane na tym urządzeniu.",
     accountOf: "Konto: {name}",

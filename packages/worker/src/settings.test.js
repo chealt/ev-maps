@@ -12,6 +12,19 @@ describe("validSection", () => {
     ).toBe(true);
   });
 
+  test("accepts the operators turned off, including unknown ones and long names", () => {
+    const longName = "Société d'Économie Mixte des Énergies Renouvelables de la Région";
+    expect(
+      validSection("filters", { excludedOperators: ["", "Ionity", longName], updatedAt: 1 })
+    ).toBe(true);
+    expect(validSection("filters", { excludedOperators: ["x".repeat(121)], updatedAt: 1 })).toBe(
+      false
+    );
+    expect(
+      validSection("filters", { excludedOperators: Array(201).fill("Ionity"), updatedAt: 1 })
+    ).toBe(false);
+  });
+
   test("refuses unknown sections and fields, wrong types and missing times", () => {
     expect(validSection("favourites", { updatedAt: 1 })).toBe(false);
     expect(validSection("filters", { powerRanges: [], extra: 1, updatedAt: 1 })).toBe(false);
