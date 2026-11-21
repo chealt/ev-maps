@@ -83,3 +83,16 @@ test("keeps the saved view instead of the country", async ({ page }) => {
   expect(await page.evaluate(() => window.__fakeMap.center)).toEqual(budapest);
   expect(await page.evaluate(() => window.__fakeMap.zoom)).toBe(12);
 });
+
+test("holds an even spread of a large country's chargers", async ({ page }) => {
+  const requests = await fakeChargersApi(page);
+  await page.goto("/en/pl/");
+
+  await expect(page.getByRole("status")).toHaveText(
+    /^Showing [1-4] EV chargers, zoom in to see all$/
+  );
+  // The fastest charger of its area is kept.
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button", { name: "Wrocław Charger" })).toBeVisible();
+  expect(requests).toHaveLength(0);
+});

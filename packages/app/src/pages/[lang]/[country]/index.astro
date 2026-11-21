@@ -1,7 +1,13 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import HomePage from "../../../components/HomePage.astro";
-import { chargerBounds, countryName, languages, readCountries } from "../../../lib/pages.js";
+import {
+  chargerBounds,
+  countryName,
+  languages,
+  pageChargers,
+  readCountries,
+} from "../../../lib/pages.js";
 import { fill, translations } from "../../../i18n/index.js";
 
 export const getStaticPaths = async () => {
@@ -20,5 +26,5 @@ const title = fill(translations(lang).page.countryTitle, { country: countryName(
 ---
 
 <Layout title={title}>
-  <HomePage chargers={chargers} chargerBounds={chargerBounds(chargers)} />
+  <HomePage {...pageChargers(chargers)} chargerBounds={chargerBounds(chargers)} />
 </Layout>

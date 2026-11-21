@@ -1,0 +1,110 @@
+[
+  {
+    "id": "ocm:300",
+    "source": "ocm",
+    "name": "Warsaw Charger",
+    "location": {
+      "lat": 52.2297,
+      "lng": 21.0122
+    },
+    "address": "Warsaw",
+    "maxPowerKw": 150,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 150,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "ocm:301",
+    "source": "ocm",
+    "name": "Kraków Charger",
+    "location": {
+      "lat": 50.0647,
+      "lng": 19.945
+    },
+    "address": "Kraków",
+    "maxPowerKw": 50,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 50,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "ocm:302",
+    "source": "ocm",
+    "name": "Gdańsk Charger",
+    "location": {
+      "lat": 54.352,
+      "lng": 18.6466
+    },
+    "address": "Gdańsk",
+    "maxPowerKw": 22,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 22,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "ocm:303",
+    "source": "ocm",
+    "name": "Wrocław Charger",
+    "location": {
+      "lat": 51.1079,
+      "lng": 17.0385
+    },
+    "address": "Wrocław",
+    "maxPowerKw": 300,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 300,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "ocm:304",
+    "source": "ocm",
+    "name": "Poznań Charger",
+    "location": {
+      "lat": 52.4064,
+      "lng": 16.9252
+    },
+    "address": "Poznań",
+    "maxPowerKw": 11,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 11,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "ocm:305",
+    "source": "ocm",
+    "name": "Łódź Charger",
+    "location": {
+      "lat": 51.7592,
+      "lng": 19.456
+    },
+    "address": "Łódź",
+    "maxPowerKw": 100,
+    "connectors": [
+      {
+        "type": "ccs2",
+        "powerKw": 100,
+        "quantity": 1
+      }
+    ]
+  }
+]

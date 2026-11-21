@@ -18,6 +18,8 @@ interface Props {
   minChargerZoom?: number;
   // A country page's chargers, shown without loading them from the API.
   chargers?: object[];
+  // Whether those are only some of the country's chargers.
+  chargersTruncated?: boolean;
   chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
@@ -38,6 +40,7 @@ const {
   autoLocate = true,
   minChargerZoom = 9,
   chargers,
+  chargersTruncated = false,
   chargerBounds,
 } = Astro.props;
 
@@ -56,6 +59,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
   data-located-zoom={locatedZoom}
   data-min-charger-zoom={minChargerZoom}
   data-charger-bounds={chargerBounds && JSON.stringify(chargerBounds)}
+  data-page-chargers-truncated={chargersTruncated ? "" : undefined}
 >
   {chargersJson && <script type="application/json" class="page-chargers" set:html={chargersJson} />}
   <div class="google-map-container">

@@ -193,6 +193,11 @@ class GoogleMapElement extends HTMLElement {
     }
   }
 
+  // A large country's page has an even spread of its chargers, not all.
+  get pageChargersTruncated() {
+    return this.hasAttribute("data-page-chargers-truncated");
+  }
+
   get chargerBounds() {
     return this.dataset.chargerBounds ? JSON.parse(this.dataset.chargerBounds) : null;
   }
@@ -401,7 +406,7 @@ class GoogleMapElement extends HTMLElement {
     if (zoom < this.minChargerZoom) {
       // Too large an area to load, but a country page has its own chargers.
       if (this.pageChargers?.length) {
-        this.loaded = { chargers: this.pageChargers, truncated: false };
+        this.loaded = { chargers: this.pageChargers, truncated: this.pageChargersTruncated };
         await this.showMatchingChargers();
         return;
       }
@@ -417,7 +422,7 @@ class GoogleMapElement extends HTMLElement {
       isInBounds(charger.location, bounds)
     );
     if (pageChargersInView?.length) {
-      this.loaded = { chargers: pageChargersInView, truncated: false };
+      this.loaded = { chargers: pageChargersInView, truncated: this.pageChargersTruncated };
       await this.showMatchingChargers();
       if (searchId !== this.searchId) {
         return;

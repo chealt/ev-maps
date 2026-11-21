@@ -7,11 +7,12 @@ import "./HomePage.css";
 
 interface Props {
   chargers?: object[];
+  truncated?: boolean;
   chargerBounds?: { north: number; south: number; east: number; west: number };
 }
 
 const { page } = translations(Astro.currentLocale ?? "en");
-const { chargers, chargerBounds } = Astro.props;
+const { chargers, truncated, chargerBounds } = Astro.props;
 const { googleMaps, evChargers } = appConfig;
 ---
 
@@ -32,6 +33,7 @@ const { googleMaps, evChargers } = appConfig;
     autoLocate={googleMaps.autoLocate}
     minChargerZoom={evChargers.minZoom}
     chargers={chargers}
+    chargersTruncated={truncated}
     chargerBounds={chargerBounds}
   />
 </main>
