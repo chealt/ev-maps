@@ -20,7 +20,8 @@ const providers = [
   { id: "apple", name: "Apple", logo: AppleLogo },
 ];
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const lang = Astro.currentLocale ?? "en";
+const { page } = translations(lang);
 ---
 
 <ev-user-menu class="user-menu">
@@ -65,6 +66,10 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <Icon icon={LogOut} size="sm" />
       {page.signOut}
     </Button>
+    <nav class="legal" aria-label={page.legal}>
+      <a href={`/${lang}/privacy/`}>{page.privacyPolicy}</a>
+      <a href={`/${lang}/terms/`}>{page.termsOfUse}</a>
+    </nav>
   </div>
   <script src="./UserMenu.js"></script>
 </ev-user-menu>

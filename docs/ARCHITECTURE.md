@@ -51,6 +51,7 @@ ev-maps/
 │   │   │   ├── config/app.config.js   # Map defaults and env-based settings
 │   │   │   ├── i18n/                  # Copy per language: en.js, pl.js, hu.js
 │   │   │   ├── layouts/               # Layout.astro + global.css (design tokens)
+│   │   │   ├── legal/                 # Privacy policy and terms, per language
 │   │   │   ├── lib/                   # messages.js (runtime copy), pages.js
 │   │   │   └── pages/                 # /{lang}/ and /{lang}/{country}/
 │   │   ├── data/chargers/             # Exported chargers per country (git-ignored)
@@ -144,6 +145,10 @@ ev-maps/
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated
   from `public/favicon.svg` with `bun run icons` in `packages/app`.
+- **Legal pages**: the privacy policy and terms of use, one Markdown file per
+  language (`src/legal/{lang}/`), built as `/{lang}/privacy/` and
+  `/{lang}/terms/` and linked from the account menu. Crawlers are kept out as
+  the terms say: `public/robots.txt`, `noai` headers and meta tags.
 - **Themes**: every color token is defined once with `light-dark()`;
   `<ev-theme-picker>` sets `data-theme` on `<html>` and the map follows with
   Google Maps' color scheme.

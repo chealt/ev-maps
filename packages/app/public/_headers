@@ -1,0 +1,4 @@
+# Response headers for the static files, served by Cloudflare's Workers
+# static assets: no AI training or reuse (see the terms and robots.txt).
+/*
+  X-Robots-Tag: noai, noimageai
