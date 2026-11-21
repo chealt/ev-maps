@@ -62,8 +62,7 @@ const hu = {
     connectorType2: "2-es típus",
     connectorType1: "1-es típus",
     connectorHousehold: "Háztartási aljzat",
-    saveFilters: "Mentés a fiókomba",
-    signInToSaveFilters: "Jelentkezz be, hogy a szűrőidet a fiókodba mentsd",
+    signInToSaveFilters: "Jelentkezz be, hogy a szűrőid minden eszközödön meglegyenek.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -138,8 +137,8 @@ const hu = {
     },
     pointsOutOfService: "Nem működik: {count}",
     statusUpdated: "Frissítve {time}",
-    filtersSaved: "Elmentve a fiókodba",
-    filtersNotSaved: "Nem sikerült menteni a szűrőket. Próbáld újra.",
+    filtersNotSaved:
+      "Nem sikerült a fiókodba menteni a szűrőket. Ezen az eszközön továbbra is megvannak.",
     accountOf: "Fiók: {name}",
   },
   values: {
