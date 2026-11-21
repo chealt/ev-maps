@@ -5,23 +5,21 @@ import {
   chargerBounds,
   countryName,
   languages,
+  listCountries,
   pageChargers,
-  readCountries,
 } from "../../../lib/pages.js";
 import { fill, translations } from "../../../i18n/index.js";
 
-export const getStaticPaths = async () => {
-  const countries = await readCountries();
-  return languages().flatMap((lang) =>
-    countries.map(({ country, chargers }) => ({
+export const getStaticPaths = () =>
+  languages().flatMap((lang) =>
+    listCountries().map(({ country, loadChargers }) => ({
       params: { lang, country },
-      props: { chargers },
+      props: { loadChargers },
     }))
   );
-};
 
 const { lang, country } = Astro.params;
-const { chargers } = Astro.props;
+const chargers = await Astro.props.loadChargers();
 const title = fill(translations(lang).page.countryTitle, { country: countryName(country, lang) });
 ---
 
