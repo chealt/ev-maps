@@ -98,7 +98,7 @@ const fetchElements = async (bounds) => {
       const response = await fetch(url, {
         method: "POST",
         body: new URLSearchParams({ data: query(bounds) }),
-        headers: { "user-agent": "ev-maps importer (https://ev-maps.chealt.workers.dev)" },
+        headers: { "user-agent": "ev-maps importer (https://ev.chealt.com)" },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
       if (response.ok) {

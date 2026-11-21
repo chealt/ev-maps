@@ -19,8 +19,9 @@ const precacheManifest = () => ({
 
 export default defineConfig({
   output: "static",
-  // Production, for absolute URLs such as the pages' hreflang links.
-  site: "https://ev-maps.chealt.workers.dev",
+  // Production's main address, for absolute URLs such as the pages' hreflang
+  // links. It also answers on ev-maps.chealt.workers.dev.
+  site: "https://ev.chealt.com",
   devToolbar: {
     enabled: false,
   },

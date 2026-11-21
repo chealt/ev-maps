@@ -12,6 +12,14 @@ compatibility_date = "2026-11-09"
 # Better Auth (src/auth.js) uses Node.js APIs such as AsyncLocalStorage.
 compatibility_flags = ["nodejs_compat"]
 
+# Production answers on both addresses. With a route listed, Wrangler would
+# turn workers.dev off, so it's kept on explicitly; the pull request previews
+# (<branch>-ev-maps.chealt.workers.dev) are its preview URLs. Sign-in works on
+# each address: the Worker builds its callback URLs from the request's.
+routes = [{ pattern = "ev.chealt.com", custom_domain = true }]
+workers_dev = true
+preview_urls = true
+
 # Public: the page shows it to Google anyway. The client secret and
 # BETTER_AUTH_SECRET are Worker secrets (docs/DEPLOYMENT.md); locally they're in
 # .dev.vars.
@@ -40,6 +48,10 @@ enabled = true
 # Local development. Environments don't inherit bindings or variables, so they
 # are repeated here; the D1 binding is the same database, whose local copy
 # lives in .wrangler/.
+[env.local]
+# Never deployed; without this it would inherit production's custom domain.
+routes = []
+
 [env.local.vars]
 # The development OAuth client, with http://localhost:4321 redirect URIs.
 GOOGLE_CLIENT_ID = "605162380909-9qcphon62a7gsq06974niqg20bi2b879.apps.googleusercontent.com"
