@@ -60,6 +60,21 @@ const CONNECTOR_TYPES = {
   "IEC 60309 3-pin": "iec-60309-3-pin",
   "IEC 60309 5-pin": "iec-60309-5-pin",
   Unknown: "unknown",
+  // EIPA's connector interfaces (OCPI names).
+  "IEC-62196-T2-COMBO": "ccs2",
+  "IEC-62196-T1-COMBO": "ccs1",
+  "IEC-62196-T2-F-NOCABLE": "type2-socket",
+  "IEC-62196-T2-F-CABLE": "type2-tethered",
+  "IEC-62196-T1-M-CABLE": "type1",
+  "IEC-62196-T1-F-NOCABLE": "type1",
+  CHADEMO: "chademo",
+  "CHINA-PART3": "gbt-dc",
+  "TESLA-SPECIFIC": "tesla-supercharger",
+  "DOMESTIC-E": "cee-7-5",
+  "DOMESTIC-F": "schuko",
+  "DOMESTIC-E-F": "schuko",
+  "IEC-309-2-1PH": "cee-blue",
+  "IEC-309-2-3PH": "cee-red-16a",
 };
 
 // The OpenStreetMap importer stored fee=no as this cost.

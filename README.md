@@ -17,9 +17,10 @@ Find electric vehicle charging stations on a map.
   menu has the light, dark or system theme and the language, signed in or not
 - In English, Polish and Hungarian, with a static page for every country
 
-Charging data comes from [Open Charge Map](https://openchargemap.org) and
+Charging data comes from [Open Charge Map](https://openchargemap.org),
 [OpenStreetMap](https://www.openstreetmap.org) (© OpenStreetMap contributors,
-ODbL); the map is [Google Maps](https://developers.google.com/maps).
+ODbL) and Poland's [EIPA](https://eipa.udt.gov.pl) register, with live
+availability; the map is [Google Maps](https://developers.google.com/maps).
 
 ## Documentation
 

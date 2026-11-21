@@ -28,6 +28,11 @@ const en = {
     connectors: "Connectors",
     details: "Details",
     openChargeMapCredit: { before: "Charging data from", after: "" },
+    availability: "Availability",
+    eipaCredit: {
+      before: "Charging data and availability from",
+      after: ", Urząd Dozoru Technicznego",
+    },
     openStreetMapCredit: {
       before: "Charging data ©",
       link: "OpenStreetMap contributors",
@@ -105,6 +110,12 @@ const en = {
     choosePlaces: "Choose both places from the suggestions",
     alongRoute: "In order along the route",
     offRoute: "{distance} off the route",
+    pointsFree: {
+      one: "{available} of {count} point free",
+      other: "{available} of {count} points free",
+    },
+    pointsOutOfService: "Out of service: {count}",
+    statusUpdated: "Updated {time}",
     accountOf: "Account: {name}",
   },
   values: {

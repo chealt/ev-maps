@@ -2,21 +2,26 @@
 // directly; the Worker only runs for:
 // - /api/chargers/{z}/{x}/{y}: chargers in a map tile, from D1
 // - POST /api/chargers/route: chargers along a route (see route-chargers.js)
+// - /api/chargers/status: live availability (see live-status.js)
 // - /: redirects to the page for the visitor's language and country
 // - /api/auth/*: sign-in and sessions (see auth.js)
-// It also runs the charger import on a schedule (see import/index.js).
+// It also runs the charger import on a schedule (see import/index.js), and
+// refreshes the live statuses every few minutes.
 
 import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
 import { handleAuth, isAuthPath } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { runImport } from "./import/index.js";
+import { STATUS_PATH, refreshStatuses, statusResponse } from "./live-status.js";
 import { routeChargersResponse } from "./route-chargers.js";
 
 const MAX_CHARGERS_PER_TILE = 2000;
 const MAX_TILE_ZOOM = 18;
 // The data changes weekly: browsers keep tiles for an hour, the edge a day.
 const TILE_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
+// wrangler.toml's crons: the import every 15 minutes, statuses every 5.
+const STATUS_CRON = "*/5 * * * *";
 const DEFAULT_LANGUAGE = "en";
 // Set by the app's language picker; it wins over the browser's languages.
 const LANGUAGE_COOKIE = "ev-maps-language";
@@ -148,6 +153,9 @@ export default {
     if (request.method === "POST" && url.pathname === "/api/chargers/route") {
       return routeChargersResponse(request, env);
     }
+    if (request.method === "GET" && url.pathname === STATUS_PATH) {
+      return statusResponse(request, env);
+    }
     if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
       const tile = parseTile(url.pathname);
       return tile
@@ -163,6 +171,10 @@ export default {
   // Awaited, not passed to waitUntil(): work after the handler returns is
   // cancelled after ~30 s, but a scheduled handler itself may run 15 minutes.
   async scheduled(controller, env) {
+    if (controller.cron === STATUS_CRON) {
+      await refreshStatuses(env, controller.scheduledTime);
+      return;
+    }
     // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
     await runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined });
   },
