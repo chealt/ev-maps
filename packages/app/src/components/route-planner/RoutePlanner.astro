@@ -25,6 +25,12 @@ const { page } = translations(Astro.currentLocale ?? "en");
       </Button>
     </div>
     <form class="body" id="route-planner-form" novalidate>
+      <div class="sign-in-needed" hidden>
+        <p>{page.signInForRoutes}</p>
+        <Button variant="primary" class="sign-in-button">
+          {page.signIn}
+        </Button>
+      </div>
       <PlaceInput id="route-from" label={page.routeFrom} placeholder={page.placeSearch}>
         <Button variant="ghost" size="small" class="use-my-location">
           <Icon icon={LocateFixed} size="sm" />

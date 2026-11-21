@@ -77,6 +77,9 @@ const createAuth = async (env, baseURL) => {
     socialProviders: providers,
     trustedOrigins: appleSecret ? [APPLE_ORIGIN] : [],
     telemetry: { enabled: false },
+    // The session, signed, in a cookie for 5 minutes: checking who's signed
+    // in (e.g. for every status request) doesn't need the database then.
+    session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },
   });
   return { auth, providers: Object.keys(providers) };
 };
@@ -114,4 +117,11 @@ const handleAuth = async (request, env) => {
     : auth.handler(request);
 };
 
-export { handleAuth, isAuthPath };
+// The signed-in user's ID, or null.
+const userIdOf = async (request, env) => {
+  const { auth } = await authFor(env, request);
+  const session = await auth.api.getSession({ headers: request.headers }).catch(() => null);
+  return session?.user?.id ?? null;
+};
+
+export { handleAuth, isAuthPath, userIdOf };

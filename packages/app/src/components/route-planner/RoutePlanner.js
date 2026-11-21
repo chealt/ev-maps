@@ -1,6 +1,7 @@
 // The From and To of a route. It only collects them: <ev-google-map> plans
 // the route (route-requested) and clears it (route-cleared).
 import { message } from "../../lib/messages.js";
+import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 
 const GEOLOCATION_TIMEOUT_MS = 10000;
 // GeolocationPositionError codes.
@@ -24,6 +25,21 @@ class RoutePlannerElement extends HTMLElement {
       this.dialog.close();
       this.emit("route-cleared");
     });
+    this.querySelector(".sign-in-button").addEventListener("click", () => {
+      this.dialog.close();
+      requestSignIn();
+    });
+    this.showSignedIn(isSignedIn());
+    onSessionChange((signedIn) => this.showSignedIn(signedIn));
+  }
+
+  // Planning routes needs a signed-in user (the Worker's route API does).
+  // Signed out, the fields stay visible but disabled, with a sign-in button.
+  showSignedIn(signedIn) {
+    this.querySelector(".sign-in-needed").hidden = signedIn;
+    for (const control of this.querySelectorAll("input, .use-my-location, button[type='submit']")) {
+      control.disabled = !signedIn;
+    }
   }
 
   open() {

@@ -197,6 +197,12 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <p class="free"></p>
         <p class="out-of-service"></p>
         <p class="updated"></p>
+        <p class="sign-in-needed" hidden>
+          {page.signInForAvailability}
+        </p>
+        <Button variant="secondary" size="small" class="sign-in-button" hidden>
+          {page.signIn}
+        </Button>
       </section>
       <section class="section">
         <h3 class="title">
