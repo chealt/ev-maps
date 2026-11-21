@@ -3,6 +3,7 @@ import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
 import { fakeChargersApi, requestCovers, tileWidth } from "./fixtures/chargers-api.js";
+import fixtureChargers from "./fixtures/chargers.json" with { type: "json" };
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);
@@ -170,4 +171,17 @@ test("zooms in to split a group when it is clicked", async ({ page }) => {
   await expect(map.getByRole("button", { name: "Downtown Supercharger" })).toBeVisible();
   await expect(map.getByRole("button")).toHaveCount(2);
   expect(await page.evaluate(() => window.__fakeMap.zoom)).toBeGreaterThan(9);
+});
+
+test("credits every source of a charger merged from several", async ({ page }) => {
+  const [downtown] = fixtureChargers;
+  await fakeChargersApi(page, { chargers: [{ ...downtown, sources: ["ocm", "osm"] }] });
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+
+  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+
+  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+  await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
+  await expect(details.getByRole("link", { name: "OpenStreetMap contributors" })).toBeVisible();
 });

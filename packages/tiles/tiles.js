@@ -5,7 +5,7 @@
 // shape: the app asks for /api/chargers/{z}/{x}/{y}?v={version}, and the
 // Worker caches tiles by it, so no cache (the edge, the browser or the service
 // worker) serves the old format afterwards.
-const TILE_FORMAT_VERSION = 2;
+const TILE_FORMAT_VERSION = 3;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 

@@ -840,8 +840,10 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));
+    // A charger merged from several sources credits each of them.
+    const sources = charger.sources ?? [charger.source];
     for (const attribution of panel.querySelectorAll(".attribution")) {
-      attribution.hidden = attribution.dataset.source !== charger.source;
+      attribution.hidden = !sources.includes(attribution.dataset.source);
     }
     panel.hidden = false;
   }

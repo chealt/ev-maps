@@ -9,7 +9,7 @@
 import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
 import { handleAuth, isAuthPath } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
-import { withoutDuplicates } from "./duplicates.js";
+import { mergeDuplicates } from "./duplicates.js";
 import { runImport } from "./import/index.js";
 import { routeChargersResponse } from "./route-chargers.js";
 
@@ -48,7 +48,7 @@ const tileResponse = async (request, env, { zoom, x, y }, context) => {
     MAX_CHARGERS_PER_TILE
   );
   const response = json(
-    { chargers: withoutDuplicates(rows.map(toClientCharger)), full },
+    { chargers: mergeDuplicates(rows.map(toClientCharger)), full },
     { headers: { "cache-control": TILE_CACHE_CONTROL } }
   );
   context.waitUntil(caches.default.put(cacheKey, response.clone()));
