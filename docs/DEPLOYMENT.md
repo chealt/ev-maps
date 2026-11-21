@@ -91,6 +91,15 @@ live file to 240; the Worker imports the static files weekly and the live file
 every 5 minutes. EIPA deletes accounts that download nothing for 30 days, which
 the weekly import prevents. Without the token, the Worker skips EIPA.
 
+## IRVE (France)
+
+France's national register of charging points is open data (Licence Ouverte
+2.0), consolidated by transport.data.gouv.fr; it needs no account. The static
+file lists every charging point (over 100 MB): the Worker streams it in 4
+passes a week, each keeping a quarter of the stations, as all of them at once
+wouldn't fit a Worker's memory. The live file (about 10 MB) is read every 15
+minutes, which is plenty for a public service.
+
 ## Privacy, terms and crawlers
 
 The privacy policy and terms of use are at `/{lang}/privacy/` and

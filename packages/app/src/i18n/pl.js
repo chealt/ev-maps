@@ -26,6 +26,11 @@ const pl = {
     openChargeMapCredit: { before: "Dane o stacjach:", after: "" },
     availability: "Dostępność",
     eipaCredit: { before: "Dane o stacjach i dostępności:", after: ", Urząd Dozoru Technicznego" },
+    irveCredit: {
+      before: "Dane o stacjach i dostępności:",
+      link: "IRVE, transport.data.gouv.fr",
+      after: ", Licence Ouverte",
+    },
     openStreetMapCredit: {
       before: "Dane o stacjach ©",
       link: "współtwórcy OpenStreetMap",

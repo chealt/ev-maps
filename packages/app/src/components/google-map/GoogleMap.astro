@@ -226,6 +226,17 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </a>
         {page.eipaCredit.after}
       </p>
+      <p class="attribution" data-source="irve" hidden>
+        {page.irveCredit.before}{" "}
+        <a
+          href="https://transport.data.gouv.fr/datasets/base-nationale-des-irve-infrastructures-de-recharge-pour-vehicules-electriques"
+          target="_blank"
+          rel="noopener"
+        >
+          {page.irveCredit.link}
+        </a>
+        {page.irveCredit.after}
+      </p>
       <p class="attribution" data-source="osm" hidden>
         {page.openStreetMapCredit.before}{" "}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">

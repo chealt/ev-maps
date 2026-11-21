@@ -5,9 +5,9 @@
 const DUPLICATE_DISTANCE_METERS = 60;
 const METERS_PER_DEGREE_LAT = 111320;
 // Which source's value wins for each field: official registers (Poland's
-// EIPA), then Open Charge Map, then OpenStreetMap. Sources not listed rank
-// last.
-const SOURCE_RANK = { eipa: 0, ocm: 1, osm: 2 };
+// EIPA, France's IRVE), then Open Charge Map, then OpenStreetMap. Sources not
+// listed rank last.
+const SOURCE_RANK = { eipa: 0, irve: 0, ocm: 1, osm: 2 };
 const UNRANKED = 9;
 // Fields taken from the best record that has them.
 const MERGED_FIELDS = [

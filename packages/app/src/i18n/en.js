@@ -33,6 +33,11 @@ const en = {
       before: "Charging data and availability from",
       after: ", Urząd Dozoru Technicznego",
     },
+    irveCredit: {
+      before: "Charging data and availability from",
+      link: "IRVE, transport.data.gouv.fr",
+      after: ", Licence Ouverte",
+    },
     openStreetMapCredit: {
       before: "Charging data ©",
       link: "OpenStreetMap contributors",

@@ -6,6 +6,7 @@
 // GET /api/chargers/status?ids=eipa:1,ocm:2.
 
 import { POINT_POOLS_KEY, downloadEipa } from "./import/eipa.js";
+import { PASSES, POINT_STATIONS_KEY, downloadCsv } from "./import/irve.js";
 import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
 
@@ -44,6 +45,49 @@ const countEipaStatuses = (data, pointPools) => {
   return byCharger;
 };
 
+// France: a point's `etat_pdc` hors_service is out of service; otherwise
+// `occupation_pdc` libre is free, and occupe or reserve occupied. Every point
+// the static register lists counts in the total; stations with no known
+// status at all are left out.
+const countIrveStatuses = async (rows, pointStations) => {
+  const totals = {};
+  for (const station of Object.values(pointStations)) {
+    totals[station] = (totals[station] ?? 0) + 1;
+  }
+  const byCharger = {};
+  for await (const row of rows) {
+    const station = pointStations[row.id_pdc_itinerance];
+    if (station === undefined) {
+      continue;
+    }
+    const id = `irve:${station}`;
+    if (row.etat_pdc === "hors_service") {
+      (byCharger[id] ??= [0, 0, 0, totals[station]])[2]++;
+    } else if (row.occupation_pdc === "libre") {
+      (byCharger[id] ??= [0, 0, 0, totals[station]])[0]++;
+    } else if (row.occupation_pdc === "occupe" || row.occupation_pdc === "reserve") {
+      (byCharger[id] ??= [0, 0, 0, totals[station]])[1]++;
+    }
+  }
+  return byCharger;
+};
+
+const IRVE_DYNAMIC_URL =
+  "https://proxy.transport.data.gouv.fr/resource/consolidation-nationale-irve-dynamique";
+
+const irveStatuses = async (env) => {
+  const passes = await Promise.all(
+    Array.from({ length: PASSES }, (_, pass) =>
+      loadSourceMetadata(env.DB, "irve", `${POINT_STATIONS_KEY}-${pass}`)
+    )
+  );
+  if (passes.some((pass) => !pass)) {
+    return null;
+  }
+  const pointStations = Object.assign({}, ...passes);
+  return countIrveStatuses(await downloadCsv(IRVE_DYNAMIC_URL), pointStations);
+};
+
 const eipaStatuses = async (env) => {
   const pointPools = await loadSourceMetadata(env.DB, "eipa", POINT_POOLS_KEY);
   if (!pointPools) {
@@ -57,6 +101,8 @@ const eipaStatuses = async (env) => {
 // refresh each (a multiple of CRON_MINUTES).
 const STATUS_SOURCES = [
   { source: "eipa", isConfigured: (env) => env.EIPA_TOKEN, everyMinutes: 5, load: eipaStatuses },
+  // A public government service: every 15 minutes is plenty.
+  { source: "irve", isConfigured: () => true, everyMinutes: 15, load: irveStatuses },
 ];
 
 const isDue = ({ everyMinutes }, scheduledTime) =>
@@ -145,4 +191,11 @@ const statusResponse = async (request, env) => {
   });
 };
 
-export { STATUS_PATH, countEipaStatuses, isDue, refreshStatuses, statusResponse };
+export {
+  STATUS_PATH,
+  countEipaStatuses,
+  countIrveStatuses,
+  isDue,
+  refreshStatuses,
+  statusResponse,
+};

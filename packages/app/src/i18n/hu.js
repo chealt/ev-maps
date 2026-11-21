@@ -28,6 +28,11 @@ const hu = {
       before: "Töltőadatok és elérhetőség forrása:",
       after: ", Urząd Dozoru Technicznego",
     },
+    irveCredit: {
+      before: "Töltőadatok és elérhetőség forrása:",
+      link: "IRVE, transport.data.gouv.fr",
+      after: ", Licence Ouverte",
+    },
     openStreetMapCredit: {
       before: "Töltőadatok ©",
       link: "az OpenStreetMap közreműködői",
