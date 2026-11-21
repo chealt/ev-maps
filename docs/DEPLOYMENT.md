@@ -164,9 +164,10 @@ In Certificates, Identifiers & Profiles:
 2. **Services ID** (Identifiers → Services IDs), e.g.
    `com.chealt.evmaps.signin`: enable **Sign in with Apple**, with the App ID
    above as its primary App ID, and add:
-   - **Domains**: `ev-maps.chealt.workers.dev`,
+   - **Domains**: `ev.chealt.com`, `ev-maps.chealt.workers.dev`,
      `preview-ev-maps.chealt.workers.dev`
    - **Return URLs**:
+     `https://ev.chealt.com/api/auth/callback/apple`,
      `https://ev-maps.chealt.workers.dev/api/auth/callback/apple`,
      `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/apple`
 3. **Key** (Keys): enable **Sign in with Apple** for the App ID, and download
