@@ -144,28 +144,45 @@ const redirectToLocalizedPage = async (request, env) => {
   });
 };
 
+// The API's answers aren't for search engines or AI (see the terms and
+// robots.txt). Cached responses have immutable headers, hence the copy.
+const withoutIndexing = (response) => {
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", "noindex, nofollow, noai, noimageai");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
+const route = (request, env, context) => {
+  const url = new URL(request.url);
+  if (isAuthPath(url.pathname)) {
+    return handleAuth(request, env);
+  }
+  if (request.method === "POST" && url.pathname === "/api/chargers/route") {
+    return routeChargersResponse(request, env);
+  }
+  if (request.method === "GET" && url.pathname === STATUS_PATH) {
+    return statusResponse(request, env);
+  }
+  if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
+    const tile = parseTile(url.pathname);
+    return tile
+      ? tileResponse(request, env, tile, context)
+      : json({ error: "Not found" }, { status: 404 });
+  }
+  if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/") {
+    return redirectToLocalizedPage(request, env);
+  }
+  return env.ASSETS.fetch(request);
+};
+
 export default {
   async fetch(request, env, context) {
-    const url = new URL(request.url);
-    if (isAuthPath(url.pathname)) {
-      return handleAuth(request, env);
-    }
-    if (request.method === "POST" && url.pathname === "/api/chargers/route") {
-      return routeChargersResponse(request, env);
-    }
-    if (request.method === "GET" && url.pathname === STATUS_PATH) {
-      return statusResponse(request, env);
-    }
-    if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
-      const tile = parseTile(url.pathname);
-      return tile
-        ? tileResponse(request, env, tile, context)
-        : json({ error: "Not found" }, { status: 404 });
-    }
-    if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/") {
-      return redirectToLocalizedPage(request, env);
-    }
-    return env.ASSETS.fetch(request);
+    const response = await route(request, env, context);
+    return new URL(request.url).pathname.startsWith("/api/") ? withoutIndexing(response) : response;
   },
 
   // Awaited, not passed to waitUntil(): work after the handler returns is

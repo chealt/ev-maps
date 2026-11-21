@@ -1,0 +1,19 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import LegalPage from "../../components/legal-page/LegalPage.astro";
+import { languages } from "../../lib/pages.js";
+
+// The terms document in each language: src/legal/{lang}/terms.md.
+const documents = import.meta.glob("../../legal/*/terms.md", { eager: true });
+
+export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+
+const { lang } = Astro.params;
+const { Content, frontmatter } = documents[`../../legal/${lang}/terms.md`];
+---
+
+<Layout title={`${frontmatter.title} - EV Maps`}>
+  <LegalPage title={frontmatter.title} updated={frontmatter.updated}>
+    <Content />
+  </LegalPage>
+</Layout>

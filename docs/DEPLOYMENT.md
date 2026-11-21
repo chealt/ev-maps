@@ -91,6 +91,21 @@ live file to 240; the Worker imports the static files weekly and the live file
 every 5 minutes. EIPA deletes accounts that download nothing for 30 days, which
 the weekly import prevents. Without the token, the Worker skips EIPA.
 
+## Privacy, terms and crawlers
+
+The privacy policy and terms of use are at `/{lang}/privacy/` and
+`/{lang}/terms/` (`packages/app/src/legal/`). Use them on the Google OAuth
+consent screen (Branding): `https://ev.chealt.com/en/privacy/` and
+`https://ev.chealt.com/en/terms/`, with `https://ev.chealt.com` as the home
+page.
+
+The terms don't allow crawling, scraping or any use for AI. `robots.txt`
+keeps known AI crawlers out entirely and every crawler out of `/api/`, pages
+send `X-Robots-Tag: noai, noimageai` (`public/_headers`) and the API
+`noindex, nofollow, noai, noimageai`. As robots.txt is only a request, also
+turn on Cloudflare's **AI Crawl Control** (block AI bots) and **Bot Fight
+Mode** for `chealt.com`, which enforce it.
+
 ## GitHub Secrets and Variables
 
 Set these under **Settings → Secrets and variables → Actions**:

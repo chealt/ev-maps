@@ -1,0 +1,37 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import { fill, translations } from "../../i18n/index.js";
+import "./LegalPage.css";
+
+interface Props {
+  title: string;
+  updated: Date | string;
+}
+
+const lang = Astro.currentLocale ?? "en";
+const { page } = translations(lang);
+const { title, updated } = Astro.props;
+const updatedDate = new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(new Date(updated));
+const current = (path) => (Astro.url.pathname === path ? "page" : undefined);
+---
+
+<main class="legal-page">
+  <nav class="links" aria-label={page.legal}>
+    <a class="back" href={`/${lang}/`}>
+      <Icon icon={ArrowLeft} size="sm" />
+      {page.backToMap}
+    </a>
+    <a href={`/${lang}/privacy/`} aria-current={current(`/${lang}/privacy/`)}>
+      {page.privacyPolicy}
+    </a>
+    <a href={`/${lang}/terms/`} aria-current={current(`/${lang}/terms/`)}>
+      {page.termsOfUse}
+    </a>
+  </nav>
+  <article class="document">
+    <h1 class="title">{title}</h1>
+    <p class="updated">{fill(page.legalUpdated, { date: updatedDate })}</p>
+    <slot />
+  </article>
+</main>

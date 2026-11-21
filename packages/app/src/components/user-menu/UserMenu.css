@@ -198,6 +198,19 @@
       border-radius: var(--border-radius-sm);
     }
 
+    .legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-xs) var(--spacing-md);
+      padding-top: var(--spacing-sm);
+      border-top: var(--border-width) solid var(--color-border);
+      font-size: var(--font-size-xs);
+
+      a {
+        color: var(--color-text-muted);
+      }
+    }
+
     /* Last, so it wins over the display of the parts it hides. */
     [hidden] {
       display: none;
