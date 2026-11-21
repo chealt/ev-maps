@@ -134,7 +134,7 @@ registration).
   personal Microsoft accounts (the Worker uses the `common` tenant).
 - **Two registrations**, like the Google OAuth clients: one for production and
   one for development. Their **Redirect URIs** (platform **Web**):
-  - Production:
+  - Production: `https://ev.chealt.com/api/auth/callback/microsoft`,
     `https://ev-maps.chealt.workers.dev/api/auth/callback/microsoft` and
     `https://preview-ev-maps.chealt.workers.dev/api/auth/callback/microsoft`
   - Development: `http://localhost:4321/api/auth/callback/microsoft`
