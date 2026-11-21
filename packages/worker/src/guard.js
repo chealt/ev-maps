@@ -20,6 +20,7 @@ const POLICIES = {
   tiles: { limiter: "TILE_LIMITER", signedIn: false },
   status: { limiter: "STATUS_LIMITER", signedIn: true },
   route: { limiter: "ROUTE_LIMITER", signedIn: true },
+  settings: { limiter: "SETTINGS_LIMITER", signedIn: true },
 };
 
 const errorResponse = (status, error, headers = {}) =>
@@ -32,28 +33,32 @@ const errorResponse = (status, error, headers = {}) =>
     },
   });
 
-// null if the request may go on, else the response refusing it.
-// `userIdOf(request)` resolves to the signed-in user's ID, or null.
+// { refused: the response refusing the request } or { userId } (null when the
+// policy doesn't need a signed-in user). `userIdOf(request)` resolves to the
+// signed-in user's ID, or null.
 const guard = async (request, env, policyName, userIdOf) => {
   if (isBlockedAgent(request)) {
-    return errorResponse(403, "Automated access isn't allowed; see the terms of use.");
+    return { refused: errorResponse(403, "Automated access isn't allowed; see the terms of use.") };
   }
   const policy = POLICIES[policyName];
   let key = `ip:${request.headers.get("cf-connecting-ip") ?? "local"}`;
+  let userId = null;
   if (policy.signedIn) {
-    const userId = await userIdOf(request);
+    userId = await userIdOf(request);
     if (!userId) {
-      return errorResponse(401, "Sign in to use this.");
+      return { refused: errorResponse(401, "Sign in to use this.") };
     }
     key = `user:${userId}`;
   }
   const limiter = env[policy.limiter];
   if (limiter && !(await limiter.limit({ key: `${policyName}:${key}` })).success) {
-    return errorResponse(429, "Too many requests; try again in a minute.", {
-      "retry-after": "60",
-    });
+    return {
+      refused: errorResponse(429, "Too many requests; try again in a minute.", {
+        "retry-after": "60",
+      }),
+    };
   }
-  return null;
+  return { userId };
 };
 
 export { guard, isBlockedAgent };

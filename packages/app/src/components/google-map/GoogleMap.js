@@ -2,6 +2,7 @@ import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
+import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
@@ -135,6 +136,19 @@ const readActivePowerRanges = (panel) =>
     maxKw: button.dataset.maxKw ? Number(button.dataset.maxKw) : Infinity,
   }));
 
+// The connector IDs of the active connector type buttons.
+const readActiveConnectorTypes = (panel) =>
+  new Set(
+    [...panel.querySelectorAll('.connector-filter[aria-pressed="true"]')].flatMap((button) =>
+      button.dataset.connectorTypes.split(",")
+    )
+  );
+
+// With no connector type active, every charger matches; otherwise it needs a
+// connector of one of the active types.
+const matchesConnectors = (charger, types) =>
+  types.size === 0 || charger.connectors.some((connector) => types.has(connector.type));
+
 // With no range active, every charger matches, including those without power
 // data; otherwise its fastest connector must be in one of the active ranges.
 const matchesPower = (charger, ranges) => {
@@ -259,6 +273,17 @@ class GoogleMapElement extends HTMLElement {
       }
     });
     document.addEventListener("theme-change", this.handleThemeChange);
+    this.showSaveFiltersSignedIn(isSignedIn());
+    // The session may have loaded before the map did.
+    if (isSignedIn()) {
+      this.syncAccountFilters();
+    }
+    onSessionChange((signedIn) => {
+      this.showSaveFiltersSignedIn(signedIn);
+      if (signedIn) {
+        this.syncAccountFilters();
+      }
+    });
     // Live availability needs a signed-in user; show it once there is one.
     onSessionChange(() => {
       if (this.activeCharger && !this.detailsPanel?.hidden) {
@@ -390,7 +415,11 @@ class GoogleMapElement extends HTMLElement {
   }
 
   handleFilterClick(event) {
-    const button = event.target.closest(".power-filter");
+    if (event.target.closest(".save-filters")) {
+      this.saveFiltersToAccount();
+      return;
+    }
+    const button = event.target.closest(".power-filter, .connector-filter");
     if (!button) {
       return;
     }
@@ -399,22 +428,33 @@ class GoogleMapElement extends HTMLElement {
   }
 
   clearFilters() {
-    for (const button of this.querySelectorAll(".power-filter")) {
+    for (const button of this.querySelectorAll(".power-filter, .connector-filter")) {
       button.setAttribute("aria-pressed", "false");
     }
     this.filtersChanged();
   }
 
   filtersChanged() {
-    saveFilters({ powerRanges: this.activePowerRanges() });
+    this.filtersUpdatedAt = Date.now();
+    saveFilters(this.currentFilters());
+    this.setSaveStatus("");
     this.updateClearFiltersButtons();
     this.showMatchingChargers();
+  }
+
+  // The filters as saved, locally and to the account.
+  currentFilters() {
+    return {
+      powerRanges: this.activePowerRanges(),
+      connectorTypes: this.activeConnectorGroups(),
+      updatedAt: this.filtersUpdatedAt ?? 0,
+    };
   }
 
   // "Clear filters" shows on the map and is enabled in the dialog only while
   // a filter is active.
   updateClearFiltersButtons() {
-    const active = this.activePowerRanges().length > 0;
+    const active = this.activePowerRanges().length > 0 || this.activeConnectorGroups().length > 0;
     for (const button of this.querySelectorAll(".clear-filters")) {
       if (this.filterPanel?.contains(button)) {
         button.disabled = !active;
@@ -430,13 +470,72 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
-  // Activates the saved power filters; ranges that no longer exist are ignored.
-  async restoreFilters() {
-    const { powerRanges } = await readFilters();
+  activeConnectorGroups() {
+    return [...this.querySelectorAll('.connector-filter[aria-pressed="true"]')].map(
+      (button) => button.dataset.connectorGroup
+    );
+  }
+
+  // Presses the buttons of the given filters; ones that no longer exist are
+  // ignored.
+  applyFilters({ powerRanges = [], connectorTypes = [], updatedAt = 0 }) {
     for (const button of this.querySelectorAll(".power-filter")) {
       button.setAttribute("aria-pressed", String(powerRanges.includes(button.dataset.powerRange)));
     }
+    for (const button of this.querySelectorAll(".connector-filter")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(connectorTypes.includes(button.dataset.connectorGroup))
+      );
+    }
+    this.filtersUpdatedAt = updatedAt;
     this.updateClearFiltersButtons();
+  }
+
+  // The filters saved on this device (IndexedDB).
+  async restoreFilters() {
+    this.applyFilters(await readFilters());
+  }
+
+  // Signed in, the account's filters replace this device's if they're newer
+  // (e.g. saved on another device).
+  async syncAccountFilters() {
+    const settings = await fetchAccountSettings();
+    await this.filtersRestored;
+    const filters = settings?.filters;
+    if (filters && filters.updatedAt > (this.filtersUpdatedAt ?? 0)) {
+      this.applyFilters(filters);
+      saveFilters(this.currentFilters());
+      this.showMatchingChargers();
+    }
+  }
+
+  // Signed out, the button looks disabled and its tooltip says to sign in;
+  // pressing it opens the sign-in options.
+  showSaveFiltersSignedIn(signedIn) {
+    const button = this.filterPanel?.querySelector(".save-filters");
+    if (!button) {
+      return;
+    }
+    button.setAttribute("aria-disabled", String(!signedIn));
+    this.filterPanel.querySelector("#save-filters-tooltip").hidden = signedIn;
+  }
+
+  setSaveStatus(text) {
+    const status = this.filterPanel?.querySelector(".save-status");
+    if (status) {
+      status.textContent = text;
+    }
+  }
+
+  async saveFiltersToAccount() {
+    if (!isSignedIn()) {
+      this.filterPanel.close();
+      requestSignIn();
+      return;
+    }
+    const saved = await saveAccountSettings({ filters: this.currentFilters() });
+    this.setSaveStatus(message(saved ? "filtersSaved" : "filtersNotSaved"));
   }
 
   async loadEvChargers() {
@@ -511,7 +610,10 @@ class GoogleMapElement extends HTMLElement {
     }
     const { chargers, truncated } = this.loaded;
     const ranges = this.filterPanel ? readActivePowerRanges(this.filterPanel) : [];
-    const matching = chargers.filter((charger) => matchesPower(charger, ranges));
+    const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
+    const matching = chargers.filter(
+      (charger) => matchesPower(charger, ranges) && matchesConnectors(charger, types)
+    );
 
     this.clusterIndex = new Supercluster({
       radius: CLUSTER_RADIUS,

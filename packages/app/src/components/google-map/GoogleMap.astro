@@ -48,6 +48,25 @@ const {
 
 const { page } = translations(Astro.currentLocale ?? "en");
 
+// Connector types users choose between, and the connector IDs each covers
+// (packages/worker/src/charger-values.js).
+const connectorGroups = [
+  { value: "ccs", label: "CCS", types: ["ccs2", "ccs1"] },
+  { value: "chademo", label: "CHAdeMO", types: ["chademo"] },
+  {
+    value: "type2",
+    label: page.connectorType2,
+    types: ["type2", "type2-socket", "type2-tethered"],
+  },
+  { value: "type1", label: page.connectorType1, types: ["type1"] },
+  {
+    value: "tesla",
+    label: "Tesla / NACS",
+    types: ["nacs", "tesla-supercharger", "tesla-destination", "tesla-model-sx"],
+  },
+  { value: "household", label: page.connectorHousehold, types: ["schuko", "cee-7-5", "europlug"] },
+];
+
 // JSON inside <script>: escape "<" so the data can't close the element.
 const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u003c");
 ---
@@ -113,6 +132,25 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </Button>
       </div>
       <div class="body">
+        <div class="group" role="group" aria-labelledby="connector-filter-title">
+          <h3 class="subtitle" id="connector-filter-title">
+            {page.connectorType}
+          </h3>
+          <div class="options">
+            {connectorGroups.map(({ value, label, types }) => (
+              <Button
+                variant="secondary"
+                size="large"
+                class="connector-filter"
+                aria-pressed="false"
+                data-connector-group={value}
+                data-connector-types={types.join(",")}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
         <div class="group" role="group" aria-labelledby="power-filter-title">
           <h3 class="subtitle" id="power-filter-title">
             {page.chargingPower}
@@ -138,9 +176,23 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Button variant="secondary" size="large" class="clear-filters" disabled>
           {page.clearFilters}
         </Button>
+        <span class="save-filters-wrapper">
+          <Button
+            variant="secondary"
+            size="large"
+            class="save-filters"
+            aria-describedby="save-filters-tooltip"
+          >
+            {page.saveFilters}
+          </Button>
+          <span class="tooltip" id="save-filters-tooltip" role="tooltip" hidden>
+            {page.signInToSaveFilters}
+          </span>
+        </span>
         <Button variant="primary" size="large" class="done">
           {page.done}
         </Button>
+        <p class="save-status" aria-live="polite"></p>
       </div>
     </dialog>
 

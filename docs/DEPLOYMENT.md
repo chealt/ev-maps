@@ -124,6 +124,7 @@ asks for sign-in where needed and is rate limited per minute:
 | `/api/auth/*`, sign-in providers    | Everyone  | 60 per IP address  |
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
+| `/api/settings`                     | Signed in | 60 per user        |
 
 ## GitHub Secrets and Variables
 

@@ -10,6 +10,8 @@ Find electric vehicle charging stations on a map.
   grouped into clusters when zoomed out
 - Charger details: address, connectors and power, operator, access, cost and
   status
+- Filter chargers by connector type and charging power; signed in, save the
+  filters to your account to have them on every device
 - Locate me, and the map remembers where you were last time
 - Plan a route between two places and see the chargers along it, with the
   same power filters

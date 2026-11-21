@@ -13,6 +13,7 @@ import { handleAuth, isAuthPath, userIdOf } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { guard } from "./guard.js";
+import { SETTINGS_PATH, settingsResponse } from "./settings.js";
 import { runImport } from "./import/index.js";
 import { STATUS_PATH, refreshStatuses, statusResponse } from "./live-status.js";
 import { routeChargersResponse } from "./route-chargers.js";
@@ -168,6 +169,9 @@ const apiPolicy = (request, url) => {
   if (request.method === "GET" && url.pathname === STATUS_PATH) {
     return "status";
   }
+  if ((request.method === "GET" || request.method === "PUT") && url.pathname === SETTINGS_PATH) {
+    return "settings";
+  }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
     return "tiles";
   }
@@ -177,11 +181,16 @@ const apiPolicy = (request, url) => {
 const route = async (request, env, context) => {
   const url = new URL(request.url);
   const policy = apiPolicy(request, url);
+  let userId = null;
   if (policy) {
-    const refused = await guard(request, env, policy, () => userIdOf(request, env));
-    if (refused) {
-      return refused;
+    const guarded = await guard(request, env, policy, () => userIdOf(request, env));
+    if (guarded.refused) {
+      return guarded.refused;
     }
+    userId = guarded.userId;
+  }
+  if (policy === "settings") {
+    return settingsResponse(request, env, userId);
   }
   if (policy === "auth") {
     return handleAuth(request, env);

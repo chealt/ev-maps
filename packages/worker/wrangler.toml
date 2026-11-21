@@ -60,6 +60,11 @@ name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
 
+[[ratelimits]]
+name = "SETTINGS_LIMITER"
+namespace_id = "4405"
+simple = { limit = 60, period = 60 }
+
 # Each import run continues where the previous one stopped; the live
 # statuses (src/live-status.js) are refreshed more often.
 [triggers]
@@ -107,3 +112,8 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "SETTINGS_LIMITER"
+namespace_id = "4405"
+simple = { limit = 60, period = 60 }
