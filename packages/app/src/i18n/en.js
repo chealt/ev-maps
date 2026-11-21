@@ -55,6 +55,8 @@ const en = {
     privacyPolicy: "Privacy policy",
     termsOfUse: "Terms of use",
     legalUpdated: "Last updated: {date}",
+    signInForAvailability: "Sign in to see how many points are free right now.",
+    signInForRoutes: "Sign in to plan routes and see the chargers along them.",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",

@@ -192,6 +192,7 @@ test("credits every source of a charger merged from several", async ({ page }) =
 });
 
 test("shows how many points are free, where the source says", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
   const [downtown] = fixtureChargers;
   await fakeChargersApi(page, {
     chargers: [
@@ -249,4 +250,32 @@ test("names a charger without a name after its operator", async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
 
   await expect(map.getByRole("button", { name: "Tesla" })).toBeVisible();
+});
+
+test("asks to sign in for live availability", async ({ page }) => {
+  const [downtown] = fixtureChargers;
+  await fakeChargersApi(page, {
+    chargers: [{ ...downtown, id: "eipa:95424", source: "eipa", ids: ["eipa:95424"] }],
+  });
+  const statusRequests = await fakeStatusApi(page, {
+    "eipa:95424": { available: 5, occupied: 0, outOfService: 1, total: 6, updatedAt: Date.now() },
+  });
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+
+  await expect(
+    details.getByText("Sign in to see how many points are free right now.")
+  ).toBeVisible();
+  await expect(details.getByText("5 of 6 points free")).toBeHidden();
+  expect(statusRequests).toHaveLength(0);
+
+  await details.getByRole("button", { name: "Sign in", exact: true }).click();
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await menu.getByRole("button", { name: "Sign in with Google" }).click();
+
+  // Back from signing in, the same charger shows its availability.
+  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+  await expect(details.getByText("5 of 6 points free")).toBeVisible();
 });

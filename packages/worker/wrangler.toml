@@ -38,6 +38,28 @@ database_name = "ev-maps"
 database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
 migrations_dir = "migrations"
 
+# Rate limits for the API (src/guard.js), per IP address or signed-in user.
+# Namespace IDs are the account's, so they're unusual numbers.
+[[ratelimits]]
+name = "TILE_LIMITER"
+namespace_id = "4401"
+simple = { limit = 600, period = 60 }
+
+[[ratelimits]]
+name = "AUTH_LIMITER"
+namespace_id = "4402"
+simple = { limit = 60, period = 60 }
+
+[[ratelimits]]
+name = "STATUS_LIMITER"
+namespace_id = "4403"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "ROUTE_LIMITER"
+namespace_id = "4404"
+simple = { limit = 20, period = 60 }
+
 # Each import run continues where the previous one stopped; the live
 # statuses (src/live-status.js) are refreshed more often.
 [triggers]
@@ -65,3 +87,23 @@ binding = "DB"
 database_name = "ev-maps"
 database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
 migrations_dir = "migrations"
+
+[[env.local.ratelimits]]
+name = "TILE_LIMITER"
+namespace_id = "4401"
+simple = { limit = 600, period = 60 }
+
+[[env.local.ratelimits]]
+name = "AUTH_LIMITER"
+namespace_id = "4402"
+simple = { limit = 60, period = 60 }
+
+[[env.local.ratelimits]]
+name = "STATUS_LIMITER"
+namespace_id = "4403"
+simple = { limit = 120, period = 60 }
+
+[[env.local.ratelimits]]
+name = "ROUTE_LIMITER"
+namespace_id = "4404"
+simple = { limit = 20, period = 60 }

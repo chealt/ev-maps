@@ -106,6 +106,16 @@ send `X-Robots-Tag: noai, noimageai` (`public/_headers`) and the API
 turn on Cloudflare's **AI Crawl Control** (block AI bots) and **Bot Fight
 Mode** for `chealt.com`, which enforce it.
 
+The Worker enforces its part itself (`src/guard.js`): the API refuses bots,
+asks for sign-in where needed and is rate limited per minute:
+
+| API                                 | Who       | Limit              |
+| ----------------------------------- | --------- | ------------------ |
+| `/api/chargers/{z}/{x}/{y}` (tiles) | Everyone  | 600 per IP address |
+| `/api/auth/*`, sign-in providers    | Everyone  | 60 per IP address  |
+| `/api/chargers/status`              | Signed in | 120 per user       |
+| `POST /api/chargers/route`          | Signed in | 20 per user        |
+
 ## GitHub Secrets and Variables
 
 Set these under **Settings → Secrets and variables → Actions**:
