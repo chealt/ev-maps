@@ -30,6 +30,8 @@ export default defineConfig({
       VITE_GOOGLE_MAPS_MAP_ID: "TEST_MAP_ID",
       // The country pages' chargers, instead of an export of the database.
       EV_MAPS_CHARGERS_DIR: "tests/fixtures/country-chargers",
+      // Poland's fixture has 6 chargers, so its page holds only some of them.
+      EV_MAPS_MAX_PAGE_CHARGERS: "4",
     },
   },
 });
