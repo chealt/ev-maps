@@ -198,3 +198,8 @@ test("the filters open in a dialog that closes with Done, Close or Escape", asyn
   await expect(dialog).toBeHidden();
   await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
 });
+
+test("shows the app's name, as on Google's sign-in consent screen", async ({ page }) => {
+  await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeVisible();
+  await expect(page).toHaveTitle(/^EV Maps/);
+});
