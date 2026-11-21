@@ -250,3 +250,22 @@ test("names a charger without a name after its operator", async ({ page }) => {
 
   await expect(map.getByRole("button", { name: "Tesla" })).toBeVisible();
 });
+
+test("shows France's availability, crediting its register", async ({ page }) => {
+  const [downtown] = fixtureChargers;
+  await fakeChargersApi(page, {
+    chargers: [{ ...downtown, id: "irve:FRS1", source: "irve", ids: ["irve:FRS1"] }],
+  });
+  await fakeStatusApi(page, {
+    "irve:FRS1": { available: 1, occupied: 1, outOfService: 0, total: 2, updatedAt: Date.now() },
+  });
+  await page.goto("/");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+
+  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+
+  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+  await expect(details.getByText("1 of 2 points free")).toBeVisible();
+  await expect(details.getByText("Out of service")).toBeHidden();
+  await expect(details.getByRole("link", { name: "IRVE, transport.data.gouv.fr" })).toBeVisible();
+});

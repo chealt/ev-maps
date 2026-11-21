@@ -20,7 +20,9 @@ Find electric vehicle charging stations on a map.
 
 Charging data comes from [Open Charge Map](https://openchargemap.org),
 [OpenStreetMap](https://www.openstreetmap.org) (© OpenStreetMap contributors,
-ODbL) and Poland's [EIPA](https://eipa.udt.gov.pl) register, with live
+ODbL) and the national registers of Poland
+([EIPA](https://eipa.udt.gov.pl)) and France
+([IRVE](https://transport.data.gouv.fr), Licence Ouverte), with live
 availability; the map is [Google Maps](https://developers.google.com/maps).
 
 ## Documentation

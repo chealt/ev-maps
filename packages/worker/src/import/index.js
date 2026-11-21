@@ -3,11 +3,13 @@
 // budget is spent; a job's cursor lets the next run continue a big country.
 
 import * as eipa from "./eipa.js";
+import * as irve from "./irve.js";
 import * as openChargeMap from "./open-charge-map.js";
 import * as openStreetMap from "./openstreetmap.js";
 
 const SOURCES = {
   [eipa.SOURCE]: eipa,
+  [irve.SOURCE]: irve,
   [openChargeMap.SOURCE]: openChargeMap,
   [openStreetMap.SOURCE]: openStreetMap,
 };
