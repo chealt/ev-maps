@@ -65,4 +65,22 @@ const fakeRouteChargersApi = async (page, { chargers = fixtureChargers, kmApart 
   return requests;
 };
 
-export { fakeChargersApi, fakeRouteChargersApi, requestCovers, tileWidth };
+// Serves `statuses` (by charger ID) for live availability, and records the
+// IDs each request asked for.
+const fakeStatusApi = async (page, statuses = {}) => {
+  const requests = [];
+  await page.context().route("**/api/chargers/status?**", (route) => {
+    const ids = new URL(route.request().url()).searchParams.get("ids").split(",");
+    requests.push(ids);
+    return route.fulfill({
+      json: {
+        statuses: Object.fromEntries(
+          ids.filter((id) => statuses[id]).map((id) => [id, statuses[id]])
+        ),
+      },
+    });
+  });
+  return requests;
+};
+
+export { fakeChargersApi, fakeRouteChargersApi, fakeStatusApi, requestCovers, tileWidth };

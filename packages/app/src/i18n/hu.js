@@ -23,6 +23,11 @@ const hu = {
     connectors: "Csatlakozók",
     details: "Részletek",
     openChargeMapCredit: { before: "A töltőadatok forrása:", after: "" },
+    availability: "Elérhetőség",
+    eipaCredit: {
+      before: "Töltőadatok és elérhetőség forrása:",
+      after: ", Urząd Dozoru Technicznego",
+    },
     openStreetMapCredit: {
       before: "Töltőadatok ©",
       link: "az OpenStreetMap közreműködői",
@@ -104,6 +109,12 @@ const hu = {
     choosePlaces: "Mindkét helyet a javaslatok közül válaszd ki",
     alongRoute: "Az útvonal sorrendjében",
     offRoute: "{distance} az útvonaltól",
+    pointsFree: {
+      one: "Szabad töltőpontok: {available} / {count}",
+      other: "Szabad töltőpontok: {available} / {count}",
+    },
+    pointsOutOfService: "Nem működik: {count}",
+    statusUpdated: "Frissítve {time}",
     accountOf: "Fiók: {name}",
   },
   values: {

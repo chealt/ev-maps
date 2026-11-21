@@ -44,6 +44,9 @@ The Worker needs these secrets, set once in Cloudflare:
 ```bash
 cd packages/worker
 bunx wrangler secret put OPEN_CHARGE_MAP_API_KEY
+# Poland's register (EIPA): the token in the download links EIPA emails after
+# registering at https://eipa.udt.gov.pl/reader/register
+bunx wrangler secret put EIPA_TOKEN
 # Signs the session cookies; any long random value, e.g. `openssl rand -base64 32`
 bunx wrangler secret put BETTER_AUTH_SECRET
 # The OAuth client's secret (see Google Cloud below)
@@ -72,6 +75,16 @@ bunx wrangler d1 migrations apply ev-maps --remote
 # --env= is the top level of wrangler.toml (production), not [env.local]
 bunx wrangler deploy --env=
 ```
+
+## EIPA (Poland)
+
+Poland's official register of charging points, [EIPA](https://eipa.udt.gov.pl),
+is free after registering an account with an email address; the confirmation
+email has download links ending in a token, which is the Worker's
+`EIPA_TOKEN`. The register limits static files to 10 downloads an hour and the
+live file to 240; the Worker imports the static files weekly and the live file
+every 5 minutes. EIPA deletes accounts that download nothing for 30 days, which
+the weekly import prevents. Without the token, the Worker skips EIPA.
 
 ## GitHub Secrets and Variables
 

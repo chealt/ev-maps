@@ -4,9 +4,10 @@
 // Records from different sources this close are taken to be the same charger.
 const DUPLICATE_DISTANCE_METERS = 60;
 const METERS_PER_DEGREE_LAT = 111320;
-// Which source's value wins for each field: official registers, then Open
-// Charge Map, then OpenStreetMap. Sources not listed rank last.
-const SOURCE_RANK = { ocm: 1, osm: 2 };
+// Which source's value wins for each field: official registers (Poland's
+// EIPA), then Open Charge Map, then OpenStreetMap. Sources not listed rank
+// last.
+const SOURCE_RANK = { eipa: 0, ocm: 1, osm: 2 };
 const UNRANKED = 9;
 // Fields taken from the best record that has them.
 const MERGED_FIELDS = [
@@ -58,6 +59,8 @@ const mergeGroup = ([best, ...others]) => {
   merged.connectors = withConnectors?.connectors ?? [];
   merged.maxPowerKw = records.map((record) => record.maxPowerKw).find(hasValue) ?? null;
   merged.sources = records.map(({ source }) => source);
+  // Every record's ID, e.g. to ask for the live statuses of each.
+  merged.ids = records.map(({ id }) => id);
   return merged;
 };
 

@@ -1,6 +1,6 @@
 ---
 import Button from "../button/Button.astro";
-import { FilterX, Info, List, MapPin, PlugZap, RouteOff, X, Zap } from "lucide-static";
+import { Activity, FilterX, Info, List, MapPin, PlugZap, RouteOff, X, Zap } from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -189,6 +189,15 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
       </p>
+      <section class="section availability" hidden>
+        <h3 class="title">
+          <Icon icon={Activity} size="sm" />
+          {page.availability}
+        </h3>
+        <p class="free"></p>
+        <p class="out-of-service"></p>
+        <p class="updated"></p>
+      </section>
       <section class="section">
         <h3 class="title">
           <Icon icon={PlugZap} size="sm" />
@@ -209,6 +218,13 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           Open Charge Map
         </a>
         {page.openChargeMapCredit.after}
+      </p>
+      <p class="attribution" data-source="eipa" hidden>
+        {page.eipaCredit.before}{" "}
+        <a href="https://eipa.udt.gov.pl" target="_blank" rel="noopener">
+          EIPA
+        </a>
+        {page.eipaCredit.after}
       </p>
       <p class="attribution" data-source="osm" hidden>
         {page.openStreetMapCredit.before}{" "}

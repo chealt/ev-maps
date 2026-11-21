@@ -40,6 +40,7 @@ describe("mergeDuplicates", () => {
     expect(merged.id).toBe("ocm:2");
     expect(merged.location).toEqual(ocm.location);
     expect(merged.sources).toEqual(["ocm", "osm"]);
+    expect(merged.ids).toEqual(["ocm:2", "osm:way/1"]);
     // …and fields it lacks come from OpenStreetMap.
     expect(merged.name).toBe("EKOEN CH Reduta");
     expect(merged.operator).toBe("EKOEN");
@@ -103,4 +104,16 @@ describe("mergeDuplicates", () => {
 
     expect(mergeDuplicates([only])).toEqual([only]);
   });
+});
+
+test("ranks Poland's register first", () => {
+  const ocm = charger({ id: "ocm:1", source: "ocm", name: "From OCM", maxPowerKw: 50 });
+  const eipa = charger({ id: "eipa:2", source: "eipa", location: at(20), name: "From EIPA" });
+
+  const [merged] = mergeDuplicates([ocm, eipa]);
+
+  expect(merged.id).toBe("eipa:2");
+  expect(merged.name).toBe("From EIPA");
+  // EIPA has no power here, so it comes from Open Charge Map.
+  expect(merged.maxPowerKw).toBe(50);
 });
