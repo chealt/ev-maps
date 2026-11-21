@@ -1,0 +1,34 @@
+.app-brand {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--overlay-gap);
+  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface-glass);
+  backdrop-filter: var(--blur-glass);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+
+  .mark {
+    display: grid;
+    place-items: center;
+    width: var(--brand-mark-size);
+    height: var(--brand-mark-size);
+    border-radius: var(--border-radius-md);
+    background: var(--gradient-brand);
+    color: var(--color-primary-contrast);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-tight);
+  }
+}

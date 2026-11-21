@@ -6,7 +6,7 @@ const pl = {
   languageName: "Polski",
   page: {
     title: "EV Maps – stacje ładowania samochodów elektrycznych",
-    countryTitle: "Stacje ładowania – {country} – EV Maps",
+    countryTitle: "EV Maps – stacje ładowania – {country}",
     description: "Mapa stacji ładowania samochodów elektrycznych",
     subtitle: "Znajdź stacje ładowania samochodów elektrycznych w pobliżu",
     mapLabel: "Mapa stacji ładowania",
