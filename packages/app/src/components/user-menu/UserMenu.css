@@ -29,7 +29,7 @@
       background: var(--color-surface-translucent);
     }
 
-    &:has(.avatar:not([hidden])) {
+    &:has(.avatar:not([hidden]), .loading:not([hidden])) {
       padding-right: var(--spacing-sm);
     }
   }
@@ -43,6 +43,23 @@
     background: var(--gradient-brand);
     color: var(--color-primary-contrast);
     box-shadow: var(--shadow-sm);
+  }
+
+  /* A placeholder the size of the avatar while the session loads. */
+  .loading {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: var(--border-radius-full);
+    background: var(--color-border-strong);
+    animation: session-loading 1.2s ease-in-out infinite alternate;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .sign-in-label[hidden] {
+    display: none;
   }
 
   .avatar {
@@ -215,5 +232,17 @@
     [hidden] {
       display: none;
     }
+  }
+}
+
+@keyframes session-loading {
+  to {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-menu .loading {
+    animation: none;
   }
 }

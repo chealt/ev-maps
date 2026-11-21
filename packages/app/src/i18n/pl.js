@@ -36,6 +36,7 @@ const pl = {
       link: "współtwórcy OpenStreetMap",
       after: ", ODbL",
     },
+    loadingAccount: "Wczytywanie konta",
     signIn: "Zaloguj się",
     signInWith: "Zaloguj się przez {provider}",
     route: "Trasa",
