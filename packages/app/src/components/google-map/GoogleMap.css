@@ -429,6 +429,11 @@ ev-google-map {
   cursor: pointer;
   transition: transform var(--transition-base);
 
+  /* Any of the cluster's chargers is one of the user's favorites. */
+  &.favorite {
+    background: var(--color-favorite);
+  }
+
   &:hover {
     transform: scale(var(--marker-active-scale));
   }
