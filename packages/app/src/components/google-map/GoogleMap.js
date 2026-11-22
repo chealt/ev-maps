@@ -48,6 +48,42 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
   ].filter(Boolean);
 };
 
+// A per-kWh price in the cost text, e.g. "$0.40/kWh" → 0.4; null without one.
+const pricePerKwh = (usageCost) => {
+  const match = /(\d+(?:[.,]\d+)?)\s*\/\s*kwh/i.exec(usageCost ?? "");
+  if (!match) {
+    return null;
+  }
+  const price = Number(match[1].replace(",", "."));
+  return price > 0 ? price : null;
+};
+
+// Where a charger's price sits among the loaded ones (the map's or the
+// route's): 1–3 by thirds, and the share of them that are cheaper.
+const priciness = (charger, chargers) => {
+  const price = pricePerKwh(charger.usageCost);
+  if (price == null) {
+    return null;
+  }
+  const prices = chargers
+    .map(({ usageCost }) => pricePerKwh(usageCost))
+    .filter((value) => value != null);
+  if (prices.length < 2) {
+    return null;
+  }
+  const cheaper = prices.filter((value) => value < price).length;
+  const share = cheaper / prices.length;
+  return {
+    scale: "$".repeat(Math.min(3, Math.floor(share * 3) + 1)),
+    comparison:
+      share === 0
+        ? message("cheapestHere")
+        : message(share > 0.5 ? "pricierThan" : "cheaperThan", {
+            percent: Math.round(share * 100),
+          }),
+  };
+};
+
 // Sources the Worker has live statuses for (packages/worker/src/live-status.js).
 const LIVE_STATUS_SOURCES = ["eipa", "irve"];
 // The page keeps statuses this long, in memory only; the Worker refreshes
@@ -1301,7 +1337,14 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
-    this.fillList(panel.querySelector(".details"), formatDetails(charger));
+    const details = formatDetails(charger);
+    // Where the price sits among the loaded chargers, e.g. "Priciness: $$
+    // (pricier than 78% of the chargers here)"; only per-kWh and comparable.
+    const price = priciness(charger, this.loaded?.chargers ?? []);
+    if (price) {
+      details.push(message("priciness", { scale: price.scale, comparison: price.comparison }));
+    }
+    this.fillList(panel.querySelector(".details"), details);
     const nearby = charger.amenities ?? [];
     this.fillList(
       panel.querySelector(".nearby-places"),

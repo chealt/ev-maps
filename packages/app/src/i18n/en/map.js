@@ -118,6 +118,10 @@ const map = {
     cost: "Cost: {value}",
     status: "Status: {value}",
     chargingPoints: "Charging points: {count}",
+    priciness: "Priciness: {scale} ({comparison})",
+    pricierThan: "pricier than {percent}% of the chargers here",
+    cheaperThan: "cheaper than {percent}% of the chargers here",
+    cheapestHere: "the cheapest of the chargers here",
     myLocation: "My location",
     routeChargersFound: {
       one: "{count} EV charger along the route",

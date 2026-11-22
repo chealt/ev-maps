@@ -126,6 +126,10 @@ const map = {
     cost: "Koszt: {value}",
     status: "Status: {value}",
     chargingPoints: "Punkty ładowania: {count}",
+    priciness: "Poziom ceny: {scale} ({comparison})",
+    pricierThan: "droższa niż {percent}% stacji tutaj",
+    cheaperThan: "tańsza niż {percent}% stacji tutaj",
+    cheapestHere: "najtańsza ze stacji tutaj",
     myLocation: "Moja lokalizacja",
     routeChargersFound: {
       one: "{count} stacja ładowania na trasie",
