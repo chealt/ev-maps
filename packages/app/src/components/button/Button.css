@@ -76,12 +76,13 @@
     }
   }
 
+  /* The darker reds: white text on them is readable (4.8:1 and more). */
   &.danger {
-    background-color: var(--color-danger);
+    background-color: var(--color-danger-dark);
     color: var(--color-primary-contrast);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-danger-dark);
+      background-color: var(--color-danger-darker);
     }
   }
 

@@ -227,9 +227,29 @@ jobs:
         if: needs.changes.outputs.app == 'true'
         run: bun install --frozen-lockfile
 
-      - name: Install Playwright browser
+      # The browser is cached per Playwright version (~/.cache/ms-playwright);
+      # the system libraries it needs aren't, so a cache hit installs only
+      # those.
+      - name: Playwright version
+        id: playwright
         if: needs.changes.outputs.app == 'true'
+        run: echo "version=$(bunx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browser
+        id: playwright-cache
+        if: needs.changes.outputs.app == 'true'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+
+      - name: Install Playwright browser
+        if: needs.changes.outputs.app == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: bunx playwright install --with-deps chromium
+
+      - name: Install Playwright browser's system libraries
+        if: needs.changes.outputs.app == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: bunx playwright install-deps chromium
 
       - name: Run tests
         if: needs.changes.outputs.app == 'true'

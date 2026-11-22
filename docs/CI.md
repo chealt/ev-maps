@@ -56,6 +56,8 @@ features, bug fixes, …), from their Conventional Commit titles
 (`scripts/release-notes.js`). Changes that deploy nothing, such as docs, go
 into the next release. To preview the notes: `bun scripts/release-notes.js
 <previous tag>`.
+The `Test` job caches Playwright's Chromium per Playwright version, so most
+runs skip downloading it and only install its system libraries.
 
 The Playwright HTML report, with videos of every test and traces of failures,
 is uploaded as the `playwright-report` artifact.

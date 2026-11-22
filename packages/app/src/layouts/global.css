@@ -31,6 +31,7 @@
   --color-text-muted: light-dark(#64748b, #94a3b8);
   --color-danger: #ef4444;
   --color-danger-dark: #dc2626;
+  --color-danger-darker: #b91c1c;
   --color-danger-light: light-dark(#fee2e2, #450a0a);
   --color-danger-light-text: light-dark(#dc2626, #fca5a5);
   --color-success: #22c55e;
