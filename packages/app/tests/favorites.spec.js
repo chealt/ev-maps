@@ -188,3 +188,82 @@ test("asks to sign in for the favorites filter when signed out", async ({ page }
       .getByRole("button", { name: "Sign in with Google" })
   ).toBeVisible();
 });
+
+test.describe("with the service worker", () => {
+  // Every other test blocks service workers (see playwright.config.js).
+  test.use({ serviceWorkers: "allow" });
+
+  const loadControlledPage = async (page) => {
+    await page.goto("/");
+    await page.waitForFunction(() => navigator.serviceWorker.controller);
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  };
+
+  // The Worker can't be reached for favorites, as when offline.
+  const unreachable = (route) => route.abort();
+  const goOffline = (page) => page.context().route(/\/api\/favorites/, unreachable);
+  const goOnline = (page) => page.context().unroute(/\/api\/favorites/, unreachable);
+
+  test("keeps a favorite saved offline, and sends it once online", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const changes = await fakeFavoritesApi(page);
+    await loadControlledPage(page);
+    await goOffline(page);
+
+    const panel = await openCharger(page, "Near charger");
+    await panel.getByRole("button", { name: "Favorite" }).click();
+    await expect(panel.getByRole("button", { name: "Favorite" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+
+    // Still offline after a reload: the service worker has it.
+    await page.reload();
+    const reloaded = await openCharger(page, "Near charger");
+    await expect(reloaded.getByRole("button", { name: "Favorite" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    expect(changes).toHaveLength(0);
+
+    await goOnline(page);
+    await page.reload();
+
+    await expect.poll(() => changes.length).toBe(1);
+    expect(changes[0]).toMatchObject({ method: "PUT", id: "ocm:1", body: { charger: near } });
+    const dialog = await openFavorites(page);
+    await expect(dialog.locator(".name")).toHaveText(["Near charger"]);
+  });
+
+  test("forgets the stored favorites on signing out", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await fakeFavoritesApi(page, [{ charger: near, addedAt: 1 }]);
+    await loadControlledPage(page);
+    const dialog = await openFavorites(page);
+    await expect(dialog.locator(".name")).toHaveText(["Near charger"]);
+    await dialog.getByRole("button", { name: "Close favorites" }).click();
+
+    await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            new Promise((resolve) => {
+              const request = indexedDB.open("ev-maps-sw", 1);
+              request.onsuccess = () => {
+                const read = request.result
+                  .transaction("state")
+                  .objectStore("state")
+                  .get("favorites");
+                read.onsuccess = () => resolve(read.result ?? null);
+              };
+            })
+        )
+      )
+      .toBeNull();
+  });
+});
