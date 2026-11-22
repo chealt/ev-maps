@@ -1,0 +1,36 @@
+---
+import { Keyboard, X } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./ShortcutsDialog.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<ev-shortcuts>
+  <dialog class="fullscreen-dialog shortcuts-dialog" aria-labelledby="shortcuts-title">
+    <div class="header">
+      <h2 class="title" id="shortcuts-title">
+        <Icon icon={Keyboard} size="sm" />
+        {page.shortcuts.title}
+      </h2>
+      <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
+        <Icon icon={X} />
+      </Button>
+    </div>
+    <div class="body">
+      <ul class="shortcut-list">
+        <li>
+          <kbd>?</kbd>
+          <span>{page.shortcuts.help}</span>
+        </li>
+        <li>
+          <kbd>Esc</kbd>
+          <span>{page.shortcuts.closeDialogs}</span>
+        </li>
+      </ul>
+    </div>
+  </dialog>
+  <script src="./ShortcutsDialog.js"></script>
+</ev-shortcuts>
