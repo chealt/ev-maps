@@ -65,6 +65,11 @@ const map = {
     nearby: "W pobliżu",
     signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
     nearbyFilterHint: "Do 150 m, według OpenStreetMap.",
+    shortcuts: {
+      title: "Skróty klawiszowe",
+      help: "Pokaż tę pomoc",
+      closeDialogs: "Zamyka okna i szczegóły stacji",
+    },
   },
   messages: {
     power: "{power} kW",

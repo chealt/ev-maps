@@ -1,0 +1,25 @@
+/* The keyboard shortcuts dialog: a plain list of keys and what they do. */
+
+.shortcuts-dialog .shortcut-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.shortcuts-dialog .shortcut-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.shortcuts-dialog kbd {
+  font-size: var(--font-size-xs);
+  min-width: 2.5ch;
+  text-align: center;
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface-muted);
+}
