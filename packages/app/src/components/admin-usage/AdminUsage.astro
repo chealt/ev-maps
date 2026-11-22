@@ -1,0 +1,94 @@
+---
+import { fill, translations } from "../../i18n/index.js";
+import "./AdminUsage.css";
+
+const { page, values } = translations(Astro.currentLocale ?? "en");
+
+// Totals shown at the top, and the events broken down by their dimension
+// (packages/worker/src/usage.js).
+const totals = [
+  "page_view",
+  "sign_up",
+  "sign_in",
+  "route_planned",
+  "favorite_added",
+  "charger_opened",
+  "locate_me",
+  "list_opened",
+];
+const breakdowns = [
+  "page_view",
+  "visitor_country",
+  "charger_opened",
+  "filter_used",
+  "sign_in_started",
+];
+const periods = [7, 30, 90];
+---
+
+<!-- Usage stats (GET /api/admin/usage): counts per day, no identifiers. -->
+<ev-admin-usage>
+  <section class="usage" aria-labelledby="admin-usage-title">
+    <div class="usage-header">
+      <h2 class="section-title" id="admin-usage-title">
+        {page.adminUsage}
+      </h2>
+      <div class="periods" role="group" aria-label={page.adminPeriod}>
+        {periods.map((days) => (
+          <button type="button" class="period" data-days={days} aria-pressed={String(days === 30)}>
+            {fill(page.adminLastDays, { days })}
+          </button>
+        ))}
+      </div>
+    </div>
+    <p class="summary" role="status"></p>
+
+    <dl class="totals">
+      {totals.map((event) => (
+        <div class="total" data-event={event}>
+          <dt>{values.usageEvents[event]}</dt>
+          <dd class="value">–</dd>
+        </div>
+      ))}
+    </dl>
+
+    <h3 class="subtitle" id="admin-chart-title">
+      {page.adminPageViewsPerDay}
+    </h3>
+    <ol class="chart" aria-labelledby="admin-chart-title"></ol>
+    <p class="chart-range">
+      <span class="from"></span>
+      <span class="to"></span>
+    </p>
+
+    <div class="breakdowns">
+      {breakdowns.map((event) => (
+        <section class="breakdown" data-event={event} aria-labelledby={`admin-breakdown-${event}`}>
+          <h3 class="subtitle" id={`admin-breakdown-${event}`}>
+            {values.usageEvents[event]}
+          </h3>
+          <table>
+            <tbody></tbody>
+          </table>
+          <p class="empty" hidden>
+            {page.adminNoData}
+          </p>
+        </section>
+      ))}
+    </div>
+  </section>
+
+  <template class="bar-template">
+    <li class="bar">
+      <span class="fill"></span>
+      <span class="visually-hidden label"></span>
+    </li>
+  </template>
+  <template class="row-template">
+    <tr>
+      <th scope="row" class="name"></th>
+      <td class="count"></td>
+    </tr>
+  </template>
+  <script src="./AdminUsage.js"></script>
+</ev-admin-usage>

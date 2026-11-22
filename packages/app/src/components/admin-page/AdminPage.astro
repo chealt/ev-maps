@@ -5,7 +5,7 @@ import { translations } from "../../i18n/index.js";
 import "./AdminPage.css";
 
 interface Props {
-  // The section shown, for the navigation: "overview" or "errors".
+  // The section shown, for the navigation: "overview", "errors", "usage".
   current?: string;
 }
 
@@ -15,6 +15,7 @@ const { current = "overview" } = Astro.props;
 const sections = [
   { id: "overview", href: `/${lang}/admin/`, label: page.adminOverview },
   { id: "errors", href: `/${lang}/admin/errors/`, label: page.adminErrors },
+  { id: "usage", href: `/${lang}/admin/usage/`, label: page.adminUsage },
 ];
 ---
 
