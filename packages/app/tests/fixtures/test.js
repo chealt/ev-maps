@@ -3,8 +3,17 @@
 // against WCAG 2.1 A and AA, and the test fails on any violation. The
 // results are attached to the test ("axe"), for the accessibility report
 // (scripts/a11y-report.js).
+//
+// Tests tagged @performance (test("…", { tag: "@performance" }, …)), those
+// that load a whole page, also measure its load (TTFB, FCP, LCP, CLS) before
+// that: they fail if a metric is poor by Google's thresholds, and attach them
+// ("web-vitals") for the performance report, which has each page's P75
+// (scripts/performance-report.js).
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
+import { THRESHOLDS, measureWebVitals } from "./web-vitals.js";
+
+const PERFORMANCE_TAG = "@performance";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -43,6 +52,17 @@ const test = base.extend({
     // already says what's wrong.
     if (testInfo.status !== testInfo.expectedStatus || !page.url().startsWith("http")) {
       return;
+    }
+    if (testInfo.tags.includes(PERFORMANCE_TAG)) {
+      const vitals = await measureWebVitals(page);
+      await testInfo.attach("web-vitals", {
+        contentType: "application/json",
+        body: JSON.stringify(vitals),
+      });
+      const poor = Object.entries(THRESHOLDS)
+        .filter(([name, [, poorAt]]) => vitals[name] !== null && vitals[name] > poorAt)
+        .map(([name]) => `${name} ${vitals[name]}`);
+      expect(poor, `Poor load metrics on ${vitals.url}`).toEqual([]);
     }
     // Colors in the middle of a fade-in aren't what anyone reads.
     await page.evaluate(() =>

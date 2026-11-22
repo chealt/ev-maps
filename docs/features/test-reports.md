@@ -47,3 +47,20 @@ test's page. It's uploaded next to the report, in `reports/{id}/a11y/`, and
 linked from its own commit status, "Accessibility report" (failure if any
 rule was violated). Locally, after a run with the JSON reporter:
 `bun scripts/a11y-report.js` in `packages/app`.
+
+## Performance report
+
+Tests that load a whole page are tagged `@performance` (one per kind of
+page: the map, a country page, a legal page and each admin page). At their
+end, before axe, the fixture measures the page's load (TTFB, FCP, LCP, CLS,
+`tests/fixtures/web-vitals.js`), fails the test if one is poor by Google's
+thresholds, and attaches them ("web-vitals"). `scripts/performance-report.js`
+puts them together into each page's P75, rated good, needs improvement or
+poor, uploaded in `reports/{id}/performance/` and linked from a
+"Performance report" commit status (failure if any P75 is poor). The tests
+run against the development server with the APIs faked, so the numbers are
+for comparing runs; the admin area's performance page has production's.
+
+To measure another test's page, tag it:
+`test("…", { tag: "@performance" }, async ({ page }) => { … })`. Run only
+those with `bunx playwright test --grep @performance`.

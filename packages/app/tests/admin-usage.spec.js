@@ -46,34 +46,38 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true, user: GRACE });
 });
 
-test("shows the totals, page views per day and the breakdowns", async ({ page }) => {
-  await fakeUsageAdminApi(page);
-  await page.goto("/en/admin/usage/");
+test(
+  "shows the totals, page views per day and the breakdowns",
+  { tag: "@performance" },
+  async ({ page }) => {
+    await fakeUsageAdminApi(page);
+    await page.goto("/en/admin/usage/");
 
-  await expect(page.getByRole("heading", { level: 2, name: "Usage" })).toBeVisible();
-  await expect(page.getByText("Oct 25 – Nov 23")).toBeVisible();
-  const totals = page.locator(".totals");
-  await expect(totals.locator('[data-event="page_view"] .value')).toHaveText("50");
-  await expect(totals.locator('[data-event="sign_in"] .value')).toHaveText("3");
-  await expect(totals.locator('[data-event="route_planned"] .value')).toHaveText("0");
+    await expect(page.getByRole("heading", { level: 2, name: "Usage" })).toBeVisible();
+    await expect(page.getByText("Oct 25 – Nov 23")).toBeVisible();
+    const totals = page.locator(".totals");
+    await expect(totals.locator('[data-event="page_view"] .value')).toHaveText("50");
+    await expect(totals.locator('[data-event="sign_in"] .value')).toHaveText("3");
+    await expect(totals.locator('[data-event="route_planned"] .value')).toHaveText("0");
 
-  const chart = page.getByRole("list", { name: "Page views per day" });
-  await expect(chart.getByRole("listitem")).toHaveCount(30);
-  await expect(chart.getByRole("listitem").last()).toHaveText("Nov 23: 40");
+    const chart = page.getByRole("list", { name: "Page views per day" });
+    await expect(chart.getByRole("listitem")).toHaveCount(30);
+    await expect(chart.getByRole("listitem").last()).toHaveText("Nov 23: 40");
 
-  const pages = page.getByRole("region", { name: "Page views" });
-  await expect(pages.getByRole("row")).toHaveText([
-    "Hungarian, country page30",
-    "English, home page20",
-  ]);
-  const countries = page.getByRole("region", { name: "Visitors' countries" });
-  await expect(countries.getByRole("row")).toHaveText(["Hungary45", "Poland5"]);
-  const signIns = page.getByRole("region", { name: "Sign-in attempts" });
-  await expect(signIns.getByRole("row")).toHaveText(["Passkey3", "Google1"]);
-  await expect(
-    page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
-  ).toBeVisible();
-});
+    const pages = page.getByRole("region", { name: "Page views" });
+    await expect(pages.getByRole("row")).toHaveText([
+      "Hungarian, country page30",
+      "English, home page20",
+    ]);
+    const countries = page.getByRole("region", { name: "Visitors' countries" });
+    await expect(countries.getByRole("row")).toHaveText(["Hungary45", "Poland5"]);
+    const signIns = page.getByRole("region", { name: "Sign-in attempts" });
+    await expect(signIns.getByRole("row")).toHaveText(["Passkey3", "Google1"]);
+    await expect(
+      page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
+    ).toBeVisible();
+  }
+);
 
 test("switches the period", async ({ page }) => {
   const requests = await fakeUsageAdminApi(page);

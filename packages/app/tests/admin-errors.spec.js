@@ -81,7 +81,7 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true, user: GRACE });
 });
 
-test("lists the errors grouped, the latest first", async ({ page }) => {
+test("lists the errors grouped, the latest first", { tag: "@performance" }, async ({ page }) => {
   await fakeErrorsData(page, 3);
   await page.goto("/en/admin/errors/");
 

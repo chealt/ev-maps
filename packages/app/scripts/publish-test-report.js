@@ -11,12 +11,18 @@
 // COMMIT_SHA, BRANCH, PULL_REQUEST (if any) and RUN_URL; SITE_URL (where the
 // admin area is). It reads playwright-report/ and playwright-results.json,
 // and publishes the accessibility report (scripts/a11y-report.js) in the
-// report's a11y/ folder, with its own commit status.
+// report's a11y/ folder and the performance report
+// (scripts/performance-report.js) in performance/, each with its own commit
+// status.
 
 import { appendFile, readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { S3Client, file as bunFile } from "bun";
 import { REPORT_DIR as A11Y_REPORT_DIR, writeA11yReport } from "./a11y-report.js";
+import {
+  REPORT_DIR as PERFORMANCE_REPORT_DIR,
+  writePerformanceReport,
+} from "./performance-report.js";
 
 const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
@@ -26,6 +32,7 @@ const WRANGLER_TOML = new URL("../../worker/wrangler.toml", import.meta.url);
 const CONCURRENCY = 16;
 const STATUS_CONTEXT = "Playwright report";
 const A11Y_STATUS_CONTEXT = "Accessibility report";
+const PERFORMANCE_STATUS_CONTEXT = "Performance report";
 
 const env = (name, { optional = false } = {}) => {
   const value = process.env[name];
@@ -181,12 +188,26 @@ await postCommitStatus(report.commitSha, {
 });
 console.log(`Published the accessibility report: ${a11yUrl}`);
 
+// The performance report (scripts/performance-report.js), in performance/.
+const performance = await writePerformanceReport();
+await uploadFolder(PERFORMANCE_REPORT_DIR, `${report.id}/performance/`);
+const performanceUrl = `${url}performance/index.html`;
+await postCommitStatus(report.commitSha, {
+  state: performance.poor > 0 ? "failure" : "success",
+  description: `${performance.pages} pages measured, ${performance.poor} poor P75s`,
+  context: PERFORMANCE_STATUS_CONTEXT,
+  url: performanceUrl,
+});
+console.log(`Published the performance report: ${performanceUrl}`);
+
 // For the release notes (the App workflow's Release job): the step's outputs.
 if (process.env.GITHUB_OUTPUT) {
   await appendFile(
     process.env.GITHUB_OUTPUT,
     `report-url=${url}\na11y-report-url=${a11yUrl}\n` +
       `summary=${report.passed} passed, ${report.failed} failed, ${report.flaky} flaky\n` +
-      `a11y-summary=${a11y.tests} pages checked, ${a11y.violations} rules violated\n`
+      `a11y-summary=${a11y.tests} pages checked, ${a11y.violations} rules violated\n` +
+      `performance-report-url=${performanceUrl}\n` +
+      `performance-summary=${performance.pages} pages measured, ${performance.poor} poor P75s\n`
   );
 }

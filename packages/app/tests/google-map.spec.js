@@ -39,7 +39,7 @@ test("initializes the map with the configured center and map ID", async ({ page 
   expect(options.mapId).toBe("TEST_MAP_ID");
 });
 
-test("shows EV charger markers", async ({ page }) => {
+test("shows EV charger markers", { tag: "@performance" }, async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button")).toHaveCount(2);
 });
