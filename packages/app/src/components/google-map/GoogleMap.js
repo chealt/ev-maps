@@ -391,8 +391,12 @@ class GoogleMapElement extends HTMLElement {
     );
     onFavoritesChange(() => {
       this.showFavoriteState();
-      for (const marker of this.chargersByMarker.keys()) {
-        this.showMarkerAvailability(marker);
+      for (const marker of this.markersById.values()) {
+        if (this.chargersByMarker.has(marker)) {
+          this.showMarkerAvailability(marker);
+        } else if (marker.clusterId != null) {
+          this.showClusterFavorite(marker);
+        }
       }
       if (this.onlyFavorites()) {
         this.showMatchingChargers();
@@ -1256,11 +1260,22 @@ class GoogleMapElement extends HTMLElement {
       content,
       gmpClickable: true,
     });
+    marker.clusterId = clusterId;
+    this.showClusterFavorite(marker);
     marker.addEventListener("gmp-click", () => {
       this.map.setCenter({ lat, lng });
       this.map.setZoom(this.clusterIndex.getClusterExpansionZoom(clusterId));
     });
     return marker;
+  }
+
+  // A cluster wears the favorite design when any charger in it is one of
+  // the user's favorites.
+  showClusterFavorite(marker) {
+    const favorite = this.clusterIndex
+      .getLeaves(marker.clusterId, Infinity)
+      .some(({ properties }) => isFavorite(properties.charger.id));
+    marker.content?.classList.toggle("favorite", favorite);
   }
 
   // Draws the clusters and chargers in view. Markers that are still in view
