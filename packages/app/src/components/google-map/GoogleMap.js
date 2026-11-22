@@ -222,6 +222,8 @@ class GoogleMapElement extends HTMLElement {
   statuses = new Map();
   // The charger each charger pin (not cluster) is for.
   chargersByMarker = new Map();
+  // Where each pin (charger or cluster) is, for moving between them with Tab.
+  markerPositions = new WeakMap();
   searchId = 0;
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
@@ -373,6 +375,11 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
+    // Tab and Shift+Tab move between the pins in reading order (north to
+    // south, then west to east), and on to the rest of the page at either
+    // end. Google Maps makes its pins one tab stop, with arrow keys between
+    // them, which keyboard users don't expect.
+    this.mapEl?.addEventListener("keydown", (event) => this.tabBetweenPins(event), true);
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it.
     document.addEventListener("keydown", (event) => {
@@ -1195,6 +1202,7 @@ class GoogleMapElement extends HTMLElement {
       content: this.cloneTemplate(".charger-marker-template"),
       gmpClickable: true,
     });
+    this.markerPositions.set(marker, charger.location);
     marker.addEventListener("gmp-click", () => {
       this.setActiveMarker(marker);
       this.displayChargerDetails(charger);
@@ -1261,6 +1269,7 @@ class GoogleMapElement extends HTMLElement {
       gmpClickable: true,
     });
     marker.clusterId = clusterId;
+    this.markerPositions.set(marker, { lat, lng });
     this.showClusterFavorite(marker);
     marker.addEventListener("gmp-click", () => {
       this.map.setCenter({ lat, lng });
@@ -1467,6 +1476,44 @@ class GoogleMapElement extends HTMLElement {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
     section.hidden = false;
+  }
+
+  // The element of a pin that takes focus: Google's marker is one; the test
+  // fake keeps it as `element`.
+  pinElement(marker) {
+    return marker instanceof HTMLElement ? marker : marker.element;
+  }
+
+  tabBetweenPins(event) {
+    if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    const pins = [...this.markersById.values()]
+      .filter((marker) => this.markerPositions.has(marker) && this.pinElement(marker))
+      .sort((a, b) => {
+        const pa = this.markerPositions.get(a);
+        const pb = this.markerPositions.get(b);
+        return pb.lat - pa.lat || pa.lng - pb.lng;
+      });
+    const current = pins.findIndex((marker) =>
+      this.pinElement(marker).contains(document.activeElement)
+    );
+    if (current === -1) {
+      return;
+    }
+    const next = pins[current + (event.shiftKey ? -1 : 1)];
+    if (next) {
+      event.preventDefault();
+      this.pinElement(next).focus();
+      return;
+    }
+    // At either end, the browser's own Tab goes on from the pin that's last
+    // (or first) in the page, so it leaves the pins instead of landing on
+    // another one.
+    const inPage = pins
+      .map((marker) => this.pinElement(marker))
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    (event.shiftKey ? inPage[0] : inPage.at(-1)).focus();
   }
 
   hideChargerDetails() {

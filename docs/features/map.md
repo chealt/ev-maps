@@ -16,3 +16,12 @@ edge for a day and in the browser by the service worker.
 
 `supercluster` groups nearby chargers; only the clusters and
 chargers in view are drawn as markers.
+
+## Keyboard
+
+Google Maps makes its clickable pins one tab stop, with the arrow keys
+between them. Here Tab and Shift+Tab move between the pins (chargers and
+clusters) in reading order, north to south, then west to east, and on to
+the rest of the page past either end; Enter opens a charger's details or
+zooms into a cluster. The map keeps each pin's position for this
+(`markerPositions`), as the test fake's markers don't have one.
