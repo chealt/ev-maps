@@ -135,19 +135,26 @@ const chargersInEachBounds = async (db, boundsList, limit) => {
 };
 
 // Every charger, a page at a time: the ones after `afterRid`, in rid order.
-const chargersAfter = async (db, afterRid, limit) => {
+// The chargers with afterRid < rid <= lastRid, by rid; at most
+// lastRid - afterRid of them, rid being unique.
+const chargersInRidRange = async (db, afterRid, lastRid) => {
   const { results } = await db
-    .prepare("SELECT * FROM chargers WHERE rid > ? ORDER BY rid LIMIT ?")
-    .bind(afterRid, limit)
+    .prepare("SELECT * FROM chargers WHERE rid > ? AND rid <= ? ORDER BY rid")
+    .bind(afterRid, lastRid)
     .all();
   return results;
 };
 
+// The highest rid in use (0 without chargers).
+const maxChargerRid = async (db) =>
+  (await db.prepare("SELECT MAX(rid) AS rid FROM chargers").first())?.rid ?? 0;
+
 export {
-  chargersAfter,
   chargersInBounds,
+  chargersInRidRange,
   chargersInEachBounds,
   deleteUnseen,
+  maxChargerRid,
   toClientCharger,
   upsertChargers,
 };
