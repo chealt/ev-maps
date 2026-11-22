@@ -8,11 +8,17 @@
 // that load a whole page, also measure its load (TTFB, FCP, LCP, CLS) before
 // that: they fail if a metric is poor by Google's thresholds, and attach them
 // ("web-vitals"), e.g. for a performance report of each page's P75.
+//
+// Tests tagged @ui (test("…", { tag: "@ui" }, …)), those that show a new or
+// updated UI control, attach a screenshot of the page as the test left it
+// ("ui"): with the video CI records of every test, a pull request's report
+// shows what the control looks and feels like.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
 import { THRESHOLDS, measureWebVitals } from "./web-vitals.js";
 
 const PERFORMANCE_TAG = "@performance";
+const UI_TAG = "@ui";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
@@ -62,6 +68,12 @@ const test = base.extend({
         .filter(([name, [, poorAt]]) => vitals[name] !== null && vitals[name] > poorAt)
         .map(([name]) => `${name} ${vitals[name]}`);
       expect(poor, `Poor load metrics on ${vitals.url}`).toEqual([]);
+    }
+    if (testInfo.tags.includes(UI_TAG)) {
+      await testInfo.attach("ui", {
+        contentType: "image/png",
+        body: await page.screenshot(),
+      });
     }
     // Colors in the middle of a fade-in aren't what anyone reads.
     await page.evaluate(() =>
