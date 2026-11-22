@@ -153,7 +153,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-body {
+/* Only the map fills the screen without scrolling; every other page
+   (legal, admin) scrolls as usual. */
+body:has(.home-page) {
   overflow: hidden;
 }
 
