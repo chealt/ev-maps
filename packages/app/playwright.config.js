@@ -6,7 +6,11 @@ export default defineConfig({
   testDir: "./tests",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  // In CI, also the HTML report and a JSON summary, which
+  // scripts/publish-test-report.js publishes for the admin area.
+  reporter: process.env.CI
+    ? [["github"], ["html", { open: "never" }], ["json", { outputFile: "playwright-results.json" }]]
+    : "list",
   use: {
     baseURL: `http://localhost:${PORT}`,
     // Requests made by a service worker bypass page.route(), so the external

@@ -486,7 +486,8 @@ adds **one line** to a list, never code to a shared function.
 
 - **Worker routes**: a domain keeps its API routes (`routes`) and scheduled
   jobs (`jobs`) in its own module, and adds one line to
-  `src/api-routes.js` or `src/jobs.js`; see
+  `src/api-routes.js` or `src/jobs.js` (pages the Worker serves itself:
+  `pageRoutes` and `src/page-routes.js`); see
   [The API](features/api.md). Never add an `if` to `src/index.js` or a
   policy to `src/guard.js`.
 - **Translations**: each part of the site has its own section,

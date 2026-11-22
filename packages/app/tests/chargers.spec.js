@@ -169,6 +169,8 @@ test("zooms in to split a group when it is clicked", async ({ page }) => {
   await fakeChargersApi(page);
   await page.goto("/");
   const map = page.getByRole("region", { name: "EV charging station map" });
+  // The map exists once its chargers show.
+  await expect(map.getByRole("button")).toHaveCount(2);
   await page.evaluate(() => window.__fakeMap.setZoom(9));
 
   await map.getByRole("button", { name: "2 EV chargers" }).click();

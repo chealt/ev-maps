@@ -44,6 +44,23 @@ The admin area's data (errors, later usage stats) is in a second D1 database,
 created once with `bunx wrangler d1 create ev-maps-admin`; deploys apply its
 migrations too.
 
+CI's Playwright reports are in the R2 bucket `ev-maps-test-reports` (binding
+`REPORTS`; see [Test reports](features/test-reports.md)), created once with a
+rule deleting them after 30 days:
+
+```bash
+bunx wrangler r2 bucket create ev-maps-test-reports
+bunx wrangler r2 bucket lifecycle add ev-maps-test-reports \
+  delete-old-reports reports/ --expire-days 30
+```
+
+The Test job uploads them with an **R2 API token** (R2 → Manage API tokens →
+Create, **Object Read & Write**, only this bucket): its Access Key ID and
+Secret Access Key go into the `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY`
+secrets. It uses R2's S3 API, because a bucket-scoped R2 token isn't accepted
+by Cloudflare's REST API. Recording the run uses `CLOUDFLARE_API_TOKEN` (its
+**D1: Edit**).
+
 The Worker needs these secrets, set once in Cloudflare:
 
 ```bash
@@ -145,6 +162,8 @@ Set these under **Settings → Secrets and variables → Actions**:
 | -------------------------- | -------- | -------------------------------------------------------------------------- |
 | `CLOUDFLARE_API_TOKEN`     | Secret   | API token from the **Edit Cloudflare Workers** template, plus **D1: Edit** |
 | `CLOUDFLARE_ACCOUNT_ID`    | Secret   | Cloudflare account ID (`bunx wrangler whoami` shows it)                    |
+| `R2_ACCESS_KEY_ID`         | Secret   | The test reports bucket's R2 API token: its Access Key ID                  |
+| `R2_SECRET_ACCESS_KEY`     | Secret   | The same token's Secret Access Key                                         |
 | `VITE_GOOGLE_MAPS_API_KEY` | Secret   | Google Maps key, built into the page                                       |
 | `VITE_GOOGLE_MAPS_MAP_ID`  | Variable | Map ID for the vector map                                                  |
 
