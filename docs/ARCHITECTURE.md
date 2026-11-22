@@ -205,6 +205,14 @@ ev-maps/
   group's occurrences with the URL, browser, user, country, job and stack
   trace (`GET /api/admin/errors`, `/api/admin/errors/{fingerprint}`, 25 and 20
   a page).
+- **Usage stats**: counts per day in the admin database (`usage_daily`,
+  `packages/worker/src/usage.js`), no identifiers. The Worker counts sign-ups,
+  sign-ins (Better Auth's database hooks), planned routes and favorites
+  added; pages count page views (by language and kind), chargers opened,
+  filters used, Locate me, the list and sign-in attempts
+  (`src/lib/usage.js`) and send them batched to `POST /api/usage` (known
+  events only, capped counts, 60 per IP address per minute), which adds the
+  visitors' country. Kept about 13 months.
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

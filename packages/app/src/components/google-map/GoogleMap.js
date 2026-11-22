@@ -4,6 +4,7 @@ import { chargerName } from "../../lib/charger-name.js";
 import { distanceInMeters, formatDistance } from "../../lib/distance.js";
 import { addFavorite, isFavorite, onFavoritesChange, removeFavorite } from "../../lib/favorites.js";
 import { setMapCenter } from "../../lib/map-center.js";
+import { track } from "../../lib/usage.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
@@ -271,7 +272,10 @@ class GoogleMapElement extends HTMLElement {
   }
 
   setupEventListeners() {
-    this.addEventListener("locate-start", () => this.setStatus(message("locating"), "loading"));
+    this.addEventListener("locate-start", () => {
+      track("locate_me");
+      this.setStatus(message("locating"), "loading");
+    });
     this.addEventListener("location-found", (event) => this.handleLocationFound(event));
     this.addEventListener("location-error", (event) =>
       this.setStatus(event.detail?.message || message("locationFailed"), "error")
@@ -494,6 +498,10 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true"));
+    if (button.getAttribute("aria-pressed") === "true") {
+      // Which kind of filter: "power", "connector", "favorites", "nearby".
+      track("filter_used", button.className.match(/\b(\w+)-filter\b/)?.[1] ?? "other");
+    }
     this.filtersChanged();
   }
 
@@ -507,6 +515,7 @@ class GoogleMapElement extends HTMLElement {
       this.excludedOperators.delete(operator);
     } else {
       this.excludedOperators.add(operator);
+      track("filter_used", "operator");
     }
     this.showOperatorChoices();
     this.filtersChanged();
@@ -967,6 +976,7 @@ class GoogleMapElement extends HTMLElement {
     if (!this.chargerList || this.chargerList.open || !this.listedChargers?.length) {
       return;
     }
+    track("list_opened");
     this.renderChargerList();
     this.statusButton.classList.add("list-transition");
     withViewTransition(() => {
@@ -1261,6 +1271,9 @@ class GoogleMapElement extends HTMLElement {
     const panel = this.detailsPanel;
     if (!panel) {
       return;
+    }
+    if (this.activeChargerId !== charger.id) {
+      track("charger_opened", charger.source);
     }
     this.activeChargerId = charger.id;
     this.activeCharger = charger;
