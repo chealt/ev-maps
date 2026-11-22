@@ -3,6 +3,8 @@
 // sign-ins, routes, favorites); pages send theirs, batched, to
 // POST /api/usage. No identifiers are stored; counts are kept ~13 months.
 
+import { EVERY_15_MINUTES } from "./crons.js";
+
 const USAGE_PATH = "/api/usage";
 const KEEP_DAYS = 400;
 const MAX_BODY_BYTES = 8 * 1024;
@@ -103,12 +105,29 @@ const deleteOldUsage = async (env, now = Date.now()) => {
     .run();
 };
 
+// Pages sending their usage counts.
+const routes = [
+  {
+    name: "usage",
+    limiter: "USAGE_LIMITER",
+    signedIn: false,
+    matches: (request, url) => url.pathname === USAGE_PATH,
+    handle: ({ request, env }) => usageReportResponse(request, env),
+  },
+];
+
+const jobs = [
+  { name: "delete old usage", cron: EVERY_15_MINUTES, run: (env) => deleteOldUsage(env) },
+];
+
 export {
   USAGE_PATH,
   countEvent,
   countUsage,
   dayOf,
   deleteOldUsage,
+  jobs,
   pageCounts,
+  routes,
   usageReportResponse,
 };

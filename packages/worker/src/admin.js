@@ -154,4 +154,24 @@ const adminApiResponse = async (request, env, user) => {
   return json({ error: "Not found" }, 404);
 };
 
-export { ADMIN_API_PREFIX, adminApiResponse, adminPageResponse, isAdmin, isAdminPage, usageStats };
+// Only Chealt's own people: the guard checks they're admins.
+const routes = [
+  {
+    name: "admin",
+    limiter: "ADMIN_LIMITER",
+    signedIn: true,
+    admin: true,
+    matches: (request, url) => url.pathname.startsWith(ADMIN_API_PREFIX),
+    handle: ({ request, env, user }) => adminApiResponse(request, env, user),
+  },
+];
+
+export {
+  ADMIN_API_PREFIX,
+  adminApiResponse,
+  adminPageResponse,
+  isAdmin,
+  isAdminPage,
+  routes,
+  usageStats,
+};

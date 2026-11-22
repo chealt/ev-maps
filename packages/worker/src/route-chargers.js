@@ -5,6 +5,7 @@
 import { chargersInEachBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { cumulativeMeters, nearestOnRoute, routeChunks } from "./route.js";
+import { countEvent } from "./usage.js";
 
 const MAX_POINTS = 5000;
 const DEFAULT_CORRIDOR_KM = 5;
@@ -94,4 +95,20 @@ const routeChargersResponse = async (request, env) => {
   return json(await chargersAlongRoute(env.DB, parsed));
 };
 
-export { routeChargersResponse };
+const routes = [
+  {
+    name: "route",
+    limiter: "ROUTE_LIMITER",
+    signedIn: true,
+    matches: (request, url) => request.method === "POST" && url.pathname === "/api/chargers/route",
+    handle: async ({ request, env, context }) => {
+      const response = await routeChargersResponse(request, env);
+      if (response.ok) {
+        context.waitUntil(countEvent(env, "route_planned"));
+      }
+      return response;
+    },
+  },
+];
+
+export { routeChargersResponse, routes };

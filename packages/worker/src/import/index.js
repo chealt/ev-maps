@@ -2,6 +2,7 @@
 // due jobs (never imported, or last finished over a week ago) until its time
 // budget is spent; a job's cursor lets the next run continue a big country.
 
+import { EVERY_15_MINUTES } from "../crons.js";
 import { recordWorkerError } from "../errors.js";
 import * as amenities from "./amenities.js";
 import * as eipa from "./eipa.js";
@@ -106,4 +107,13 @@ const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
   }
 };
 
-export { runImport };
+// IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
+const jobs = [
+  {
+    name: "import",
+    cron: EVERY_15_MINUTES,
+    run: (env) => runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined }),
+  },
+];
+
+export { jobs, runImport };

@@ -5,7 +5,8 @@
 // - map: the map (filters, charger details, the charger list, routes)
 // - account: the account menu (sign-in, theme, language, favorites)
 // - legal: the privacy policy and terms of use
-// - admin: the admin area
+// - admin: the admin area's frame (navigation, overview); each admin page
+//   has its own section, e.g. admin-errors, admin-usage
 //
 // Each section has the same parts:
 // - page: rendered by Astro at build time
@@ -22,30 +23,60 @@
 
 import { account as enAccount } from "./en/account.js";
 import { admin as enAdmin } from "./en/admin.js";
+import { adminErrors as enAdminErrors } from "./en/admin-errors.js";
+import { adminUsage as enAdminUsage } from "./en/admin-usage.js";
 import { common as enCommon } from "./en/common.js";
 import { legal as enLegal } from "./en/legal.js";
 import { map as enMap } from "./en/map.js";
 import { account as huAccount } from "./hu/account.js";
 import { admin as huAdmin } from "./hu/admin.js";
+import { adminErrors as huAdminErrors } from "./hu/admin-errors.js";
+import { adminUsage as huAdminUsage } from "./hu/admin-usage.js";
 import { common as huCommon } from "./hu/common.js";
 import { legal as huLegal } from "./hu/legal.js";
 import { map as huMap } from "./hu/map.js";
 import { account as plAccount } from "./pl/account.js";
 import { admin as plAdmin } from "./pl/admin.js";
+import { adminErrors as plAdminErrors } from "./pl/admin-errors.js";
+import { adminUsage as plAdminUsage } from "./pl/admin-usage.js";
 import { common as plCommon } from "./pl/common.js";
 import { legal as plLegal } from "./pl/legal.js";
 import { map as plMap } from "./pl/map.js";
 
 const SECTIONS = {
-  en: { common: enCommon, map: enMap, account: enAccount, legal: enLegal, admin: enAdmin },
-  hu: { common: huCommon, map: huMap, account: huAccount, legal: huLegal, admin: huAdmin },
-  pl: { common: plCommon, map: plMap, account: plAccount, legal: plLegal, admin: plAdmin },
+  en: {
+    common: enCommon,
+    map: enMap,
+    account: enAccount,
+    legal: enLegal,
+    admin: enAdmin,
+    "admin-errors": enAdminErrors,
+    "admin-usage": enAdminUsage,
+  },
+  hu: {
+    common: huCommon,
+    map: huMap,
+    account: huAccount,
+    legal: huLegal,
+    admin: huAdmin,
+    "admin-errors": huAdminErrors,
+    "admin-usage": huAdminUsage,
+  },
+  pl: {
+    common: plCommon,
+    map: plMap,
+    account: plAccount,
+    legal: plLegal,
+    admin: plAdmin,
+    "admin-errors": plAdminErrors,
+    "admin-usage": plAdminUsage,
+  },
 };
 // Which sections each kind of page's scripts need.
 const PAGE_SECTIONS = {
   map: ["common", "map", "account"],
   legal: ["common", "legal"],
-  admin: ["common", "admin"],
+  admin: ["common", "admin", "admin-errors", "admin-usage"],
 };
 const PLURAL_CATEGORIES = new Set(["zero", "one", "two", "few", "many", "other"]);
 

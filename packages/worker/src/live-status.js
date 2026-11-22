@@ -7,6 +7,7 @@
 
 import { POINT_POOLS_KEY, downloadEipa } from "./import/eipa.js";
 import { PASSES, POINT_STATIONS_KEY, downloadCsv } from "./import/irve.js";
+import { EVERY_5_MINUTES } from "./crons.js";
 import { recordWorkerError } from "./errors.js";
 import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
@@ -194,11 +195,31 @@ const statusResponse = async (request, env) => {
   });
 };
 
+const routes = [
+  {
+    name: "status",
+    limiter: "STATUS_LIMITER",
+    signedIn: true,
+    matches: (request, url) => request.method === "GET" && url.pathname === STATUS_PATH,
+    handle: ({ request, env }) => statusResponse(request, env),
+  },
+];
+
+const jobs = [
+  {
+    name: "statuses",
+    cron: EVERY_5_MINUTES,
+    run: (env, controller) => refreshStatuses(env, controller.scheduledTime),
+  },
+];
+
 export {
   STATUS_PATH,
   countEipaStatuses,
   countIrveStatuses,
   isDue,
+  jobs,
   refreshStatuses,
+  routes,
   statusResponse,
 };
