@@ -14,6 +14,8 @@ const SECTIONS = {
     // Operator names as the charger data has them; "" is "unknown operator".
     excludedOperators: (value) => isStringList(value, 200, 120),
     onlyFavorites: (value) => typeof value === "boolean",
+    // Kinds of places that must be next to a charger (src/amenities.js).
+    nearby: (value) => isStringList(value, 10),
   },
 };
 

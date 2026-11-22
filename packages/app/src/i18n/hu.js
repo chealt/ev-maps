@@ -33,6 +33,9 @@ const hu = {
       link: "IRVE, transport.data.gouv.fr",
       after: ", Licence Ouverte",
     },
+    openStreetMapPlacesCredit: {
+      before: "Közeli helyek ©",
+    },
     openStreetMapCredit: {
       before: "Töltőadatok ©",
       link: "az OpenStreetMap közreműködői",
@@ -76,6 +79,10 @@ const hu = {
     nearestToMapCenter: "A térkép közepéhez legközelebbiek elöl",
     onlyFavorites: "Csak a kedvencek",
     signInForFavorites: "Jelentkezz be, hogy kedvencként menthess töltőket.",
+    nearby: "A közelben",
+    signInForNearby:
+      "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
+    nearbyFilterHint: "150 méteren belül, az OpenStreetMap alapján.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -169,6 +176,12 @@ const hu = {
       "private-notice": "Magán, előzetes bejelentés szükséges",
       private: "Magán",
       permit: "Engedély szükséges",
+    },
+    amenities: {
+      coffee: "Kávézó",
+      toilets: "Mosdó",
+      restaurant: "Étterem",
+      playground: "Játszótér",
     },
     status: {
       operational: "Működik",

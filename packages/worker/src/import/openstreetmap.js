@@ -15,9 +15,10 @@ const OVERPASS_URLS = [
 ];
 // Eastern Europe: from the Adriatic and the Baltic to Ukraine.
 const REGION = { south: 39, north: 60, west: 12, east: 41 };
-// Overpass queries time out after 60 s on the server; an overloaded instance
+// Overpass queries time out on the server (60 s for chargers, 120 s for the
+// places next to them: a big city's cell took 40 s); an overloaded instance
 // may never answer, which would block the whole import run.
-const REQUEST_TIMEOUT_MS = 90 * 1000;
+const REQUEST_TIMEOUT_MS = 150 * 1000;
 
 const CONNECTOR_NAMES = {
   type1: "Type 1 (J1772)",
@@ -91,13 +92,15 @@ const cellBounds = (area) => {
 const query = ({ south, west, north, east }) =>
   `[out:json][timeout:60];nwr["amenity"="charging_station"](${south},${west},${north},${east});out center tags;`;
 
-const fetchElements = async (bounds) => {
+// The elements an Overpass query returns, from the first instance that
+// answers.
+const fetchOverpass = async (overpassQuery) => {
   const errors = [];
   for (const url of OVERPASS_URLS) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        body: new URLSearchParams({ data: query(bounds) }),
+        body: new URLSearchParams({ data: overpassQuery }),
         headers: { "user-agent": "ev-maps importer (https://ev.chealt.com)" },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
@@ -111,6 +114,8 @@ const fetchElements = async (bounds) => {
   }
   throw new Error(`Overpass failed: ${errors.join("; ")}`);
 };
+
+const fetchElements = (bounds) => fetchOverpass(query(bounds));
 
 const hasLocation = (charger) => Number.isFinite(charger.lat) && Number.isFinite(charger.lng);
 
@@ -139,4 +144,4 @@ const runStep = async (env, job) => {
   return { done: true };
 };
 
-export { listJobs, runStep, SOURCE };
+export { fetchOverpass, listJobs, runStep, SOURCE };

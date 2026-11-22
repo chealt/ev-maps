@@ -481,13 +481,15 @@ class GoogleMapElement extends HTMLElement {
       this.filtersChanged();
       return;
     }
-    const favoritesFilter = event.target.closest(".favorites-filter");
-    if (favoritesFilter?.getAttribute("aria-disabled") === "true") {
+    const signedInFilter = event.target.closest(".favorites-filter, .nearby-filter");
+    if (signedInFilter?.getAttribute("aria-disabled") === "true") {
       this.filterPanel.close();
       requestSignIn();
       return;
     }
-    const button = event.target.closest(".power-filter, .connector-filter, .favorites-filter");
+    const button = event.target.closest(
+      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
+    );
     if (!button) {
       return;
     }
@@ -512,7 +514,7 @@ class GoogleMapElement extends HTMLElement {
 
   clearFilters() {
     for (const button of this.querySelectorAll(
-      ".power-filter, .connector-filter, .favorites-filter"
+      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-pressed", "false");
     }
@@ -582,6 +584,7 @@ class GoogleMapElement extends HTMLElement {
       connectorTypes: this.activeConnectorGroups(),
       excludedOperators: [...this.excludedOperators].sort(),
       onlyFavorites: this.favoritesFilterPressed(),
+      nearby: this.pressedAmenities(),
       updatedAt: this.filtersUpdatedAt ?? 0,
     };
   }
@@ -594,7 +597,8 @@ class GoogleMapElement extends HTMLElement {
       this.activePowerRanges().length +
       this.activeConnectorGroups().length +
       (this.excludedOperators.size > 0 ? 1 : 0) +
-      (this.onlyFavorites() ? 1 : 0);
+      (this.onlyFavorites() ? 1 : 0) +
+      this.activeAmenities().length;
     const active = count > 0;
     customElements
       .whenDefined("ev-filter-button")
@@ -627,8 +631,12 @@ class GoogleMapElement extends HTMLElement {
     connectorTypes = [],
     excludedOperators = [],
     onlyFavorites = false,
+    nearby = [],
     updatedAt = 0,
   }) {
+    for (const button of this.querySelectorAll(".nearby-filter")) {
+      button.setAttribute("aria-pressed", String(nearby.includes(button.dataset.amenity)));
+    }
     this.querySelector(".favorites-filter")?.setAttribute("aria-pressed", String(onlyFavorites));
     this.excludedOperators = new Set(excludedOperators);
     this.showOperatorChoices();
@@ -790,12 +798,14 @@ class GoogleMapElement extends HTMLElement {
     const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
     this.listOperators(chargers);
     const onlyFavorites = this.onlyFavorites();
+    const amenities = this.activeAmenities();
     const matching = chargers.filter(
       (charger) =>
         matchesPower(charger, ranges) &&
         matchesConnectors(charger, types) &&
         !this.excludedOperators.has(operatorOf(charger)) &&
-        (!onlyFavorites || isFavorite(charger.id))
+        (!onlyFavorites || isFavorite(charger.id)) &&
+        amenities.every((amenity) => charger.amenities?.includes(amenity))
     );
 
     this.clusterIndex = new Supercluster({
@@ -987,13 +997,28 @@ class GoogleMapElement extends HTMLElement {
     return isSignedIn() && this.favoritesFilterPressed();
   }
 
-  // Signed out, the heart and "Only favorites" look disabled, say to sign
-  // in, and open the sign-in options.
+  pressedAmenities() {
+    return [...this.querySelectorAll('.nearby-filter[aria-pressed="true"]')].map(
+      (button) => button.dataset.amenity
+    );
+  }
+
+  // The kinds of places a charger must have next to it; only signed in.
+  activeAmenities() {
+    return isSignedIn() ? this.pressedAmenities() : [];
+  }
+
+  // Signed out, the heart, "Only favorites" and the nearby places look
+  // disabled, say to sign in, and open the sign-in options.
   showFavoritesSignedIn(signedIn) {
-    for (const button of this.querySelectorAll(".favorite-button, .favorites-filter")) {
+    for (const button of this.querySelectorAll(
+      ".favorite-button, .favorites-filter, .nearby-filter"
+    )) {
       button.setAttribute("aria-disabled", String(!signedIn));
     }
-    for (const hint of this.querySelectorAll("#favorite-sign-in-hint, #favorites-filter-hint")) {
+    for (const hint of this.querySelectorAll(
+      "#favorite-sign-in-hint, #favorites-filter-hint, #nearby-filter-hint"
+    )) {
       hint.hidden = signedIn;
     }
     this.showFavoriteState();
@@ -1243,8 +1268,18 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".address .text").textContent = charger.address;
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     this.fillList(panel.querySelector(".details"), formatDetails(charger));
-    // A charger merged from several sources credits each of them.
-    const sources = charger.sources ?? [charger.source];
+    const nearby = charger.amenities ?? [];
+    this.fillList(
+      panel.querySelector(".nearby-places"),
+      nearby.map((amenity) => valueLabel("amenities", amenity))
+    );
+    panel.querySelector(".nearby").hidden = nearby.length === 0;
+    // A charger merged from several sources credits each of them, and
+    // OpenStreetMap for the places next to it.
+    const sources = [
+      ...(charger.sources ?? [charger.source]),
+      ...(nearby.length ? ["osm-places"] : []),
+    ];
     for (const attribution of panel.querySelectorAll(".attribution")) {
       attribution.hidden = !sources.includes(attribution.dataset.source);
     }

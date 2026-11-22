@@ -58,6 +58,9 @@ const mergeGroup = ([best, ...others]) => {
     records.find((record) => record.connectors.length);
   merged.connectors = withConnectors?.connectors ?? [];
   merged.maxPowerKw = records.map((record) => record.maxPowerKw).find(hasValue) ?? null;
+  // Places next to any of the records are next to the charger.
+  const amenities = [...new Set(records.flatMap((record) => record.amenities ?? []))];
+  merged.amenities = amenities.length ? amenities : undefined;
   merged.sources = records.map(({ source }) => source);
   // Every record's ID, e.g. to ask for the live statuses of each.
   merged.ids = records.map(({ id }) => id);

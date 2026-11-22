@@ -31,6 +31,9 @@ const pl = {
       link: "IRVE, transport.data.gouv.fr",
       after: ", Licence Ouverte",
     },
+    openStreetMapPlacesCredit: {
+      before: "Miejsca w pobliżu ©",
+    },
     openStreetMapCredit: {
       before: "Dane o stacjach ©",
       link: "współtwórcy OpenStreetMap",
@@ -72,6 +75,9 @@ const pl = {
     nearestToMapCenter: "Najpierw najbliższe środka mapy",
     onlyFavorites: "Tylko ulubione",
     signInForFavorites: "Zaloguj się, aby zapisywać ulubione stacje.",
+    nearby: "W pobliżu",
+    signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
+    nearbyFilterHint: "Do 150 m, według OpenStreetMap.",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -177,6 +183,12 @@ const pl = {
       "private-notice": "Prywatny, wymagane wcześniejsze zgłoszenie",
       private: "Prywatny",
       permit: "Wymagane zezwolenie",
+    },
+    amenities: {
+      coffee: "Kawiarnia",
+      toilets: "Toalety",
+      restaurant: "Restauracja",
+      playground: "Plac zabaw",
     },
     status: {
       operational: "Działa",

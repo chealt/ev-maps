@@ -16,6 +16,8 @@ Find electric vehicle charging stations on a map.
   device
 - Favorites: signed in, save chargers with the heart, list them nearest to
   the map's center first from the account menu, or show only them on the map
+- Signed in, find chargers with a café, toilets, a restaurant or a playground
+  within 150 m (from OpenStreetMap), on the map or along a route
 - Locate me, and the map remembers where you were last time
 - Plan a route between two places and see the chargers along it, with the
   same power filters

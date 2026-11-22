@@ -2,6 +2,7 @@
 // due jobs (never imported, or last finished over a week ago) until its time
 // budget is spent; a job's cursor lets the next run continue a big country.
 
+import * as amenities from "./amenities.js";
 import * as eipa from "./eipa.js";
 import * as irve from "./irve.js";
 import * as openChargeMap from "./open-charge-map.js";
@@ -12,6 +13,7 @@ const SOURCES = {
   [irve.SOURCE]: irve,
   [openChargeMap.SOURCE]: openChargeMap,
   [openStreetMap.SOURCE]: openStreetMap,
+  [amenities.SOURCE]: amenities,
 };
 const REFRESH_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 // Scheduled runs may use up to 15 minutes; leave room to finish a step.
