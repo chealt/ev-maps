@@ -38,6 +38,9 @@ const en = {
       link: "IRVE, transport.data.gouv.fr",
       after: ", Licence Ouverte",
     },
+    openStreetMapPlacesCredit: {
+      before: "Nearby places ©",
+    },
     openStreetMapCredit: {
       before: "Charging data ©",
       link: "OpenStreetMap contributors",
@@ -79,6 +82,9 @@ const en = {
     nearestToMapCenter: "Nearest to the map's center first",
     onlyFavorites: "Only favorites",
     signInForFavorites: "Sign in to save chargers as favorites.",
+    nearby: "Nearby",
+    signInForNearby: "Sign in to find chargers with places next to them.",
+    nearbyFilterHint: "Within 150 m, from OpenStreetMap.",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",
@@ -168,6 +174,12 @@ const en = {
       "private-notice": "Private, notice required",
       private: "Private",
       permit: "Permit required",
+    },
+    amenities: {
+      coffee: "Café",
+      toilets: "Toilets",
+      restaurant: "Restaurant",
+      playground: "Playground",
     },
     status: {
       operational: "Operational",

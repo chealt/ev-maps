@@ -173,6 +173,15 @@ ev-maps/
   answered at once, then sent to the Worker (right away, on Background Sync,
   and before the list is read); the list comes from the network, or from
   IndexedDB offline, with the unsent changes on top. Signing out clears both.
+- **Places next to chargers**: the import's `amenities` jobs
+  (`packages/worker/src/import/amenities.js`) ask OpenStreetMap's Overpass API,
+  per 1°×1° cell with chargers, for cafés, toilets, restaurants (and fast
+  food) and playgrounds (centers only), and store a bit per kind within 150 m
+  in each charger's `amenities` column (`src/amenities.js`). The cells are
+  listed at most daily, as that reads every charger, and refreshed weekly like
+  the chargers. Tiles carry them as `amenities: ["coffee", ...]`; the details
+  list them with OpenStreetMap's credit, and signed in, the Filters dialog's
+  "Nearby" shows only chargers with every chosen kind (saved with the filters).
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

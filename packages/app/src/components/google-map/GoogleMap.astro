@@ -2,6 +2,11 @@
 import Button from "../button/Button.astro";
 import {
   Activity,
+  Baby,
+  Coffee,
+  Toilet,
+  Utensils,
+  MapPinned,
   FilterX,
   Heart,
   Info,
@@ -57,7 +62,15 @@ const {
   chargerBounds,
 } = Astro.props;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, values } = translations(Astro.currentLocale ?? "en");
+
+// Kinds of places next to chargers (packages/worker/src/amenities.js).
+const amenities = [
+  { id: "coffee", icon: Coffee },
+  { id: "toilets", icon: Toilet },
+  { id: "restaurant", icon: Utensils },
+  { id: "playground", icon: Baby },
+];
 
 // Connector types users choose between, and the connector IDs each covers
 // (packages/worker/src/charger-values.js).
@@ -163,6 +176,31 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <p class="hint" id="favorites-filter-hint">
             {page.signInForFavorites}
           </p>
+        </div>
+        <div class="group" role="group" aria-labelledby="nearby-filter-title">
+          <h3 class="subtitle" id="nearby-filter-title">
+            {page.nearby}
+          </h3>
+          <div class="options">
+            {amenities.map(({ id, icon }) => (
+              <Button
+                variant="secondary"
+                size="large"
+                class="nearby-filter"
+                aria-pressed="false"
+                aria-disabled="true"
+                aria-describedby="nearby-filter-hint"
+                data-amenity={id}
+              >
+                <Icon icon={icon} size="sm" />
+                {values.amenities[id]}
+              </Button>
+            ))}
+          </div>
+          <p class="hint" id="nearby-filter-hint">
+            {page.signInForNearby}
+          </p>
+          <p class="hint">{page.nearbyFilterHint}</p>
         </div>
         <div class="group" role="group" aria-labelledby="connector-filter-title">
           <h3 class="subtitle" id="connector-filter-title">
@@ -339,6 +377,13 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </h3>
         <ul class="details"></ul>
       </section>
+      <section class="section nearby" hidden>
+        <h3 class="title">
+          <Icon icon={MapPinned} size="sm" />
+          {page.nearby}
+        </h3>
+        <ul class="nearby-places"></ul>
+      </section>
       <p class="attribution" data-source="ocm" hidden>
         {page.openChargeMapCredit.before}{" "}
         <a href="https://openchargemap.org" target="_blank" rel="noopener">
@@ -366,6 +411,13 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       </p>
       <p class="attribution" data-source="osm" hidden>
         {page.openStreetMapCredit.before}{" "}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
+          {page.openStreetMapCredit.link}
+        </a>
+        {page.openStreetMapCredit.after}
+      </p>
+      <p class="attribution" data-source="osm-places" hidden>
+        {page.openStreetMapPlacesCredit.before}{" "}
         <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
           {page.openStreetMapCredit.link}
         </a>

@@ -282,7 +282,8 @@ ev-google-map {
     color: var(--color-text-muted);
   }
 
-  .favorites-filter[aria-disabled="true"] {
+  .favorites-filter[aria-disabled="true"],
+  .nearby-filter[aria-disabled="true"] {
     opacity: var(--opacity-disabled);
     cursor: not-allowed;
   }

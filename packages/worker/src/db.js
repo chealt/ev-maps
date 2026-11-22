@@ -3,6 +3,7 @@
 // { source, sourceId, country, name, lat, lng, address, operator, usageType,
 //   usageCost, status, numberOfPoints, maxPowerKw, connectors, license }
 
+import { amenityIds } from "./amenities.js";
 import { accessId, connectorType, isFreeCost, statusId } from "./charger-values.js";
 
 // D1 runs a batch in one round trip; keep batches modest.
@@ -98,6 +99,8 @@ const toClientCharger = (row) => {
       ...connector,
       type: connectorType(connector.type),
     })),
+    // Kinds of places next to it (src/amenities.js), e.g. ["coffee"].
+    amenities: row.amenities ? amenityIds(row.amenities) : undefined,
   };
 };
 
