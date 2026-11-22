@@ -38,6 +38,7 @@ test("counts page views and what's used, and sends them together", async ({ page
   expect(batches[0]).toEqual({
     events: {
       page_view: { "hu:home": 1 },
+      page_path: { "/hu/": 1 },
       charger_opened: { ocm: 1 },
       filter_used: { connector: 1, power: 1 },
     },
@@ -49,12 +50,13 @@ test("counts page views and what's used, and sends them together", async ({ page
   expect(batches).toHaveLength(1);
 });
 
-test("counts the kind of page, but not the admin area", async ({ page }) => {
+test("counts the kind of page and the page, but not the admin area", async ({ page }) => {
   const batches = await fakeUsageApi(page);
   await page.goto("/en/privacy/");
   await leavePage(page);
   await expect.poll(() => batches.length).toBe(1);
   expect(batches[0].events.page_view).toEqual({ "en:legal": 1 });
+  expect(batches[0].events.page_path).toEqual({ "/en/privacy/": 1 });
 
   await page.route("**/api/admin/me", (route) => route.fulfill({ status: 403, json: {} }));
   await page.goto("/en/admin/");

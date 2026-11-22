@@ -19,6 +19,7 @@ describe("pageCounts", () => {
       pageCounts({
         events: {
           page_view: { "en:home": 2, "hu:country": 1, "xx:home": 1, "en:admin": 1 },
+          page_path: { "/hu/hu/": 1, "/en/privacy/": 1, "/en/admin/": 1, "/x": 1 },
           locate_me: { "": 3 },
           filter_used: { "connector-type": 500 },
           evil_event: { "": 1 },
@@ -28,6 +29,8 @@ describe("pageCounts", () => {
     ).toEqual([
       { event: "page_view", dimension: "en:home", count: 2 },
       { event: "page_view", dimension: "hu:country", count: 1 },
+      { event: "page_path", dimension: "/hu/hu/", count: 1 },
+      { event: "page_path", dimension: "/en/privacy/", count: 1 },
       { event: "locate_me", dimension: "", count: 3 },
       { event: "filter_used", dimension: "connector-type", count: 50 },
       { event: "charger_opened", dimension: "irve", count: 1 },

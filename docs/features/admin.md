@@ -11,7 +11,9 @@ otherwise). The account menu links admins to `/{lang}/admin/`.
 
 The overview, `/{lang}/admin/`, starts with a dashboard: bar charts of the
 errors, page views and sign-ins per day for the last 30 days, each with its
-total and a link to the page with more (errors, usage). One request,
+total and a link to the page with more (errors, usage), and the 10 most
+visited pages of those days (the `page_path` counts), each with a bar as long
+as its share of the first. One request,
 `GET /api/admin/dashboard` (`packages/worker/src/admin-dashboard.js`), counts
 them from the admin database. Below it, the sections are listed.
 
