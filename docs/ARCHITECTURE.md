@@ -58,8 +58,8 @@ ev-maps/
 │   │   ├── data/chargers/             # Exported chargers per country (git-ignored)
 │   │   └── tests/                     # Playwright tests
 │   │       └── fixtures/              # Fakes for the external APIs
-│   ├── e2e/                          # @ev-maps/e2e: Playwright's test with
-│   │   └── src/                      # axe and web-vitals checks, no app in it
+│   ├── e2e/                           # @ev-maps/e2e: Playwright's test with
+│   │   └── src/                       # axe and web-vitals checks, no app in it
 │   ├── worker/                        # The Cloudflare Worker
 │   │   ├── wrangler.toml              # Worker config; serves app/dist/client
 │   │   ├── migrations/                # D1 database migrations
