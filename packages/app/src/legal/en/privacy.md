@@ -1,6 +1,6 @@
 ---
 title: Privacy policy
-updated: 2026-11-21
+updated: 2026-11-22
 ---
 
 EV Maps (ev.chealt.com, "we") is a map of electric vehicle charging stations.
@@ -43,6 +43,12 @@ email address, profile picture and account identifier from that provider. We
 store them in our database with your sign-in sessions, including each session's
 IP address and browser. A session cookie keeps you signed in.
 
+When you sign in with your email address, we store the address and send you a
+sign-in link through our email provider; opening the link confirms the address
+and creates your account the first time. If you add a passkey, we store its
+public key, identifier and type (never your fingerprint, face or screen lock,
+which stay on your device).
+
 ## Why we process it
 
 Under the EU General Data Protection Regulation (GDPR):
@@ -71,6 +77,7 @@ chose. We use no advertising or analytics cookies.
   Policy](https://policies.google.com/privacy).
 - **GitHub, Microsoft and Apple** process your data when you sign in with them,
   under their own privacy policies.
+- **Resend, Inc.** sends the sign-in emails, on our behalf.
 
 Some of these companies are in the United States. Transfers rely on the EU–U.S.
 Data Privacy Framework or the European Commission's standard contractual

@@ -1,6 +1,6 @@
 ---
 title: Adatvédelmi tájékoztató
-updated: 2026-11-21
+updated: 2026-11-22
 ---
 
 Az EV Maps (ev.chealt.com, „mi”) elektromosautó-töltőállomások térképe. Ez a
@@ -46,6 +46,13 @@ fiókazonosítódat. Ezeket az adatbázisunkban tároljuk a bejelentkezési
 munkameneteiddel együtt, beleértve az egyes munkamenetek IP-címét és
 böngészőjét. Egy munkamenet-süti tart bejelentkezve.
 
+Ha az e-mail-címeddel jelentkezel be, a címet tároljuk, és az
+e-mail-szolgáltatónk útján bejelentkezési linket küldünk rá; a link megnyitása
+igazolja a címet, és első alkalommal létrehozza a fiókodat. Ha jelkulcsot adsz
+hozzá, annak nyilvános kulcsát, azonosítóját és típusát tároljuk (az
+ujjlenyomatodat, arcodat vagy képernyőzáradat soha, azok az eszközödön
+maradnak).
+
 ## Milyen célból
 
 Az általános adatvédelmi rendelet (GDPR) alapján:
@@ -75,6 +82,7 @@ sütit a választott nyelvhez. Nem használunk hirdetési vagy elemzési sütike
   irányelvei](https://policies.google.com/privacy) szerint.
 - **A GitHub, a Microsoft és az Apple** a saját adatvédelmi szabályzatuk szerint
   kezelik az adataidat, ha velük jelentkezel be.
+- **A Resend, Inc.** a nevünkben küldi a bejelentkezési e-maileket.
 
 E cégek egy része az Egyesült Államokban működik. Az adattovábbítás az EU–USA
 adatvédelmi keretrendszeren (Data Privacy Framework) vagy az Európai Bizottság

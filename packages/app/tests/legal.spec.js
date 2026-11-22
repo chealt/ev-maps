@@ -5,7 +5,7 @@ import { fakeGoogleMaps } from "./fixtures/google.js";
 
 test("has a privacy policy and terms of use in every language", async ({ page }) => {
   for (const { path, heading, updated } of [
-    { path: "/en/privacy/", heading: "Privacy policy", updated: "Last updated: November 21, 2026" },
+    { path: "/en/privacy/", heading: "Privacy policy", updated: "Last updated: November 22, 2026" },
     { path: "/en/terms/", heading: "Terms of use", updated: "Last updated: November 21, 2026" },
     { path: "/pl/privacy/", heading: "Polityka prywatności", updated: /^Ostatnia aktualizacja:/ },
     { path: "/pl/terms/", heading: "Regulamin", updated: /^Ostatnia aktualizacja:/ },

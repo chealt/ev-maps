@@ -25,6 +25,9 @@ preview_urls = true
 # .dev.vars.
 [vars]
 GOOGLE_CLIENT_ID = "605162380909-92ejnikf2hpgjd6hk6t17rgp1hjtauua.apps.googleusercontent.com"
+# Sign-in links are sent from this address with Resend (RESEND_API_KEY secret,
+# see docs/DEPLOYMENT.md).
+EMAIL_FROM = "EV Maps <sign-in@chealt.com>"
 
 [assets]
 directory = "../app/dist"
@@ -59,6 +62,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "EMAIL_LIMITER"
+namespace_id = "4407"
+simple = { limit = 5, period = 60 }
 
 [[ratelimits]]
 name = "SETTINGS_LIMITER"
@@ -117,6 +125,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "EMAIL_LIMITER"
+namespace_id = "4407"
+simple = { limit = 5, period = 60 }
 
 [[env.local.ratelimits]]
 name = "SETTINGS_LIMITER"

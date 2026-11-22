@@ -83,6 +83,14 @@ const hu = {
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
     nearbyFilterHint: "150 méteren belül, az OpenStreetMap alapján.",
+    signInWithPasskey: "Bejelentkezés jelkulccsal",
+    orWithEmail: "vagy az e-mail-címeddel",
+    emailAddress: "E-mail-cím",
+    emailMeALink: "Küldj bejelentkezési linket",
+    emailLinkHint: "Új vagy itt? A link megnyitásakor létrejön a fiókod.",
+    addPasskey: "Jelkulcs hozzáadása",
+    addPasskeyHint:
+      "Legközelebb az ujjlenyomatoddal, arcoddal vagy képernyőzárral jelentkezhetsz be.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -162,6 +170,12 @@ const hu = {
     unknownOperator: "Ismeretlen üzemeltető",
     filtersNotSaved:
       "Nem sikerült a fiókodba menteni a szűrőket. Ezen az eszközön továbbra is megvannak.",
+    signInLinkSent: "Bejelentkezési linket küldtünk a(z) {email} címre. 15 percen belül nyisd meg.",
+    tooManySignInEmails: "Túl sok bejelentkezési e-mail. Próbáld újra egy perc múlva.",
+    passkeySignInFailed:
+      "A jelkulcsos bejelentkezés nem sikerült. Próbáld újra, vagy használd az e-mail-címedet.",
+    passkeyAdded: "Jelkulcs hozzáadva. Legközelebb jelentkezz be vele.",
+    passkeyNotAdded: "Nem sikerült hozzáadni a jelkulcsot. Próbáld újra.",
     accountOf: "Fiók: {name}",
   },
   values: {
