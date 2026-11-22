@@ -305,11 +305,15 @@
       }
     }
 
-    .sign-out,
     .favorites-button {
       justify-content: flex-start;
       width: 100%;
       border-radius: var(--border-radius-sm);
+    }
+
+    /* A danger button (Button.astro): it ends the session. */
+    .sign-out {
+      width: 100%;
     }
 
     /* Signed out: shown, but needs signing in (the options are above). */

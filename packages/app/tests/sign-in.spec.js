@@ -197,3 +197,15 @@ test("stays signed out when the session can't be loaded", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });
+
+test("shows Sign out as a danger button", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+
+  const signOut = page.getByRole("button", { name: "Sign out" });
+  await expect(signOut).toHaveClass(/\bdanger\b/);
+  // The darker danger red (#dc2626), so its white text is readable.
+  await expect(signOut).toHaveCSS("background-color", "rgb(220, 38, 38)");
+  await expect(signOut).toHaveCSS("color", "rgb(255, 255, 255)");
+});
