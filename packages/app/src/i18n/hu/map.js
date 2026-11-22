@@ -121,6 +121,10 @@ const map = {
     cost: "Díj: {value}",
     status: "Állapot: {value}",
     chargingPoints: "Töltőpontok: {count}",
+    priciness: "Árszint: {scale} ({comparison})",
+    pricierThan: "drágább, mint az itt lévő töltők {percent}%-a",
+    cheaperThan: "olcsóbb, mint az itt lévő töltők {percent}%-a",
+    cheapestHere: "a legolcsóbb az itt lévő töltők közül",
     myLocation: "Saját helyzetem",
     routeChargersFound: {
       one: "{count} töltőállomás az útvonal mentén",
