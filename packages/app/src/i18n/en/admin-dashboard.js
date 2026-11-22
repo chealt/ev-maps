@@ -3,6 +3,8 @@
 
 const adminDashboard = {
   page: {
+    adminTopPages: "Most visited pages, the last 30 days",
+    adminTopPagesNone: "No page views yet.",
     adminDashboard: "Last 30 days",
     adminErrorsPerDay: "Errors per day",
     adminPageViewsChart: "Page views per day",

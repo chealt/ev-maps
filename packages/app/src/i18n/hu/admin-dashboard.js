@@ -3,6 +3,8 @@
 
 const adminDashboard = {
   page: {
+    adminTopPages: "Legtöbbet látogatott oldalak, az elmúlt 30 nap",
+    adminTopPagesNone: "Még nincs oldalmegtekintés.",
     adminDashboard: "Az elmúlt 30 nap",
     adminErrorsPerDay: "Hibák naponta",
     adminPageViewsChart: "Oldalmegtekintések naponta",

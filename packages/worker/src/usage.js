@@ -14,6 +14,8 @@ const MAX_DIMENSION_LENGTH = 40;
 // The events pages may send, and how their dimension looks.
 const PAGE_EVENTS = {
   page_view: /^(en|pl|hu):(home|country|legal)$/,
+  // Which page: the site's own (not the admin area), e.g. /hu/hu/.
+  page_path: /^\/(en|pl|hu)\/([a-z]{2}\/|privacy\/|terms\/)?$/,
   charger_opened: /^[a-z]{2,10}$/,
   filter_used: /^[a-z-]{2,20}$/,
   locate_me: /^$/,

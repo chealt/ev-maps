@@ -22,6 +22,11 @@ const seeded = () => {
   usage.run("2026-11-24", "page_view", "hu:country", 2);
   usage.run("2026-11-23", "sign_in", "", 1);
   usage.run("2026-11-24", "list_opened", "", 9);
+  usage.run("2026-11-24", "page_path", "/en/", 5);
+  usage.run("2026-11-23", "page_path", "/hu/hu/", 4);
+  usage.run("2026-11-24", "page_path", "/hu/hu/", 3);
+  // Older than 30 days: not counted.
+  usage.run("2026-09-01", "page_path", "/en/privacy/", 99);
   return db;
 };
 
@@ -34,6 +39,10 @@ describe("dashboard", () => {
     expect(stats.errors).toEqual({ "2026-11-23": 1, "2026-11-24": 2 });
     expect(stats.pageViews).toEqual({ "2026-11-24": 7 });
     expect(stats.signIns).toEqual({ "2026-11-23": 1 });
+    expect(stats.topPages).toEqual([
+      { path: "/hu/hu/", count: 7 },
+      { path: "/en/", count: 5 },
+    ]);
   });
 
   test("is an admin route on its own path", () => {

@@ -34,6 +34,7 @@ const send = () => {
 const kind = pageKind(window.location.pathname);
 if (kind) {
   track("page_view", `${document.documentElement.lang}:${kind}`);
+  track("page_path", window.location.pathname);
 }
 setInterval(send, SEND_EVERY_MS);
 window.addEventListener("pagehide", send);

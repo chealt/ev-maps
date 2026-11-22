@@ -31,6 +31,60 @@ ev-admin-dashboard {
     --bar-color: var(--color-danger);
   }
 
+  .top-pages {
+    margin-top: var(--spacing-lg);
+
+    .chart-title {
+      margin-bottom: var(--spacing-sm);
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .pages {
+      list-style: none;
+      display: grid;
+      gap: var(--spacing-sm);
+    }
+
+    /* The path and its count above a bar as long as its share of the top. */
+    .page {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--spacing-2xs) var(--spacing-sm);
+      font-size: var(--font-size-sm);
+    }
+
+    .path {
+      color: var(--color-primary-light-text);
+      overflow-wrap: anywhere;
+    }
+
+    .count {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .track {
+      grid-column: 1 / -1;
+      height: var(--spacing-sm);
+      border-radius: var(--border-radius-sm);
+      background: var(--color-border);
+    }
+
+    .fill {
+      display: block;
+      width: calc(var(--share, 0) * 100%);
+      min-width: var(--border-width);
+      height: 100%;
+      border-radius: var(--border-radius-sm);
+      background: var(--color-primary);
+    }
+
+    .empty {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
+  }
+
   .footer {
     display: flex;
     flex-wrap: wrap;

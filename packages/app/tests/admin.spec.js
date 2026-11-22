@@ -86,6 +86,10 @@ test("shows admins errors, page views and sign-ins per day on the overview", asy
         errors: { "2026-11-23": 1, "2026-11-24": 2 },
         pageViews: { "2026-11-24": 1234 },
         signIns: {},
+        topPages: [
+          { path: "/hu/hu/", count: 40 },
+          { path: "/en/", count: 10 },
+        ],
       },
     })
   );
@@ -109,6 +113,18 @@ test("shows admins errors, page views and sign-ins per day on the overview", asy
     "href",
     "/en/admin/usage/"
   );
+
+  const topPages = dashboard.getByRole("article", { name: "Most visited pages, the last 30 days" });
+  const pages = topPages.getByRole("listitem");
+  await expect(pages).toHaveCount(2);
+  await expect(pages.first()).toContainText("/hu/hu/");
+  await expect(pages.first()).toContainText("40");
+  await expect(pages.first().getByRole("link", { name: "/hu/hu/" })).toHaveAttribute(
+    "href",
+    "/hu/hu/"
+  );
+  // Each bar is as long as its share of the most visited page's.
+  await expect(pages.nth(1)).toHaveAttribute("style", "--share: 0.25;");
 });
 
 test("says when the dashboard couldn't be loaded", async ({ page }) => {
