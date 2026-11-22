@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { adminApiResponse, adminPageResponse, isAdmin, isAdminPage } from "./admin.js";
+import { adminApiResponse, adminPageResponse, isAdmin, isAdminPage, usageStats } from "./admin.js";
 import { testD1 } from "./test-d1.js";
 
 const env = {
@@ -172,5 +172,64 @@ describe("adminApiResponse for errors", () => {
       admin
     );
     expect(post.status).toBe(405);
+  });
+});
+
+describe("usageStats", () => {
+  const db = () => {
+    const testDb = testD1(
+      "../admin-migrations/0001_errors.sql",
+      "../admin-migrations/0002_usage.sql"
+    );
+    const insert = testDb.sqlite.prepare(
+      "INSERT INTO usage_daily (day, event, dimension, count) VALUES (?, ?, ?, ?)"
+    );
+    insert.run("2026-11-21", "page_view", "en:home", 5);
+    insert.run("2026-11-23", "page_view", "en:home", 2);
+    insert.run("2026-11-23", "page_view", "hu:country", 7);
+    insert.run("2026-11-23", "sign_in", "", 3);
+    // Before the period.
+    insert.run("2026-11-10", "page_view", "en:home", 100);
+    return testDb;
+  };
+
+  test("sums each event per day and per dimension, over the period", async () => {
+    const { days, events } = await usageStats(db(), 7, Date.UTC(2026, 10, 23, 15));
+    expect(days).toEqual([
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22",
+      "2026-11-23",
+    ]);
+    expect(events.page_view.total).toBe(14);
+    expect(Object.values(events.page_view.byDay)).toEqual([0, 0, 0, 0, 5, 0, 9]);
+    // Largest first, then by name.
+    expect(Object.entries(events.page_view.byDimension)).toEqual([
+      ["en:home", 7],
+      ["hu:country", 7],
+    ]);
+    expect(events.sign_in).toMatchObject({ total: 3, byDimension: {} });
+  });
+
+  test("answers admins for 7, 30 or 90 days, else 30", async () => {
+    const testEnv = { ...env, ADMIN_DB: db() };
+    const admin = { id: "1", email: "grace@chealt.com" };
+    const daysFor = async (query) =>
+      (
+        await (
+          await adminApiResponse(
+            new Request(`https://ev.chealt.com/api/admin/usage${query}`),
+            testEnv,
+            admin
+          )
+        ).json()
+      ).days.length;
+    expect(await daysFor("?days=7")).toBe(7);
+    expect(await daysFor("?days=90")).toBe(90);
+    expect(await daysFor("?days=1000")).toBe(30);
+    expect(await daysFor("")).toBe(30);
   });
 });

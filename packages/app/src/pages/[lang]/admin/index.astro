@@ -23,6 +23,13 @@ const { page } = translations(Astro.currentLocale ?? "en");
           {" – "}
           {page.adminErrorsDescription}
         </li>
+        <li>
+          <a class="section-link" href={`/${lang}/admin/usage/`}>
+            {page.adminUsage}
+          </a>
+          {" – "}
+          {page.adminUsageDescription}
+        </li>
       </ul>
     </section>
   </AdminPage>

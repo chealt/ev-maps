@@ -36,6 +36,45 @@ const adminPageResponse = async (request, env, user) => {
 };
 
 const ERRORS_PAGE_SIZE = 25;
+const USAGE_PERIODS = [7, 30, 90];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const isoDay = (time) => new Date(time).toISOString().slice(0, 10);
+
+// Usage over the last `days` days (today included): per event, the total,
+// the count of each day (0 for days without any), and of each dimension,
+// largest first.
+const usageStats = async (db, days, now = Date.now()) => {
+  const dayList = Array.from({ length: days }, (_, index) =>
+    isoDay(now - (days - 1 - index) * DAY_MS)
+  );
+  const { results } = await db
+    .prepare("SELECT day, event, dimension, count FROM usage_daily WHERE day >= ? ORDER BY day")
+    .bind(dayList[0])
+    .all();
+  const events = {};
+  for (const { day, event, dimension, count } of results) {
+    events[event] ??= {
+      total: 0,
+      byDay: Object.fromEntries(dayList.map((listed) => [listed, 0])),
+      byDimension: {},
+    };
+    const stats = events[event];
+    stats.total += count;
+    stats.byDay[day] = (stats.byDay[day] ?? 0) + count;
+    if (dimension) {
+      stats.byDimension[dimension] = (stats.byDimension[dimension] ?? 0) + count;
+    }
+  }
+  for (const stats of Object.values(events)) {
+    stats.byDimension = Object.fromEntries(
+      Object.entries(stats.byDimension).sort(
+        ([nameA, a], [nameB, b]) => b - a || nameA.localeCompare(nameB)
+      )
+    );
+  }
+  return { days: dayList, events };
+};
 const OCCURRENCES_PAGE_SIZE = 20;
 const ERROR_GROUP_PATH = /^\/api\/admin\/errors\/([0-9a-f]{8})$/;
 
@@ -92,6 +131,7 @@ const errorOccurrences = async (db, fingerprint, page) => {
 // - GET /api/admin/me: who the admin is
 // - GET /api/admin/errors?page=: errors grouped, most recent first
 // - GET /api/admin/errors/{fingerprint}?page=: one error's occurrences
+// - GET /api/admin/usage?days=7|30|90: usage stats
 const adminApiResponse = async (request, env, user) => {
   const url = new URL(request.url);
   if (request.method !== "GET") {
@@ -103,6 +143,10 @@ const adminApiResponse = async (request, env, user) => {
   if (url.pathname === `${ADMIN_API_PREFIX}errors`) {
     return json(await errorGroups(env.ADMIN_DB, pageOf(url)));
   }
+  if (url.pathname === `${ADMIN_API_PREFIX}usage`) {
+    const days = Number(url.searchParams.get("days"));
+    return json(await usageStats(env.ADMIN_DB, USAGE_PERIODS.includes(days) ? days : 30));
+  }
   const fingerprint = url.pathname.match(ERROR_GROUP_PATH)?.[1];
   if (fingerprint) {
     return json(await errorOccurrences(env.ADMIN_DB, fingerprint, pageOf(url)));
@@ -110,4 +154,4 @@ const adminApiResponse = async (request, env, user) => {
   return json({ error: "Not found" }, 404);
 };
 
-export { ADMIN_API_PREFIX, adminApiResponse, adminPageResponse, isAdmin, isAdminPage };
+export { ADMIN_API_PREFIX, adminApiResponse, adminPageResponse, isAdmin, isAdminPage, usageStats };

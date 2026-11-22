@@ -212,7 +212,10 @@ ev-maps/
   filters used, Locate me, the list and sign-in attempts
   (`src/lib/usage.js`) and send them batched to `POST /api/usage` (known
   events only, capped counts, 60 per IP address per minute), which adds the
-  visitors' country. Kept about 13 months.
+  visitors' country. Kept about 13 months. Admins see them at `/{lang}/admin/usage/`
+  (`<ev-admin-usage>`, `GET /api/admin/usage?days=7|30|90`): totals, page
+  views per day, and each event by its dimension (pages, countries, sources,
+  filters, sign-in methods).
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated
