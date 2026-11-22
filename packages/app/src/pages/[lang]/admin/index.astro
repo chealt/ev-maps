@@ -11,7 +11,7 @@ const { lang } = Astro.params;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
-<Layout title={`EV Maps - ${page.admin}`} noindex>
+<Layout title={`EV Maps - ${page.admin}`} noindex kind="admin">
   <AdminPage current="overview">
     <section class="admin-section">
       <h2>{page.adminSections}</h2>

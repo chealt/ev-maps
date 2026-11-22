@@ -50,7 +50,7 @@ ev-maps/
 │   │   │   │   ├── theme-picker/      # <ev-theme-picker>
 │   │   │   │   └── user-menu/         # <ev-user-menu>: sign-in and account menu
 │   │   │   ├── config/app.config.js   # Map defaults and env-based settings
-│   │   │   ├── i18n/                  # Copy per language: en.js, pl.js, hu.js
+│   │   │   ├── i18n/                  # Copy: {language}/{section}.js
 │   │   │   ├── layouts/               # Layout.astro + global.css (design tokens)
 │   │   │   ├── legal/                 # Privacy policy and terms, per language
 │   │   │   ├── lib/                   # messages.js (runtime copy), pages.js
