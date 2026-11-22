@@ -139,7 +139,9 @@ ev-maps/
   cleared.
 - **Clustering**: `supercluster` groups nearby chargers; only the clusters and
   chargers in view are drawn as markers.
-- **Sign-in**: the button in the top-right corner opens the account menu, with
+- **Sign-in**: the box in the top-right corner shows the app's name (the
+  page's `<h1>`, visible for Google's OAuth verification) and the avatar;
+  clicking anywhere on it opens the account menu, with
   the sign-in options, the theme and the language (signed in: the profile and
   Sign out). Signing in goes through the Worker's
   [Better Auth](https://www.better-auth.com) (`/api/auth/*`): the provider's

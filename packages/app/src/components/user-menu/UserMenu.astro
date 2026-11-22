@@ -20,33 +20,50 @@ const providers = [
   { id: "apple", name: "Apple", logo: AppleLogo },
 ];
 
+interface Props {
+  // Said to screen readers below the app's name.
+  subtitle: string;
+}
+
+const { subtitle } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
 const { page } = translations(lang);
 ---
 
 <ev-user-menu class="user-menu">
-  <button
-    type="button"
-    class="menu-button"
-    popovertarget="account-menu"
-    aria-haspopup="dialog"
-    aria-expanded="false"
-    aria-busy="true"
-    aria-label={page.loadingAccount}
-  >
-    <span class="mark">
-      <Icon icon={Zap} filled />
-    </span>
-    <!-- Until the session is known: neither "Sign in" nor the avatar. -->
-    <span class="loading" aria-hidden="true"></span>
-    <span class="sign-in-label" hidden>
-      {page.signIn}
-    </span>
-    <span class="avatar" hidden>
-      <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
-      <span class="initials" aria-hidden="true"></span>
-    </span>
-  </button>
+  <!-- One box: the app's name (the page's heading) and the account button,
+       whose click area covers the whole box. The name is visible because
+       Google's OAuth verification checks that the home page shows the same
+       name as the consent screen. -->
+  <div class="bar">
+    <hgroup class="brand">
+      <span class="mark">
+        <Icon icon={Zap} filled />
+      </span>
+      <h1 class="app-name">EV Maps</h1>
+      <p class="visually-hidden">{subtitle}</p>
+    </hgroup>
+    <button
+      type="button"
+      class="menu-button"
+      popovertarget="account-menu"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-busy="true"
+      aria-label={page.loadingAccount}
+    >
+      <!-- Until the session is known: neither "Sign in" nor the avatar. -->
+      <span class="loading" aria-hidden="true"></span>
+      <!-- Signed out, the button is named Sign in; the box shows the app's name. -->
+      <span class="sign-in-label visually-hidden" hidden>
+        {page.signIn}
+      </span>
+      <span class="avatar" hidden>
+        <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
+        <span class="initials" aria-hidden="true"></span>
+      </span>
+    </button>
+  </div>
 
   <div class="account-menu" id="account-menu" popover role="dialog" aria-label={page.account}>
     <div class="profile" hidden>
