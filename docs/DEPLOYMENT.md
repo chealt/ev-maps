@@ -44,6 +44,19 @@ The admin area's data (errors, later usage stats) is in a second D1 database,
 created once with `bunx wrangler d1 create ev-maps-admin`; deploys apply its
 migrations too.
 
+CI's Playwright reports are in the R2 bucket `ev-maps-test-reports` (binding
+`REPORTS`; see [Test reports](features/test-reports.md)), created once with a
+rule deleting them after 30 days:
+
+```bash
+bunx wrangler r2 bucket create ev-maps-test-reports
+bunx wrangler r2 bucket lifecycle add ev-maps-test-reports \
+  delete-old-reports reports/ --expire-days 30
+```
+
+The `CLOUDFLARE_API_TOKEN` secret needs **Workers R2 Storage: Edit** and
+**D1: Edit** for the Test job to publish them.
+
 The Worker needs these secrets, set once in Cloudflare:
 
 ```bash

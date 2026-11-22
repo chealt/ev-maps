@@ -1,0 +1,112 @@
+ev-admin-reports {
+  display: block;
+
+  .section-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .summary {
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .reports {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+
+    th,
+    td {
+      padding: var(--spacing-sm);
+      border-bottom: var(--border-width) solid var(--color-border);
+      text-align: start;
+      vertical-align: top;
+    }
+
+    th {
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .number {
+      text-align: end;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .when,
+    .duration {
+      white-space: nowrap;
+    }
+
+    a {
+      color: var(--color-primary-light-text);
+    }
+  }
+
+  .status {
+    display: inline-block;
+    padding: 0 var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+
+    &[data-status="passed"] {
+      background: var(--color-primary-light);
+      color: var(--color-primary-light-text);
+    }
+
+    &[data-status="failed"] {
+      background: var(--color-danger-light);
+      color: var(--color-danger-light-text);
+    }
+  }
+
+  .counts,
+  .pull-request {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .commit {
+    font-family: monospace;
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    font-size: var(--font-size-sm);
+
+    &[hidden] {
+      display: none;
+    }
+
+    button {
+      padding: var(--spacing-xs) var(--spacing-md);
+      border: var(--border-width) solid var(--color-border-strong);
+      border-radius: var(--border-radius-full);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font: inherit;
+      cursor: pointer;
+
+      &:disabled {
+        opacity: var(--opacity-disabled);
+        cursor: not-allowed;
+      }
+    }
+  }
+}

@@ -17,6 +17,7 @@ import { routes as performance } from "./performance-stats.js";
 import { routes as routeChargers } from "./route-chargers.js";
 import { routes as settings } from "./settings.js";
 import { routes as telemetry } from "./telemetry.js";
+import { routes as testReports } from "./test-reports.js";
 import { routes as tiles } from "./tiles.js";
 import { routes as usage } from "./usage.js";
 
@@ -30,6 +31,7 @@ const API_ROUTES = [
   ...routeChargers,
   ...settings,
   ...telemetry,
+  ...testReports,
   ...usage,
   // Last: everything else under /api/chargers/.
   ...tiles,

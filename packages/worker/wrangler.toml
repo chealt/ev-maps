@@ -51,6 +51,11 @@ database_name = "ev-maps-admin"
 database_id = "3b2fee8f-80a5-451a-9a7e-2c4355852ac5"
 migrations_dir = "admin-migrations"
 
+# CI's Playwright reports (src/test-reports.js), for admins.
+[[r2_buckets]]
+binding = "REPORTS"
+bucket_name = "ev-maps-test-reports"
+
 # Rate limits for the API (src/guard.js), per IP address or signed-in user.
 # Namespace IDs are the account's, so they're unusual numbers.
 [[ratelimits]]
@@ -143,6 +148,11 @@ binding = "ADMIN_DB"
 database_name = "ev-maps-admin"
 database_id = "3b2fee8f-80a5-451a-9a7e-2c4355852ac5"
 migrations_dir = "admin-migrations"
+
+# CI's Playwright reports (src/test-reports.js), for admins.
+[[env.local.r2_buckets]]
+binding = "REPORTS"
+bucket_name = "ev-maps-test-reports"
 
 [[env.local.ratelimits]]
 name = "TILE_LIMITER"

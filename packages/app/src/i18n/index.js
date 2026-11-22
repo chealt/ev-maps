@@ -33,7 +33,7 @@ const SECTIONS = { en, hu, pl };
 const PAGE_SECTIONS = {
   map: ["common", "map", "account"],
   legal: ["common", "legal"],
-  admin: ["common", "admin", "admin-errors", "admin-performance", "admin-usage"],
+  admin: ["common", "admin", "admin-errors", "admin-performance", "admin-reports", "admin-usage"],
 };
 const PLURAL_CATEGORIES = new Set(["zero", "one", "two", "few", "many", "other"]);
 

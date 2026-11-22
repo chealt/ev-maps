@@ -8,6 +8,7 @@ import { jobs as errors } from "./errors.js";
 import { jobs as chargerImport } from "./import/index.js";
 import { jobs as liveStatus } from "./live-status.js";
 import { jobs as telemetry } from "./telemetry.js";
+import { jobs as testReports } from "./test-reports.js";
 import { jobs as usage } from "./usage.js";
 
 const JOBS = [
@@ -16,6 +17,7 @@ const JOBS = [
   ...errors,
   ...usage,
   ...telemetry,
+  ...testReports,
   ...chargerImport,
 ];
 

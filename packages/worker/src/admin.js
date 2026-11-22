@@ -168,12 +168,22 @@ const routes = [
   },
 ];
 
+const pageRoutes = [
+  {
+    name: "admin page",
+    matches: (request, url) => isAdminPage(url.pathname),
+    handle: async ({ request, env, signedInUser }) =>
+      adminPageResponse(request, env, await signedInUser()),
+  },
+];
+
 export {
   ADMIN_API_PREFIX,
   adminApiResponse,
   adminPageResponse,
   isAdmin,
   isAdminPage,
+  pageRoutes,
   routes,
   usageStats,
 };

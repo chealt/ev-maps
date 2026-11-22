@@ -104,6 +104,8 @@ changes to different features don't touch the same file:
   page
 - [Performance](features/performance.md): traces from the page through the
   Worker to D1, and Core Web Vitals
+- [Test reports](features/test-reports.md): CI's Playwright reports, published
+  to R2 and listed for admins
 - [The API: routes, access and rate limits](features/api.md): how the Worker
   routes API requests by domain, the guard, and rate limits
 - [Legal pages](features/legal.md): the privacy policy and terms of use
