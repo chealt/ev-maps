@@ -219,7 +219,7 @@ const route = async (request, env, context) => {
     ({ userId, user } = guarded);
   }
   if (policy === "admin") {
-    return adminApiResponse(request, user);
+    return adminApiResponse(request, env, user);
   }
   if (policy === "errors") {
     // Anyone may report a page's error; signed in, with who it happened to.

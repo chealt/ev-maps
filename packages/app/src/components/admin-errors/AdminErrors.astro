@@ -1,0 +1,116 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./AdminErrors.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<!-- The collected errors (GET /api/admin/errors), grouped like Sentry: the
+     groups, or one group's occurrences with ?error={fingerprint}. -->
+<ev-admin-errors>
+  <section class="groups-view" aria-labelledby="admin-errors-title">
+    <h2 class="section-title" id="admin-errors-title">
+      {page.adminErrors}
+    </h2>
+    <p class="summary"></p>
+    <div class="table-wrapper">
+      <table class="groups">
+        <thead>
+          <tr>
+            <th scope="col">{page.adminErrorColumn}</th>
+            <th scope="col">{page.adminSourceColumn}</th>
+            <th scope="col" class="number">
+              {page.adminCountColumn}
+            </th>
+            <th scope="col" class="number">
+              {page.adminUsersColumn}
+            </th>
+            <th scope="col">{page.adminLastSeenColumn}</th>
+            <th scope="col">{page.adminFirstSeenColumn}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <nav class="pager" aria-label={page.adminPages}>
+      <button type="button" class="previous">
+        {page.adminPreviousPage}
+      </button>
+      <span class="page-of"></span>
+      <button type="button" class="next">
+        {page.adminNextPage}
+      </button>
+    </nav>
+  </section>
+
+  <section class="group-view" aria-labelledby="admin-error-title" hidden>
+    <a class="all-errors" href="?">
+      <Icon icon={ArrowLeft} size="sm" />
+      {page.adminAllErrors}
+    </a>
+    <h2 class="section-title" id="admin-error-title"></h2>
+    <p class="summary"></p>
+    <ol class="occurrences"></ol>
+    <nav class="pager" aria-label={page.adminPages}>
+      <button type="button" class="previous">
+        {page.adminPreviousPage}
+      </button>
+      <span class="page-of"></span>
+      <button type="button" class="next">
+        {page.adminNextPage}
+      </button>
+    </nav>
+  </section>
+
+  <template class="group-template">
+    <tr>
+      <td>
+        <a class="message"></a>
+        <span class="where"></span>
+      </td>
+      <td class="source"></td>
+      <td class="count number"></td>
+      <td class="users number"></td>
+      <td class="last-seen"></td>
+      <td class="first-seen"></td>
+    </tr>
+  </template>
+
+  <template class="occurrence-template">
+    <li class="occurrence">
+      <dl class="facts">
+        <div>
+          <dt>{page.adminTimeLabel}</dt>
+          <dd class="time"></dd>
+        </div>
+        <div>
+          <dt>{page.adminUrlLabel}</dt>
+          <dd class="url"></dd>
+        </div>
+        <div>
+          <dt>{page.adminContextLabel}</dt>
+          <dd class="context"></dd>
+        </div>
+        <div>
+          <dt>{page.adminBrowserLabel}</dt>
+          <dd class="user-agent"></dd>
+        </div>
+        <div>
+          <dt>{page.adminUserLabel}</dt>
+          <dd class="user"></dd>
+        </div>
+        <div>
+          <dt>{page.adminCountryLabel}</dt>
+          <dd class="country"></dd>
+        </div>
+      </dl>
+      <details class="stack-details">
+        <summary>{page.adminStackTrace}</summary>
+        <pre class="stack"></pre>
+      </details>
+    </li>
+  </template>
+  <script src="./AdminErrors.js"></script>
+</ev-admin-errors>

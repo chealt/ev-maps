@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { adminApiResponse, adminPageResponse, isAdmin, isAdminPage } from "./admin.js";
+import { testD1 } from "./test-d1.js";
 
 const env = {
   ADMIN_EMAIL_DOMAIN: "chealt.com",
@@ -50,10 +51,126 @@ describe("adminPageResponse", () => {
 
 describe("adminApiResponse", () => {
   test("says who the admin is", async () => {
-    const response = adminApiResponse(new Request("https://ev.chealt.com/api/admin/me"), {
-      id: "1",
-      email: "grace@chealt.com",
-    });
+    const response = await adminApiResponse(
+      new Request("https://ev.chealt.com/api/admin/me"),
+      env,
+      {
+        id: "1",
+        email: "grace@chealt.com",
+      }
+    );
     expect(await response.json()).toEqual({ admin: true, email: "grace@chealt.com" });
+  });
+});
+
+describe("adminApiResponse for errors", () => {
+  const admin = { id: "1", email: "grace@chealt.com" };
+  const get = async (testEnv, path) =>
+    (await adminApiResponse(new Request(`https://ev.chealt.com${path}`), testEnv, admin)).json();
+
+  // Two kinds of errors: "a" three times (two users), "b" once, later.
+  const seeded = () => {
+    const db = testD1("../admin-migrations/0001_errors.sql");
+    const insert = db.sqlite.prepare(
+      `INSERT INTO errors (fingerprint, source, name, message, stack, url, user_agent, user_id,
+         created_at) VALUES (?, ?, 'TypeError', ?, 'stack', '/en/', 'Firefox', ?, ?)`
+    );
+    insert.run("aaaaaaaa", "page", "first a", "user-1", 1000);
+    insert.run("aaaaaaaa", "page", "second a", "user-2", 2000);
+    insert.run("aaaaaaaa", "page", "third a", null, 3000);
+    insert.run("bbbbbbbb", "worker", "only b", null, 4000);
+    return { ...env, ADMIN_DB: db };
+  };
+
+  test("groups errors, the most recently seen first, with the latest details", async () => {
+    const { groups, page, pages, total } = await get(seeded(), "/api/admin/errors");
+    expect({ page, pages, total }).toEqual({ page: 1, pages: 1, total: 2 });
+    expect(
+      groups.map(({ fingerprint, message, count, users, first_seen, last_seen }) => ({
+        fingerprint,
+        message,
+        count,
+        users,
+        first_seen,
+        last_seen,
+      }))
+    ).toEqual([
+      {
+        fingerprint: "bbbbbbbb",
+        message: "only b",
+        count: 1,
+        users: 0,
+        first_seen: 4000,
+        last_seen: 4000,
+      },
+      {
+        fingerprint: "aaaaaaaa",
+        message: "third a",
+        count: 3,
+        users: 2,
+        first_seen: 1000,
+        last_seen: 3000,
+      },
+    ]);
+  });
+
+  test("lists one error's occurrences, newest first", async () => {
+    const { occurrences, total } = await get(seeded(), "/api/admin/errors/aaaaaaaa");
+    expect(total).toBe(3);
+    expect(occurrences.map((occurrence) => occurrence.message)).toEqual([
+      "third a",
+      "second a",
+      "first a",
+    ]);
+    expect(occurrences[0]).toMatchObject({ stack: "stack", user_agent: "Firefox", url: "/en/" });
+  });
+
+  test("sees an error when it last happened, whatever order it was stored in", async () => {
+    const testEnv = seeded();
+    testEnv.ADMIN_DB.sqlite
+      .prepare(
+        "INSERT INTO errors (fingerprint, source, message, created_at) VALUES (?, 'page', ?, ?)"
+      )
+      .run("aaaaaaaa", "late a, stored last", 500);
+    const { groups } = await get(testEnv, "/api/admin/errors");
+    const a = groups.find((group) => group.fingerprint === "aaaaaaaa");
+    expect({ count: a.count, first_seen: a.first_seen, last_seen: a.last_seen }).toEqual({
+      count: 4,
+      first_seen: 500,
+      last_seen: 3000,
+    });
+  });
+
+  test("pages through many errors", async () => {
+    const testEnv = seeded();
+    const insert = testEnv.ADMIN_DB.sqlite.prepare(
+      "INSERT INTO errors (fingerprint, source, message, created_at) VALUES (?, 'page', 'x', ?)"
+    );
+    for (let index = 0; index < 30; index++) {
+      insert.run(index.toString(16).padStart(8, "0"), 10000 + index);
+    }
+    const second = await get(testEnv, "/api/admin/errors?page=2");
+    expect({ page: second.page, pages: second.pages, total: second.total }).toEqual({
+      page: 2,
+      pages: 2,
+      total: 32,
+    });
+    expect(second.groups).toHaveLength(7);
+  });
+
+  test("knows no other paths or methods", async () => {
+    const testEnv = seeded();
+    const response = await adminApiResponse(
+      new Request("https://ev.chealt.com/api/admin/errors/not-hex"),
+      testEnv,
+      admin
+    );
+    expect(response.status).toBe(404);
+    const post = await adminApiResponse(
+      new Request("https://ev.chealt.com/api/admin/errors", { method: "POST" }),
+      testEnv,
+      admin
+    );
+    expect(post.status).toBe(405);
   });
 });
