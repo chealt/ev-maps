@@ -109,6 +109,8 @@ const deleteOldUsage = async (env, now = Date.now()) => {
 const routes = [
   {
     name: "usage",
+    // Measuring isn't measured.
+    untraced: true,
     limiter: "USAGE_LIMITER",
     signedIn: false,
     matches: (request, url) => url.pathname === USAGE_PATH,

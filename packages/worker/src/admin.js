@@ -4,6 +4,7 @@
 
 const ADMIN_PAGE_PATH = /^\/(en|pl|hu)\/admin(\/.*)?$/;
 const ADMIN_API_PREFIX = "/api/admin/";
+const ADMIN_API_PATH = /^\/api\/admin\/(me|usage|errors(\/[0-9a-f]{8})?)$/;
 
 // `user` is { id, email } of a signed-in user with a verified email, or null.
 const isAdmin = (env, user) => {
@@ -161,7 +162,8 @@ const routes = [
     limiter: "ADMIN_LIMITER",
     signedIn: true,
     admin: true,
-    matches: (request, url) => url.pathname.startsWith(ADMIN_API_PREFIX),
+    // Only its own paths: other domains have admin routes too.
+    matches: (request, url) => ADMIN_API_PATH.test(url.pathname),
     handle: ({ request, env, user }) => adminApiResponse(request, env, user),
   },
 ];

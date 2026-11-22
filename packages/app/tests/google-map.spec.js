@@ -20,8 +20,12 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
+// The map's center and zoom, or null until the map is created: the page's
+// scripts wait for their messages first (src/lib/messages.js).
 const mapState = (page) =>
-  page.evaluate(() => ({ center: window.__fakeMap.center, zoom: window.__fakeMap.zoom }));
+  page.evaluate(() =>
+    window.__fakeMap ? { center: window.__fakeMap.center, zoom: window.__fakeMap.zoom } : null
+  );
 
 const loadedChargersAround = (location) =>
   chargerRequests.some((request) => requestCovers(request, location));

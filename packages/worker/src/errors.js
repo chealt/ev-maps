@@ -151,6 +151,8 @@ const deleteOldErrors = async (env) => {
 const routes = [
   {
     name: "errors",
+    // Measuring isn't measured.
+    untraced: true,
     limiter: "ERRORS_LIMITER",
     signedIn: false,
     matches: (request, url) => url.pathname === ERRORS_PATH,
