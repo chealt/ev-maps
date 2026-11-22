@@ -3,6 +3,12 @@
 // translations. A new admin section adds its page and one line here.
 const ADMIN_SECTIONS = [
   { id: "errors", path: "errors", label: "adminErrors", description: "adminErrorsDescription" },
+  {
+    id: "performance",
+    path: "performance",
+    label: "adminPerformance",
+    description: "adminPerformanceDescription",
+  },
   { id: "usage", path: "usage", label: "adminUsage", description: "adminUsageDescription" },
 ];
 

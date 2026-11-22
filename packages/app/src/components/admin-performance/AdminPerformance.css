@@ -1,0 +1,273 @@
+ev-admin-performance {
+  --vital-min-width: 9rem;
+  --span-label-width: 16rem;
+  --span-duration-width: 5rem;
+
+  display: block;
+
+  .performance-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+  }
+
+  .section-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    overflow-wrap: anywhere;
+  }
+
+  .periods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .period {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--border-radius-full);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+    cursor: pointer;
+
+    &[aria-pressed="true"] {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+      color: var(--color-primary-light-text);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .summary,
+  .hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .summary {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .hint {
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .subtitle {
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .vitals {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--vital-min-width), 1fr));
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  /* Colored by the P75's rating: good, needs improvement, poor. */
+  .vital {
+    padding: var(--spacing-md);
+    border: var(--border-width) solid var(--color-border);
+    border-left-width: var(--border-width-marker);
+    border-radius: var(--border-radius-md);
+
+    &[data-rating="good"] {
+      border-left-color: var(--color-primary);
+    }
+
+    &[data-rating="needs-improvement"] {
+      border-left-color: var(--color-warning);
+    }
+
+    &[data-rating="poor"] {
+      border-left-color: var(--color-danger);
+    }
+
+    dt {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .value {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .count {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+  }
+
+  .timings {
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  th,
+  td {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-bottom: var(--border-width) solid var(--color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  thead th {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  tbody th {
+    font-weight: var(--font-weight-normal);
+    overflow-wrap: anywhere;
+  }
+
+  /* Long statements (e.g. batches) show three lines; all of it on hover. */
+  [data-table="queries"] tbody th,
+  .statement {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
+  [data-table="queries"] tbody th {
+    font-family: monospace;
+    font-size: var(--font-size-xs);
+  }
+
+  .number {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .trace-link,
+  .all-performance {
+    color: var(--color-primary-light-text);
+  }
+
+  .all-performance {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .empty[hidden] {
+    display: none;
+  }
+
+  /* One row per span: its label, a bar placed by its start and length
+     within the trace, and its duration. */
+  .waterfall {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+    font-size: var(--font-size-sm);
+  }
+
+  .span {
+    display: grid;
+    grid-template-columns: var(--span-label-width) 1fr var(--span-duration-width);
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-sm);
+    padding: var(--spacing-2xs) 0;
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .span-label {
+    display: flex;
+    gap: var(--spacing-xs);
+    min-width: 0;
+    padding-left: calc(var(--depth, 0) * var(--spacing-md));
+  }
+
+  .service {
+    flex-shrink: 0;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  .span-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .track {
+    position: relative;
+    height: var(--spacing-sm);
+  }
+
+  .bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--offset, 0) * 100%);
+    width: max(var(--border-width-thick), calc(var(--width, 0) * 100%));
+    border-radius: var(--border-radius-sm);
+    background: var(--color-primary);
+  }
+
+  .span[data-service="d1"] .bar {
+    background: var(--color-accent);
+  }
+
+  .span[data-service="page"] .bar {
+    background: var(--color-secondary);
+  }
+
+  .span[data-status="error"] .bar {
+    background: var(--color-danger);
+  }
+
+  .span-duration {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .statement {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  @media (width < 40em) {
+    .span {
+      grid-template-columns: 1fr var(--span-duration-width);
+    }
+
+    .track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+}
