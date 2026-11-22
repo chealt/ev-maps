@@ -1,0 +1,28 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./AdminPage.css";
+
+const lang = Astro.currentLocale ?? "en";
+const { page } = translations(lang);
+---
+
+<!-- The admin area: the Worker serves it to admins only, and its API checks
+     again on every request. Sections are added below as they come. -->
+<ev-admin-page>
+  <main class="admin-page">
+    <nav class="links" aria-label={page.admin}>
+      <a class="back" href={`/${lang}/`}>
+        <Icon icon={ArrowLeft} size="sm" />
+        {page.backToMap}
+      </a>
+    </nav>
+    <header class="header">
+      <h1 class="title">{page.admin}</h1>
+      <p class="signed-in-as" role="status"></p>
+    </header>
+    <slot />
+  </main>
+  <script src="./AdminPage.js"></script>
+</ev-admin-page>

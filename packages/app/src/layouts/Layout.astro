@@ -5,11 +5,13 @@ import { languages } from "../lib/pages.js";
 
 interface Props {
   title?: string;
+  // Kept out of search engines, e.g. the admin pages.
+  noindex?: boolean;
 }
 
 const lang = Astro.currentLocale ?? "en";
 const { page, messages, values } = translations(lang);
-const { title = page.title } = Astro.props;
+const { title = page.title, noindex = false } = Astro.props;
 
 // The same page in every language, e.g. /pl/hu/ for /en/hu/.
 const pathInLanguage = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
@@ -30,7 +32,10 @@ const messagesJson = JSON.stringify({ messages, values }).replaceAll("<", "\\u00
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={page.description} />
     <!-- No AI training or reuse; see the terms and public/robots.txt. -->
-    <meta name="robots" content="noai, noimageai" />
+    <meta
+      name="robots"
+      content={noindex ? "noindex, nofollow, noai, noimageai" : "noai, noimageai"}
+    />
     <meta name="theme-color" content="#059669" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

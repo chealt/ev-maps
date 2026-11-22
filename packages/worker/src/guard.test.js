@@ -22,7 +22,8 @@ const limiter = (allowed = Infinity) => {
 };
 
 const signedOut = async () => null;
-const signedIn = async () => "user-1";
+const ADA = { id: "user-1", email: "ada@example.com" };
+const signedIn = async () => ADA;
 
 describe("isBlockedAgent", () => {
   test("lets browsers in", () => {
@@ -46,6 +47,21 @@ describe("isBlockedAgent", () => {
 });
 
 describe("guard", () => {
+  test("lets only admins use admin policies", async () => {
+    const env = { ADMIN_LIMITER: limiter() };
+    const admin = { id: "user-2", email: "grace@chealt.com" };
+    const isAdmin = (user) => user.email.endsWith("@chealt.com");
+
+    const { refused: signedOutResponse } = await guard(request(), env, "admin", signedOut, isAdmin);
+    expect(signedOutResponse.status).toBe(401);
+    const { refused: userResponse } = await guard(request(), env, "admin", signedIn, isAdmin);
+    expect(userResponse.status).toBe(403);
+    expect(await guard(request(), env, "admin", async () => admin, isAdmin)).toEqual({
+      userId: "user-2",
+      user: admin,
+    });
+  });
+
   test("refuses bots", async () => {
     const { refused: response } = await guard(
       request({ "user-agent": "curl/8.7.1" }),
@@ -58,7 +74,7 @@ describe("guard", () => {
 
   test("lets anyone load tiles, limited per IP address", async () => {
     const env = { TILE_LIMITER: limiter() };
-    expect(await guard(request(), env, "tiles", signedOut)).toEqual({ userId: null });
+    expect(await guard(request(), env, "tiles", signedOut)).toEqual({ userId: null, user: null });
     expect(env.TILE_LIMITER.keys).toEqual(["tiles:ip:203.0.113.7"]);
   });
 
@@ -71,13 +87,16 @@ describe("guard", () => {
 
   test("limits signed-in users per user", async () => {
     const env = { STATUS_LIMITER: limiter() };
-    expect(await guard(request(), env, "status", signedIn)).toEqual({ userId: "user-1" });
+    expect(await guard(request(), env, "status", signedIn)).toEqual({
+      userId: "user-1",
+      user: ADA,
+    });
     expect(env.STATUS_LIMITER.keys).toEqual(["status:user:user-1"]);
   });
 
   test("says when the limit is reached", async () => {
     const env = { ROUTE_LIMITER: limiter(1) };
-    expect(await guard(request(), env, "route", signedIn)).toEqual({ userId: "user-1" });
+    expect(await guard(request(), env, "route", signedIn)).toEqual({ userId: "user-1", user: ADA });
     const { refused: response } = await guard(request(), env, "route", signedIn);
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("60");
