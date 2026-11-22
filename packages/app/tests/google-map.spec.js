@@ -61,6 +61,22 @@ test("shows charger details when a marker is clicked", async ({ page }) => {
   await expect(page.getByRole("complementary")).toBeHidden();
 });
 
+test("the Escape key closes the charger details", async ({ page }) => {
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
+  const details = page.getByRole("complementary", { name: downtownChargerLabel });
+  await expect(details).toBeVisible();
+
+  // With a dialog open (the filters), Escape closes that instead.
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Filters" })).toBeHidden();
+  await expect(details).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(details).toBeHidden();
+});
+
 test("renders charger data as text, not HTML", async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
   await map.getByRole("button", { name: xssElement, exact: true }).click();

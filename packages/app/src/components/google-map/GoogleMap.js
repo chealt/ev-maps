@@ -337,6 +337,15 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
+    // Escape closes the charger's details, unless a dialog (the filters, the
+    // charger list) is open: those close themselves with it.
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !this.detailsPanel?.hidden) {
+        if (!this.querySelector("dialog[open]")) {
+          this.hideChargerDetails();
+        }
+      }
+    });
     this.detailsPanel
       ?.querySelector(".favorite-button")
       ?.addEventListener("click", () => this.toggleFavorite());
