@@ -275,6 +275,7 @@ jobs:
       a11y-summary: ${{ steps.publish.outputs.a11y-summary }}
       performance-report-url: ${{ steps.publish.outputs.performance-report-url }}
       performance-summary: ${{ steps.publish.outputs.performance-summary }}
+      ui-evidence: ${{ steps.publish.outputs.ui-evidence }}
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
@@ -492,6 +493,7 @@ jobs:
           A11Y_SUMMARY: ${{ needs.test.outputs.a11y-summary }}
           PERFORMANCE_REPORT_URL: ${{ needs.test.outputs.performance-report-url }}
           PERFORMANCE_SUMMARY: ${{ needs.test.outputs.performance-summary }}
+          UI_EVIDENCE: ${{ needs.test.outputs.ui-evidence }}
         run: |
           previous=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
           tag="v$(date -u +%Y.%m.%d-%H%M)"
@@ -501,6 +503,10 @@ jobs:
             printf '\n## Test reports\n\n- [Playwright report](%s): %s\n- [Accessibility report](%s): %s\n- [Performance report](%s): %s\n' \
               "$REPORT_URL" "$SUMMARY" "$A11Y_REPORT_URL" "$A11Y_SUMMARY" \
               "$PERFORMANCE_REPORT_URL" "$PERFORMANCE_SUMMARY" >> notes.md
+          fi
+          # The screenshots and videos of the @ui tests this release passed.
+          if [ -n "$UI_EVIDENCE" ]; then
+            printf '\n## UI changes\n\n%s\n' "$UI_EVIDENCE" >> notes.md
           fi
           if [ -n "$previous" ]; then
             printf '\n**Full changes:** %s/%s/compare/%s...%s\n' \

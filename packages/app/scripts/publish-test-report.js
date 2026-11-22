@@ -23,6 +23,11 @@ import {
   REPORT_DIR as PERFORMANCE_REPORT_DIR,
   writePerformanceReport,
 } from "./performance-report.js";
+import {
+  EVIDENCE_DIR as UI_EVIDENCE_DIR,
+  materialize as materializeUiEvidence,
+  uiEvidenceMarkdown,
+} from "./ui-evidence.js";
 
 const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
@@ -141,6 +146,38 @@ const postCommitStatus = async (commitSha, { state, description, context, url })
   }
 };
 
+// The UI evidence (@ui tests' screenshots and videos) as a comment on the
+// pull request, replacing the one an earlier run of it left.
+const commentUiEvidence = async (markdown) => {
+  const body = `<!-- ui-evidence -->\n## UI evidence\n\n${markdown}`;
+  const headers = {
+    authorization: `Bearer ${env("GITHUB_TOKEN")}`,
+    accept: "application/vnd.github+json",
+    "content-type": "application/json",
+  };
+  const list = await fetch(
+    `https://api.github.com/repos/${env("GITHUB_REPOSITORY")}/issues/${env("PULL_REQUEST")}/comments`,
+    { headers }
+  );
+  if (!list.ok) {
+    throw new Error(`GitHub comments: ${list.status} ${await list.text()}`);
+  }
+  const own = (await list.json()).find((comment) => comment.body.includes("<!-- ui-evidence -->"));
+  const response = await fetch(
+    own
+      ? `https://api.github.com/repos/${env("GITHUB_REPOSITORY")}/issues/comments/${own.id}`
+      : `https://api.github.com/repos/${env("GITHUB_REPOSITORY")}/issues/${env("PULL_REQUEST")}/comments`,
+    {
+      method: own ? "PATCH" : "POST",
+      headers,
+      body: JSON.stringify({ body }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`GitHub comment: ${response.status} ${await response.text()}`);
+  }
+};
+
 // The run's numbers, from Playwright's JSON reporter.
 const reportOf = async () => {
   const { stats } = JSON.parse(await readFile(RESULTS_FILE, "utf8"));
@@ -200,6 +237,18 @@ await postCommitStatus(report.commitSha, {
 });
 console.log(`Published the performance report: ${performanceUrl}`);
 
+// The UI evidence of @ui tests (scripts/ui-evidence.js), in ui/: the
+// screenshots and videos on the pull request, and in the release notes.
+const uiEvidence = await materializeUiEvidence();
+if (uiEvidence.length) {
+  await uploadFolder(UI_EVIDENCE_DIR, `${report.id}/ui/`);
+}
+const uiMarkdown = uiEvidenceMarkdown(uiEvidence, url);
+if (uiEvidence.length && env("PULL_REQUEST", { optional: true })) {
+  await commentUiEvidence(uiMarkdown);
+  console.log(`Commented the UI evidence on pull request ${env("PULL_REQUEST")}`);
+}
+
 // For the release notes (the App workflow's Release job): the step's outputs.
 if (process.env.GITHUB_OUTPUT) {
   await appendFile(
@@ -208,6 +257,7 @@ if (process.env.GITHUB_OUTPUT) {
       `summary=${report.passed} passed, ${report.failed} failed, ${report.flaky} flaky\n` +
       `a11y-summary=${a11y.tests} pages checked, ${a11y.violations} rules violated\n` +
       `performance-report-url=${performanceUrl}\n` +
-      `performance-summary=${performance.pages} pages measured, ${performance.poor} poor P75s\n`
+      `performance-summary=${performance.pages} pages measured, ${performance.poor} poor P75s\n` +
+      `ui-evidence<<EOF\n${uiMarkdown || ""}\nEOF\n`
   );
 }

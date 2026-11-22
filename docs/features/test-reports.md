@@ -64,3 +64,20 @@ for comparing runs; the admin area's performance page has production's.
 To measure another test's page, tag it:
 `test("…", { tag: "@performance" }, async ({ page }) => { … })`. Run only
 those with `bunx playwright test --grep @performance`.
+
+## UI evidence
+
+Tests that show a new or updated UI control are tagged `@ui`. At their end
+they attach a screenshot of the page as the test left it
+(`@ev-maps/e2e/test.js`); with the video CI records of every test, that is
+the evidence of what the control looks and feels like, straight from
+Playwright. `scripts/publish-test-report.js` puts the two, per `@ui` test,
+into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:
+
+- on a pull request, comments them on it (replacing the comment an earlier
+  run of it left), so the review sees them next to the code
+- on main, hands them to the release notes as a "UI changes" section
+
+To show another control, tag its test:
+`test("…", { tag: "@ui" }, async ({ page }) => { … })`. Run only those with
+`bunx playwright test --grep @ui`.
