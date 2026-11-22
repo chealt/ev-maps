@@ -257,6 +257,12 @@ jobs:
     if: ${{ !cancelled() }}
     name: Test
     runs-on: ubuntu-latest
+    # Where the published reports are, for the release notes.
+    outputs:
+      report-url: ${{ steps.publish.outputs.report-url }}
+      a11y-report-url: ${{ steps.publish.outputs.a11y-report-url }}
+      summary: ${{ steps.publish.outputs.summary }}
+      a11y-summary: ${{ steps.publish.outputs.a11y-summary }}
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
@@ -308,6 +314,7 @@ jobs:
       # The report in the admin area (R2, only for admins), linked from a
       # commit status. Pull requests from forks don't get the secrets.
       - name: Publish Playwright report
+        id: publish
         if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -443,7 +450,7 @@ jobs:
   # previous release (scripts/release-notes.js).
   release:
     name: Release
-    needs: deploy
+    needs: [test, deploy]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -467,10 +474,19 @@ jobs:
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
+          REPORT_URL: ${{ needs.test.outputs.report-url }}
+          A11Y_REPORT_URL: ${{ needs.test.outputs.a11y-report-url }}
+          SUMMARY: ${{ needs.test.outputs.summary }}
+          A11Y_SUMMARY: ${{ needs.test.outputs.a11y-summary }}
         run: |
           previous=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
           tag="v$(date -u +%Y.%m.%d-%H%M)"
           bun scripts/release-notes.js $previous > notes.md
+          # The reports of the tests this release passed (admins only).
+          if [ -n "$REPORT_URL" ]; then
+            printf '\n## Test reports\n\n- [Playwright report](%s): %s\n- [Accessibility report](%s): %s\n' \
+              "$REPORT_URL" "$SUMMARY" "$A11Y_REPORT_URL" "$A11Y_SUMMARY" >> notes.md
+          fi
           if [ -n "$previous" ]; then
             printf '\n**Full changes:** %s/%s/compare/%s...%s\n' \
               "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$previous" "$tag" >> notes.md

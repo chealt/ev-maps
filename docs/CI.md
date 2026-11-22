@@ -54,8 +54,9 @@ tagged with the date and time (`v2026.11.22-1705`, UTC). Its notes list the
 pull requests merged since the previous release, grouped by kind (new
 features, bug fixes, …), from their Conventional Commit titles
 (`scripts/release-notes.js`). Changes that deploy nothing, such as docs, go
-into the next release. To preview the notes: `bun scripts/release-notes.js
-<previous tag>`.
+into the next release. The notes also link the run's Playwright and
+accessibility reports (in the admin area), with their totals. To preview
+the notes: `bun scripts/release-notes.js <previous tag>`.
 
 The Playwright tests run in 3 shards in parallel (`Test shard 1/3` …), each
 saving a blob report. The `Test` job, the required check, merges them
