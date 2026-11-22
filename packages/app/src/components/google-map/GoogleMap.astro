@@ -11,6 +11,7 @@ import {
   Heart,
   Info,
   List,
+  ZoomIn,
   MapPin,
   PlugZap,
   RouteOff,
@@ -125,6 +126,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         {!apiKey && page.apiKeyMissing}
       </span>
       <Icon icon={List} size="sm" class="list-icon" />
+      <Icon icon={ZoomIn} size="sm" class="zoom-icon" />
     </button>
 
     <div class="map-controls">

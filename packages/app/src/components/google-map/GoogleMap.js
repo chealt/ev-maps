@@ -321,7 +321,15 @@ class GoogleMapElement extends HTMLElement {
     this.addEventListener("route-requested", (event) => this.showRoute(event.detail));
     this.addEventListener("route-cleared", () => this.clearRoute());
     this.clearRouteButton?.addEventListener("click", () => this.clearRoute());
-    this.statusButton?.addEventListener("click", () => this.openChargerList());
+    // The status pill opens the list of chargers, or, too far out to load
+    // any, zooms in to where they load.
+    this.statusButton?.addEventListener("click", () => {
+      if (this.statusButton.dataset.state === "warning") {
+        this.map?.setZoom(this.minChargerZoom);
+        return;
+      }
+      this.openChargerList();
+    });
     this.chargerList
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.closeChargerList());
@@ -421,10 +429,19 @@ class GoogleMapElement extends HTMLElement {
     window.addEventListener("pagehide", () => this.flushAccountSave());
   }
 
+  // States: idle, loading, success, error, and warning, where the pill zooms
+  // in instead of opening the list.
   setStatus(message, state = "idle") {
     if (this.statusEl) {
       this.statusEl.textContent = message;
       this.statusButton.dataset.state = state;
+      if (state === "warning") {
+        this.statusButton.removeAttribute("aria-haspopup");
+        this.statusButton.disabled = false;
+      } else {
+        this.statusButton.setAttribute("aria-haspopup", "dialog");
+        this.statusButton.disabled = !this.listedChargers?.length;
+      }
     }
   }
 
@@ -808,7 +825,7 @@ class GoogleMapElement extends HTMLElement {
       this.clearMarkers();
       this.listOperators([]);
       this.hideChargerDetails();
-      this.setStatus(message("zoomIn"));
+      this.setStatus(message("zoomIn"), "warning");
       return;
     }
 

@@ -121,6 +121,25 @@ ev-google-map {
     background: var(--color-primary);
   }
 
+  /* Too far out to load chargers: the pill zooms in (zoom icon, not list). */
+  &[data-state="warning"] {
+    background: var(--color-warning-light);
+    border-color: var(--color-warning);
+    color: var(--color-warning-light-text);
+
+    &::before {
+      background: var(--color-warning);
+    }
+
+    .list-icon {
+      display: none;
+    }
+  }
+
+  &:not([data-state="warning"]) .zoom-icon {
+    display: none;
+  }
+
   &[data-state="error"] {
     background: var(--color-danger-light);
     border-color: var(--color-danger);
