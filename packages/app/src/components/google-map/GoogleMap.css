@@ -6,6 +6,7 @@ ev-google-map {
 
   /* Status */
   --status-dot-size: 0.5rem;
+  --status-min-height: 2.75rem;
   --status-pulse-scale: 0.6;
   --status-pulse-animation: 1.6s ease-in-out infinite;
 
@@ -713,6 +714,18 @@ ev-google-map {
 
 ::view-transition-group(charger-list) {
   animation-duration: var(--view-transition-duration);
+}
+
+/* Wide screens have room for a pill that's easy to hit: at least 44px
+   tall (WCAG's target size), with larger text. Phones keep the compact one
+   so it leaves the map in view. */
+@media (width >= 40em) {
+  .map-status {
+    min-height: var(--status-min-height);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
