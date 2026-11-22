@@ -10,17 +10,21 @@ test.beforeEach(async ({ page }) => {
 
 const shortcuts = (page) => page.getByRole("dialog", { name: "Keyboard shortcuts" });
 
-test("the ? key opens the keyboard shortcuts, Escape closes it", async ({ page }) => {
-  await page.keyboard.press("?");
+test(
+  "the ? key opens the keyboard shortcuts, Escape closes it",
+  { tag: "@ui" },
+  async ({ page }) => {
+    await page.keyboard.press("?");
 
-  const dialog = shortcuts(page);
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByText("Show this help")).toBeVisible();
-  await expect(dialog.getByText("Close dialogs and the charger details")).toBeVisible();
+    const dialog = shortcuts(page);
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Show this help")).toBeVisible();
+    await expect(dialog.getByText("Close dialogs and the charger details")).toBeVisible();
 
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-});
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+  }
+);
 
 test("? belongs to an open dialog, not the shortcuts", async ({ page }) => {
   await page.getByRole("button", { name: "Filters", exact: true }).click();

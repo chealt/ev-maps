@@ -64,3 +64,28 @@ for comparing runs; the admin area's performance page has production's.
 To measure another test's page, tag it:
 `test("…", { tag: "@performance" }, async ({ page }) => { … })`. Run only
 those with `bunx playwright test --grep @performance`.
+
+## UI evidence
+
+Tests that show a new or updated UI control are tagged `@ui`. At their end
+they attach a screenshot of the page as the test left it
+(`@ev-maps/e2e/test.js`); with the video CI records of every test, that is
+the evidence of what the control looks and feels like, straight from
+Playwright. `scripts/publish-test-report.js` puts the two, per `@ui` test,
+into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:
+
+- on a pull request, comments them on it (replacing the comment an earlier
+  run of it left), so the review sees them next to the code
+- on main, hands them to the release notes as a "UI changes" section
+
+The comment and the notes embed each screenshot the test took, with links
+to its video and the report, from `/reports/{id}/ui/{file}` (the site's only
+public report path, for the screenshots and videos of the app's own UI;
+everything else about a report stays for admins). On a pull request, a
+separate "UI evidence" job comments once the pull request's own preview is
+deployed (`scripts/pr-ui-evidence-comment.js`), so the embeds come from code
+that already serves them.
+
+To show another control, tag its test:
+`test("…", { tag: "@ui" }, async ({ page }) => { … })`. Run only those with
+`bunx playwright test --grep @ui`.

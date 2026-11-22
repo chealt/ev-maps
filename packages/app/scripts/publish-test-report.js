@@ -23,6 +23,11 @@ import {
   REPORT_DIR as PERFORMANCE_REPORT_DIR,
   writePerformanceReport,
 } from "./performance-report.js";
+import {
+  EVIDENCE_DIR as UI_EVIDENCE_DIR,
+  materialize as materializeUiEvidence,
+  uiEvidenceMarkdown,
+} from "./ui-evidence.js";
 
 const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
@@ -200,6 +205,21 @@ await postCommitStatus(report.commitSha, {
 });
 console.log(`Published the performance report: ${performanceUrl}`);
 
+// The UI evidence of @ui tests (scripts/ui-evidence.js), in ui/: the
+// screenshots and videos on the pull request, and in the release notes.
+const uiEvidence = await materializeUiEvidence();
+if (uiEvidence.length) {
+  await uploadFolder(UI_EVIDENCE_DIR, `${report.id}/ui/`);
+}
+// On main, for the release notes; on a pull request, the App workflow's UI
+// evidence job comments them from its preview deployment once that is up
+// (scripts/pr-ui-evidence-comment.js), so the embeds resolve.
+const uiMarkdown = uiEvidenceMarkdown(
+  uiEvidence,
+  `${env("SITE_URL")}/reports/${report.id}/ui/`,
+  url
+);
+
 // For the release notes (the App workflow's Release job): the step's outputs.
 if (process.env.GITHUB_OUTPUT) {
   await appendFile(
@@ -208,6 +228,8 @@ if (process.env.GITHUB_OUTPUT) {
       `summary=${report.passed} passed, ${report.failed} failed, ${report.flaky} flaky\n` +
       `a11y-summary=${a11y.tests} pages checked, ${a11y.violations} rules violated\n` +
       `performance-report-url=${performanceUrl}\n` +
-      `performance-summary=${performance.pages} pages measured, ${performance.poor} poor P75s\n`
+      `performance-summary=${performance.pages} pages measured, ${performance.poor} poor P75s\n` +
+      `ui-evidence<<EOF\n${uiMarkdown || ""}\nEOF\n` +
+      `ui-files<<EOF\n${JSON.stringify(uiEvidence)}\nEOF\n`
   );
 }

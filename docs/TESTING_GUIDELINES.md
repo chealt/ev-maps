@@ -146,8 +146,12 @@ What's fine:
 - State exposed to assistive technology: `expanded`, `checked`, `disabled`,
   `selected`, and so on
 
-Review visual changes by hand instead, and add screenshots of desktop and
-mobile to the pull request.
+Review visual changes by hand instead, and show them from the tests: a pull
+request with new or updated UI controls has tests tagged `@ui`
+(`test("…", { tag: "@ui" }, …)`), which attach a screenshot of the page as
+the test left it, next to the video CI records of every test. Both are in
+the Playwright report the CI publishes, linked from its commit status, so
+the review sees the control as Playwright actually exercised it.
 
 ## External Services
 

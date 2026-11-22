@@ -5,6 +5,7 @@ import {
   deleteOldReports,
   listReports,
   reportFileResponse,
+  uiFileResponse,
 } from "./test-reports.js";
 
 const NOW = Date.UTC(2026, 10, 24, 12);
@@ -37,6 +38,8 @@ const env = (user) => ({
   REPORTS: fakeBucket({
     "reports/1234-1/index.html": "<html>report</html>",
     "reports/1234-1/data/abc.zip": "zip",
+    "reports/1234-1/ui/shortcuts.png": "png",
+    "reports/1234-1/ui/shortcuts.webm": "webm",
   }),
   user,
 });
@@ -105,6 +108,32 @@ describe("reportFileResponse", () => {
     ).toBe(404);
     expect((await fileAt("/en/admin/reports/1234-1/missing.html")).status).toBe(404);
     expect((await fileAt("/en/admin/reports/1234-1/..%2F..%2Fsecret")).status).toBe(404);
+  });
+});
+
+describe("uiFileResponse", () => {
+  const uiFileAt = (path) =>
+    uiFileResponse(
+      new Request(`https://ev.chealt.com${path}`),
+      env(),
+      new URL(`https://ev.chealt.com${path}`)
+    );
+
+  test("serves the @ui tests' screenshots and videos to everyone", async () => {
+    const png = await uiFileAt("/reports/1234-1/ui/shortcuts.png");
+    expect(png.status).toBe(200);
+    expect(await png.text()).toBe("png");
+    expect(png.headers.get("content-type")).toBe("image/png");
+    expect(png.headers.get("cache-control")).toBe("public, max-age=86400");
+    expect((await uiFileAt("/reports/1234-1/ui/shortcuts.webm")).headers.get("content-type")).toBe(
+      "video/webm"
+    );
+  });
+
+  test("is only for a report's ui folder's images and videos", async () => {
+    expect((await uiFileAt("/reports/1234-1/index.html")).status).toBe(404);
+    expect((await uiFileAt("/reports/1234-1/data/abc.zip")).status).toBe(404);
+    expect((await uiFileAt("/reports/1234-1/ui/../../secret")).status).toBe(404);
   });
 });
 
