@@ -268,6 +268,47 @@ test.describe("with the service worker", () => {
   });
 });
 
+test("marks a cluster with a favorite in it as one", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  // Close enough together to cluster at the default zoom.
+  const twins = [
+    charger(4, "Twin charger A", [40.73, -73.99]),
+    charger(5, "Twin charger B", [40.7305, -73.9905]),
+  ];
+  await fakeFavoritesApi(page, [{ charger: twins[0], addedAt: 1 }]);
+  await fakeChargersApi(page, { chargers: [...twins, far] });
+  await page.goto("/");
+
+  // The cluster of the two twins is pink (--color-favorite) …
+  const clusterPin = map(page).getByRole("button", { name: "2 EV chargers" });
+  const twinALocation = twins[0].location;
+  await expect(clusterPin).toBeVisible();
+  await expect(clusterPin.locator(".charger-cluster")).toHaveCSS(
+    "background-color",
+    "rgb(219, 39, 119)"
+  );
+  // … and the charger apart from it stays as it was.
+  const otherPin = map(page).getByRole("button", { name: "Far charger", exact: true });
+  await expect(otherPin.locator(".bolt svg")).toBeVisible();
+  await expect(otherPin.locator(".heart svg")).toBeHidden();
+
+  // Unfavoriting the one favorite turns the cluster back: zoom in to the
+  // twins, remove it, and zoom back out to the cluster.
+  const zoom = await page.evaluate(() => window.__fakeMap.zoom);
+  await page.evaluate((location) => {
+    window.__fakeMap.setCenter(location);
+    window.__fakeMap.setZoom(18);
+  }, twinALocation);
+  await map(page).getByRole("button", { name: "Twin charger A, favorite" }).click();
+  const panel = details(page, "Twin charger A");
+  await panel.getByRole("button", { name: "Favorite" }).click();
+  await page.evaluate((z) => window.__fakeMap.setZoom(z), zoom);
+  await expect(clusterPin.locator(".charger-cluster")).not.toHaveCSS(
+    "background-color",
+    "rgb(219, 39, 119)"
+  );
+});
+
 test("marks favorites' pins with a pink heart", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
   await fakeFavoritesApi(page, [{ charger: near, addedAt: 1 }]);
