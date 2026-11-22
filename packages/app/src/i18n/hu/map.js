@@ -69,6 +69,8 @@ const map = {
     nearbyFilterHint: "150 méteren belül, az OpenStreetMap alapján.",
   },
   messages: {
+    power: "{power} kW",
+
     chargersFound: {
       one: "{count} töltőállomás található",
       other: "{count} töltőállomás található",

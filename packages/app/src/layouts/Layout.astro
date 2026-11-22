@@ -22,9 +22,14 @@ const alternates = languages().map((language) => ({
   href: new URL(pathInLanguage(language), Astro.site ?? Astro.url).href,
 }));
 
-// The scripts' copy (src/lib/messages.js). JSON inside <script>: escape "<"
-// so it can't close the element.
-const messagesJson = JSON.stringify(runtimeTranslations(lang, kind)).replaceAll("<", "\\u003c");
+// The scripts' copy (src/lib/messages.js), only this language's and only
+// this kind of page's, baked in at build time: the client loads no i18n.
+// Pages whose scripts show no copy (the legal pages) get none.
+// JSON inside <script>: escape "<" so it can't close the element.
+const runtime = runtimeTranslations(lang, kind);
+const hasRuntimeCopy =
+  Object.keys(runtime.messages).length > 0 || Object.keys(runtime.values).length > 0;
+const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
 ---
 
 <!doctype html>
@@ -47,7 +52,7 @@ const messagesJson = JSON.stringify(runtimeTranslations(lang, kind)).replaceAll(
       <link rel="alternate" hreflang={language} href={href} />
     ))}
     <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
-    <script type="application/json" id="messages" set:html={messagesJson} />
+    {hasRuntimeCopy && <script type="application/json" id="messages" set:html={messagesJson} />}
     <!-- Sends the page's uncaught errors to the admin area. -->
     <script src="../lib/error-reporting.js"></script>
     <!-- Counts page views and events for the admin area's usage stats. -->

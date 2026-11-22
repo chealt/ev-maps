@@ -17,9 +17,6 @@ const common = {
     signInForFavorites: "Jelentkezz be, hogy kedvencként menthess töltőket.",
     admin: "Adminisztráció",
   },
-  messages: {
-    power: "{power} kW",
-  },
 };
 
 export { common };

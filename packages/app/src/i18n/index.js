@@ -1,4 +1,7 @@
-// The translations, one folder per language and one file per section of the
+// The site's copy, used only at build time: Astro renders the pages with it,
+// and bakes each page's runtime messages into its HTML. The client loads no
+// i18n. (The Worker's sign-in email has its own text: packages/worker's
+// src/email.js.) One folder per language, one file per section of the
 // site, so work on one part doesn't touch the others' files:
 //
 // - common: used on more than one kind of page, or by the layout
@@ -21,57 +24,11 @@
 // Layout.astro). The build fails if a language misses a key that English
 // has, so no page shows English (or nothing) in its place.
 
-import { account as enAccount } from "./en/account.js";
-import { admin as enAdmin } from "./en/admin.js";
-import { adminErrors as enAdminErrors } from "./en/admin-errors.js";
-import { adminUsage as enAdminUsage } from "./en/admin-usage.js";
-import { common as enCommon } from "./en/common.js";
-import { legal as enLegal } from "./en/legal.js";
-import { map as enMap } from "./en/map.js";
-import { account as huAccount } from "./hu/account.js";
-import { admin as huAdmin } from "./hu/admin.js";
-import { adminErrors as huAdminErrors } from "./hu/admin-errors.js";
-import { adminUsage as huAdminUsage } from "./hu/admin-usage.js";
-import { common as huCommon } from "./hu/common.js";
-import { legal as huLegal } from "./hu/legal.js";
-import { map as huMap } from "./hu/map.js";
-import { account as plAccount } from "./pl/account.js";
-import { admin as plAdmin } from "./pl/admin.js";
-import { adminErrors as plAdminErrors } from "./pl/admin-errors.js";
-import { adminUsage as plAdminUsage } from "./pl/admin-usage.js";
-import { common as plCommon } from "./pl/common.js";
-import { legal as plLegal } from "./pl/legal.js";
-import { map as plMap } from "./pl/map.js";
+import { sections as en } from "./en/index.js";
+import { sections as hu } from "./hu/index.js";
+import { sections as pl } from "./pl/index.js";
 
-const SECTIONS = {
-  en: {
-    common: enCommon,
-    map: enMap,
-    account: enAccount,
-    legal: enLegal,
-    admin: enAdmin,
-    "admin-errors": enAdminErrors,
-    "admin-usage": enAdminUsage,
-  },
-  hu: {
-    common: huCommon,
-    map: huMap,
-    account: huAccount,
-    legal: huLegal,
-    admin: huAdmin,
-    "admin-errors": huAdminErrors,
-    "admin-usage": huAdminUsage,
-  },
-  pl: {
-    common: plCommon,
-    map: plMap,
-    account: plAccount,
-    legal: plLegal,
-    admin: plAdmin,
-    "admin-errors": plAdminErrors,
-    "admin-usage": plAdminUsage,
-  },
-};
+const SECTIONS = { en, hu, pl };
 // Which sections each kind of page's scripts need.
 const PAGE_SECTIONS = {
   map: ["common", "map", "account"],
@@ -81,7 +38,9 @@ const PAGE_SECTIONS = {
 const PLURAL_CATEGORIES = new Set(["zero", "one", "two", "few", "many", "other"]);
 
 const isPlural = (value) =>
-  typeof value === "object" && Object.keys(value).every((key) => PLURAL_CATEGORIES.has(key));
+  typeof value === "object" &&
+  Object.keys(value).length > 0 &&
+  Object.keys(value).every((key) => PLURAL_CATEGORIES.has(key));
 
 // Plural messages need `other`; their other forms depend on the language.
 const missingKeys = (reference, translation, path = []) =>
@@ -143,8 +102,10 @@ const runtimeTranslations = (language, pageKind) => {
   return { messages, values };
 };
 
+const LANGUAGES = Object.keys(SECTIONS);
+
 // Fills {name} placeholders, e.g. in page titles.
 const fill = (template, values) =>
   template.replace(/\{(\w+)\}/g, (placeholder, name) => values[name] ?? placeholder);
 
-export { fill, runtimeTranslations, translations };
+export { LANGUAGES, fill, runtimeTranslations, translations };

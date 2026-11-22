@@ -17,9 +17,6 @@ const common = {
     signInForFavorites: "Zaloguj się, aby zapisywać ulubione stacje.",
     admin: "Administracja",
   },
-  messages: {
-    power: "{power} kW",
-  },
 };
 
 export { common };

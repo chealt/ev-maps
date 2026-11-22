@@ -27,7 +27,7 @@ export default defineConfig({
   },
   integrations: [precacheManifest()],
   // Every page is under its language, e.g. /en/ and /pl/hu/; see
-  // src/pages/index.astro for /. Each locale needs src/i18n/{locale}.js.
+  // src/pages/index.astro for /. Each locale needs its copy in src/i18n.
   i18n: {
     locales: ["en", "pl", "hu"],
     defaultLocale: "en",
