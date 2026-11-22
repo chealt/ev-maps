@@ -291,7 +291,9 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: bunx wrangler d1 migrations apply ev-maps --remote
+        run: |
+          bunx wrangler d1 migrations apply ev-maps --remote
+          bunx wrangler d1 migrations apply ev-maps-admin --remote
 
       # Preview URLs need a DNS-safe alias: "feat/My_Branch" -> "feat-my-branch".
       - name: Preview alias

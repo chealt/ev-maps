@@ -26,6 +26,8 @@ const POLICIES = {
   favorites: { limiter: "FAVORITES_LIMITER", signedIn: true },
   // Only Chealt's own people (src/admin.js).
   admin: { limiter: "ADMIN_LIMITER", signedIn: true, admin: true },
+  // Pages reporting their errors (src/errors.js).
+  errors: { limiter: "ERRORS_LIMITER", signedIn: false },
 };
 
 const errorResponse = (status, error, headers = {}) =>

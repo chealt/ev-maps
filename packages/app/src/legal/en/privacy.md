@@ -1,6 +1,6 @@
 ---
 title: Privacy policy
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 EV Maps (ev.chealt.com, "we") is a map of electric vehicle charging stations.
@@ -19,6 +19,10 @@ controller). Contact: [info@chealt.com](mailto:info@chealt.com).
 - **Technical data.** Our hosting provider, Cloudflare, processes your IP
   address and the details of each request (such as the page, browser and time)
   to deliver the site and protect it from abuse.
+- **Errors.** When something goes wrong in the site or on our server, we store
+  the error with the page, your browser and approximate country, and your
+  account identifier if you're signed in, to fix it. We don't store your IP
+  address with it.
 - **Language and country.** When you open ev.chealt.com, we use your browser's
   language and your approximate country, derived from your IP address, to send
   you to the right page. We don't store them.
@@ -88,6 +92,7 @@ clauses.
 - **Account data:** until you ask us to delete your account.
 - **Sign-in sessions:** until they expire (7 days without use) or you sign out.
 - **Server logs:** a few days at Cloudflare.
+- **Errors:** 30 days.
 
 ## Your rights
 

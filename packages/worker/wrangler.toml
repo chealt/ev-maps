@@ -44,6 +44,13 @@ database_name = "ev-maps"
 database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
 migrations_dir = "migrations"
 
+# The admin area's data: errors (src/errors.js), later usage stats.
+[[d1_databases]]
+binding = "ADMIN_DB"
+database_name = "ev-maps-admin"
+database_id = "3b2fee8f-80a5-451a-9a7e-2c4355852ac5"
+migrations_dir = "admin-migrations"
+
 # Rate limits for the API (src/guard.js), per IP address or signed-in user.
 # Namespace IDs are the account's, so they're unusual numbers.
 [[ratelimits]]
@@ -65,6 +72,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "ERRORS_LIMITER"
+namespace_id = "4409"
+simple = { limit = 30, period = 60 }
 
 [[ratelimits]]
 name = "ADMIN_LIMITER"
@@ -115,6 +127,13 @@ database_name = "ev-maps"
 database_id = "b1dd75de-35c9-46f3-b2f8-14ba0463f7c4"
 migrations_dir = "migrations"
 
+# The admin area's data: errors (src/errors.js), later usage stats.
+[[env.local.d1_databases]]
+binding = "ADMIN_DB"
+database_name = "ev-maps-admin"
+database_id = "3b2fee8f-80a5-451a-9a7e-2c4355852ac5"
+migrations_dir = "admin-migrations"
+
 [[env.local.ratelimits]]
 name = "TILE_LIMITER"
 namespace_id = "4401"
@@ -134,6 +153,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "ERRORS_LIMITER"
+namespace_id = "4409"
+simple = { limit = 30, period = 60 }
 
 [[env.local.ratelimits]]
 name = "ADMIN_LIMITER"

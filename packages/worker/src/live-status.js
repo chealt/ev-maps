@@ -7,6 +7,7 @@
 
 import { POINT_POOLS_KEY, downloadEipa } from "./import/eipa.js";
 import { PASSES, POINT_STATIONS_KEY, downloadCsv } from "./import/irve.js";
+import { recordWorkerError } from "./errors.js";
 import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
 
@@ -137,6 +138,7 @@ const refreshStatuses = async (env, scheduledTime) => {
       }
     } catch (error) {
       console.error(`Statuses: ${status.source} failed:`, error.message);
+      await recordWorkerError(env, error, { context: `statuses ${status.source}` });
     }
   }
 };
