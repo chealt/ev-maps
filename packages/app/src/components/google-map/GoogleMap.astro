@@ -435,8 +435,14 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     </template>
 
     <template class="charger-marker-template">
+      <!-- A favorite's pin is pink, with a heart instead of the bolt. -->
       <div class="charger-marker">
-        <Icon icon={Zap} filled size="sm" />
+        <span class="marker-icon bolt">
+          <Icon icon={Zap} filled size="sm" />
+        </span>
+        <span class="marker-icon heart">
+          <Icon icon={Heart} filled size="sm" />
+        </span>
       </div>
     </template>
   </div>

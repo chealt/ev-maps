@@ -140,6 +140,8 @@ const map = {
     alongRoute: "W kolejności na trasie",
     offRoute: "{distance} od trasy",
     chargerNoneFree: "{name}, brak wolnych punktów",
+    chargerFavorite: "{name}, ulubiona",
+    chargerFavoriteNoneFree: "{name}, ulubiona, brak wolnych punktów",
     pointsFree: {
       one: "Wolne punkty: {available} z {count}",
       other: "Wolne punkty: {available} z {count}",

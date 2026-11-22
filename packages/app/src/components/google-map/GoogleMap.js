@@ -346,6 +346,9 @@ class GoogleMapElement extends HTMLElement {
     );
     onFavoritesChange(() => {
       this.showFavoriteState();
+      for (const marker of this.chargersByMarker.keys()) {
+        this.showMarkerAvailability(marker);
+      }
       if (this.onlyFavorites()) {
         this.showMatchingChargers();
       }
@@ -1153,15 +1156,24 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // Red while the charger's live statuses (already loaded) say none of its
-  // points is free, with that in the pin's name; as usual otherwise.
+  // points is free; pink with a heart for a favorite; and either in the
+  // pin's name.
   showMarkerAvailability(marker) {
     const charger = this.chargersByMarker.get(marker);
     const ids = liveStatusIds(charger);
     const full = isSignedIn() && ids.length > 0 && noneFree(this.cachedStatuses(ids)) === true;
+    const favorite = isFavorite(charger.id);
     marker.content?.classList.toggle("none-free", full);
-    marker.title = full
-      ? message("chargerNoneFree", { name: chargerName(charger) })
-      : chargerName(charger);
+    marker.content?.classList.toggle("favorite", favorite);
+    const name = chargerName(charger);
+    const key = favorite
+      ? full
+        ? "chargerFavoriteNoneFree"
+        : "chargerFavorite"
+      : full
+        ? "chargerNoneFree"
+        : null;
+    marker.title = key ? message(key, { name }) : name;
   }
 
   // Signed in, loads the live statuses of the chargers pinned on the map

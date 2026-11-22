@@ -13,3 +13,11 @@ sign in. Where the service worker runs (`public/sw.js`), it sits in front of
 answered at once, then sent to the Worker (right away, on Background Sync,
 and before the list is read); the list comes from the network, or from
 IndexedDB offline, with the unsent changes on top. Signing out clears both.
+
+## On the map
+
+A favorite's pin is pink (`--color-favorite`) with a heart instead of the
+bolt, and its name says so ("Near charger, favorite"), so it isn't told
+apart by color alone. Where none of its points is free, it's red like any
+other pin, still with the heart. Pins change as soon as a favorite is added
+or removed.

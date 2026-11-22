@@ -375,6 +375,24 @@ ev-google-map {
       scale(var(--marker-active-scale));
   }
 
+  .marker-icon {
+    display: contents;
+  }
+
+  .heart,
+  &.favorite .bolt {
+    display: none;
+  }
+
+  &.favorite .heart {
+    display: contents;
+  }
+
+  /* One of the user's favorites (the heart, not only the color, says so). */
+  &.favorite {
+    background: var(--color-favorite);
+  }
+
   /* Signed in: live statuses say none of the charger's points is free. */
   &.none-free {
     background: var(--color-danger);

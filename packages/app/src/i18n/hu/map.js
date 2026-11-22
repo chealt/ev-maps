@@ -133,6 +133,8 @@ const map = {
     alongRoute: "Az útvonal sorrendjében",
     offRoute: "{distance} az útvonaltól",
     chargerNoneFree: "{name}, nincs szabad töltőpont",
+    chargerFavorite: "{name}, kedvenc",
+    chargerFavoriteNoneFree: "{name}, kedvenc, nincs szabad töltőpont",
     pointsFree: {
       one: "Szabad töltőpontok: {available} / {count}",
       other: "Szabad töltőpontok: {available} / {count}",

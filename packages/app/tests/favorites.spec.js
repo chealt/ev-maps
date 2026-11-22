@@ -267,3 +267,28 @@ test.describe("with the service worker", () => {
       .toBeNull();
   });
 });
+
+test("marks favorites' pins with a pink heart", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeFavoritesApi(page, [{ charger: near, addedAt: 1 }]);
+  await page.goto("/");
+
+  const favoritePin = map(page).getByRole("button", { name: "Near charger, favorite" });
+  await expect(favoritePin).toBeVisible();
+  // The pin is pink (--color-favorite) …
+  await expect(favoritePin.locator(".charger-marker")).toHaveCSS(
+    "background-color",
+    "rgb(219, 39, 119)"
+  );
+  // … and shows the heart, not only the color.
+  await expect(favoritePin.locator(".heart svg")).toBeVisible();
+  await expect(favoritePin.locator(".bolt svg")).toBeHidden();
+  const otherPin = map(page).getByRole("button", { name: "Far charger", exact: true });
+  await expect(otherPin.locator(".bolt svg")).toBeVisible();
+  await expect(otherPin.locator(".heart svg")).toBeHidden();
+
+  // Removing it from the favorites turns the pin back.
+  const panel = await openCharger(page, "Near charger");
+  await panel.getByRole("button", { name: "Favorite" }).click();
+  await expect(map(page).getByRole("button", { name: "Near charger", exact: true })).toBeVisible();
+});
