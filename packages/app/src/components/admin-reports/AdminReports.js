@@ -1,6 +1,11 @@
+import { get, set } from "idb-keyval";
 import { formatNumber, message } from "../../lib/messages.js";
 
 const REPORTS_URL = "/api/admin/test-reports";
+// The branch filter, remembered in this browser (IndexedDB); the default
+// branch until one is picked ("" is every branch).
+const BRANCH_KEY = "ev-maps:admin-reports-branch";
+const DEFAULT_BRANCH = "main";
 
 const language = () => document.documentElement.lang || "en";
 
@@ -19,11 +24,28 @@ const pageOf = () =>
 const repositoryOf = (runUrl) => runUrl?.split("/actions/")[0] ?? null;
 
 class AdminReportsElement extends HTMLElement {
-  connectedCallback() {
+  async connectedCallback() {
+    this.branchSelect = this.querySelector(".branch-select");
     this.querySelector(".previous").addEventListener("click", () => this.go(pageOf() - 1));
     this.querySelector(".next").addEventListener("click", () => this.go(pageOf() + 1));
+    this.branchSelect.addEventListener("change", () => {
+      this.branch = this.branchSelect.value;
+      // IndexedDB can be unavailable (e.g. some private browsing modes).
+      set(BRANCH_KEY, this.branch).catch(() => {});
+      this.go(1);
+    });
     window.addEventListener("popstate", () => this.show(pageOf()));
+    this.branch = (await get(BRANCH_KEY).catch(() => undefined)) ?? DEFAULT_BRANCH;
     this.show(pageOf());
+  }
+
+  // The branches with reports, and the one picked even if it has none.
+  showBranches(branches) {
+    const names =
+      branches.includes(this.branch) || !this.branch ? branches : [this.branch, ...branches];
+    const [allBranches] = this.branchSelect.options;
+    this.branchSelect.replaceChildren(allBranches, ...names.map((name) => new Option(name, name)));
+    this.branchSelect.value = this.branch;
   }
 
   go(page) {
@@ -36,7 +58,11 @@ class AdminReportsElement extends HTMLElement {
     const summary = this.querySelector(".summary");
     let data;
     try {
-      const response = await fetch(`${REPORTS_URL}?page=${page}`);
+      const params = new URLSearchParams({ page: String(page) });
+      if (this.branch) {
+        params.set("branch", this.branch);
+      }
+      const response = await fetch(`${REPORTS_URL}?${params}`);
       if (!response.ok) {
         throw new Error(`${REPORTS_URL} failed: ${response.status}`);
       }
@@ -46,6 +72,7 @@ class AdminReportsElement extends HTMLElement {
       summary.textContent = message("adminReportsNotLoaded");
       return;
     }
+    this.showBranches(data.branches ?? []);
     summary.textContent =
       data.total === 0
         ? message("adminNoReports")

@@ -3,6 +3,8 @@
 
 const adminReports = {
   page: {
+    adminBranchFilter: "Branch",
+    adminAllBranches: "All branches",
     adminReports: "Test reports",
     adminReportsDescription: "CI's Playwright reports, the latest first",
     adminResultColumn: "Result",

@@ -6,6 +6,23 @@ ev-admin-reports {
     font-weight: var(--font-weight-bold);
   }
 
+  .branch-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+
+    select {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border: var(--border-width) solid var(--color-border-strong);
+      border-radius: var(--border-radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font: inherit;
+    }
+  }
+
   .summary {
     margin-bottom: var(--spacing-md);
     font-size: var(--font-size-sm);

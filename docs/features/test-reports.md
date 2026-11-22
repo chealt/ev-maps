@@ -23,7 +23,11 @@ Pull requests from forks don't get the secrets, so their reports are only the
 ## Viewing
 
 - `/{lang}/admin/reports/` lists the reports, the latest first, 20 a page,
-  with links to the commit, the pull request and the report.
+  with links to the commit, the pull request and the report. A branch
+  filter shows `main`'s reports until another branch (or all) is picked;
+  the pick is remembered in this browser (IndexedDB, with `idb-keyval`).
+  The API takes `?branch=` and lists the branches with reports, most
+  recently run first.
 - `/{lang}/admin/reports/{id}/…` serves the report's files from R2
   (`src/test-reports.js`, a page route), so the report's own links (`data/`,
   `trace/`) stay under it. Everyone but admins gets a 404, as for every admin
