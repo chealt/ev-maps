@@ -46,6 +46,8 @@ const messagesJson = JSON.stringify({ messages, values }).replaceAll("<", "\\u00
     ))}
     <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
     <script type="application/json" id="messages" set:html={messagesJson} />
+    <!-- Sends the page's uncaught errors to the admin area. -->
+    <script src="../lib/error-reporting.js"></script>
     <!-- Applies the saved theme before the first paint, so the page doesn't flash
          the wrong theme. It must stay inline to run before rendering. -->
     <script is:inline>

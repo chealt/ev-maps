@@ -17,6 +17,7 @@ import {
   isAdminPage,
 } from "./admin.js";
 import { handleAuth, isAuthPath, userOf } from "./auth.js";
+import { ERRORS_PATH, deleteOldErrors, errorReportResponse, recordWorkerError } from "./errors.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { guard } from "./guard.js";
@@ -190,6 +191,9 @@ const apiPolicy = (request, url) => {
   if (url.pathname.startsWith(ADMIN_API_PREFIX)) {
     return "admin";
   }
+  if (url.pathname === ERRORS_PATH) {
+    return "errors";
+  }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
     return "tiles";
   }
@@ -216,6 +220,11 @@ const route = async (request, env, context) => {
   }
   if (policy === "admin") {
     return adminApiResponse(request, user);
+  }
+  if (policy === "errors") {
+    // Anyone may report a page's error; signed in, with who it happened to.
+    const reporter = await userOf(request, env).catch(() => null);
+    return errorReportResponse(request, env, reporter?.id ?? null);
   }
   if (isAdminPage(url.pathname)) {
     return adminPageResponse(request, env, await userOf(request, env));
@@ -249,18 +258,34 @@ const route = async (request, env, context) => {
 
 export default {
   async fetch(request, env, context) {
-    const response = await route(request, env, context);
-    return new URL(request.url).pathname.startsWith("/api/") ? withoutIndexing(response) : response;
+    const isApi = new URL(request.url).pathname.startsWith("/api/");
+    let response;
+    try {
+      response = await route(request, env, context);
+    } catch (error) {
+      console.error("Request failed:", error);
+      context.waitUntil(recordWorkerError(env, error, { request }));
+      response = isApi
+        ? json({ error: "Something went wrong" }, { status: 500 })
+        : new Response("Something went wrong", { status: 500 });
+    }
+    return isApi ? withoutIndexing(response) : response;
   },
 
   // Awaited, not passed to waitUntil(): work after the handler returns is
   // cancelled after ~30 s, but a scheduled handler itself may run 15 minutes.
   async scheduled(controller, env) {
-    if (controller.cron === STATUS_CRON) {
-      await refreshStatuses(env, controller.scheduledTime);
-      return;
+    try {
+      if (controller.cron === STATUS_CRON) {
+        await refreshStatuses(env, controller.scheduledTime);
+        return;
+      }
+      await deleteOldErrors(env);
+      // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
+      await runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined });
+    } catch (error) {
+      await recordWorkerError(env, error, { context: `scheduled ${controller.cron}` });
+      throw error;
     }
-    // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
-    await runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined });
   },
 };

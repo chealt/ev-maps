@@ -193,6 +193,13 @@ ev-maps/
   admins (404 for everyone else, never cached), and the admin API
   (`/api/admin/*`, the guard's `admin` policy) answers only them (403
   otherwise). The account menu links admins to `/{lang}/admin/`.
+- **Errors**: the Worker records what it doesn't handle (failing requests,
+  scheduled runs, import and status jobs) and the pages report their uncaught
+  errors and rejected promises (`src/lib/error-reporting.js`) to
+  `POST /api/errors` (open, 30 per IP address per minute). They go to the
+  separate admin database (`ev-maps-admin`, binding `ADMIN_DB`,
+  `packages/worker/admin-migrations/`) with a fingerprint that groups the
+  same error (`packages/worker/src/errors.js`), and are kept 30 days.
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

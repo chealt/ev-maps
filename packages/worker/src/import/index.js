@@ -2,6 +2,7 @@
 // due jobs (never imported, or last finished over a week ago) until its time
 // budget is spent; a job's cursor lets the next run continue a big country.
 
+import { recordWorkerError } from "../errors.js";
 import * as amenities from "./amenities.js";
 import * as eipa from "./eipa.js";
 import * as irve from "./irve.js";
@@ -59,6 +60,7 @@ const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
     await ensureJobs(env);
   } catch (error) {
     console.error("Import: listing jobs failed:", error);
+    await recordWorkerError(env, error, { context: "import: listing jobs" });
   }
 
   while (Date.now() < deadline) {
@@ -93,6 +95,7 @@ const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
       );
     } catch (error) {
       console.error(`Import: ${job.source} ${job.area} failed:`, error.message);
+      await recordWorkerError(env, error, { context: `import ${job.source} ${job.area}` });
       // Try the job again in a later run; move on to others now.
       skipped.add(`${job.source}:${job.area}`);
       await env.DB.prepare("UPDATE import_jobs SET error = ? WHERE source = ? AND area = ?")

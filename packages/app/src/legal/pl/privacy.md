@@ -1,6 +1,6 @@
 ---
 title: Polityka prywatności
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 EV Maps (ev.chealt.com, „my”) to mapa stacji ładowania samochodów elektrycznych.
@@ -19,6 +19,10 @@ Kontakt: [info@chealt.com](mailto:info@chealt.com).
 - **Dane techniczne.** Nasz dostawca hostingu, Cloudflare, przetwarza Twój adres
   IP i szczegóły każdego zapytania (np. stronę, przeglądarkę i czas), aby
   udostępniać serwis i chronić go przed nadużyciami.
+- **Błędy.** Gdy coś pójdzie nie tak w serwisie lub na naszym serwerze,
+  zapisujemy błąd wraz ze stroną, Twoją przeglądarką, przybliżonym krajem i –
+  jeśli jesteś zalogowany – identyfikatorem konta, aby go naprawić. Nie
+  zapisujemy przy tym Twojego adresu IP.
 - **Język i kraj.** Gdy otwierasz ev.chealt.com, używamy języka Twojej
   przeglądarki i przybliżonego kraju, ustalonego na podstawie adresu IP, aby
   przekierować Cię na właściwą stronę. Nie zapisujemy ich.
@@ -94,6 +98,7 @@ klauzulach umownych Komisji Europejskiej.
 - **Sesje logowania:** do ich wygaśnięcia (7 dni bez korzystania) lub
   wylogowania.
 - **Logi serwera:** kilka dni w Cloudflare.
+- **Błędy:** 30 dni.
 
 ## Twoje prawa
 
