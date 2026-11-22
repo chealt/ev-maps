@@ -3,7 +3,8 @@
 // their requests to it. Pages read the data the Worker gives them from the
 // context's props (src/admin.js). Kept apart so that tests of the other
 // modules don't need the app's build.
-import astro from "../../app/dist/server/entry.mjs";
+// "ev-maps-app-server" is an alias for its entry (wrangler.toml).
+import astro from "ev-maps-app-server";
 
 const renderAppPage = (request, env, context) => astro.fetch(request, env, context);
 

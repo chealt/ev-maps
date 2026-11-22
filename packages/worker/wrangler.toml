@@ -12,6 +12,10 @@ main = "src/index.js"
 compatibility_date = "2026-11-09"
 # Better Auth (src/auth.js) uses Node.js APIs such as AsyncLocalStorage.
 compatibility_flags = ["nodejs_compat"]
+# The app's server-rendered pages (Astro's server build), imported by name in
+# src/app-server.js; scripts/app-build-stub.js stands in where the app isn't
+# built.
+alias = { "ev-maps-app-server" = "../app/dist/server/entry.mjs" }
 
 # Production answers on both addresses. With a route listed, Wrangler would
 # turn workers.dev off, so it's kept on explicitly; the pull request previews
