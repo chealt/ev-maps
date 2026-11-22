@@ -62,38 +62,42 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true, user: GRACE });
 });
 
-test("lists the reports, the latest first, with links to them", async ({ page }) => {
-  await fakeReportsApi(page, 2);
-  await page.goto("/en/admin/reports/");
-  await branchFilter(page).selectOption({ label: "All branches" });
+test(
+  "lists the reports, the latest first, with links to them",
+  { tag: "@performance" },
+  async ({ page }) => {
+    await fakeReportsApi(page, 2);
+    await page.goto("/en/admin/reports/");
+    await branchFilter(page).selectOption({ label: "All branches" });
 
-  await expect(page.getByRole("heading", { level: 2, name: "Test reports" })).toBeVisible();
-  await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
-  const rows = page.getByRole("table").getByRole("row");
-  await expect(rows).toHaveCount(3);
+    await expect(page.getByRole("heading", { level: 2, name: "Test reports" })).toBeVisible();
+    await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(3);
 
-  const latest = rows.nth(1);
-  await expect(latest).toContainText("Failed");
-  await expect(latest).toContainText("156 passed, 2 failed, 1 flaky");
-  await expect(latest).toContainText("main");
-  await expect(latest).toContainText("1.4 min");
-  await expect(latest.getByRole("link", { name: "0123456" })).toHaveAttribute(
-    "href",
-    "https://github.com/chealt/ev-maps/commit/0123456789abcdef0123456789abcdef01234567"
-  );
-  await expect(latest.getByRole("link", { name: "Open report" })).toHaveAttribute(
-    "href",
-    "/en/admin/reports/9000-1/"
-  );
+    const latest = rows.nth(1);
+    await expect(latest).toContainText("Failed");
+    await expect(latest).toContainText("156 passed, 2 failed, 1 flaky");
+    await expect(latest).toContainText("main");
+    await expect(latest).toContainText("1.4 min");
+    await expect(latest.getByRole("link", { name: "0123456" })).toHaveAttribute(
+      "href",
+      "https://github.com/chealt/ev-maps/commit/0123456789abcdef0123456789abcdef01234567"
+    );
+    await expect(latest.getByRole("link", { name: "Open report" })).toHaveAttribute(
+      "href",
+      "/en/admin/reports/9000-1/"
+    );
 
-  const older = rows.nth(2);
-  await expect(older).toContainText("Passed");
-  await expect(older.getByRole("link", { name: "#91" })).toHaveAttribute(
-    "href",
-    "https://github.com/chealt/ev-maps/pull/91"
-  );
-  await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
-});
+    const older = rows.nth(2);
+    await expect(older).toContainText("Passed");
+    await expect(older.getByRole("link", { name: "#91" })).toHaveAttribute(
+      "href",
+      "https://github.com/chealt/ev-maps/pull/91"
+    );
+    await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
+  }
+);
 
 test("pages through many reports", async ({ page }) => {
   await fakeReportsApi(page, 25);

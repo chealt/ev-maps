@@ -92,36 +92,42 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true, user: GRACE });
 });
 
-test("shows the Web Vitals' P75s with their rating, and the timings", async ({ page }) => {
-  await fakePerformanceApi(page);
-  await page.goto("/en/admin/performance/");
+test(
+  "shows the Web Vitals' P75s with their rating, and the timings",
+  { tag: "@performance" },
+  async ({ page }) => {
+    await fakePerformanceApi(page);
+    await page.goto("/en/admin/performance/");
 
-  await expect(page.getByRole("heading", { level: 2, name: "Performance" })).toBeVisible();
-  const lcp = page.locator('[data-vital="LCP"]');
-  await expect(lcp.locator(".value")).toHaveText("2.1 s");
-  await expect(lcp).toHaveAttribute("data-rating", "good");
-  await expect(page.locator('[data-vital="INP"] .value')).toHaveText("350 ms");
-  await expect(page.locator('[data-vital="INP"]')).toHaveAttribute(
-    "data-rating",
-    "needs-improvement"
-  );
-  await expect(page.locator('[data-vital="CLS"] .value')).toHaveText("0.31");
-  await expect(page.locator('[data-vital="CLS"]')).toHaveAttribute("data-rating", "poor");
-  await expect(page.locator('[data-vital="TTFB"] .value')).toHaveText("–");
-  await expect(page.getByTitle("Largest Contentful Paint")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Performance" })).toBeVisible();
+    const lcp = page.locator('[data-vital="LCP"]');
+    await expect(lcp.locator(".value")).toHaveText("2.1 s");
+    await expect(lcp).toHaveAttribute("data-rating", "good");
+    await expect(page.locator('[data-vital="INP"] .value')).toHaveText("350 ms");
+    await expect(page.locator('[data-vital="INP"]')).toHaveAttribute(
+      "data-rating",
+      "needs-improvement"
+    );
+    await expect(page.locator('[data-vital="CLS"] .value')).toHaveText("0.31");
+    await expect(page.locator('[data-vital="CLS"]')).toHaveAttribute("data-rating", "poor");
+    await expect(page.locator('[data-vital="TTFB"] .value')).toHaveText("–");
+    await expect(page.getByTitle("Largest Contentful Paint")).toBeVisible();
 
-  const requests = page.getByRole("region", { name: "Requests, in the Worker" });
-  await expect(requests.getByRole("row").nth(1)).toHaveText(
-    /POST route\s*12\s*840 ms\s*1.9 s\s*2.3 s\s*1/
-  );
-  const queries = page.getByRole("region", { name: "Slowest database queries" });
-  await expect(queries.getByRole("row").nth(1)).toContainText(
-    "SELECT * FROM chargers_rtree WHERE ?"
-  );
-  await expect(
-    page.getByRole("region", { name: "API calls, as the page saw them" }).getByText("Nothing yet.")
-  ).toBeVisible();
-});
+    const requests = page.getByRole("region", { name: "Requests, in the Worker" });
+    await expect(requests.getByRole("row").nth(1)).toHaveText(
+      /POST route\s*12\s*840 ms\s*1.9 s\s*2.3 s\s*1/
+    );
+    const queries = page.getByRole("region", { name: "Slowest database queries" });
+    await expect(queries.getByRole("row").nth(1)).toContainText(
+      "SELECT * FROM chargers_rtree WHERE ?"
+    );
+    await expect(
+      page
+        .getByRole("region", { name: "API calls, as the page saw them" })
+        .getByText("Nothing yet.")
+    ).toBeVisible();
+  }
+);
 
 test("opens a slow request's trace as a waterfall, and goes back", async ({ page }) => {
   await fakePerformanceApi(page);

@@ -39,6 +39,7 @@ test-results/
 playwright-report/
 playwright-results.json
 a11y-report/
+performance-report/
 blob-report/
 
 # Cloudflare

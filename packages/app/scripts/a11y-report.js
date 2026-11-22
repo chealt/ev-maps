@@ -7,44 +7,14 @@
 //
 // Returns (and prints) the totals: { tests, pages, violations, incomplete }.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { attachmentsNamed, escapeHtml } from "./report-attachments.js";
 
 const RESULTS_FILE = "playwright-results.json";
 const REPORT_DIR = "a11y-report";
 
-const escapeHtml = (text) =>
-  String(text).replace(
-    /[&<>"']/g,
-    (character) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]
-  );
-
 // [{ title, file, axe }] for every test result with axe results.
-const axeResults = (results) => {
-  const found = [];
-  const walk = (suite, titles) => {
-    for (const spec of suite.specs ?? []) {
-      for (const test of spec.tests) {
-        for (const result of test.results) {
-          const attachment = result.attachments?.find((item) => item.name === "axe");
-          if (attachment?.body) {
-            found.push({
-              title: [...titles, spec.title].join(" › "),
-              file: spec.file,
-              axe: JSON.parse(Buffer.from(attachment.body, "base64").toString("utf8")),
-            });
-          }
-        }
-      }
-    }
-    for (const child of suite.suites ?? []) {
-      walk(child, suite.title && !suite.title.endsWith(".js") ? [...titles, suite.title] : titles);
-    }
-  };
-  for (const suite of results.suites ?? []) {
-    walk(suite, []);
-  }
-  return found;
-};
+const axeResults = (results) =>
+  attachmentsNamed(results, "axe").map(({ title, file, value }) => ({ title, file, axe: value }));
 
 // The rules over all tests: { id, impact, help, helpUrl, tests: n, targets }.
 const byRule = (checks, kind) => {

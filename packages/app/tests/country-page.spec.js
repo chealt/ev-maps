@@ -17,16 +17,20 @@ test("has a page for each country with chargers", async ({ page }) => {
   await expect(page).toHaveTitle("EV Maps - EV chargers in Hungary");
 });
 
-test("shows the whole country's chargers without loading them", async ({ page }) => {
-  const requests = await fakeChargersApi(page);
-  await page.goto("/en/hu/");
-  const map = page.getByRole("region", { name: "EV charging station map" });
+test(
+  "shows the whole country's chargers without loading them",
+  { tag: "@performance" },
+  async ({ page }) => {
+    const requests = await fakeChargersApi(page);
+    await page.goto("/en/hu/");
+    const map = page.getByRole("region", { name: "EV charging station map" });
 
-  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-  await expect(map.getByRole("button", { name: "Budapest Hub" })).toBeVisible();
-  await expect(map.getByRole("button", { name: "Szeged Charger" })).toBeVisible();
-  expect(requests).toHaveLength(0);
-});
+    await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
+    await expect(map.getByRole("button", { name: "Budapest Hub" })).toBeVisible();
+    await expect(map.getByRole("button", { name: "Szeged Charger" })).toBeVisible();
+    expect(requests).toHaveLength(0);
+  }
+);
 
 test("starts on the country", async ({ page }) => {
   await page.goto("/en/hu/");

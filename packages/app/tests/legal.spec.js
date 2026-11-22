@@ -18,7 +18,7 @@ test("has a privacy policy and terms of use in every language", async ({ page })
   }
 });
 
-test("states the terms Google requires for its maps", async ({ page }) => {
+test("states the terms Google requires for its maps", { tag: "@performance" }, async ({ page }) => {
   await page.goto("/en/terms/");
 
   await expect(
