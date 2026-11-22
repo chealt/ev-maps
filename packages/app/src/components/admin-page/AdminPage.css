@@ -1,0 +1,40 @@
+.admin-page {
+  --admin-content-width: 64rem;
+
+  max-width: var(--admin-content-width);
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+  color: var(--color-text);
+  line-height: var(--line-height-base);
+
+  .links {
+    margin-bottom: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+
+    a {
+      color: var(--color-primary-light-text);
+    }
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .signed-in-as {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+}

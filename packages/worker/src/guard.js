@@ -24,6 +24,8 @@ const POLICIES = {
   route: { limiter: "ROUTE_LIMITER", signedIn: true },
   settings: { limiter: "SETTINGS_LIMITER", signedIn: true },
   favorites: { limiter: "FAVORITES_LIMITER", signedIn: true },
+  // Only Chealt's own people (src/admin.js).
+  admin: { limiter: "ADMIN_LIMITER", signedIn: true, admin: true },
 };
 
 const errorResponse = (status, error, headers = {}) =>
@@ -37,21 +39,25 @@ const errorResponse = (status, error, headers = {}) =>
   });
 
 // { refused: the response refusing the request } or { userId } (null when the
-// policy doesn't need a signed-in user). `userIdOf(request)` resolves to the
-// signed-in user's ID, or null.
-const guard = async (request, env, policyName, userIdOf) => {
+// policy doesn't need a signed-in user), with { user }. `userOf(request)`
+// resolves to the signed-in user, { id, email }, or null; `isAdmin(user)`
+// says if they may use admin policies.
+const guard = async (request, env, policyName, userOf, isAdmin = () => false) => {
   if (isBlockedAgent(request)) {
     return { refused: errorResponse(403, "Automated access isn't allowed; see the terms of use.") };
   }
   const policy = POLICIES[policyName];
   let key = `ip:${request.headers.get("cf-connecting-ip") ?? "local"}`;
-  let userId = null;
+  let user = null;
   if (policy.signedIn) {
-    userId = await userIdOf(request);
-    if (!userId) {
+    user = await userOf(request);
+    if (!user) {
       return { refused: errorResponse(401, "Sign in to use this.") };
     }
-    key = `user:${userId}`;
+    if (policy.admin && !isAdmin(user)) {
+      return { refused: errorResponse(403, "Only for admins.") };
+    }
+    key = `user:${user.id}`;
   }
   const limiter = env[policy.limiter];
   if (limiter && !(await limiter.limit({ key: `${policyName}:${key}` })).success) {
@@ -61,7 +67,7 @@ const guard = async (request, env, policyName, userIdOf) => {
       }),
     };
   }
-  return { userId };
+  return { userId: user?.id ?? null, user };
 };
 
 export { guard, isBlockedAgent };

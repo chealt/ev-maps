@@ -85,6 +85,7 @@ const pl = {
     emailLinkHint: "Jesteś tu pierwszy raz? Link utworzy konto, gdy go otworzysz.",
     addPasskey: "Dodaj klucz dostępu",
     addPasskeyHint: "Następnym razem zaloguj się odciskiem palca, twarzą lub blokadą ekranu.",
+    admin: "Administracja",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -182,6 +183,8 @@ const pl = {
       "Logowanie kluczem dostępu nie powiodło się. Spróbuj ponownie lub użyj adresu e-mail.",
     passkeyAdded: "Dodano klucz dostępu. Następnym razem zaloguj się nim.",
     passkeyNotAdded: "Nie udało się dodać klucza dostępu. Spróbuj ponownie.",
+    adminSignedInAs: "Zalogowano jako {email}",
+    adminSignedOut: "Zaloguj się kontem administratora, aby zobaczyć tę stronę.",
     accountOf: "Konto: {name}",
   },
   values: {

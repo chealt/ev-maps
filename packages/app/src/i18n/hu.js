@@ -91,6 +91,7 @@ const hu = {
     addPasskey: "Jelkulcs hozzáadása",
     addPasskeyHint:
       "Legközelebb az ujjlenyomatoddal, arcoddal vagy képernyőzárral jelentkezhetsz be.",
+    admin: "Adminisztráció",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -176,6 +177,8 @@ const hu = {
       "A jelkulcsos bejelentkezés nem sikerült. Próbáld újra, vagy használd az e-mail-címedet.",
     passkeyAdded: "Jelkulcs hozzáadva. Legközelebb jelentkezz be vele.",
     passkeyNotAdded: "Nem sikerült hozzáadni a jelkulcsot. Próbáld újra.",
+    adminSignedInAs: "Bejelentkezve: {email}",
+    adminSignedOut: "Jelentkezz be adminisztrátori fiókkal az oldal megtekintéséhez.",
     accountOf: "Fiók: {name}",
   },
   values: {

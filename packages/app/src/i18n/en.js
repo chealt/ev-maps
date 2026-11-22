@@ -92,6 +92,7 @@ const en = {
     emailLinkHint: "New here? The link creates your account once you open it.",
     addPasskey: "Add a passkey",
     addPasskeyHint: "Next time, sign in with your fingerprint, face or screen lock.",
+    admin: "Admin",
     account: "Account",
     signedInAs: "Signed in as",
     signOut: "Sign out",
@@ -172,6 +173,8 @@ const en = {
     passkeySignInFailed: "Signing in with a passkey didn't work. Try again, or use your email.",
     passkeyAdded: "Passkey added. Next time, sign in with it.",
     passkeyNotAdded: "The passkey couldn't be added. Try again.",
+    adminSignedInAs: "Signed in as {email}",
+    adminSignedOut: "Sign in with an admin account to see this page.",
     accountOf: "Account: {name}",
   },
   values: {

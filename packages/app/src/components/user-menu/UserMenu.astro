@@ -1,5 +1,5 @@
 ---
-import { Heart, KeyRound, LogOut, Mail, Zap } from "lucide-static";
+import { Heart, KeyRound, LogOut, Mail, ShieldCheck, Zap } from "lucide-static";
 import Button from "../button/Button.astro";
 import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
@@ -137,6 +137,11 @@ const { page } = translations(lang);
       <Icon icon={LogOut} size="sm" />
       {page.signOut}
     </Button>
+    <!-- Only for admins: the Worker says who is one (/api/admin/me). -->
+    <a class="admin-link" href={`/${lang}/admin/`} hidden>
+      <Icon icon={ShieldCheck} size="sm" />
+      {page.admin}
+    </a>
     <nav class="legal" aria-label={page.legal}>
       <a href={`/${lang}/privacy/`}>{page.privacyPolicy}</a>
       <a href={`/${lang}/terms/`}>{page.termsOfUse}</a>

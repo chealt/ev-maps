@@ -187,6 +187,12 @@ ev-maps/
   the chargers. Tiles carry them as `amenities: ["coffee", ...]`; the details
   list them with OpenStreetMap's credit, and signed in, the Filters dialog's
   "Nearby" shows only chargers with every chosen kind (saved with the filters).
+- **Admin area**: users with a verified email at `ADMIN_EMAIL_DOMAIN`
+  (`chealt.com`, in `wrangler.toml`) are admins (`packages/worker/src/admin.js`).
+  The Worker runs first for `/{lang}/admin*` and serves those pages only to
+  admins (404 for everyone else, never cached), and the admin API
+  (`/api/admin/*`, the guard's `admin` policy) answers only them (403
+  otherwise). The account menu links admins to `/{lang}/admin/`.
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

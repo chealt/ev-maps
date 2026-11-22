@@ -28,12 +28,15 @@ GOOGLE_CLIENT_ID = "605162380909-92ejnikf2hpgjd6hk6t17rgp1hjtauua.apps.googleuse
 # Sign-in links are sent from this address with Resend (RESEND_API_KEY secret,
 # see docs/DEPLOYMENT.md).
 EMAIL_FROM = "EV Maps <sign-in@chealt.com>"
+# Users with a verified email at this domain see the admin area.
+ADMIN_EMAIL_DOMAIN = "chealt.com"
 
 [assets]
 directory = "../app/dist"
 binding = "ASSETS"
 # Everything else is served straight from the static assets.
-run_worker_first = ["/", "/api/*"]
+# The admin pages too: the Worker only serves them to admins (src/admin.js).
+run_worker_first = ["/", "/api/*", "/en/admin*", "/pl/admin*", "/hu/admin*"]
 
 [[d1_databases]]
 binding = "DB"
@@ -62,6 +65,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
+name = "ADMIN_LIMITER"
+namespace_id = "4408"
+simple = { limit = 120, period = 60 }
 
 [[ratelimits]]
 name = "EMAIL_LIMITER"
@@ -99,6 +107,7 @@ GOOGLE_CLIENT_ID = "605162380909-9qcphon62a7gsq06974niqg20bi2b879.apps.googleuse
 # Requests reach the Worker through Astro's proxy, so it can't tell the
 # site's address from them.
 BETTER_AUTH_URL = "http://localhost:4321"
+ADMIN_EMAIL_DOMAIN = "chealt.com"
 
 [[env.local.d1_databases]]
 binding = "DB"
@@ -125,6 +134,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "ADMIN_LIMITER"
+namespace_id = "4408"
+simple = { limit = 120, period = 60 }
 
 [[env.local.ratelimits]]
 name = "EMAIL_LIMITER"

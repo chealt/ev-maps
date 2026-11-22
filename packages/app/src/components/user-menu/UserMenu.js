@@ -164,6 +164,17 @@ class UserMenuElement extends HTMLElement {
     }
   }
 
+  // Admins (the Worker decides who: GET /api/admin/me) get a link to the
+  // admin area.
+  async showAdminLink() {
+    const link = this.querySelector(".admin-link");
+    try {
+      link.hidden = !(await fetch("/api/admin/me")).ok;
+    } catch {
+      link.hidden = true;
+    }
+  }
+
   // Signed in without a passkey, the profile offers to add one.
   async offerPasskey() {
     const setup = this.querySelector(".passkey-setup");
@@ -224,6 +235,7 @@ class UserMenuElement extends HTMLElement {
     this.querySelector(".email").textContent = email ?? "";
     this.setSignedIn(true);
     this.offerPasskey();
+    this.showAdminLink();
     this.dispatchEvent(
       new CustomEvent("sign-in", { detail: { name, email }, bubbles: true, composed: true })
     );
@@ -231,6 +243,7 @@ class UserMenuElement extends HTMLElement {
 
   showSignedOut() {
     this.button.removeAttribute("aria-label");
+    this.querySelector(".admin-link").hidden = true;
     this.setSignedIn(false);
   }
 

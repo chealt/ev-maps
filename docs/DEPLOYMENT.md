@@ -123,6 +123,7 @@ asks for sign-in where needed and is rate limited per minute:
 | `/api/chargers/{z}/{x}/{y}` (tiles) | Everyone  | 600 per IP address |
 | `/api/auth/*`, sign-in providers    | Everyone  | 60 per IP address  |
 | Sending a sign-in email             | Everyone  | 5 per IP address   |
+| `/api/admin/*`                      | Admins    | 120 per user       |
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
 | `/api/settings`                     | Signed in | 60 per user        |

@@ -9,7 +9,14 @@
 // refreshes the live statuses every few minutes.
 
 import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
-import { handleAuth, isAuthPath, userIdOf } from "./auth.js";
+import {
+  ADMIN_API_PREFIX,
+  adminApiResponse,
+  adminPageResponse,
+  isAdmin,
+  isAdminPage,
+} from "./admin.js";
+import { handleAuth, isAuthPath, userOf } from "./auth.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { guard } from "./guard.js";
@@ -180,6 +187,9 @@ const apiPolicy = (request, url) => {
   if (isFavoritesPath(url.pathname)) {
     return "favorites";
   }
+  if (url.pathname.startsWith(ADMIN_API_PREFIX)) {
+    return "admin";
+  }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
     return "tiles";
   }
@@ -190,12 +200,25 @@ const route = async (request, env, context) => {
   const url = new URL(request.url);
   const policy = apiPolicy(request, url);
   let userId = null;
+  let user = null;
   if (policy) {
-    const guarded = await guard(request, env, policy, () => userIdOf(request, env));
+    const guarded = await guard(
+      request,
+      env,
+      policy,
+      () => userOf(request, env),
+      (signedIn) => isAdmin(env, signedIn)
+    );
     if (guarded.refused) {
       return guarded.refused;
     }
-    userId = guarded.userId;
+    ({ userId, user } = guarded);
+  }
+  if (policy === "admin") {
+    return adminApiResponse(request, user);
+  }
+  if (isAdminPage(url.pathname)) {
+    return adminPageResponse(request, env, await userOf(request, env));
   }
   if (policy === "settings") {
     return settingsResponse(request, env, userId);

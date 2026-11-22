@@ -328,6 +328,26 @@
       }
     }
 
+    .admin-link {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      text-decoration: none;
+
+      &:hover {
+        background: var(--color-surface-hover);
+      }
+
+      &[hidden] {
+        display: none;
+      }
+    }
+
     .legal {
       display: flex;
       flex-wrap: wrap;

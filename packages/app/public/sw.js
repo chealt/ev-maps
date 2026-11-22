@@ -23,6 +23,7 @@ const APP_CACHE_NAME = "ev-maps-app-v1";
 // header) from matching the precached copies.
 const APP_MATCH_OPTIONS = { ignoreVary: true };
 const HASHED_ASSETS_PATH = "/_astro/";
+const ADMIN_PAGE_PATH = /^\/[a-z]{2}\/admin(\/|$)/;
 // Only the tiles (/api/chargers/{z}/{x}/{y}): live statuses must stay live.
 const TILE_PATH = /^\/api\/chargers\/\d+\/\d+\/\d+$/;
 const CACHED_AT_HEADER = "x-ev-maps-cached-at";
@@ -353,6 +354,10 @@ self.addEventListener("fetch", (event) => {
   }
   if (TILE_PATH.test(url.pathname)) {
     event.respondWith(fetchWithCache(request));
+  } else if (request.mode === "navigate" && ADMIN_PAGE_PATH.test(url.pathname)) {
+    // The admin pages are only for admins, decided per request by the Worker:
+    // never cached, so they don't outlive signing out.
+    return;
   } else if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));
   } else if (url.pathname.startsWith(HASHED_ASSETS_PATH) || url.pathname === "/favicon.svg") {

@@ -143,12 +143,13 @@ const handleAuth = async (request, env) => {
     : auth.handler(request);
 };
 
-// The signed-in user's ID, or null: only users with a verified email count
-// as signed in for the rest of the API.
-const userIdOf = async (request, env) => {
+// The signed-in user, { id, email }, or null: only users with a verified
+// email count as signed in for the rest of the API.
+const userOf = async (request, env) => {
   const { auth } = await authFor(env, request);
   const session = await auth.api.getSession({ headers: request.headers }).catch(() => null);
-  return session?.user?.emailVerified ? session.user.id : null;
+  const user = session?.user;
+  return user?.emailVerified ? { id: user.id, email: user.email } : null;
 };
 
-export { handleAuth, isAuthPath, userIdOf };
+export { handleAuth, isAuthPath, userOf };
