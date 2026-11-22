@@ -13,6 +13,10 @@
 //   answered right away, then sent to the Worker from an outbox (now, on
 //   Background Sync, and before the list is read); the list comes from the
 //   network, or from IndexedDB offline, with the unsent changes on top.
+// - Live statuses (/api/chargers/status?ids=…): one cache for every tab,
+//   fresh for a minute. Only the IDs that aren't fresh are fetched, and IDs
+//   another tab is already fetching are waited for, so two tabs make one
+//   request per batch. Kept in memory only, and dropped on sign-out.
 
 const CACHE_NAME = "ev-maps-chargers-v1";
 // Caches of earlier versions, removed on activation.
@@ -37,6 +41,77 @@ const STATE_STORE = "state";
 // The last list from the Worker, and the changes not sent yet.
 const FAVORITES_KEY = "favorites";
 const OUTBOX_KEY = "favorites-outbox";
+
+const STATUS_PATH = "/api/chargers/status";
+const STATUS_MAX_AGE_MS = 60 * 1000;
+// The Worker's batch size for statuses (MAX_IDS in packages/worker's
+// src/live-status.js).
+const STATUS_BATCH_SIZE = 100;
+// ID → { status, fetchedAt }, and ID → the promise of the fetch it's in.
+const statuses = new Map();
+const statusFetches = new Map();
+
+const json = (data, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+
+// Fetches a batch of IDs from the Worker into `statuses`. Resolves to the
+// Worker's status code; a 401 (signed out) leaves the cache as it was.
+const fetchStatusBatch = async (batch, request) => {
+  const url = new URL(STATUS_PATH, self.location.origin);
+  url.searchParams.set("ids", batch.join(","));
+  const response = await fetch(url, { credentials: request.credentials, headers: request.headers });
+  if (response.ok) {
+    const body = await response.json();
+    const fetchedAt = Date.now();
+    for (const id of batch) {
+      statuses.set(id, { status: body.statuses?.[id] ?? null, fetchedAt });
+    }
+  }
+  return response.status;
+};
+
+// Answers a page's status request from the shared cache, fetching only the
+// IDs that are neither fresh nor already being fetched.
+const liveStatuses = async (request) => {
+  const ids = [
+    ...new Set(new URL(request.url).searchParams.get("ids")?.split(",").filter(Boolean)),
+  ];
+  const now = Date.now();
+  const missing = ids.filter(
+    (id) => !statusFetches.has(id) && now - (statuses.get(id)?.fetchedAt ?? 0) >= STATUS_MAX_AGE_MS
+  );
+  for (let start = 0; start < missing.length; start += STATUS_BATCH_SIZE) {
+    const batch = missing.slice(start, start + STATUS_BATCH_SIZE);
+    const fetching = fetchStatusBatch(batch, request).finally(() => {
+      for (const id of batch) {
+        statusFetches.delete(id);
+      }
+    });
+    for (const id of batch) {
+      statusFetches.set(id, fetching);
+    }
+  }
+  let codes;
+  try {
+    codes = await Promise.all(new Set(ids.map((id) => statusFetches.get(id)).filter(Boolean)));
+  } catch {
+    return json({ error: "Could not load the statuses" }, 502);
+  }
+  if (codes.includes(401)) {
+    return json({ error: "Sign in to see live availability" }, 401);
+  }
+  const found = {};
+  for (const id of ids) {
+    const status = statuses.get(id)?.status;
+    if (status) {
+      found[id] = status;
+    }
+  }
+  return json({ statuses: found });
+};
 
 const isFresh = (response) =>
   Date.now() - Number(response.headers.get(CACHED_AT_HEADER)) < MAX_AGE_MS;
@@ -314,6 +389,8 @@ self.addEventListener("sync", (event) => {
 // The page says when the user signed out: their favorites go.
 self.addEventListener("message", (event) => {
   if (event.data?.type === "forget-favorites") {
+    // Live statuses are for signed-in users only.
+    statuses.clear();
     event.waitUntil(forgetFavorites());
   }
 });
@@ -350,6 +427,10 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.pathname === FAVORITES_PATH) {
     event.respondWith(favoritesList(request));
+    return;
+  }
+  if (url.pathname === STATUS_PATH) {
+    event.respondWith(liveStatuses(request));
     return;
   }
   if (TILE_PATH.test(url.pathname)) {

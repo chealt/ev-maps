@@ -86,3 +86,29 @@ test("makes the pins red after signing in, and as usual after signing out", asyn
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(pin(page, "Full station")).not.toHaveClass(/none-free/);
 });
+
+test.describe("with the service worker", () => {
+  // Every other test blocks service workers (see playwright.config.js).
+  test.use({ serviceWorkers: "allow" });
+
+  test("shares the statuses between tabs: two tabs make one request", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const requests = await fakeStatusApi(page, statuses);
+    await page.goto("/");
+    await page.waitForFunction(() => navigator.serviceWorker.controller);
+    await page.reload();
+    await expect(pin(page, "Full station")).toHaveClass(/none-free/);
+    const afterFirstTab = requests.length;
+
+    // A second tab of the same browser, controlled by the same worker.
+    const second = await page.context().newPage();
+    await fakeGoogleMaps(second);
+    await fakeAuthApi(second, { signedIn: true });
+    await second.goto("/");
+    await expect(pin(second, "Full station")).toHaveClass(/none-free/);
+    await expect(pin(second, "Free station")).not.toHaveClass(/none-free/);
+
+    // Its statuses came from the worker's shared cache, not the Worker.
+    expect(requests).toHaveLength(afterFirstTab);
+  });
+});
