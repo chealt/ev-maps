@@ -60,13 +60,18 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
     <script src="../lib/error-reporting.js"></script>
     <!-- Counts page views and events for the admin area's usage stats. -->
     <script src="../lib/usage.js"></script>
-    <!-- Applies the saved theme before the first paint, so the page doesn't flash
-         the wrong theme. It must stay inline to run before rendering. -->
+    <!-- Applies the saved theme and motion setting before the first paint, so
+         the page doesn't flash the wrong theme or animate when it shouldn't.
+         It must stay inline to run before rendering. -->
     <script is:inline>
       try {
         const theme = localStorage.getItem("ev-maps:theme");
         if (theme === "light" || theme === "dark") {
           document.documentElement.dataset.theme = theme;
+        }
+        // Animations the user turned off (src/lib/motion.js).
+        if (localStorage.getItem("ev-maps:animations") === "off") {
+          document.documentElement.dataset.animations = "off";
         }
       } catch {
         // Storage can be unavailable; the system theme applies.

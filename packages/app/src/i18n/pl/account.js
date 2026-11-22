@@ -24,6 +24,8 @@ const account = {
       light: "Jasny",
       dark: "Ciemny",
     },
+    animations: "Animacje",
+    animationsReducedMotion: "Wyłączone: Twój system prosi o ograniczenie ruchu.",
     language: "Język",
   },
   messages: {

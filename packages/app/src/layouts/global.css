@@ -210,3 +210,81 @@ img {
 .mb-4 {
   margin-bottom: var(--spacing-lg);
 }
+
+/* Motion (src/lib/motion.js). Animations are on unless the user turned them
+   off (data-animations="off" on <html>) or the system asks for reduced
+   motion. Off, the motion tokens every animation and transition uses take no
+   time, and view transitions don't move. */
+:root[data-animations="off"] {
+  --transition-fast: 0s;
+  --transition-base: 0s;
+}
+
+:root[data-animations="off"] ev-google-map {
+  --status-pulse-animation: 0s;
+  --view-transition-duration: 0s;
+}
+
+:root[data-animations="off"] ev-user-menu {
+  --session-loading-duration: 0s;
+}
+
+:root[data-animations="off"]::view-transition-group(*),
+:root[data-animations="off"]::view-transition-old(*),
+:root[data-animations="off"]::view-transition-new(*) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* The full-screen dialogs rise in and sink out; the charger details slide
+   out when closed (they slide in with their own animation). Only the page's
+   view transitions move them, so a dialog's open and close can't overlap. */
+.filter-dialog[open],
+.route-planner[open],
+.shortcuts-dialog[open] {
+  view-transition-name: dialog;
+}
+
+.charger-details:not([hidden]) {
+  view-transition-name: charger-details;
+}
+
+::view-transition-new(dialog) {
+  animation: dialog-rise-in var(--transition-base) both;
+}
+
+::view-transition-old(dialog) {
+  animation: dialog-sink-out var(--transition-base) both;
+}
+
+::view-transition-old(charger-details) {
+  animation: details-slide-out var(--transition-base) both;
+}
+
+@keyframes dialog-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-lg));
+  }
+}
+
+@keyframes dialog-sink-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--spacing-lg));
+  }
+}
+
+@keyframes details-slide-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--spacing-xl)));
+  }
+}
