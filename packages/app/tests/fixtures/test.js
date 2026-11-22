@@ -1,6 +1,8 @@
 // Playwright's test and expect for every spec, with an accessibility check:
 // at the end of each test, axe (axe-core) checks the page as the test left it
-// against WCAG 2.1 A and AA, and the test fails on any violation.
+// against WCAG 2.1 A and AA, and the test fails on any violation. The
+// results are attached to the test ("axe"), for the accessibility report
+// (scripts/a11y-report.js).
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
 
@@ -15,6 +17,25 @@ const describe = (violations) =>
     )
     .join("\n");
 
+// What the report shows: the page, the rules that passed, and the rules that
+// failed or that axe couldn't decide (to check by hand), with where.
+const summaryOf = ({ url, passes, violations, incomplete }) => {
+  const rules = (list) =>
+    list.map(({ id, impact, help, helpUrl, nodes }) => ({
+      id,
+      impact,
+      help,
+      helpUrl,
+      targets: nodes.map((node) => node.target.join(" ")),
+    }));
+  return {
+    url,
+    passed: passes.length,
+    violations: rules(violations),
+    incomplete: rules(incomplete),
+  };
+};
+
 const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     await use(page);
@@ -27,8 +48,12 @@ const test = base.extend({
     await page.evaluate(() =>
       Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})))
     );
-    const { violations } = await new AxeBuilder({ page }).withTags(WCAG).analyze();
-    expect(violations, describe(violations)).toEqual([]);
+    const results = await new AxeBuilder({ page }).withTags(WCAG).analyze();
+    await testInfo.attach("axe", {
+      contentType: "application/json",
+      body: JSON.stringify(summaryOf(results)),
+    });
+    expect(results.violations, describe(results.violations)).toEqual([]);
   },
 });
 

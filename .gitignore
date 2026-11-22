@@ -38,6 +38,7 @@ coverage/
 test-results/
 playwright-report/
 playwright-results.json
+a11y-report/
 blob-report/
 
 # Cloudflare
