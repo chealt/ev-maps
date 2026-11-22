@@ -7,8 +7,14 @@ import { loadSourceMetadata, saveSourceMetadata } from "../source-metadata.js";
 import { fetchOverpass } from "./openstreetmap.js";
 
 const SOURCE = "amenities";
-// After the chargers' own imports.
-const PRIORITY = 3;
+// After the chargers' own imports, and before the sparse cells: the places
+// next to chargers matter most where the chargers (and the users, and their
+// routes) are, so busy cells are imported first, instead of all cells in
+// coordinate order.
+const PRIORITY_BUSY = 3;
+const PRIORITY_SPARSE = 4;
+// A cell with at least this many chargers is busy.
+const BUSY_CELL_CHARGERS = 100;
 // Finding the cells with chargers reads every charger, so at most daily.
 const LIST_EVERY_MS = 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
@@ -25,16 +31,34 @@ const listJobs = async (env) => {
   }
   // floor() for negative coordinates too, without SQLite's math functions.
   const { results } = await env.DB.prepare(
-    `SELECT DISTINCT CAST(lat + 1000 AS INTEGER) - 1000 AS south,
-                     CAST(lng + 1000 AS INTEGER) - 1000 AS west
-     FROM chargers`
+    `SELECT CAST(lat + 1000 AS INTEGER) - 1000 AS south,
+                     CAST(lng + 1000 AS INTEGER) - 1000 AS west,
+                     COUNT(*) AS chargers
+     FROM chargers
+     GROUP BY south, west`
   ).all();
   await saveSourceMetadata(env.DB, SOURCE, "listed", { at: Date.now() });
-  return results.map(({ south, west }) => ({
+  const jobs = results.map(({ south, west, chargers }) => ({
     source: SOURCE,
     area: `${south},${west}`,
-    priority: PRIORITY,
+    priority: chargers >= BUSY_CELL_CHARGERS ? PRIORITY_BUSY : PRIORITY_SPARSE,
   }));
+  // Already-queued jobs keep their place (a cursor in progress); only their
+  // turn changes, e.g. as chargers move between cells.
+  for (let index = 0; index < jobs.length; index += BATCH_SIZE) {
+    await env.DB.batch(
+      jobs
+        .slice(index, index + BATCH_SIZE)
+        .map(({ area, priority }) =>
+          env.DB.prepare("UPDATE import_jobs SET priority = ? WHERE source = ? AND area = ?").bind(
+            priority,
+            SOURCE,
+            area
+          )
+        )
+    );
+  }
+  return jobs;
 };
 
 const chargersInCell = async (db, { south, west, north, east }) => {
