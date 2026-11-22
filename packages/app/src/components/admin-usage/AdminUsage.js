@@ -1,5 +1,6 @@
 import { formatNumber, message, valueLabel } from "../../lib/messages.js";
-import { formatDay, renderBarChart } from "../bar-chart/bar-chart.js";
+import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
+import { dayCount } from "../../lib/day-count.js";
 
 const USAGE_URL = "/api/admin/usage";
 
@@ -72,7 +73,7 @@ class AdminUsageElement extends HTMLElement {
   }
 
   renderChart({ days, events }) {
-    renderBarChart(this.querySelector(".bar-chart"), days, events.page_view?.byDay ?? {});
+    renderBarChart(this.querySelector(".bar-chart"), days, events.page_view?.byDay ?? {}, dayCount);
   }
 
   renderBreakdowns({ events }) {

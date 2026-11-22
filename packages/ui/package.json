@@ -1,0 +1,25 @@
+{
+  "name": "@ev-maps/ui",
+  "version": "0.0.1",
+  "private": true,
+  "description": "EV Maps' generic UI components (Astro), shared by the app's pages",
+  "type": "module",
+  "exports": {
+    "./Button.astro": "./button/Button.astro",
+    "./Icon.astro": "./icon/Icon.astro",
+    "./BarChart.astro": "./bar-chart/BarChart.astro",
+    "./bar-chart.js": "./bar-chart/bar-chart.js"
+  },
+  "scripts": {
+    "lint": "oxlint -c ../dev-config/oxlint.json .",
+    "lint:css": "biome lint --config-path=../dev-config .",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "astro": "^7.4.12"
+  }
+}

@@ -20,6 +20,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "14.4.9",
     "@ev-maps/tiles": "workspace:*",
+    "@ev-maps/ui": "workspace:*",
     "@simplewebauthn/browser": "^13.3.0",
     "astro": "^7.4.12",
     "idb-keyval": "^6.3.0",

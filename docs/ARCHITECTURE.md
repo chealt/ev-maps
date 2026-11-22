@@ -64,6 +64,7 @@ ev-maps/
 │   │   ├── scripts/                   # export-chargers.js: D1 to JSON per country
 │   │   └── src/                       # Charger API, sign-in, redirect for /, import
 │   ├── tiles/                         # Tile maths shared by the app and Worker
+│   ├── ui/                            # Generic UI components (@ev-maps/ui)
 │   ├── biome-plugin-css-units/        # Biome plugin: disallowed CSS units
 │   └── dev-config/                    # Shared oxlint, oxfmt, Biome and rumdl configs
 ├── .github/workflows/
