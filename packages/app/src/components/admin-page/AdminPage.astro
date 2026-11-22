@@ -4,8 +4,18 @@ import Icon from "../icon/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./AdminPage.css";
 
+interface Props {
+  // The section shown, for the navigation: "overview" or "errors".
+  current?: string;
+}
+
 const lang = Astro.currentLocale ?? "en";
 const { page } = translations(lang);
+const { current = "overview" } = Astro.props;
+const sections = [
+  { id: "overview", href: `/${lang}/admin/`, label: page.adminOverview },
+  { id: "errors", href: `/${lang}/admin/errors/`, label: page.adminErrors },
+];
 ---
 
 <!-- The admin area: the Worker serves it to admins only, and its API checks
@@ -17,6 +27,11 @@ const { page } = translations(lang);
         <Icon icon={ArrowLeft} size="sm" />
         {page.backToMap}
       </a>
+      {sections.map(({ id, href, label }) => (
+        <a href={href} aria-current={id === current ? "page" : undefined}>
+          {label}
+        </a>
+      ))}
     </nav>
     <header class="header">
       <h1 class="title">{page.admin}</h1>

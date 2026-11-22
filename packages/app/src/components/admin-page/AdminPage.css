@@ -8,15 +8,26 @@
   line-height: var(--line-height-base);
 
   .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
     font-size: var(--font-size-sm);
 
     a {
       color: var(--color-primary-light-text);
     }
+
+    a[aria-current="page"] {
+      font-weight: var(--font-weight-semibold);
+      text-decoration: none;
+      color: var(--color-text);
+    }
   }
 
   .back {
+    margin-right: auto;
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
@@ -36,5 +47,23 @@
   .signed-in-as {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
+  }
+}
+
+/* The overview's list of sections. */
+.admin-section {
+  h2 {
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  ul {
+    padding-left: var(--spacing-lg);
+  }
+
+  .section-link {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-light-text);
   }
 }
