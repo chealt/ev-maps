@@ -11,7 +11,6 @@ const adminUsage = {
   messages: {
     adminUsageNotLoaded: "The usage stats couldn't be loaded. Try again.",
     adminUsagePeriod: "{from} – {to}",
-    adminDayCount: "{day}: {count}",
   },
   values: {
     usageEvents: {

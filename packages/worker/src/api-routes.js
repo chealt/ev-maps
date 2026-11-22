@@ -9,6 +9,7 @@
 // put specific paths before general ones (tiles take /api/chargers/*).
 
 import { routes as admin } from "./admin.js";
+import { routes as adminDashboard } from "./admin-dashboard.js";
 import { routes as auth } from "./auth.js";
 import { routes as errors } from "./errors.js";
 import { routes as favorites } from "./favorites.js";
@@ -22,6 +23,7 @@ import { routes as usage } from "./usage.js";
 
 const API_ROUTES = [
   ...admin,
+  ...adminDashboard,
   ...auth,
   ...errors,
   ...favorites,

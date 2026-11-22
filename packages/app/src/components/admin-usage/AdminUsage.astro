@@ -1,5 +1,6 @@
 ---
 import { fill, translations } from "../../i18n/index.js";
+import BarChart from "../bar-chart/BarChart.astro";
 import "./AdminUsage.css";
 
 const { page, values } = translations(Astro.currentLocale ?? "en");
@@ -52,14 +53,7 @@ const periods = [7, 30, 90];
       ))}
     </dl>
 
-    <h3 class="subtitle" id="admin-chart-title">
-      {page.adminPageViewsPerDay}
-    </h3>
-    <ol class="chart" aria-labelledby="admin-chart-title"></ol>
-    <p class="chart-range">
-      <span class="from"></span>
-      <span class="to"></span>
-    </p>
+    <BarChart title={page.adminPageViewsPerDay} id="admin-chart-title" />
 
     <div class="breakdowns">
       {breakdowns.map((event) => (
@@ -78,12 +72,6 @@ const periods = [7, 30, 90];
     </div>
   </section>
 
-  <template class="bar-template">
-    <li class="bar">
-      <span class="fill"></span>
-      <span class="visually-hidden label"></span>
-    </li>
-  </template>
   <template class="row-template">
     <tr>
       <th scope="row" class="name"></th>

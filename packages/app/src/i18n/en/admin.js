@@ -13,6 +13,8 @@ const admin = {
   messages: {
     adminSignedInAs: "Signed in as {email}",
     adminSignedOut: "Sign in with an admin account to see this page.",
+    // A bar of a chart (components/bar-chart).
+    adminDayCount: "{day}: {count}",
   },
 };
 

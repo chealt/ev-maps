@@ -11,7 +11,6 @@ const adminUsage = {
   messages: {
     adminUsageNotLoaded: "Nem sikerült betölteni a statisztikát. Próbáld újra.",
     adminUsagePeriod: "{from} – {to}",
-    adminDayCount: "{day}: {count}",
   },
   values: {
     usageEvents: {

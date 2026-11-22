@@ -72,3 +72,51 @@ test("asks to sign in as an admin when the API refuses", async ({ page }) => {
 
   await expect(page.getByText("Sign in with an admin account to see this page.")).toBeVisible();
 });
+
+test("shows admins errors, page views and sign-ins per day on the overview", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  await fakeAdminApi(page, GRACE);
+  const days = Array.from({ length: 30 }, (_, index) =>
+    new Date(Date.UTC(2026, 9, 26 + index)).toISOString().slice(0, 10)
+  );
+  await page.route("**/api/admin/dashboard", (route) =>
+    route.fulfill({
+      json: {
+        days,
+        errors: { "2026-11-23": 1, "2026-11-24": 2 },
+        pageViews: { "2026-11-24": 1234 },
+        signIns: {},
+      },
+    })
+  );
+
+  await page.goto("/en/admin/");
+
+  const dashboard = page.getByRole("region", { name: "Last 30 days" });
+  const errors = dashboard.getByRole("article").filter({ hasText: "Errors per day" });
+  await expect(errors.getByRole("listitem")).toHaveCount(30);
+  await expect(errors.getByRole("listitem").last()).toHaveText("Nov 24: 2");
+  await expect(errors.getByText("3 in total")).toBeVisible();
+  await expect(errors.getByRole("link", { name: "All errors" })).toHaveAttribute(
+    "href",
+    "/en/admin/errors/"
+  );
+  const pageViews = dashboard.getByRole("article").filter({ hasText: "Page views per day" });
+  await expect(pageViews.getByText("1,234 in total")).toBeVisible();
+  const signIns = dashboard.getByRole("article").filter({ hasText: "Sign-ins per day" });
+  await expect(signIns.getByText("0 in total")).toBeVisible();
+  await expect(signIns.getByRole("link", { name: "All usage stats" })).toHaveAttribute(
+    "href",
+    "/en/admin/usage/"
+  );
+});
+
+test("says when the dashboard couldn't be loaded", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  await fakeAdminApi(page, GRACE);
+  await page.route("**/api/admin/dashboard", (route) => route.fulfill({ status: 500 }));
+
+  await page.goto("/en/admin/");
+
+  await expect(page.getByRole("alert")).toHaveText("The dashboard couldn't be loaded. Try again.");
+});
