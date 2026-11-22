@@ -1,0 +1,83 @@
+.favorites-dialog {
+  .sort-basis {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .empty {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text-muted);
+
+    &:not(:has(~ .items:empty)) {
+      display: none;
+    }
+  }
+
+  .items {
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .entry {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-2xs) var(--spacing-md);
+    min-width: 0;
+    padding: var(--spacing-sm) var(--spacing-xs);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+  }
+
+  .name {
+    font-weight: var(--font-weight-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .distance {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-light-text);
+  }
+
+  .meta {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  /* A filled heart: pressing it removes the favorite. */
+  .remove {
+    color: var(--color-danger);
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
+/* The account box morphs into the favorites and back. */
+.user-menu .bar.favorites-transition,
+.favorites-dialog.favorites-transition {
+  view-transition-name: favorites;
+}
+
+::view-transition-group(favorites) {
+  animation-duration: var(--view-transition-duration);
+}

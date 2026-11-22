@@ -49,6 +49,15 @@
       this.zoom = zoom;
       this.emitIdle();
     }
+    // Moves the view by (x, y) pixels.
+    panBy(x, y) {
+      const degreesPerPixel = 360 / (TILE_SIZE * 2 ** this.zoom);
+      this.center = {
+        lat: this.center.lat - y * degreesPerPixel,
+        lng: this.center.lng + x * degreesPerPixel,
+      };
+      this.emitIdle();
+    }
     getZoom() {
       return this.zoom;
     }

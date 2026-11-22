@@ -1,6 +1,17 @@
 ---
 import Button from "../button/Button.astro";
-import { Activity, FilterX, Info, List, MapPin, PlugZap, RouteOff, X, Zap } from "lucide-static";
+import {
+  Activity,
+  FilterX,
+  Heart,
+  Info,
+  List,
+  MapPin,
+  PlugZap,
+  RouteOff,
+  X,
+  Zap,
+} from "lucide-static";
 import Icon from "../icon/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -132,6 +143,27 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </Button>
       </div>
       <div class="body">
+        <div class="group" role="group" aria-labelledby="favorites-filter-title">
+          <h3 class="subtitle" id="favorites-filter-title">
+            {page.favorites}
+          </h3>
+          <div class="options">
+            <Button
+              variant="secondary"
+              size="large"
+              class="favorites-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="favorites-filter-hint"
+            >
+              <Icon icon={Heart} size="sm" />
+              {page.onlyFavorites}
+            </Button>
+          </div>
+          <p class="hint" id="favorites-filter-hint">
+            {page.signInForFavorites}
+          </p>
+        </div>
         <div class="group" role="group" aria-labelledby="connector-filter-title">
           <h3 class="subtitle" id="connector-filter-title">
             {page.connectorType}
@@ -249,9 +281,29 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <Icon icon={Zap} size="sm" />
           {page.badge}
         </span>
-        <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
-          <Icon icon={X} />
-        </Button>
+        <div class="actions">
+          <!-- Signed out: disabled-looking, says to sign in, and opens the
+               sign-in options. -->
+          <span class="favorite-wrapper">
+            <Button
+              variant="ghost"
+              size="icon-only"
+              class="favorite-button"
+              aria-label={page.favorite}
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="favorite-sign-in-hint"
+            >
+              <Icon icon={Heart} />
+            </Button>
+            <span class="tooltip" id="favorite-sign-in-hint" role="tooltip">
+              {page.signInForFavorites}
+            </span>
+          </span>
+          <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
+            <Icon icon={X} />
+          </Button>
+        </div>
       </div>
       <h2 class="name" id="charger-details-name"></h2>
       <p class="address">

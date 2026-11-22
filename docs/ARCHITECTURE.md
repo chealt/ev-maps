@@ -160,6 +160,15 @@ ev-maps/
   account's filters wins: the account's apply, or the device's are saved.
   Settings are sections (`filters`, later favorites and others), each with
   `updatedAt`, and the Worker keeps the newer copy of each.
+- **Favorites**: signed in, the heart in a charger's details saves it to the
+  Worker's `/api/favorites` (`packages/worker/src/favorites.js`, D1 table
+  `favorites`, with a copy of the charger so the list needs no tiles), and
+  `src/lib/favorites.js` keeps them in memory. The account menu's Favorites
+  opens `<ev-favorites-dialog>`, which morphs out of the account box (a view
+  transition) and lists them nearest to the map's center first; picking one
+  shows it on the map. The Filters dialog's "Only favorites" hides the rest.
+  Signed out, the heart, the menu item and the filter are disabled and ask to
+  sign in.
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

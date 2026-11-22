@@ -14,6 +14,7 @@ import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { guard } from "./guard.js";
 import { SETTINGS_PATH, settingsResponse } from "./settings.js";
+import { favoritesResponse, isFavoritesPath } from "./favorites.js";
 import { runImport } from "./import/index.js";
 import { STATUS_PATH, refreshStatuses, statusResponse } from "./live-status.js";
 import { routeChargersResponse } from "./route-chargers.js";
@@ -172,6 +173,9 @@ const apiPolicy = (request, url) => {
   if ((request.method === "GET" || request.method === "PUT") && url.pathname === SETTINGS_PATH) {
     return "settings";
   }
+  if (isFavoritesPath(url.pathname)) {
+    return "favorites";
+  }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
     return "tiles";
   }
@@ -191,6 +195,9 @@ const route = async (request, env, context) => {
   }
   if (policy === "settings") {
     return settingsResponse(request, env, userId);
+  }
+  if (policy === "favorites") {
+    return favoritesResponse(request, env, userId);
   }
   if (policy === "auth") {
     return handleAuth(request, env);
