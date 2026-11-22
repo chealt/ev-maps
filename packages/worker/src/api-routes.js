@@ -13,6 +13,7 @@ import { routes as auth } from "./auth.js";
 import { routes as errors } from "./errors.js";
 import { routes as favorites } from "./favorites.js";
 import { routes as liveStatus } from "./live-status.js";
+import { routes as performance } from "./performance-stats.js";
 import { routes as routeChargers } from "./route-chargers.js";
 import { routes as settings } from "./settings.js";
 import { routes as telemetry } from "./telemetry.js";
@@ -25,6 +26,7 @@ const API_ROUTES = [
   ...errors,
   ...favorites,
   ...liveStatus,
+  ...performance,
   ...routeChargers,
   ...settings,
   ...telemetry,

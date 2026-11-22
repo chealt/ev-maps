@@ -1,0 +1,161 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Icon from "../icon/Icon.astro";
+import { fill, translations } from "../../i18n/index.js";
+import "./AdminPerformance.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+
+const periods = [1, 7, 14];
+const vitals = ["LCP", "INP", "CLS", "FCP", "TTFB"];
+// The tables of timings, each from the summary's list of the same name.
+const tables = [
+  { id: "requests", title: page.adminPerformanceRequests, nameColumn: page.adminRequestColumn },
+  {
+    id: "pageRequests",
+    title: page.adminPerformancePageRequests,
+    nameColumn: page.adminRequestColumn,
+  },
+  { id: "queries", title: page.adminPerformanceQueries, nameColumn: page.adminQueryColumn },
+];
+---
+
+<!-- Performance (GET /api/admin/performance): P75s of the Web Vitals and of
+     the requests, the slowest queries and requests, and one trace's spans
+     with ?trace={id}. -->
+<ev-admin-performance>
+  <section class="summary-view" aria-labelledby="admin-performance-title">
+    <div class="performance-header">
+      <h2 class="section-title" id="admin-performance-title">
+        {page.adminPerformance}
+      </h2>
+      <div class="periods" role="group" aria-label={page.adminPeriod}>
+        {periods.map((days) => (
+          <button type="button" class="period" data-days={days} aria-pressed={String(days === 7)}>
+            {days === 1 ? page.adminLast24Hours : fill(page.adminLastDays, { days })}
+          </button>
+        ))}
+      </div>
+    </div>
+    <p class="summary" role="status"></p>
+
+    <h3 class="subtitle">{page.adminWebVitals}</h3>
+    <dl class="vitals">
+      {vitals.map((name) => (
+        <div class="vital" data-vital={name}>
+          <dt>
+            <abbr title={page[`adminVital${name}`]}>{name}</abbr>
+          </dt>
+          <dd class="value">–</dd>
+          <dd class="count"></dd>
+        </div>
+      ))}
+    </dl>
+    <p class="hint">{page.adminWebVitalsHint}</p>
+
+    {tables.map(({ id, title, nameColumn }) => (
+      <section class="timings" data-table={id} aria-labelledby={`admin-${id}-title`}>
+        <h3 class="subtitle" id={`admin-${id}-title`}>
+          {title}
+        </h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{nameColumn}</th>
+                <th scope="col" class="number">
+                  {page.adminCountColumn}
+                </th>
+                <th scope="col" class="number">
+                  P75
+                </th>
+                <th scope="col" class="number">
+                  P95
+                </th>
+                <th scope="col" class="number">
+                  {page.adminMaxColumn}
+                </th>
+                <th scope="col" class="number">
+                  {page.adminErrorsColumn}
+                </th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty" hidden>
+          {page.adminNoData}
+        </p>
+      </section>
+    ))}
+
+    <section class="timings" aria-labelledby="admin-slowest-title">
+      <h3 class="subtitle" id="admin-slowest-title">
+        {page.adminSlowestRequests}
+      </h3>
+      <div class="table-wrapper">
+        <table class="slowest">
+          <thead>
+            <tr>
+              <th scope="col">{page.adminRequestColumn}</th>
+              <th scope="col">{page.adminPathColumn}</th>
+              <th scope="col" class="number">
+                {page.adminDurationColumn}
+              </th>
+              <th scope="col">{page.adminWhenColumn}</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty" hidden>
+        {page.adminNoData}
+      </p>
+    </section>
+  </section>
+
+  <section class="trace-view" aria-labelledby="admin-trace-title" hidden>
+    <a class="all-performance" href="?">
+      <Icon icon={ArrowLeft} size="sm" />
+      {page.adminAllPerformance}
+    </a>
+    <h2 class="section-title" id="admin-trace-title"></h2>
+    <p class="summary"></p>
+    <ol class="waterfall" aria-label={page.adminTraceSpans}></ol>
+  </section>
+
+  <template class="timing-row-template">
+    <tr>
+      <th scope="row" class="name"></th>
+      <td class="count number"></td>
+      <td class="p75 number"></td>
+      <td class="p95 number"></td>
+      <td class="max number"></td>
+      <td class="errors number"></td>
+    </tr>
+  </template>
+  <template class="slowest-row-template">
+    <tr>
+      <th scope="row">
+        <a class="trace-link"></a>
+      </th>
+      <td class="path"></td>
+      <td class="duration number"></td>
+      <td class="when"></td>
+    </tr>
+  </template>
+  <template class="span-template">
+    <li class="span">
+      <span class="span-label">
+        <span class="service"></span>
+        <span class="span-name"></span>
+      </span>
+      <span class="track">
+        <span class="bar"></span>
+      </span>
+      <span class="span-duration"></span>
+      <code class="statement"></code>
+    </li>
+  </template>
+  <script src="./AdminPerformance.js"></script>
+</ev-admin-performance>

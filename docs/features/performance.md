@@ -39,3 +39,21 @@ The page sends its spans and Web Vitals batched to `POST /api/telemetry`
 (`src/telemetry.js`) every 30 seconds and when it's left. The Worker keeps
 only valid spans and vitals, and only known attributes, and deletes what's
 older than 14 days every 15 minutes.
+
+## The admin page
+
+Admins see it at `/{lang}/admin/performance/` (`<ev-admin-performance>`,
+`src/performance-stats.js`), for the last 24 hours, 7 or 14 days:
+
+- **Core Web Vitals**: each one's P75, rated against Google's thresholds
+  (good, needs improvement, poor).
+- **Requests, in the Worker**: per route, how many, P75, P95, the slowest
+  and the failed ones; and the same for **API calls as the page saw them**.
+- **Slowest database queries**, by statement.
+- **Slowest requests**: each opens its trace as a waterfall, every span
+  placed by its start and length and indented by its depth, from the page
+  through the Worker to D1.
+
+The percentiles are computed in SQL with window functions:
+`GET /api/admin/performance?days=` and
+`GET /api/admin/performance/traces/{traceId}`.

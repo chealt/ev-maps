@@ -4,6 +4,7 @@
 import { account } from "./account.js";
 import { admin } from "./admin.js";
 import { adminErrors } from "./admin-errors.js";
+import { adminPerformance } from "./admin-performance.js";
 import { adminUsage } from "./admin-usage.js";
 import { common } from "./common.js";
 import { legal } from "./legal.js";
@@ -16,6 +17,7 @@ const sections = {
   legal: legal,
   admin: admin,
   "admin-errors": adminErrors,
+  "admin-performance": adminPerformance,
   "admin-usage": adminUsage,
 };
 
