@@ -15,6 +15,8 @@ const map = {
     closeList: "Lista bezárása",
     badge: "Elektromos töltés",
     close: "Bezárás",
+    navigate: "Útvonal ide",
+    navigateHint: "Új lapon nyitja meg a Google Térképet, a helyzetedtől.",
     connectors: "Csatlakozók",
     details: "Részletek",
     openChargeMapCredit: {

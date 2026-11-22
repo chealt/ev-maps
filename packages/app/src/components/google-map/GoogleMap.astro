@@ -13,6 +13,7 @@ import {
   List,
   ZoomIn,
   MapPin,
+  Navigation,
   PlugZap,
   RouteOff,
   X,
@@ -352,6 +353,20 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
       </p>
+      <!-- Directions in Google Maps: with no "from", it starts where the user
+           is, if they allow it. A link, styled like the buttons. -->
+      <a
+        class="button primary medium navigate"
+        target="_blank"
+        rel="noopener"
+        aria-describedby="navigate-hint"
+      >
+        <Icon icon={Navigation} size="sm" />
+        {page.navigate}
+      </a>
+      <span class="visually-hidden" id="navigate-hint">
+        {page.navigateHint}
+      </span>
       <section class="section availability" hidden>
         <h3 class="title">
           <Icon icon={Activity} size="sm" />

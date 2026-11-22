@@ -15,6 +15,8 @@ const map = {
     closeList: "Zamknij listę",
     badge: "Ładowanie EV",
     close: "Zamknij",
+    navigate: "Nawiguj",
+    navigateHint: "Otwiera Mapy Google w nowej karcie, z Twojej lokalizacji.",
     connectors: "Złącza",
     details: "Szczegóły",
     openChargeMapCredit: {
