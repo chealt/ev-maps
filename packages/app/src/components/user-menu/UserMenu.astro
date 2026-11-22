@@ -1,5 +1,5 @@
 ---
-import { LogOut, Zap } from "lucide-static";
+import { Heart, LogOut, Zap } from "lucide-static";
 import Button from "../button/Button.astro";
 import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
@@ -66,6 +66,20 @@ const { page } = translations(lang);
       ))}
       <p class="error" role="alert"></p>
     </section>
+    <div class="favorites">
+      <Button
+        variant="ghost"
+        class="favorites-button"
+        aria-disabled="true"
+        aria-describedby="favorites-sign-in-hint"
+      >
+        <Icon icon={Heart} size="sm" />
+        {page.favorites}
+      </Button>
+      <p class="hint" id="favorites-sign-in-hint">
+        {page.signInForFavorites}
+      </p>
+    </div>
     <ThemePicker />
     <LanguagePicker />
     <Button variant="ghost" class="sign-out" hidden>

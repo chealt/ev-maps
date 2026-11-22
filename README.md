@@ -14,6 +14,8 @@ Find electric vehicle charging stations on a map.
 - Filter chargers by connector type, charging power and operator; signed
   in, the filters are saved to your account too, so you have them on every
   device
+- Favorites: signed in, save chargers with the heart, list them nearest to
+  the map's center first from the account menu, or show only them on the map
 - Locate me, and the map remembers where you were last time
 - Plan a route between two places and see the chargers along it, with the
   same power filters

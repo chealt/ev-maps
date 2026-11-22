@@ -25,6 +25,11 @@ describe("validSection", () => {
     ).toBe(false);
   });
 
+  test("accepts showing only favorites, as a boolean", () => {
+    expect(validSection("filters", { onlyFavorites: true, updatedAt: 1 })).toBe(true);
+    expect(validSection("filters", { onlyFavorites: "yes", updatedAt: 1 })).toBe(false);
+  });
+
   test("refuses unknown sections and fields, wrong types and missing times", () => {
     expect(validSection("favourites", { updatedAt: 1 })).toBe(false);
     expect(validSection("filters", { powerRanges: [], extra: 1, updatedAt: 1 })).toBe(false);

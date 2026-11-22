@@ -13,6 +13,7 @@ const SECTIONS = {
     connectorTypes: (value) => isStringList(value, 20),
     // Operator names as the charger data has them; "" is "unknown operator".
     excludedOperators: (value) => isStringList(value, 200, 120),
+    onlyFavorites: (value) => typeof value === "boolean",
   },
 };
 

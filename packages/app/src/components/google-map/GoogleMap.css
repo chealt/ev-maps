@@ -15,6 +15,7 @@ ev-google-map {
   --operator-option-min-width: 14rem;
   --operator-option-height: 2.75rem;
   --checkbox-size: 1.25rem;
+  --tooltip-max-width: 14rem;
 
   /* Charger list */
   --list-item-height: 4.5rem;
@@ -281,6 +282,15 @@ ev-google-map {
     color: var(--color-text-muted);
   }
 
+  .favorites-filter[aria-disabled="true"] {
+    opacity: var(--opacity-disabled);
+    cursor: not-allowed;
+  }
+
+  .hint[hidden] {
+    display: none;
+  }
+
   .no-operators {
     margin-top: 0;
 
@@ -417,6 +427,54 @@ ev-google-map {
 }
 
 /* Charger details */
+/* The heart and the close button in the details' header. */
+.charger-details .actions {
+  display: flex;
+  align-items: center;
+
+  .favorite-wrapper {
+    position: relative;
+  }
+
+  .favorite-button {
+    &[aria-pressed="true"] {
+      color: var(--color-danger);
+
+      svg {
+        fill: currentColor;
+      }
+    }
+
+    &[aria-disabled="true"] {
+      opacity: var(--opacity-disabled);
+      cursor: not-allowed;
+    }
+  }
+
+  /* Signed out: why the heart is disabled, on hover or focus. */
+  .tooltip {
+    position: absolute;
+    top: calc(100% + var(--spacing-xs));
+    right: 0;
+    z-index: 1;
+    width: max-content;
+    max-width: var(--tooltip-max-width);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-secondary);
+    color: var(--color-secondary-contrast);
+    font-size: var(--font-size-xs);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .favorite-wrapper:not(:hover, :focus-within) .tooltip {
+    display: none;
+  }
+}
+
 .charger-details {
   position: absolute;
   top: var(--header-offset);

@@ -51,7 +51,7 @@ const stringList = (value) =>
   Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 
 // { powerRanges: ["150-300", ...], connectorTypes: ["ccs", ...],
-//   excludedOperators: ["Operator", ...], updatedAt },
+//   excludedOperators: ["Operator", ...], onlyFavorites, updatedAt },
 // updatedAt being when the user last changed them (0 if never).
 const readFilters = async () => {
   const filters = await read(FILTERS_KEY);
@@ -59,6 +59,7 @@ const readFilters = async () => {
     powerRanges: stringList(filters?.powerRanges),
     connectorTypes: stringList(filters?.connectorTypes),
     excludedOperators: stringList(filters?.excludedOperators),
+    onlyFavorites: filters?.onlyFavorites === true,
     updatedAt: Number(filters?.updatedAt) || 0,
   };
 };

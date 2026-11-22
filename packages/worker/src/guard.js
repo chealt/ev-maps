@@ -1,8 +1,9 @@
 // Who may use the API, and how much (see the terms of use): no bots or AI
 // crawlers at all, the charger tiles and sign-in for everyone, and the rest
-// (live availability, chargers along a route) only for signed-in users. Each
-// part is rate limited with Cloudflare's rate limiting (wrangler.toml's
-// ratelimits): per user when signed in, per IP address otherwise.
+// (live availability, chargers along a route, settings, favorites) only for
+// signed-in users. Each part is rate limited with Cloudflare's rate limiting
+// (wrangler.toml's ratelimits): per user when signed in, per IP address
+// otherwise.
 
 // Automated clients identify themselves in their user agent; browsers don't.
 const BOT_USER_AGENT =
@@ -21,6 +22,7 @@ const POLICIES = {
   status: { limiter: "STATUS_LIMITER", signedIn: true },
   route: { limiter: "ROUTE_LIMITER", signedIn: true },
   settings: { limiter: "SETTINGS_LIMITER", signedIn: true },
+  favorites: { limiter: "FAVORITES_LIMITER", signedIn: true },
 };
 
 const errorResponse = (status, error, headers = {}) =>

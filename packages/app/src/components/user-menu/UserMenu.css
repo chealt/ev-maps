@@ -210,9 +210,27 @@
       }
     }
 
-    .sign-out {
+    .sign-out,
+    .favorites-button {
       justify-content: flex-start;
+      width: 100%;
       border-radius: var(--border-radius-sm);
+    }
+
+    /* Signed out: shown, but needs signing in (the options are above). */
+    .favorites-button[aria-disabled="true"] {
+      opacity: var(--opacity-disabled);
+      cursor: not-allowed;
+    }
+
+    .favorites .hint {
+      padding-inline: var(--spacing-md);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+
+      &[hidden] {
+        display: none;
+      }
     }
 
     .legal {

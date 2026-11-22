@@ -63,7 +63,7 @@ describe("guard", () => {
   });
 
   test("asks to sign in for live availability and routes", async () => {
-    for (const policy of ["status", "route", "settings"]) {
+    for (const policy of ["status", "route", "settings", "favorites"]) {
       const { refused: response } = await guard(request(), {}, policy, signedOut);
       expect(response.status).toBe(401);
     }
