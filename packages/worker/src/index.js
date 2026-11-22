@@ -12,6 +12,7 @@ import { userOf } from "./auth.js";
 import { recordWorkerError } from "./errors.js";
 import { guard } from "./guard.js";
 import { JOBS } from "./jobs.js";
+import { finishTrace, setTraceRoute, startTrace, tracedEnv, withTrace } from "./tracing.js";
 
 const DEFAULT_LANGUAGE = "en";
 // Set by the app's language picker; it wins over the browser's languages.
@@ -115,6 +116,9 @@ const route = async (request, env, context) => {
   const url = new URL(request.url);
   const apiRoute = API_ROUTES.find((candidate) => candidate.matches(request, url));
   if (apiRoute) {
+    if (!apiRoute.untraced) {
+      setTraceRoute(apiRoute.name);
+    }
     const signedInUser = () => userOf(request, env);
     const guarded = await guard(request, env, apiRoute, signedInUser, (user) => isAdmin(env, user));
     if (guarded.refused) {
@@ -123,28 +127,36 @@ const route = async (request, env, context) => {
     return apiRoute.handle({ request, env, context, url, ...guarded, signedInUser });
   }
   if (isAdminPage(url.pathname)) {
+    setTraceRoute("admin page");
     return adminPageResponse(request, env, await userOf(request, env));
   }
   if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/") {
+    setTraceRoute("language redirect");
     return redirectToLocalizedPage(request, env);
   }
   return env.ASSETS.fetch(request);
 };
 
 export default {
+  // Each request is traced (src/tracing.js): its D1 queries are spans of it,
+  // and sampled, slow or failed traces are recorded after the response.
   async fetch(request, env, context) {
     const isApi = new URL(request.url).pathname.startsWith("/api/");
-    let response;
-    try {
-      response = await route(request, env, context);
-    } catch (error) {
-      console.error("Request failed:", error);
-      context.waitUntil(recordWorkerError(env, error, { request }));
-      response = isApi
-        ? json({ error: "Something went wrong" }, { status: 500 })
-        : new Response("Something went wrong", { status: 500 });
-    }
-    return isApi ? withoutIndexing(response) : response;
+    const trace = startTrace(request, env);
+    return withTrace(trace, async () => {
+      let response;
+      try {
+        response = await route(request, tracedEnv(env), context);
+      } catch (error) {
+        console.error("Request failed:", error);
+        context.waitUntil(recordWorkerError(env, error, { request }));
+        response = isApi
+          ? json({ error: "Something went wrong" }, { status: 500 })
+          : new Response("Something went wrong", { status: 500 });
+      }
+      context.waitUntil(finishTrace(env, trace, { request, status: response.status }));
+      return isApi ? withoutIndexing(response) : response;
+    });
   },
 
   // Each scheduled job of the cron that fired (src/jobs.js), in order; one

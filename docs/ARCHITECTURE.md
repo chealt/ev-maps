@@ -102,6 +102,8 @@ changes to different features don't touch the same file:
 - [Errors](features/admin-errors.md): collecting errors and the errors page
 - [Usage stats](features/admin-usage.md): collecting usage counts and the usage
   page
+- [Performance](features/performance.md): traces from the page through the
+  Worker to D1, and Core Web Vitals
 - [The API: routes, access and rate limits](features/api.md): how the Worker
   routes API requests by domain, the guard, and rate limits
 - [Legal pages](features/legal.md): the privacy policy and terms of use

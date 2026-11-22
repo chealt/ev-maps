@@ -53,6 +53,9 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
     ))}
     <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
     {hasRuntimeCopy && <script type="application/json" id="messages" set:html={messagesJson} />}
+    <!-- Traces the page's API calls and measures its Web Vitals, for the
+         admin area; first, so it sees every call. -->
+    <script src="../lib/performance.js"></script>
     <!-- Sends the page's uncaught errors to the admin area. -->
     <script src="../lib/error-reporting.js"></script>
     <!-- Counts page views and events for the admin area's usage stats. -->

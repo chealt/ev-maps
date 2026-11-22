@@ -1,6 +1,6 @@
 ---
 title: Adatvédelmi tájékoztató
-updated: 2026-11-23
+updated: 2026-11-24
 ---
 
 Az EV Maps (ev.chealt.com, „mi”) elektromosautó-töltőállomások térképe. Ez a
@@ -27,6 +27,10 @@ Kapcsolat: [info@chealt.com](mailto:info@chealt.com).
   oldalakat és használják a funkciókat (például egy töltő megnyitását vagy egy
   szűrőt), és mely országokból. Ezek csak összesített számok: nincs süti,
   nincs azonosító, semmi, ami rólad szólna.
+- **Teljesítmény.** Mérjük, milyen gyorsan töltődnek be és reagálnak az
+  oldalak (Core Web Vitals), és mennyi ideig tartanak az oldal kérései a
+  szerverünkön át az adatbázisig, az oldal fajtájával és a kérés címével.
+  Nincs süti, nincs azonosító.
 - **Nyelv és ország.** Amikor megnyitod az ev.chealt.com oldalt, a böngésződ
   nyelve és az IP-címedből megállapított hozzávetőleges ország alapján a
   megfelelő oldalra irányítunk. Ezeket nem tároljuk.
@@ -104,6 +108,7 @@ adatvédelmi keretrendszeren (Data Privacy Framework) vagy az Európai Bizottsá
 - **Szervernaplók:** néhány napig a Cloudflare-nél.
 - **Hibák:** 30 napig.
 - **Használati statisztika:** körülbelül 13 hónapig.
+- **Teljesítménymérések:** 14 napig.
 
 ## A jogaid
 
