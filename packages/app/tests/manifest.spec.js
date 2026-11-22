@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures/test.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
 
 // The web app manifest is what browsers read to install the app, so these
 // tests check what it tells them.

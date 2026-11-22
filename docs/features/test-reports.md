@@ -39,7 +39,7 @@ rows.
 ## Accessibility report
 
 Every end-to-end test ends with an axe check of its page
-(`tests/fixtures/test.js`), and attaches the results ("axe"). After
+(`@ev-maps/e2e/test.js`), and attaches the results ("axe"). After
 publishing the Playwright report, `scripts/a11y-report.js` puts them
 together from `playwright-results.json` into one page: totals, the rules
 violated, the rules to check by hand (where axe couldn't decide), and each
@@ -53,7 +53,7 @@ rule was violated). Locally, after a run with the JSON reporter:
 Tests that load a whole page are tagged `@performance` (one per kind of
 page: the map, a country page, a legal page and each admin page). At their
 end, before axe, the fixture measures the page's load (TTFB, FCP, LCP, CLS,
-`tests/fixtures/web-vitals.js`), fails the test if one is poor by Google's
+`@ev-maps/e2e/web-vitals.js`), fails the test if one is poor by Google's
 thresholds, and attaches them ("web-vitals"). `scripts/performance-report.js`
 puts them together into each page's P75, rated good, needs improvement or
 poor, uploaded in `reports/{id}/performance/` and linked from a

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures/test.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { ERRORS_PAGE, fakePageData } from "./fixtures/page-data.js";
 

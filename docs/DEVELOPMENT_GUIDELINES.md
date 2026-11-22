@@ -953,7 +953,7 @@ Use Astro's Image component or optimize images manually:
 ### Automated checks (axe)
 
 - Every Playwright spec imports `test` and `expect` from
-  `tests/fixtures/test.js`, not `@playwright/test`. At the end of each
+  `@ev-maps/e2e/test.js`, not `@playwright/test`. At the end of each
   passing test, axe checks the page against WCAG 2.1 A and AA, and any
   violation fails the test.
 - `tests/accessibility.spec.js` also checks the main screens on the way, in

@@ -1,0 +1,27 @@
+{
+  "name": "@ev-maps/e2e",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Playwright's test extended for end-to-end suites: an axe accessibility check of every page a test leaves behind, and web-vitals measurement for tests tagged @performance",
+  "type": "module",
+  "exports": {
+    "./test.js": "./src/test.js",
+    "./web-vitals.js": "./src/web-vitals.js"
+  },
+  "scripts": {
+    "lint": "oxlint -c ../dev-config/oxlint.json .",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1"
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  },
+  "engines": {
+    "bun": ">=1.4.4",
+    "node": ">=26.0.0"
+  }
+}
