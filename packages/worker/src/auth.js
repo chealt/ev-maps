@@ -10,6 +10,7 @@ import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
 import { appleClientSecret, hasAppleCredentials } from "./apple-client-secret.js";
 import { canSendEmail, sendSignInLink } from "./email.js";
+import { countEvent } from "./usage.js";
 
 const AUTH_PATH = "/api/auth";
 // Which providers have credentials, so the page only offers those.
@@ -95,6 +96,11 @@ const createAuth = async (env, baseURL) => {
       // belongs to a verified email. Each deployment's own host.
       passkey({ rpID: hostname, rpName: "EV Maps", origin }),
     ],
+    // Usage stats: how many sign up and sign in (counts only).
+    databaseHooks: {
+      user: { create: { after: () => countEvent(env, "sign_up") } },
+      session: { create: { after: () => countEvent(env, "sign_in") } },
+    },
     // The session, signed, in a cookie for 5 minutes: checking who's signed
     // in (e.g. for every status request) doesn't need the database then.
     session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },

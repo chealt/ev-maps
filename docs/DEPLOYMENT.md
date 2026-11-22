@@ -130,6 +130,7 @@ asks for sign-in where needed and is rate limited per minute:
 | Sending a sign-in email             | Everyone  | 5 per IP address   |
 | `/api/admin/*`                      | Admins    | 120 per user       |
 | `POST /api/errors`                  | Everyone  | 30 per IP address  |
+| `POST /api/usage`                   | Everyone  | 60 per IP address  |
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
 | `/api/settings`                     | Signed in | 60 per user        |

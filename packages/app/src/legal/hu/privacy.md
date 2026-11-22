@@ -23,6 +23,10 @@ Kapcsolat: [info@chealt.com](mailto:info@chealt.com).
   oldallal, a böngésződdel, a hozzávetőleges országoddal és – ha be vagy
   jelentkezve – a fiókazonosítóddal együtt tároljuk, hogy kijavíthassuk. Az
   IP-címedet nem tároljuk vele.
+- **Használati statisztika.** Naponta megszámoljuk, hányszor nyitják meg az
+  oldalakat és használják a funkciókat (például egy töltő megnyitását vagy egy
+  szűrőt), és mely országokból. Ezek csak összesített számok: nincs süti,
+  nincs azonosító, semmi, ami rólad szólna.
 - **Nyelv és ország.** Amikor megnyitod az ev.chealt.com oldalt, a böngésződ
   nyelve és az IP-címedből megállapított hozzávetőleges ország alapján a
   megfelelő oldalra irányítunk. Ezeket nem tároljuk.
@@ -99,6 +103,7 @@ adatvédelmi keretrendszeren (Data Privacy Framework) vagy az Európai Bizottsá
   kijelentkezésig.
 - **Szervernaplók:** néhány napig a Cloudflare-nél.
 - **Hibák:** 30 napig.
+- **Használati statisztika:** körülbelül 13 hónapig.
 
 ## A jogaid
 

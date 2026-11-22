@@ -23,6 +23,10 @@ Kontakt: [info@chealt.com](mailto:info@chealt.com).
   zapisujemy błąd wraz ze stroną, Twoją przeglądarką, przybliżonym krajem i –
   jeśli jesteś zalogowany – identyfikatorem konta, aby go naprawić. Nie
   zapisujemy przy tym Twojego adresu IP.
+- **Statystyki użycia.** Codziennie liczymy, jak często wyświetlane są strony
+  i używane funkcje (np. otwarcie stacji lub filtr) oraz z jakich krajów. To
+  wyłącznie sumy: bez plików cookie, bez identyfikatorów, nic, co mówiłoby o
+  Tobie.
 - **Język i kraj.** Gdy otwierasz ev.chealt.com, używamy języka Twojej
   przeglądarki i przybliżonego kraju, ustalonego na podstawie adresu IP, aby
   przekierować Cię na właściwą stronę. Nie zapisujemy ich.
@@ -99,6 +103,7 @@ klauzulach umownych Komisji Europejskiej.
   wylogowania.
 - **Logi serwera:** kilka dni w Cloudflare.
 - **Błędy:** 30 dni.
+- **Statystyki użycia:** około 13 miesięcy.
 
 ## Twoje prawa
 

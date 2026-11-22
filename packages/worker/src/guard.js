@@ -28,6 +28,8 @@ const POLICIES = {
   admin: { limiter: "ADMIN_LIMITER", signedIn: true, admin: true },
   // Pages reporting their errors (src/errors.js).
   errors: { limiter: "ERRORS_LIMITER", signedIn: false },
+  // Pages sending their usage counts (src/usage.js).
+  usage: { limiter: "USAGE_LIMITER", signedIn: false },
 };
 
 const errorResponse = (status, error, headers = {}) =>

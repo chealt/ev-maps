@@ -4,6 +4,7 @@
 import { message } from "../../lib/messages.js";
 import { requestFavorites } from "../../lib/favorites.js";
 import { setSignedIn } from "../../lib/session.js";
+import { track } from "../../lib/usage.js";
 import {
   addPasskey,
   hasPasskey,
@@ -122,6 +123,7 @@ class UserMenuElement extends HTMLElement {
   }
 
   async signInWithPasskey() {
+    track("sign_in_started", "passkey");
     this.errorEl.textContent = "";
     const result = await signInWithPasskey();
     if (result === "signed-in") {
@@ -135,6 +137,7 @@ class UserMenuElement extends HTMLElement {
   // Emails a link that signs in (creating the account the first time) once
   // opened: only a verified email gets an account.
   async emailSignInLink() {
+    track("sign_in_started", "email");
     this.errorEl.textContent = "";
     const sent = this.querySelector(".sign-in .sent");
     sent.textContent = "";
@@ -182,6 +185,7 @@ class UserMenuElement extends HTMLElement {
   }
 
   async signIn(provider) {
+    track("sign_in_started", provider);
     this.errorEl.textContent = "";
     try {
       const response = await postJson(SIGN_IN_URL, {

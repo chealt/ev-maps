@@ -23,6 +23,10 @@ controller). Contact: [info@chealt.com](mailto:info@chealt.com).
   the error with the page, your browser and approximate country, and your
   account identifier if you're signed in, to fix it. We don't store your IP
   address with it.
+- **Usage statistics.** We count, per day, how often pages are viewed and
+  features are used (for example opening a charger or using a filter), and
+  from which countries. These are only totals: no cookies, no identifiers,
+  nothing that tells us about you.
 - **Language and country.** When you open ev.chealt.com, we use your browser's
   language and your approximate country, derived from your IP address, to send
   you to the right page. We don't store them.
@@ -93,6 +97,7 @@ clauses.
 - **Sign-in sessions:** until they expire (7 days without use) or you sign out.
 - **Server logs:** a few days at Cloudflare.
 - **Errors:** 30 days.
+- **Usage statistics:** about 13 months.
 
 ## Your rights
 

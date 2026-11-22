@@ -74,6 +74,11 @@ namespace_id = "4404"
 simple = { limit = 20, period = 60 }
 
 [[ratelimits]]
+name = "USAGE_LIMITER"
+namespace_id = "4410"
+simple = { limit = 60, period = 60 }
+
+[[ratelimits]]
 name = "ERRORS_LIMITER"
 namespace_id = "4409"
 simple = { limit = 30, period = 60 }
@@ -153,6 +158,11 @@ simple = { limit = 120, period = 60 }
 name = "ROUTE_LIMITER"
 namespace_id = "4404"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "USAGE_LIMITER"
+namespace_id = "4410"
+simple = { limit = 60, period = 60 }
 
 [[env.local.ratelimits]]
 name = "ERRORS_LIMITER"

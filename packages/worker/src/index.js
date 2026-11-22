@@ -18,6 +18,7 @@ import {
 } from "./admin.js";
 import { handleAuth, isAuthPath, userOf } from "./auth.js";
 import { ERRORS_PATH, deleteOldErrors, errorReportResponse, recordWorkerError } from "./errors.js";
+import { USAGE_PATH, countEvent, deleteOldUsage, usageReportResponse } from "./usage.js";
 import { chargersInBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { guard } from "./guard.js";
@@ -194,6 +195,9 @@ const apiPolicy = (request, url) => {
   if (url.pathname === ERRORS_PATH) {
     return "errors";
   }
+  if (url.pathname === USAGE_PATH) {
+    return "usage";
+  }
   if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
     return "tiles";
   }
@@ -221,6 +225,9 @@ const route = async (request, env, context) => {
   if (policy === "admin") {
     return adminApiResponse(request, env, user);
   }
+  if (policy === "usage") {
+    return usageReportResponse(request, env);
+  }
   if (policy === "errors") {
     // Anyone may report a page's error; signed in, with who it happened to.
     const reporter = await userOf(request, env).catch(() => null);
@@ -233,13 +240,21 @@ const route = async (request, env, context) => {
     return settingsResponse(request, env, userId);
   }
   if (policy === "favorites") {
-    return favoritesResponse(request, env, userId);
+    const response = await favoritesResponse(request, env, userId);
+    if (request.method === "PUT" && response.ok) {
+      context.waitUntil(countEvent(env, "favorite_added"));
+    }
+    return response;
   }
   if (policy === "auth" || policy === "email") {
     return handleAuth(request, env);
   }
   if (policy === "route") {
-    return routeChargersResponse(request, env);
+    const response = await routeChargersResponse(request, env);
+    if (response.ok) {
+      context.waitUntil(countEvent(env, "route_planned"));
+    }
+    return response;
   }
   if (policy === "status") {
     return statusResponse(request, env);
@@ -281,6 +296,7 @@ export default {
         return;
       }
       await deleteOldErrors(env);
+      await deleteOldUsage(env);
       // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
       await runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined });
     } catch (error) {
