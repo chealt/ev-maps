@@ -47,6 +47,22 @@
         "import/exports-last": "off",
         "import/group-exports": "off"
       }
+    },
+    {
+      "files": ["**/tests/*.spec.js"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@playwright/test",
+                "message": "Import test and expect from ./fixtures/test.js: it checks each test's page with axe."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }
