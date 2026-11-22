@@ -13,7 +13,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-locate-button data-auto-locate={autoLocate ? "" : undefined}>
-  <Button variant="primary" class="locate-button">
+  <Button variant="primary" class="locate-button" aria-keyshortcuts="l">
     <Icon icon={LocateFixed} />
     <span class="label">{page.locate}</span>
   </Button>

@@ -374,13 +374,34 @@ class GoogleMapElement extends HTMLElement {
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
-    // charger list) is open: those close themselves with it.
+    // charger list) is open: those close themselves with it. The letters are
+    // the map's shortcuts (see the ? dialog): f filters, c clears them, l
+    // locates, r plans a route. Not while typing or in a dialog: those keys
+    // belong to it.
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !this.detailsPanel?.hidden) {
-        if (!this.querySelector("dialog[open]")) {
+      if (event.key === "Escape") {
+        if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
           this.hideChargerDetails();
         }
+        return;
       }
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target.matches?.("input, textarea, select, [contenteditable]") ||
+        this.querySelector("dialog[open]")
+      ) {
+        return;
+      }
+      const shortcuts = {
+        f: () => this.toggleFilters(),
+        c: () => !this.querySelector(".map-controls .clear-filters")?.hidden && this.clearFilters(),
+        l: () => this.querySelector("ev-locate-button button")?.click(),
+        r: () => this.routePlanner?.open(),
+      };
+      shortcuts[event.key.toLowerCase()]?.();
     });
     this.detailsPanel
       ?.querySelector(".favorite-button")

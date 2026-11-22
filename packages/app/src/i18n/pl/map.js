@@ -69,6 +69,10 @@ const map = {
       title: "Skróty klawiszowe",
       help: "Pokaż tę pomoc",
       closeDialogs: "Zamyka okna i szczegóły stacji",
+      filters: "Pokaż lub ukryj filtry",
+      clearFilters: "Wyczyść filtry",
+      locate: "Moja lokalizacja",
+      route: "Zaplanuj trasę",
     },
   },
   messages: {
