@@ -82,7 +82,26 @@ const reportFileResponse = async (request, env, user, url) => {
   if (!isAdmin(env, user) || !env.REPORTS) {
     return notFound();
   }
-  const [, id, file] = url.pathname.match(FILE_PATH);
+  return reportFile(url, env, { cacheControl: "private, max-age=3600" });
+};
+
+// The UI evidence of a run's @ui tests (scripts/ui-evidence.js):
+// screenshots and videos of the app's own UI, published to be embedded
+// outside the admin area, e.g. in a pull request's comment. Only these
+// files of a report are public; the rest stays for admins.
+const UI_FILE_PATH = /^\/reports\/(\d+-\d+)\/(ui\/[\w-]+\.(?:png|webm))$/;
+
+const uiFileResponse = async (request, env, url) => {
+  if (!env.REPORTS || !UI_FILE_PATH.test(url.pathname)) {
+    return notFound();
+  }
+  return reportFile(url, env, { cacheControl: "public, max-age=86400" });
+};
+
+// The R2 object behind a report's file path, with the given caching.
+const reportFile = async (url, env, { cacheControl }) => {
+  const match = url.pathname.match(FILE_PATH) ?? url.pathname.match(UI_FILE_PATH);
+  const [, id, file] = match;
   const key = `reports/${id}/${decodeURIComponent(file || "index.html")}`;
   if (key.includes("..")) {
     return notFound();
@@ -94,8 +113,7 @@ const reportFileResponse = async (request, env, user, url) => {
   return new Response(object.body, {
     headers: {
       "content-type": contentTypeOf(key),
-      // Per user: no shared cache may keep it.
-      "cache-control": "private, max-age=3600",
+      "cache-control": cacheControl,
       "x-robots-tag": "noindex, nofollow",
     },
   });
@@ -130,6 +148,11 @@ const pageRoutes = [
     handle: async ({ request, env, url, signedInUser }) =>
       reportFileResponse(request, env, await signedInUser(), url),
   },
+  {
+    name: "ui evidence",
+    matches: (request, url) => request.method === "GET" && UI_FILE_PATH.test(url.pathname),
+    handle: async ({ request, env, url }) => uiFileResponse(request, env, url),
+  },
 ];
 
 const jobs = [
@@ -144,4 +167,5 @@ export {
   pageRoutes,
   reportFileResponse,
   routes,
+  uiFileResponse,
 };

@@ -78,6 +78,12 @@ into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:
   run of it left), so the review sees them next to the code
 - on main, hands them to the release notes as a "UI changes" section
 
+The comment and the notes embed the screenshot from
+`/reports/{id}/ui/{file}` (the site's only public report path, for the
+
+screenshots and videos of the app's own UI; everything else about a report
+stays for admins), linking to the report the evidence came from.
+
 To show another control, tag its test:
 `test("…", { tag: "@ui" }, async ({ page }) => { … })`. Run only those with
 `bunx playwright test --grep @ui`.

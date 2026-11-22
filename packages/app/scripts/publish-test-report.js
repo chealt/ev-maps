@@ -239,11 +239,17 @@ console.log(`Published the performance report: ${performanceUrl}`);
 
 // The UI evidence of @ui tests (scripts/ui-evidence.js), in ui/: the
 // screenshots and videos on the pull request, and in the release notes.
+// They sit under the site's public /reports/{id}/ui/ (src/test-reports.js),
+// so they can be embedded outside the admin area.
 const uiEvidence = await materializeUiEvidence();
 if (uiEvidence.length) {
   await uploadFolder(UI_EVIDENCE_DIR, `${report.id}/ui/`);
 }
-const uiMarkdown = uiEvidenceMarkdown(uiEvidence, url);
+const uiMarkdown = uiEvidenceMarkdown(
+  uiEvidence,
+  `${env("SITE_URL")}/reports/${report.id}/ui/`,
+  url
+);
 if (uiEvidence.length && env("PULL_REQUEST", { optional: true })) {
   await commentUiEvidence(uiMarkdown);
   console.log(`Commented the UI evidence on pull request ${env("PULL_REQUEST")}`);
