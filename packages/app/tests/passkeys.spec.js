@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test.js";
 import { addVirtualAuthenticator, fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";

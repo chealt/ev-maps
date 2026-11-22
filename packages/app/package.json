@@ -26,6 +26,7 @@
     "supercluster": "^9.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@ev-maps/dev-config": "workspace:*",
     "@playwright/test": "^1.65.1"
   },

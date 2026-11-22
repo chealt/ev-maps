@@ -234,7 +234,9 @@ class UserMenuElement extends HTMLElement {
     picture.hidden = !image;
     picture.src = image ?? "";
     this.querySelector(".initials").textContent = image ? "" : initialsOf(displayName);
-    this.button.setAttribute("aria-label", message("accountOf", { name: displayName }));
+    this.querySelector(".account-name").textContent = message("accountOf", {
+      name: displayName,
+    });
     this.querySelector(".name").textContent = displayName;
     this.querySelector(".email").textContent = email ?? "";
     this.setSignedIn(true);
@@ -246,7 +248,7 @@ class UserMenuElement extends HTMLElement {
   }
 
   showSignedOut() {
-    this.button.removeAttribute("aria-label");
+    this.querySelector(".account-name").textContent = "";
     this.querySelector(".admin-link").hidden = true;
     this.setSignedIn(false);
   }

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test.js";
 import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
