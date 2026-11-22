@@ -518,23 +518,16 @@ ev-google-map {
     display: none;
   }
 
+  /* The name, with the heart and the close button beside it. */
   .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-sm);
   }
 
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-2xs) var(--spacing-sm);
-    border-radius: var(--border-radius-full);
-    background: var(--color-primary-light);
-    color: var(--color-primary-light-text);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
+  .actions {
+    flex-shrink: 0;
   }
 
   .name {

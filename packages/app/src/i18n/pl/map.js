@@ -13,7 +13,6 @@ const map = {
     done: "Gotowe",
     chargerList: "Stacje ładowania",
     closeList: "Zamknij listę",
-    badge: "Ładowanie EV",
     close: "Zamknij",
     connectors: "Złącza",
     details: "Szczegóły",
