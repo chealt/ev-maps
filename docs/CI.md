@@ -49,6 +49,9 @@ of them pass. The Worker serves the app's build, so the two are deployed
 together, by `app.yml`'s `Deploy` job from `packages/worker`. That's why
 `app.yml` also runs when `packages/worker` changes.
 
+The `Test` job caches Playwright's Chromium per Playwright version, so most
+runs skip downloading it and only install its system libraries.
+
 The Playwright HTML report, with videos of every test and traces of failures,
 is uploaded as the `playwright-report` artifact.
 
