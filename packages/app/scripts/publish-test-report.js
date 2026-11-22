@@ -4,13 +4,16 @@
 //
 //   bun scripts/publish-test-report.js
 //
-// From the environment: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID;
+// From the environment: CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (the
+// admin database); R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY (an R2 API
+// token with Object Read & Write on the bucket, for its S3 API);
 // GITHUB_TOKEN and GITHUB_REPOSITORY; REPORT_ID ("{run ID}-{attempt}"),
 // COMMIT_SHA, BRANCH, PULL_REQUEST (if any) and RUN_URL; SITE_URL (where the
 // admin area is). It reads playwright-report/ and playwright-results.json.
 
 import { readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { S3Client, file as bunFile } from "bun";
 
 const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
@@ -47,20 +50,23 @@ const filesIn = async (directory) =>
     .filter((entry) => entry.isFile())
     .map((entry) => join(entry.parentPath, entry.name));
 
-// Every file of the report under reports/{id}/, CONCURRENCY at a time.
+// Every file of the report under reports/{id}/, CONCURRENCY at a time, with
+// R2's S3 API: a bucket-scoped R2 token can't use Cloudflare's REST API.
 const uploadReport = async (id) => {
+  const bucket = new S3Client({
+    accessKeyId: env("R2_ACCESS_KEY_ID"),
+    secretAccessKey: env("R2_SECRET_ACCESS_KEY"),
+    bucket: BUCKET,
+    endpoint: `https://${env("CLOUDFLARE_ACCOUNT_ID")}.r2.cloudflarestorage.com`,
+  });
   const files = await filesIn(REPORT_DIR);
   let next = 0;
   const worker = async () => {
     while (next < files.length) {
       const file = files[next++];
       const key = `reports/${id}/${relative(REPORT_DIR, file).split("\\").join("/")}`;
-      const encodedKey = key.split("/").map(encodeURIComponent).join("/");
-      await cloudflare(`/r2/buckets/${BUCKET}/objects/${encodedKey}`, {
-        method: "PUT",
-        body: await readFile(file),
-        headers: {},
-      });
+      // Bun.file gives each its content type, e.g. text/html.
+      await bucket.write(key, bunFile(file));
     }
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));

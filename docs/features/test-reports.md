@@ -8,7 +8,7 @@ The App workflow's Test job runs Playwright with the HTML reporter and a
 JSON summary (`playwright-results.json`), then
 `packages/app/scripts/publish-test-report.js`:
 
-1. uploads every file of the HTML report to the R2 bucket
+1. uploads every file of the HTML report, with R2's S3 API, to the R2 bucket
    `ev-maps-test-reports`, under `reports/{run ID}-{attempt}/`, 16 at a time
    (Cloudflare's REST API);
 2. records the run in the admin database (`test_reports`): branch, commit,
