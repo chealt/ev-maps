@@ -3,6 +3,30 @@ import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi, fakeRouteChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
 
+// The fake route API places chargers along any route; these add a café to
+// the first only.
+const chargersWithPlaces = [
+  {
+    id: "ocm:1",
+    source: "ocm",
+    name: "Café charger",
+    location: { lat: 47.5, lng: 19.05 },
+    address: "",
+    maxPowerKw: 50,
+    connectors: [{ type: "ccs2", powerKw: 50, quantity: 1 }],
+    amenities: ["coffee"],
+  },
+  {
+    id: "ocm:2",
+    source: "ocm",
+    name: "Bare charger",
+    location: { lat: 47.51, lng: 19.06 },
+    address: "",
+    maxPowerKw: 50,
+    connectors: [{ type: "ccs2", powerKw: 50, quantity: 1 }],
+  },
+];
+
 // Planning routes needs a signed-in user, so these tests sign in.
 // The fake place search knows Budapest, Vienna and Nowhere Island (which no
 // route reaches), and drives in a straight line. The fake route API puts the
@@ -83,6 +107,28 @@ test("filters the chargers along the route by power", async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText(
     "1 of 2 EV chargers along the route match the filters"
   );
+});
+
+test("filters the chargers along the route by the places next to them", async ({ page }) => {
+  await fakeRouteChargersApi(page, { chargers: chargersWithPlaces });
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+  await page.getByRole("button", { name: "Filters" }).click();
+  const filters = page.getByRole("dialog", { name: "Filters" });
+  await filters.getByRole("button", { name: "Café" }).click();
+  await filters.getByRole("button", { name: "Done" }).click();
+
+  await expect(page.getByRole("status")).toHaveText(
+    "1 of 2 EV chargers along the route match the filters"
+  );
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button", { name: "Café charger" })).toBeVisible();
+  await expect(map.getByRole("button", { name: "Bare charger" })).toBeHidden();
 });
 
 test("clears the route and goes back to the map's chargers", async ({ page }) => {
