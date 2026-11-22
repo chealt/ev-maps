@@ -1,0 +1,41 @@
+---
+import { translations } from "../../i18n/index.js";
+import BarChart from "../bar-chart/BarChart.astro";
+import "./AdminDashboard.css";
+
+const lang = Astro.currentLocale ?? "en";
+const { page } = translations(lang);
+
+// Each chart: what it counts (the field of GET /api/admin/dashboard), its
+// title, and the page with more.
+const charts = [
+  { key: "errors", title: page.adminErrorsPerDay, href: "errors", more: page.adminAllErrors },
+  { key: "pageViews", title: page.adminPageViewsChart, href: "usage", more: page.adminAllUsage },
+  { key: "signIns", title: page.adminSignInsPerDay, href: "usage", more: page.adminAllUsage },
+];
+---
+
+<!-- The overview's charts (GET /api/admin/dashboard): errors and usage per
+     day, the last 30 days. -->
+<ev-admin-dashboard>
+  <section class="dashboard" aria-labelledby="admin-dashboard-title">
+    <h2 class="section-title" id="admin-dashboard-title">
+      {page.adminDashboard}
+    </h2>
+    <p class="not-loaded" role="alert" hidden>
+      {page.adminDashboardNotLoaded}
+    </p>
+    <div class="charts">
+      {charts.map(({ key, title, href, more }) => (
+        <article class="card" data-key={key}>
+          <BarChart title={title} id={`admin-dashboard-${key}`} />
+          <p class="footer">
+            <span class="total"></span>
+            <a href={`/${lang}/admin/${href}/`}>{more}</a>
+          </p>
+        </article>
+      ))}
+    </div>
+  </section>
+  <script src="./AdminDashboard.js"></script>
+</ev-admin-dashboard>

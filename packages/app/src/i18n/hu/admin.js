@@ -13,6 +13,8 @@ const admin = {
   messages: {
     adminSignedInAs: "Bejelentkezve: {email}",
     adminSignedOut: "Jelentkezz be adminisztrátori fiókkal az oldal megtekintéséhez.",
+    // A bar of a chart (components/bar-chart).
+    adminDayCount: "{day}: {count}",
   },
 };
 
