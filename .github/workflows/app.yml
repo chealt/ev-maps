@@ -47,6 +47,7 @@ jobs:
             app:
               - "packages/app/**"
               - "packages/tiles/**"
+              - "packages/ui/**"
               - "packages/worker/**"
               - "packages/dev-config/**"
               - "packages/biome-plugin-css-units/**"
@@ -78,6 +79,15 @@ jobs:
             script: lint
           - name: Check tiles formatting
             package: tiles
+            script: format:check
+          - name: Lint UI components
+            package: ui
+            script: lint
+          - name: Lint UI components' CSS
+            package: ui
+            script: lint:css
+          - name: Check UI components formatting
+            package: ui
             script: format:check
     steps:
       # A skipped check counts as passed, so fail if change detection failed.

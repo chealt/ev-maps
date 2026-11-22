@@ -454,20 +454,35 @@ and ship on its own: the app, a Cloudflare Worker, a library we'd publish.
 
 ### Component Structure
 
-Each Astro component should have its own directory:
+Generic UI components (buttons, icons, charts) are in their own package,
+`packages/ui` (`@ev-maps/ui`): no app state, no translations, no API calls;
+the page passes their text in. Import them by name:
+
+```astro
+---
+import Button from "@ev-maps/ui/Button.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+---
+```
+
+Components that know about chargers, the map or the account stay in
+`packages/app/src/components`. Either way, each Astro component has its own
+directory:
 
 ```text
-components/
+packages/ui/
 ├── button/
 │   ├── Button.astro      # Template + logic
 │   └── Button.css        # Styles
-├── map/
-│   ├── Map.astro         # Template + logic
-│   └── Map.css           # Styles
-└── card/
-    ├── Card.astro        # Template + logic
-    └── Card.css          # Styles
+packages/app/src/components/
+└── google-map/
+    ├── GoogleMap.astro   # Template
+    ├── GoogleMap.css     # Styles
+    └── GoogleMap.js      # Behavior (a web component)
 ```
+
+A new generic component goes in `packages/ui` with an entry in its
+`package.json` `exports` and its README.
 
 ### Naming Conventions
 

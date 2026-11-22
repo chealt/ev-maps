@@ -33,6 +33,8 @@ includes everything that artifact needs from CI.
 | `worker.yml` | `packages/worker` | JS lint, format check, unit tests (`bun test`), bundle           |
 
 Both also lint and format-check `packages/tiles`, which they share.
+`app.yml` also lints and format-checks `packages/ui`, the generic UI
+components the app's pages use.
 
 | Workflow      | Schedule             | What it does                                               |
 | ------------- | -------------------- | ---------------------------------------------------------- |

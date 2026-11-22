@@ -19,6 +19,7 @@
       "dependencies": {
         "@astrojs/cloudflare": "14.4.9",
         "@ev-maps/tiles": "workspace:*",
+        "@ev-maps/ui": "workspace:*",
         "@simplewebauthn/browser": "^13.3.0",
         "astro": "^7.4.12",
         "idb-keyval": "^6.3.0",
@@ -48,6 +49,16 @@
       "version": "0.0.1",
       "devDependencies": {
         "@ev-maps/dev-config": "workspace:*",
+      },
+    },
+    "packages/ui": {
+      "name": "@ev-maps/ui",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
+      },
+      "peerDependencies": {
+        "astro": "^7.4.12",
       },
     },
     "packages/worker": {
@@ -270,6 +281,8 @@
     "@ev-maps/dev-config": ["@ev-maps/dev-config@workspace:packages/dev-config"],
 
     "@ev-maps/tiles": ["@ev-maps/tiles@workspace:packages/tiles"],
+
+    "@ev-maps/ui": ["@ev-maps/ui@workspace:packages/ui"],
 
     "@ev-maps/worker": ["@ev-maps/worker@workspace:packages/worker"],
 
