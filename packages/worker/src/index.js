@@ -8,6 +8,7 @@
 
 import { isAdmin } from "./admin.js";
 import { API_ROUTES } from "./api-routes.js";
+import { renderAppPage } from "./app-server.js";
 import { userOf } from "./auth.js";
 import { recordWorkerError } from "./errors.js";
 import { guard } from "./guard.js";
@@ -50,7 +51,14 @@ const route = async (request, env, context) => {
   const pageRoute = PAGE_ROUTES.find((candidate) => candidate.matches(request, url));
   if (pageRoute) {
     setTraceRoute(pageRoute.name);
-    return pageRoute.handle({ request, env, url, signedInUser: () => userOf(request, env) });
+    return pageRoute.handle({
+      request,
+      env,
+      context,
+      url,
+      signedInUser: () => userOf(request, env),
+      renderAppPage,
+    });
   }
   return env.ASSETS.fetch(request);
 };

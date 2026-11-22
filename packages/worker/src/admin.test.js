@@ -47,6 +47,55 @@ describe("adminPageResponse", () => {
     const user = { id: "2", email: "ada@example.com" };
     expect((await adminPageResponse(request, env, user)).status).toBe(404);
   });
+
+  test("renders the errors page with the errors as its props", async () => {
+    const db = testD1("../admin-migrations/0001_errors.sql");
+    db.sqlite
+      .prepare(
+        "INSERT INTO errors (fingerprint, source, message, created_at) VALUES ('0000abcd', 'page', 'Boom', 1)"
+      )
+      .run();
+    const calls = [];
+    const render = async (renderedRequest, renderEnv, context) => {
+      calls.push({ url: renderedRequest.url, props: context.props });
+      return new Response("<h1>Errors</h1>", { headers: { "content-type": "text/html" } });
+    };
+    const admin = { id: "1", email: "grace@chealt.com" };
+    const errorsPage = new Request("https://ev.chealt.com/en/admin/errors/?error=0000abcd");
+
+    const response = await adminPageResponse(errorsPage, { ...env, ADMIN_DB: db }, admin, {
+      render,
+    });
+
+    expect(await response.text()).toBe("<h1>Errors</h1>");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(calls[0].props.data.total).toBe(1);
+    expect(calls[0].props.data.occurrences[0].message).toBe("Boom");
+    // Static admin pages still come from the assets.
+    const overview = await adminPageResponse(request, env, admin, { render });
+    expect(await overview.text()).toBe("<h1>Admin</h1>");
+    expect(calls).toHaveLength(1);
+  });
+
+  test("tells the page when its data couldn't be read", async () => {
+    let props;
+    const render = async (renderedRequest, renderEnv, context) => {
+      props = context.props;
+      return new Response("");
+    };
+    const broken = {
+      prepare: () => {
+        throw new Error("D1 is down");
+      },
+    };
+    await adminPageResponse(
+      new Request("https://ev.chealt.com/hu/admin/errors/"),
+      { ...env, ADMIN_DB: broken },
+      { id: "1", email: "grace@chealt.com" },
+      { render }
+    );
+    expect(props).toEqual({ failed: true });
+  });
 });
 
 describe("adminApiResponse", () => {

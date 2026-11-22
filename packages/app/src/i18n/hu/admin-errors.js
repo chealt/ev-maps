@@ -20,11 +20,8 @@ const adminErrors = {
     adminUserLabel: "Felhasználó",
     adminCountryLabel: "Ország",
     adminStackTrace: "Hívási verem",
-  },
-  messages: {
     adminErrorsNotLoaded: "Nem sikerült betölteni a hibákat. Próbáld újra.",
     adminNoErrors: "Nem volt hiba az elmúlt 30 napban.",
-    adminPageOf: "{page}. oldal / {pages}",
     adminNone: "–",
     adminErrorGroups: {
       one: "{count} féle hiba az elmúlt 30 napban",
@@ -34,9 +31,8 @@ const adminErrors = {
       one: "{count} alkalommal fordult elő az elmúlt 30 napban",
       other: "{count} alkalommal fordult elő az elmúlt 30 napban",
     },
-  },
-  values: {
-    errorSources: {
+    // Where an error happened.
+    adminErrorSources: {
       worker: "Szerver",
       page: "Böngésző",
     },

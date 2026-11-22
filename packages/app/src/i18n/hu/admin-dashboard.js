@@ -7,7 +7,6 @@ const adminDashboard = {
     adminErrorsPerDay: "Hibák naponta",
     adminPageViewsChart: "Oldalmegtekintések naponta",
     adminSignInsPerDay: "Bejelentkezések naponta",
-    adminAllErrors: "Összes hiba",
     adminDashboardNotLoaded: "Az irányítópultot nem sikerült betölteni. Próbáld újra.",
     adminAllUsage: "Összes használati adat",
   },

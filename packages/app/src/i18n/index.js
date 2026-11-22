@@ -116,4 +116,23 @@ const LANGUAGES = Object.keys(SECTIONS);
 const fill = (template, values) =>
   template.replace(/\{(\w+)\}/g, (placeholder, name) => values[name] ?? placeholder);
 
-export { LANGUAGES, fill, runtimeTranslations, translations };
+// A message rendered on the server, like src/lib/messages.js's in the
+// browser: the plural form for values.count, and numbers formatted for the
+// language.
+const formatMessage = (language, entry, values = {}) => {
+  const template =
+    typeof entry === "object"
+      ? (entry[new Intl.PluralRules(language).select(values.count)] ?? entry.other)
+      : entry;
+  return template.replace(/\{(\w+)\}/g, (placeholder, name) => {
+    const value = values[name];
+    if (value === undefined) {
+      return placeholder;
+    }
+    return typeof value === "number"
+      ? new Intl.NumberFormat(language).format(value)
+      : String(value);
+  });
+};
+
+export { LANGUAGES, fill, formatMessage, runtimeTranslations, translations };

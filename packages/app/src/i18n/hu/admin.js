@@ -13,6 +13,8 @@ const admin = {
   messages: {
     adminSignedInAs: "Bejelentkezve: {email}",
     adminSignedOut: "Jelentkezz be adminisztrátori fiókkal az oldal megtekintéséhez.",
+    // Shared by the admin pages with pages.
+    adminPageOf: "{page}. oldal / {pages}",
     // A bar of a chart (components/bar-chart).
     adminDayCount: "{day}: {count}",
   },

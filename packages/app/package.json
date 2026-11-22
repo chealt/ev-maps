@@ -18,6 +18,7 @@
     "icons": "bun scripts/generate-icons.js"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "14.4.9",
     "@ev-maps/tiles": "workspace:*",
     "@simplewebauthn/browser": "^13.3.0",
     "astro": "^7.4.12",

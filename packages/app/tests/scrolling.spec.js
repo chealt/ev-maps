@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
+import { ERRORS_PAGE, fakePageData } from "./fixtures/page-data.js";
 
 // Scrolls the page down with the mouse wheel, as a person would (code can
 // scroll even where they can't), and says how far it went.
@@ -19,27 +20,25 @@ test("scrolls the admin pages", async ({ page }) => {
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: "grace@chealt.com" } })
   );
-  await page.route("**/api/admin/errors?**", (route) =>
-    route.fulfill({
-      json: {
-        groups: Array.from({ length: 25 }, (_, index) => ({
-          fingerprint: index.toString(16).padStart(8, "0"),
-          source: "page",
-          name: "TypeError",
-          message: `Error ${index}`,
-          url: "/en/",
-          context: null,
-          count: 1,
-          users: 0,
-          first_seen: Date.now(),
-          last_seen: Date.now(),
-        })),
-        page: 1,
-        pages: 1,
-        total: 25,
-      },
-    })
-  );
+  await fakePageData(page, ERRORS_PAGE, {
+    data: {
+      groups: Array.from({ length: 25 }, (_, index) => ({
+        fingerprint: index.toString(16).padStart(8, "0"),
+        source: "page",
+        name: "TypeError",
+        message: `Error ${index}`,
+        url: "/en/",
+        context: null,
+        count: 1,
+        users: 0,
+        first_seen: Date.now(),
+        last_seen: Date.now(),
+      })),
+      page: 1,
+      pages: 1,
+      total: 25,
+    },
+  });
   await page.goto("/en/admin/errors/");
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(26);
 

@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
+import { ERRORS_PAGE, fakePageData } from "./fixtures/page-data.js";
 
 // Each kind of page only gets the messages of its sections (src/i18n),
 // baked into its HTML at build time, so
@@ -49,9 +50,7 @@ test("the legal pages get no messages, and the admin pages only their own", asyn
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: "grace@chealt.com" } })
   );
-  await page.route("**/api/admin/errors?**", (route) =>
-    route.fulfill({ json: { groups: [], page: 1, pages: 1, total: 0 } })
-  );
+  await fakePageData(page, ERRORS_PAGE, { data: { groups: [], page: 1, pages: 1, total: 0 } });
 
   await page.goto("/pl/privacy/");
   // Their scripts show no copy, so they carry none.
@@ -62,7 +61,10 @@ test("the legal pages get no messages, and the admin pages only their own", asyn
   const adminMessages = await page.evaluate(
     () => JSON.parse(document.getElementById("messages").textContent).messages
   );
-  expect(adminMessages).toHaveProperty("adminNoErrors");
+  // The errors page's copy is rendered on the server; its scripts (the
+  // admin frame's) get only the admin area's messages.
+  expect(adminMessages).toHaveProperty("adminSignedInAs");
+  expect(adminMessages).not.toHaveProperty("adminNoErrors");
   expect(adminMessages).not.toHaveProperty("chargerCount");
 
   expect(missing).toEqual([]);

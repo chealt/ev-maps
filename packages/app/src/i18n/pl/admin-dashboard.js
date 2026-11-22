@@ -7,7 +7,6 @@ const adminDashboard = {
     adminErrorsPerDay: "Błędy dziennie",
     adminPageViewsChart: "Wyświetlenia stron dziennie",
     adminSignInsPerDay: "Logowania dziennie",
-    adminAllErrors: "Wszystkie błędy",
     adminDashboardNotLoaded: "Nie udało się wczytać pulpitu. Spróbuj ponownie.",
     adminAllUsage: "Wszystkie statystyki użycia",
   },

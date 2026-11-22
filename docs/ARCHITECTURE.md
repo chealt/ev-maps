@@ -59,7 +59,7 @@ ev-maps/
 │   │   └── tests/                     # Playwright tests
 │   │       └── fixtures/              # Fakes for the external APIs
 │   ├── worker/                        # The Cloudflare Worker
-│   │   ├── wrangler.toml              # Worker config; serves app/dist as assets
+│   │   ├── wrangler.toml              # Worker config; serves app/dist/client
 │   │   ├── migrations/                # D1 database migrations
 │   │   ├── scripts/                   # export-chargers.js: D1 to JSON per country
 │   │   └── src/                       # Charger API, sign-in, redirect for /, import
