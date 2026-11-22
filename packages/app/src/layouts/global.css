@@ -33,6 +33,8 @@
   --color-text-muted: light-dark(#475569, #94a3b8);
   --color-danger: #ef4444;
   --color-danger-dark: #dc2626;
+  /* Favorites' pins: white on it is readable (5.3:1). */
+  --color-favorite: #db2777;
   --color-danger-darker: #b91c1c;
   --color-danger-light: light-dark(#fee2e2, #450a0a);
   --color-danger-light-text: light-dark(#b91c1c, #fca5a5);

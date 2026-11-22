@@ -130,6 +130,8 @@ const map = {
     alongRoute: "In order along the route",
     offRoute: "{distance} off the route",
     chargerNoneFree: "{name}, no points free",
+    chargerFavorite: "{name}, favorite",
+    chargerFavoriteNoneFree: "{name}, favorite, no points free",
     pointsFree: {
       one: "{available} of {count} point free",
       other: "{available} of {count} points free",
