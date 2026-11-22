@@ -11,7 +11,7 @@ export const getStaticPaths = () => languages().map((lang) => ({ params: { lang 
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
-<Layout title={`EV Maps - ${page.adminErrors}`} noindex>
+<Layout title={`EV Maps - ${page.adminErrors}`} noindex kind="admin">
   <AdminPage current="errors">
     <AdminErrors />
   </AdminPage>

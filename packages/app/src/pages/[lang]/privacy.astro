@@ -12,7 +12,7 @@ const { lang } = Astro.params;
 const { Content, frontmatter } = documents[`../../legal/${lang}/privacy.md`];
 ---
 
-<Layout title={`EV Maps - ${frontmatter.title}`}>
+<Layout title={`EV Maps - ${frontmatter.title}`} kind="legal">
   <LegalPage title={frontmatter.title} updated={frontmatter.updated}>
     <Content />
   </LegalPage>

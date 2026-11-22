@@ -1,12 +1,52 @@
-// The translations Astro builds each language's pages with. The build fails
-// if a language misses a key that English has, so no page shows English (or
-// nothing) in its place.
+// The translations, one folder per language and one file per section of the
+// site, so work on one part doesn't touch the others' files:
+//
+// - common: used on more than one kind of page, or by the layout
+// - map: the map (filters, charger details, the charger list, routes)
+// - account: the account menu (sign-in, theme, language, favorites)
+// - legal: the privacy policy and terms of use
+// - admin: the admin area
+//
+// Each section has the same parts:
+// - page: rendered by Astro at build time
+// - messages: templates the scripts fill in at runtime (src/lib/messages.js);
+//   {name} is a placeholder, and messages with a count have a form for each
+//   plural category of the language (Intl.PluralRules)
+// - values: labels for IDs, e.g. in the charger data (packages/worker's
+//   charger-values.js)
+//
+// Astro gets every section (`translations`); a page's scripts only get the
+// messages and values of the sections it uses (`runtimeTranslations`, see
+// Layout.astro). The build fails if a language misses a key that English
+// has, so no page shows English (or nothing) in its place.
 
-import { en } from "./en.js";
-import { hu } from "./hu.js";
-import { pl } from "./pl.js";
+import { account as enAccount } from "./en/account.js";
+import { admin as enAdmin } from "./en/admin.js";
+import { common as enCommon } from "./en/common.js";
+import { legal as enLegal } from "./en/legal.js";
+import { map as enMap } from "./en/map.js";
+import { account as huAccount } from "./hu/account.js";
+import { admin as huAdmin } from "./hu/admin.js";
+import { common as huCommon } from "./hu/common.js";
+import { legal as huLegal } from "./hu/legal.js";
+import { map as huMap } from "./hu/map.js";
+import { account as plAccount } from "./pl/account.js";
+import { admin as plAdmin } from "./pl/admin.js";
+import { common as plCommon } from "./pl/common.js";
+import { legal as plLegal } from "./pl/legal.js";
+import { map as plMap } from "./pl/map.js";
 
-const TRANSLATIONS = { en, hu, pl };
+const SECTIONS = {
+  en: { common: enCommon, map: enMap, account: enAccount, legal: enLegal, admin: enAdmin },
+  hu: { common: huCommon, map: huMap, account: huAccount, legal: huLegal, admin: huAdmin },
+  pl: { common: plCommon, map: plMap, account: plAccount, legal: plLegal, admin: plAdmin },
+};
+// Which sections each kind of page's scripts need.
+const PAGE_SECTIONS = {
+  map: ["common", "map", "account"],
+  legal: ["common", "legal"],
+  admin: ["common", "admin"],
+};
 const PLURAL_CATEGORIES = new Set(["zero", "one", "two", "few", "many", "other"]);
 
 const isPlural = (value) =>
@@ -26,23 +66,54 @@ const missingKeys = (reference, translation, path = []) =>
     return typeof value === "object" ? missingKeys(value, translated, keyPath) : [];
   });
 
-for (const [language, translation] of Object.entries(TRANSLATIONS)) {
-  const missing = missingKeys(en, translation);
+for (const [language, sections] of Object.entries(SECTIONS)) {
+  const missing = Object.entries(SECTIONS.en).flatMap(([name, section]) =>
+    missingKeys(section, sections[name], [name])
+  );
   if (missing.length) {
     throw new Error(`Missing ${language} translations: ${missing.join(", ")}`);
   }
 }
 
-const translations = (language) => {
-  const translation = TRANSLATIONS[language];
-  if (!translation) {
+// The sections put together: { languageName, page, messages, values }.
+const merge = (sections) => ({
+  languageName: sections[0]?.languageName,
+  page: Object.assign({}, ...sections.map((section) => section.page)),
+  messages: Object.assign({}, ...sections.map((section) => section.messages)),
+  values: Object.assign({}, ...sections.map((section) => section.values)),
+});
+
+const sectionsOf = (language) => {
+  const sections = SECTIONS[language];
+  if (!sections) {
     throw new Error(`No translations for the language "${language}"`);
   }
-  return translation;
+  return sections;
+};
+
+const merged = new Map();
+
+// Everything in a language, for Astro.
+const translations = (language) => {
+  if (!merged.has(language)) {
+    merged.set(language, merge(Object.values(sectionsOf(language))));
+  }
+  return merged.get(language);
+};
+
+// The messages and values a kind of page's scripts use ("map", "legal",
+// "admin").
+const runtimeTranslations = (language, pageKind) => {
+  const names = PAGE_SECTIONS[pageKind];
+  if (!names) {
+    throw new Error(`No sections for the kind of page "${pageKind}"`);
+  }
+  const { messages, values } = merge(names.map((name) => sectionsOf(language)[name]));
+  return { messages, values };
 };
 
 // Fills {name} placeholders, e.g. in page titles.
 const fill = (template, values) =>
   template.replace(/\{(\w+)\}/g, (placeholder, name) => values[name] ?? placeholder);
 
-export { fill, translations };
+export { fill, runtimeTranslations, translations };

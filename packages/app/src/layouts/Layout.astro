@@ -1,17 +1,19 @@
 ---
 import "./global.css";
-import { translations } from "../i18n/index.js";
+import { runtimeTranslations, translations } from "../i18n/index.js";
 import { languages } from "../lib/pages.js";
 
 interface Props {
   title?: string;
   // Kept out of search engines, e.g. the admin pages.
   noindex?: boolean;
+  // The kind of page, for the copy its scripts get: "map", "legal", "admin".
+  kind?: string;
 }
 
 const lang = Astro.currentLocale ?? "en";
-const { page, messages, values } = translations(lang);
-const { title = page.title, noindex = false } = Astro.props;
+const { page } = translations(lang);
+const { title = page.title, noindex = false, kind = "map" } = Astro.props;
 
 // The same page in every language, e.g. /pl/hu/ for /en/hu/.
 const pathInLanguage = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
@@ -22,7 +24,7 @@ const alternates = languages().map((language) => ({
 
 // The scripts' copy (src/lib/messages.js). JSON inside <script>: escape "<"
 // so it can't close the element.
-const messagesJson = JSON.stringify({ messages, values }).replaceAll("<", "\\u003c");
+const messagesJson = JSON.stringify(runtimeTranslations(lang, kind)).replaceAll("<", "\\u003c");
 ---
 
 <!doctype html>
