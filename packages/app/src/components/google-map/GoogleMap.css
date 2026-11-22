@@ -11,7 +11,6 @@ ev-google-map {
   --status-pulse-animation: 1.6s ease-in-out infinite;
 
   /* Filter panel */
-  --dialog-content-width: 40rem;
   --filter-option-min-width: 9rem;
   --operator-option-min-width: 14rem;
   --operator-option-height: 2.75rem;
@@ -187,8 +186,11 @@ ev-google-map {
 }
 
 /* Filters */
-/* Full screen on every screen size; the content is a centered column. */
+/* Full screen on every screen size; the content is a centered column,
+   wider on large screens so their space holds more options per row. */
 .fullscreen-dialog {
+  --dialog-content-width: 40rem;
+
   width: 100%;
   max-width: none;
   height: 100dvh;
@@ -737,6 +739,12 @@ ev-google-map {
     gap: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-base);
+  }
+}
+
+@media (width >= 64em) {
+  .fullscreen-dialog {
+    --dialog-content-width: 60rem;
   }
 }
 
