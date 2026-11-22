@@ -12,3 +12,9 @@ visitors' country. Kept about 13 months. Admins see them at `/{lang}/admin/usage
 (`<ev-admin-usage>`, `GET /api/admin/usage?days=7|30|90`): totals, page
 views per day, and each event by its dimension (pages, countries, sources,
 filters, sign-in methods).
+
+Below the breakdowns, the 10 chargers most users have as a favorite now:
+`GET /api/admin/usage` also counts the main database's `favorites` per
+charger (`mostFavorited` in `packages/worker/src/admin.js`), named from the
+copy the favorites keep. Favorites are kept, not counted per day, so this
+doesn't change with the period.
