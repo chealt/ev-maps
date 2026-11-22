@@ -370,3 +370,44 @@ jobs:
         run: |
           url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
           echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
+
+  # Each production deploy gets a GitHub release, tagged with the date and
+  # time it went out, with notes listing the pull requests merged since the
+  # previous release (scripts/release-notes.js).
+  release:
+    name: Release
+    needs: deploy
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The whole history and the tags, to find the previous release.
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Test the release notes script
+        run: bun test scripts
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          previous=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
+          tag="v$(date -u +%Y.%m.%d-%H%M)"
+          bun scripts/release-notes.js $previous > notes.md
+          if [ -n "$previous" ]; then
+            printf '\n**Full changes:** %s/%s/compare/%s...%s\n' \
+              "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$previous" "$tag" >> notes.md
+          fi
+          gh release create "$tag" --target "$GITHUB_SHA" \
+            --title "$(date -u '+%B %-d, %Y, %H:%M UTC')" --notes-file notes.md
+          echo "Released $tag" >> "$GITHUB_STEP_SUMMARY"

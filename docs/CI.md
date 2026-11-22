@@ -49,6 +49,13 @@ of them pass. The Worker serves the app's build, so the two are deployed
 together, by `app.yml`'s `Deploy` job from `packages/worker`. That's why
 `app.yml` also runs when `packages/worker` changes.
 
+After each production deploy, the `Release` job creates a GitHub release,
+tagged with the date and time (`v2026.11.22-1705`, UTC). Its notes list the
+pull requests merged since the previous release, grouped by kind (new
+features, bug fixes, …), from their Conventional Commit titles
+(`scripts/release-notes.js`). Changes that deploy nothing, such as docs, go
+into the next release. To preview the notes: `bun scripts/release-notes.js
+<previous tag>`.
 The `Test` job caches Playwright's Chromium per Playwright version, so most
 runs skip downloading it and only install its system libraries.
 
