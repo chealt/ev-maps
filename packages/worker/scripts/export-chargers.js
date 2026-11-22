@@ -16,10 +16,13 @@ import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { iso1A2Code } from "@rapideditor/country-coder";
 import { getPlatformProxy } from "wrangler";
-import { chargersAfter, toClientCharger } from "../src/db.js";
+import { chargersInRidRange, maxChargerRid, toClientCharger } from "../src/db.js";
 import { mergeDuplicates } from "../src/duplicates.js";
 
-const PAGE_SIZE = 5000;
+// The chargers are read as rid ranges of this size, this many at a time: one
+// after the other, the round trips took most of the export's time in CI.
+const RANGE_SIZE = 5000;
+const CONCURRENCY = 8;
 // About 10 cm, plenty for a map and much shorter than the stored doubles.
 const COORDINATE_DECIMALS = 6;
 const CONFIG_PATH = new URL("../wrangler.toml", import.meta.url).pathname;
@@ -37,14 +40,18 @@ if (!out) {
 }
 
 const readAllChargers = async (db) => {
-  const rows = [];
-  for (;;) {
-    const page = await chargersAfter(db, rows.at(-1)?.rid ?? 0, PAGE_SIZE);
-    rows.push(...page);
-    if (page.length < PAGE_SIZE) {
-      return rows;
+  const maxRid = await maxChargerRid(db);
+  const starts = Array.from({ length: Math.ceil(maxRid / RANGE_SIZE) }, (_, i) => i * RANGE_SIZE);
+  const ranges = [];
+  let next = 0;
+  const worker = async () => {
+    while (next < starts.length) {
+      const index = next++;
+      ranges[index] = await chargersInRidRange(db, starts[index], starts[index] + RANGE_SIZE);
     }
-  }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  return ranges.flat();
 };
 
 const roundCoordinate = (value) => Number(value.toFixed(COORDINATE_DECIMALS));
