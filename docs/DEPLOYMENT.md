@@ -125,6 +125,7 @@ asks for sign-in where needed and is rate limited per minute:
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
 | `/api/settings`                     | Signed in | 60 per user        |
+| `/api/favorites`                    | Signed in | 120 per user       |
 
 ## GitHub Secrets and Variables
 

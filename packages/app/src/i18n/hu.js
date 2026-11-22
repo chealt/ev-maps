@@ -68,6 +68,14 @@ const hu = {
     operatorFilterHint:
       "A térképen lévő töltők üzemeltetői. Vedd ki a pipát, hogy elrejtsd a töltőit.",
     noOperators: "Mozgasd a térképet töltőkhöz, hogy az üzemeltetőik közül választhass.",
+    favorites: "Kedvencek",
+    favorite: "Kedvenc",
+    closeFavorites: "Kedvencek bezárása",
+    noFavorites:
+      "Még nincs kedvenced. Nyiss meg egy töltőt, és nyomd meg a szívet, hogy ide mentsd.",
+    nearestToMapCenter: "A térkép közepéhez legközelebbiek elöl",
+    onlyFavorites: "Csak a kedvencek",
+    signInForFavorites: "Jelentkezz be, hogy kedvencként menthess töltőket.",
     account: "Fiók",
     signedInAs: "Bejelentkezve mint",
     signOut: "Kijelentkezés",
@@ -143,6 +151,7 @@ const hu = {
     },
     pointsOutOfService: "Nem működik: {count}",
     statusUpdated: "Frissítve {time}",
+    removeFavorite: "{name} eltávolítása a kedvencek közül",
     unknownOperator: "Ismeretlen üzemeltető",
     filtersNotSaved:
       "Nem sikerült a fiókodba menteni a szűrőket. Ezen az eszközön továbbra is megvannak.",

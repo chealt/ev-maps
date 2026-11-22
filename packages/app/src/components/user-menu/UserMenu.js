@@ -2,6 +2,7 @@
 // OAuth page, then back to this page with a session cookie, which the menu
 // reads on every load.
 import { message } from "../../lib/messages.js";
+import { requestFavorites } from "../../lib/favorites.js";
 import { setSignedIn } from "../../lib/session.js";
 
 const SESSION_URL = "/api/auth/get-session";
@@ -49,6 +50,7 @@ class UserMenuElement extends HTMLElement {
       provider.addEventListener("click", () => this.signIn(provider.dataset.provider));
     }
     this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
+    this.querySelector(".favorites-button").addEventListener("click", () => this.showFavorites());
 
     this.showReturnedError();
     this.loadSession();
@@ -87,6 +89,16 @@ class UserMenuElement extends HTMLElement {
       console.error("Could not load the session:", error);
     }
     this.showSignedOut();
+  }
+
+  // Signed in, the menu gives way to the favorites list; signed out, the
+  // button only says to sign in.
+  showFavorites() {
+    if (this.querySelector(".favorites-button").getAttribute("aria-disabled") === "true") {
+      return;
+    }
+    this.menu.hidePopover();
+    requestFavorites();
   }
 
   async signIn(provider) {
@@ -161,6 +173,8 @@ class UserMenuElement extends HTMLElement {
     this.querySelector(".profile").hidden = !signedIn;
     this.querySelector(".sign-in").hidden = signedIn;
     this.querySelector(".sign-out").hidden = !signedIn;
+    this.querySelector(".favorites-button").setAttribute("aria-disabled", String(!signedIn));
+    this.querySelector("#favorites-sign-in-hint").hidden = signedIn;
   }
 }
 

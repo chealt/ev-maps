@@ -1,5 +1,9 @@
 import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
+import { chargerName } from "../../lib/charger-name.js";
+import { distanceInMeters, formatDistance } from "../../lib/distance.js";
+import { addFavorite, isFavorite, onFavoritesChange, removeFavorite } from "../../lib/favorites.js";
+import { setMapCenter } from "../../lib/map-center.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
@@ -43,8 +47,6 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
   ].filter(Boolean);
 };
 
-const chargerName = (charger) => charger.name || charger.operator || message("unnamedCharger");
-
 // Sources the Worker has live statuses for (packages/worker/src/live-status.js).
 const LIVE_STATUS_SOURCES = ["eipa", "irve"];
 // The page keeps statuses this long, in memory only; the Worker refreshes
@@ -69,29 +71,7 @@ const ROUTE_LINE = { strokeOpacity: 0.85, strokeWeight: 5 };
 // A chosen place, as the Routes library takes it: a Google Place, or a location.
 const routeEndpoint = ({ place, location }) => place ?? location;
 
-const EARTH_RADIUS_METERS = 6371000;
 const LIST_ZOOM = 15;
-
-const toRadians = (degrees) => (degrees * Math.PI) / 180;
-
-// Great-circle (haversine) distance between two { lat, lng } points.
-const distanceInMeters = (from, to) => {
-  const dLat = toRadians(to.lat - from.lat);
-  const dLng = toRadians(to.lng - from.lng);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRadians(from.lat)) * Math.cos(toRadians(to.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * EARTH_RADIUS_METERS * Math.asin(Math.sqrt(a));
-};
-
-const formatDistance = (meters) =>
-  meters < 1000
-    ? formatNumber(Math.round(meters / 10) * 10, { style: "unit", unit: "meter" })
-    : formatNumber(meters / 1000, {
-        style: "unit",
-        unit: "kilometer",
-        maximumFractionDigits: meters < 10000 ? 1 : 0,
-      });
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -328,11 +308,13 @@ class GoogleMapElement extends HTMLElement {
         this.showPinAvailability();
       }
     }, PIN_STATUS_REFRESH_MS);
+    this.showFavoritesSignedIn(isSignedIn());
     onSessionChange((signedIn) => {
       if (!signedIn) {
         this.statuses.clear();
       }
       this.showPinAvailability();
+      this.showFavoritesSignedIn(signedIn);
       this.showFilterSyncSignedIn(signedIn);
       if (signedIn) {
         this.syncAccountFilters();
@@ -351,6 +333,19 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".close")
       ?.addEventListener("click", () => this.hideChargerDetails());
+    this.detailsPanel
+      ?.querySelector(".favorite-button")
+      ?.addEventListener("click", () => this.toggleFavorite());
+    // A charger picked in the favorites list.
+    document.addEventListener("show-charger", (event) =>
+      this.showFavoriteCharger(event.detail.charger)
+    );
+    onFavoritesChange(() => {
+      this.showFavoriteState();
+      if (this.onlyFavorites()) {
+        this.showMatchingChargers();
+      }
+    });
     this.filterPanel?.addEventListener("click", (event) => this.handleFilterClick(event));
     this.filterPanel?.addEventListener("change", (event) => this.handleOperatorChange(event));
     for (const button of this.querySelectorAll(".clear-filters")) {
@@ -486,7 +481,13 @@ class GoogleMapElement extends HTMLElement {
       this.filtersChanged();
       return;
     }
-    const button = event.target.closest(".power-filter, .connector-filter");
+    const favoritesFilter = event.target.closest(".favorites-filter");
+    if (favoritesFilter?.getAttribute("aria-disabled") === "true") {
+      this.filterPanel.close();
+      requestSignIn();
+      return;
+    }
+    const button = event.target.closest(".power-filter, .connector-filter, .favorites-filter");
     if (!button) {
       return;
     }
@@ -510,7 +511,9 @@ class GoogleMapElement extends HTMLElement {
   }
 
   clearFilters() {
-    for (const button of this.querySelectorAll(".power-filter, .connector-filter")) {
+    for (const button of this.querySelectorAll(
+      ".power-filter, .connector-filter, .favorites-filter"
+    )) {
       button.setAttribute("aria-pressed", "false");
     }
     this.excludedOperators.clear();
@@ -578,6 +581,7 @@ class GoogleMapElement extends HTMLElement {
       powerRanges: this.activePowerRanges(),
       connectorTypes: this.activeConnectorGroups(),
       excludedOperators: [...this.excludedOperators].sort(),
+      onlyFavorites: this.favoritesFilterPressed(),
       updatedAt: this.filtersUpdatedAt ?? 0,
     };
   }
@@ -589,7 +593,8 @@ class GoogleMapElement extends HTMLElement {
     const count =
       this.activePowerRanges().length +
       this.activeConnectorGroups().length +
-      (this.excludedOperators.size > 0 ? 1 : 0);
+      (this.excludedOperators.size > 0 ? 1 : 0) +
+      (this.onlyFavorites() ? 1 : 0);
     const active = count > 0;
     customElements
       .whenDefined("ev-filter-button")
@@ -617,7 +622,14 @@ class GoogleMapElement extends HTMLElement {
 
   // Presses the buttons of the given filters; ones that no longer exist are
   // ignored.
-  applyFilters({ powerRanges = [], connectorTypes = [], excludedOperators = [], updatedAt = 0 }) {
+  applyFilters({
+    powerRanges = [],
+    connectorTypes = [],
+    excludedOperators = [],
+    onlyFavorites = false,
+    updatedAt = 0,
+  }) {
+    this.querySelector(".favorites-filter")?.setAttribute("aria-pressed", String(onlyFavorites));
     this.excludedOperators = new Set(excludedOperators);
     this.showOperatorChoices();
     for (const button of this.querySelectorAll(".power-filter")) {
@@ -706,6 +718,7 @@ class GoogleMapElement extends HTMLElement {
     if (!bounds) {
       return;
     }
+    setMapCenter(this.map.getCenter().toJSON());
     const searchId = ++this.searchId;
     const zoom = this.map.getZoom();
 
@@ -776,11 +789,13 @@ class GoogleMapElement extends HTMLElement {
     const ranges = this.filterPanel ? readActivePowerRanges(this.filterPanel) : [];
     const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
     this.listOperators(chargers);
+    const onlyFavorites = this.onlyFavorites();
     const matching = chargers.filter(
       (charger) =>
         matchesPower(charger, ranges) &&
         matchesConnectors(charger, types) &&
-        !this.excludedOperators.has(operatorOf(charger))
+        !this.excludedOperators.has(operatorOf(charger)) &&
+        (!onlyFavorites || isFavorite(charger.id))
     );
 
     this.clusterIndex = new Supercluster({
@@ -961,6 +976,64 @@ class GoogleMapElement extends HTMLElement {
       this.chargerList.close();
       this.statusButton.classList.add("list-transition");
     }).finally(() => this.statusButton.classList.remove("list-transition"));
+  }
+
+  // Whether "Only favorites" is pressed; it only applies signed in.
+  favoritesFilterPressed() {
+    return this.querySelector(".favorites-filter")?.getAttribute("aria-pressed") === "true";
+  }
+
+  onlyFavorites() {
+    return isSignedIn() && this.favoritesFilterPressed();
+  }
+
+  // Signed out, the heart and "Only favorites" look disabled, say to sign
+  // in, and open the sign-in options.
+  showFavoritesSignedIn(signedIn) {
+    for (const button of this.querySelectorAll(".favorite-button, .favorites-filter")) {
+      button.setAttribute("aria-disabled", String(!signedIn));
+    }
+    for (const hint of this.querySelectorAll("#favorite-sign-in-hint, #favorites-filter-hint")) {
+      hint.hidden = signedIn;
+    }
+    this.showFavoriteState();
+    this.updateClearFiltersButtons();
+    this.showMatchingChargers();
+  }
+
+  // The heart is filled while the open charger is a favorite.
+  showFavoriteState() {
+    const button = this.detailsPanel?.querySelector(".favorite-button");
+    if (!button) {
+      return;
+    }
+    const favorite =
+      Boolean(this.activeCharger) && isSignedIn() && isFavorite(this.activeCharger.id);
+    button.setAttribute("aria-pressed", String(favorite));
+  }
+
+  async toggleFavorite() {
+    const charger = this.activeCharger;
+    if (!charger) {
+      return;
+    }
+    if (!isSignedIn()) {
+      requestSignIn();
+      return;
+    }
+    if (isFavorite(charger.id)) {
+      await removeFavorite(charger.id);
+    } else {
+      await addFavorite(charger);
+    }
+  }
+
+  // Shows a favorite on the map, with its details, wherever it is.
+  async showFavoriteCharger(charger) {
+    await this.mapReady;
+    this.displayChargerDetails(charger);
+    this.map.setZoom(this.unclusteredZoom(charger));
+    this.centerInVisibleArea(charger.location);
   }
 
   async showChargerFromList(charger) {
@@ -1176,6 +1249,7 @@ class GoogleMapElement extends HTMLElement {
       attribution.hidden = !sources.includes(attribution.dataset.source);
     }
     panel.hidden = false;
+    this.showFavoriteState();
     this.showAvailability(charger);
   }
 
