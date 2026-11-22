@@ -13,7 +13,7 @@
 // and publishes the accessibility report (scripts/a11y-report.js) in the
 // report's a11y/ folder, with its own commit status.
 
-import { readFile, readdir } from "node:fs/promises";
+import { appendFile, readFile, readdir } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { S3Client, file as bunFile } from "bun";
 import { REPORT_DIR as A11Y_REPORT_DIR, writeA11yReport } from "./a11y-report.js";
@@ -180,3 +180,13 @@ await postCommitStatus(report.commitSha, {
   url: a11yUrl,
 });
 console.log(`Published the accessibility report: ${a11yUrl}`);
+
+// For the release notes (the App workflow's Release job): the step's outputs.
+if (process.env.GITHUB_OUTPUT) {
+  await appendFile(
+    process.env.GITHUB_OUTPUT,
+    `report-url=${url}\na11y-report-url=${a11yUrl}\n` +
+      `summary=${report.passed} passed, ${report.failed} failed, ${report.flaky} flaky\n` +
+      `a11y-summary=${a11y.tests} pages checked, ${a11y.violations} rules violated\n`
+  );
+}
