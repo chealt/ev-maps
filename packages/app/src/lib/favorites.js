@@ -1,5 +1,6 @@
 // The signed-in user's favorite chargers, from the Worker (/api/favorites;
-// the service worker answers from IndexedDB first where it runs). Kept in
+// where the service worker runs, it keeps them in IndexedDB, answers changes
+// right away and sends them on, offline too: public/sw.js). Kept in
 // memory; "favorites-change" on document says they changed. Signed out,
 // there are none.
 import { isSignedIn, onSessionChange } from "./session.js";
@@ -87,7 +88,17 @@ const onFavoritesChange = (listener) => document.addEventListener(FAVORITES_CHAN
 // Opens the favorites list (<ev-favorites-dialog>).
 const requestFavorites = () => document.dispatchEvent(new CustomEvent("show-favorites"));
 
-onSessionChange(() => loadFavorites());
+// Signed out, the service worker forgets the favorites it keeps (and any
+// not sent yet), so the next person on this browser doesn't get them.
+const forgetStoredFavorites = () =>
+  navigator.serviceWorker?.controller?.postMessage({ type: "forget-favorites" });
+
+onSessionChange((signedIn) => {
+  if (!signedIn) {
+    forgetStoredFavorites();
+  }
+  loadFavorites();
+});
 if (isSignedIn()) {
   loadFavorites();
 }

@@ -166,7 +166,11 @@ ev-maps/
   transition) and lists them nearest to the map's center first; picking one
   shows it on the map. The Filters dialog's "Only favorites" hides the rest.
   Signed out, the heart, the menu item and the filter are disabled and ask to
-  sign in.
+  sign in. Where the service worker runs (`public/sw.js`), it sits in front of
+  `/api/favorites`: changes go to IndexedDB and an outbox first and are
+  answered at once, then sent to the Worker (right away, on Background Sync,
+  and before the list is read); the list comes from the network, or from
+  IndexedDB offline, with the unsent changes on top. Signing out clears both.
 - **Installable app**: each language has a web app manifest
   (`/{lang}/manifest.webmanifest`) whose start URL is `/`, so the installed
   app opens in the user's language and country. Its PNG icons are generated

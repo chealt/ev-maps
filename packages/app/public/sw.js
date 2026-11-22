@@ -9,6 +9,10 @@
 //   change and come from the cache first.
 // - Google Maps and Google sign-in are never cached: Google's terms don't
 //   allow it, so the map needs a connection.
+// - Favorites (/api/favorites…): changes are kept in IndexedDB first and
+//   answered right away, then sent to the Worker from an outbox (now, on
+//   Background Sync, and before the list is read); the list comes from the
+//   network, or from IndexedDB offline, with the unsent changes on top.
 
 const CACHE_NAME = "ev-maps-chargers-v1";
 // Caches of earlier versions, removed on activation.
@@ -23,6 +27,15 @@ const HASHED_ASSETS_PATH = "/_astro/";
 const TILE_PATH = /^\/api\/chargers\/\d+\/\d+\/\d+$/;
 const CACHED_AT_HEADER = "x-ev-maps-cached-at";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+const FAVORITES_PATH = "/api/favorites";
+const FAVORITE_PATH = /^\/api\/favorites\/([^/]+)$/;
+const FAVORITES_SYNC_TAG = "favorites-sync";
+const STATE_DB = "ev-maps-sw";
+const STATE_STORE = "state";
+// The last list from the Worker, and the changes not sent yet.
+const FAVORITES_KEY = "favorites";
+const OUTBOX_KEY = "favorites-outbox";
 
 const isFresh = (response) =>
   Date.now() - Number(response.headers.get(CACHED_AT_HEADER)) < MAX_AGE_MS;
@@ -122,6 +135,188 @@ const precacheApp = async () => {
   }
 };
 
+// IndexedDB, one value per key, each read or write its own transaction.
+const openStateDb = () =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(STATE_DB, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(STATE_STORE);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+const inStore = async (mode, use) => {
+  const db = await openStateDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STATE_STORE, mode);
+    const request = use(transaction.objectStore(STATE_STORE));
+    transaction.oncomplete = () => resolve(request.result);
+    transaction.onerror = () => reject(transaction.error);
+  });
+};
+
+const readState = (key) => inStore("readonly", (store) => store.get(key));
+const writeState = (key, value) => inStore("readwrite", (store) => store.put(value, key));
+const deleteState = (key) => inStore("readwrite", (store) => store.delete(key));
+
+// Changes to the stored favorites run one after the other, so concurrent
+// requests don't overwrite each other's.
+let stateQueue = Promise.resolve();
+const serially = (change) => {
+  const run = stateQueue.then(change);
+  stateQueue = run.catch(() => {});
+  return run;
+};
+
+const jsonResponse = (data, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+
+const favoriteUrl = (id) => `${FAVORITES_PATH}/${encodeURIComponent(id)}`;
+
+// The favorites with the changes applied, newest first.
+const applyChanges = (favorites, changes) => {
+  const byId = new Map(favorites.map((favorite) => [favorite.charger.id, favorite]));
+  for (const { id, method, body } of changes) {
+    if (method === "PUT") {
+      byId.set(id, body);
+    } else {
+      byId.delete(id);
+    }
+  }
+  return [...byId.values()].sort((a, b) => b.addedAt - a.addedAt);
+};
+
+const forgetFavorites = () =>
+  serially(() => Promise.all([deleteState(FAVORITES_KEY), deleteState(OUTBOX_KEY)]));
+
+// The Worker refused it for good (e.g. invalid), so it isn't sent again;
+// signed out, rate limited or failing, it's kept for later.
+const isFinal = (status) => status < 500 && ![401, 408, 429].includes(status);
+
+// Sends the outbox's changes in order; true once it's empty. A change made
+// again meanwhile (same charger, later) stays for the next round.
+const sendChanges = async () => {
+  for (const change of (await readState(OUTBOX_KEY)) ?? []) {
+    let response;
+    try {
+      response = await fetch(favoriteUrl(change.id), {
+        method: change.method,
+        headers: change.body ? { "content-type": "application/json" } : {},
+        body: change.body ? JSON.stringify(change.body) : undefined,
+      });
+    } catch {
+      return false;
+    }
+    if (!response.ok && !isFinal(response.status)) {
+      return false;
+    }
+    await serially(async () => {
+      const outbox = (await readState(OUTBOX_KEY)) ?? [];
+      await writeState(
+        OUTBOX_KEY,
+        outbox.filter((queued) => queued.id !== change.id || queued.at !== change.at)
+      );
+      if (response.ok) {
+        await writeState(
+          FAVORITES_KEY,
+          applyChanges((await readState(FAVORITES_KEY)) ?? [], [change])
+        );
+      }
+    });
+  }
+  return ((await readState(OUTBOX_KEY)) ?? []).length === 0;
+};
+
+let sending = null;
+const flushFavorites = () => {
+  sending ??= sendChanges()
+    .catch(() => false)
+    .finally(() => {
+      sending = null;
+    });
+  return sending;
+};
+
+// The list: from the Worker once the outbox is sent, else (offline, or the
+// Worker failing) the stored one; either way with the unsent changes.
+const favoritesList = async (request) => {
+  await flushFavorites();
+  let response;
+  try {
+    response = await fetch(request);
+  } catch {
+    response = null;
+  }
+  if (response?.status === 401) {
+    await forgetFavorites();
+    return response;
+  }
+  if (response?.ok) {
+    const { favorites } = await response.json();
+    return jsonResponse({
+      favorites: await serially(async () => {
+        await writeState(FAVORITES_KEY, favorites);
+        return applyChanges(favorites, (await readState(OUTBOX_KEY)) ?? []);
+      }),
+    });
+  }
+  const stored = await readState(FAVORITES_KEY);
+  const outbox = (await readState(OUTBOX_KEY)) ?? [];
+  if (stored === undefined && outbox.length === 0) {
+    return response ?? jsonResponse({ error: "Offline" }, 503);
+  }
+  return jsonResponse({ favorites: applyChanges(stored ?? [], outbox) });
+};
+
+// Saving or removing one: kept in the outbox (replacing an earlier change of
+// the same charger) and answered right away, then sent.
+const changeFavorite = async (event, id) => {
+  const { request } = event;
+  let body = null;
+  if (request.method === "PUT") {
+    body = await request
+      .clone()
+      .json()
+      .catch(() => null);
+    if (body?.charger?.id !== id) {
+      return fetch(request);
+    }
+  }
+  await serially(async () => {
+    const outbox = ((await readState(OUTBOX_KEY)) ?? []).filter((queued) => queued.id !== id);
+    outbox.push({ id, method: request.method, body, at: Date.now() });
+    await writeState(OUTBOX_KEY, outbox);
+  });
+  event.waitUntil(
+    flushFavorites().then((sent) =>
+      sent ? undefined : self.registration.sync?.register(FAVORITES_SYNC_TAG).catch(() => {})
+    )
+  );
+  return jsonResponse({ queued: id }, 202);
+};
+
+// Throws while changes are left, so the browser tries again later.
+self.addEventListener("sync", (event) => {
+  if (event.tag === FAVORITES_SYNC_TAG) {
+    event.waitUntil(
+      flushFavorites().then((sent) => {
+        if (!sent) {
+          throw new Error("Favorites not sent yet");
+        }
+      })
+    );
+  }
+});
+
+// The page says when the user signed out: their favorites go.
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "forget-favorites") {
+    event.waitUntil(forgetFavorites());
+  }
+});
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(precacheApp().catch(() => {}));
@@ -140,11 +335,20 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+  const favoriteId = url.pathname.match(FAVORITE_PATH)?.[1];
+  if (favoriteId && (request.method === "PUT" || request.method === "DELETE")) {
+    event.respondWith(changeFavorite(event, decodeURIComponent(favoriteId)));
+    return;
+  }
   if (request.method !== "GET") {
     return;
   }
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) {
+  if (url.pathname === FAVORITES_PATH) {
+    event.respondWith(favoritesList(request));
     return;
   }
   if (TILE_PATH.test(url.pathname)) {
