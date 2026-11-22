@@ -18,7 +18,7 @@ describe("API_ROUTES", () => {
   test("every route says who may use it, and how much", () => {
     for (const route of API_ROUTES) {
       expect(typeof route.name).toBe("string");
-      expect(route.limiter).toMatch(/^[A-Z_]+_LIMITER$/);
+      expect(route.limiter).toMatch(/^[A-Z0-9_]+_LIMITER$/);
       expect(typeof route.signedIn).toBe("boolean");
       expect(typeof route.matches).toBe("function");
       expect(typeof route.handle).toBe("function");

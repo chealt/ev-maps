@@ -3,7 +3,8 @@ import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
 
-// Each kind of page only gets the messages of its sections (src/i18n), so
+// Each kind of page only gets the messages of its sections (src/i18n),
+// baked into its HTML at build time, so
 // a script asking for another section's message would show nothing; it logs
 // "Missing message" instead (src/lib/messages.js).
 const watchMissingMessages = (page) => {
@@ -42,7 +43,7 @@ test("the map pages have every message their scripts use", async ({ page }) => {
   expect(missing).toEqual([]);
 });
 
-test("the legal and admin pages get only their own sections", async ({ page }) => {
+test("the legal pages get no messages, and the admin pages only their own", async ({ page }) => {
   const missing = watchMissingMessages(page);
   await fakeAuthApi(page, { signedIn: true });
   await page.route("**/api/admin/me", (route) =>
@@ -53,11 +54,8 @@ test("the legal and admin pages get only their own sections", async ({ page }) =
   );
 
   await page.goto("/pl/privacy/");
-  const legalMessages = await page.evaluate(
-    () => JSON.parse(document.getElementById("messages").textContent).messages
-  );
-  expect(legalMessages).not.toHaveProperty("chargerCount");
-  expect(legalMessages).not.toHaveProperty("adminNoErrors");
+  // Their scripts show no copy, so they carry none.
+  await expect(page.locator("#messages")).toHaveCount(0);
 
   await page.goto("/pl/admin/errors/");
   await expect(page.getByText("Brak błędów w ostatnich 30 dniach.")).toBeVisible();

@@ -2,28 +2,26 @@
 // Resend's API (https://resend.com), as EMAIL_FROM. Without RESEND_API_KEY,
 // e.g. locally, the link is only logged, and the page can't offer email.
 
-const RESEND_URL = "https://api.resend.com/emails";
-
-// The sign-in email in the page's language: the first part of the link's
-// callback path, e.g. /hu/hu/ → hu.
+// The sign-in email, in the language of the page the link returns to.
 const MESSAGES = {
   en: {
     subject: "Your EV Maps sign-in link",
-    text: (url) =>
-      `Open this link to sign in to EV Maps:\n\n${url}\n\nIt works once, within 15 minutes. If you didn't ask for it, ignore this email.`,
+    text: "Open this link to sign in to EV Maps:\n\n{url}\n\nIt works once, within 15 minutes. If you didn't ask for it, ignore this email.",
   },
   pl: {
     subject: "Twój link do logowania w EV Maps",
-    text: (url) =>
-      `Otwórz ten link, aby zalogować się do EV Maps:\n\n${url}\n\nDziała jeden raz, przez 15 minut. Jeśli to nie Ty o niego prosiłeś, zignoruj tę wiadomość.`,
+    text: "Otwórz ten link, aby zalogować się do EV Maps:\n\n{url}\n\nDziała jeden raz, przez 15 minut. Jeśli to nie Ty o niego prosiłeś, zignoruj tę wiadomość.",
   },
   hu: {
     subject: "Az EV Maps bejelentkezési linked",
-    text: (url) =>
-      `Nyisd meg ezt a linket az EV Maps-be való bejelentkezéshez:\n\n${url}\n\nEgyszer használható, 15 percig. Ha nem te kérted, hagyd figyelmen kívül ezt a levelet.`,
+    text: "Nyisd meg ezt a linket az EV Maps-be való bejelentkezéshez:\n\n{url}\n\nEgyszer használható, 15 percig. Ha nem te kérted, hagyd figyelmen kívül ezt a levelet.",
   },
 };
 
+const RESEND_URL = "https://api.resend.com/emails";
+
+// The sign-in email is in the language of the page the link returns to:
+// the first part of its callback path, e.g. /hu/hu/ → hu.
 const languageOf = (url) => {
   const callback = new URL(url).searchParams.get("callbackURL") ?? "";
   const lang = callback.split("/")[1];
@@ -44,7 +42,12 @@ const sendSignInLink = async (env, { email, url }) => {
       authorization: `Bearer ${env.RESEND_API_KEY}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({ from: env.EMAIL_FROM, to: email, subject, text: text(url) }),
+    body: JSON.stringify({
+      from: env.EMAIL_FROM,
+      to: email,
+      subject,
+      text: text.replace("{url}", url),
+    }),
   });
   if (!response.ok) {
     throw new Error(`Resend failed: ${response.status} ${await response.text()}`);

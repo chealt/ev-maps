@@ -1,6 +1,7 @@
-// Runtime messages in the page's language. Astro renders the language's
-// message templates and value labels into the page (Layout.astro), so the
-// scripts hold no copy: they pick a template and fill in the numbers.
+// Runtime messages in the page's language, so the scripts hold no copy: they
+// pick a template and fill in the numbers. Astro bakes this language's
+// templates and value labels for this kind of page into the HTML at build
+// time (Layout.astro); the client loads no i18n.
 
 const language = () => document.documentElement.lang || "en";
 

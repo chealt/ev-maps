@@ -17,9 +17,6 @@ const common = {
     signInForFavorites: "Sign in to save chargers as favorites.",
     admin: "Admin",
   },
-  messages: {
-    power: "{power} kW",
-  },
 };
 
 export { common };

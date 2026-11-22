@@ -587,24 +587,29 @@ language, under its prefix (`/en/`, `/pl/`, `/hu/`), with Astro's i18n
 routing.
 
 **❌ NEVER write copy in JavaScript, in the Worker or in a component.** All
-text lives in `src/i18n/{language}/{section}.js`, and the build fails if a
-language is missing a key that English has.
+text lives in `src/i18n/{language}/{section}.js`, used only at build time;
+the
+build fails if a language is missing a key that English has.
 
 - **Sections**: `common` (used on more than one kind of page, or by the
   layout), `map` (the map, filters, charger details, routes), `account` (the
-  account menu, sign-in, favorites), `legal` and `admin`. Put a key in the
+  account menu, sign-in, favorites), `legal`, `admin` (with a section per
+  admin page) and `email` (the Worker's emails). A new section is a file in
+  each language plus a line in each `{language}/index.js`. Put a key in the
   section of the part of the site that uses it, so work on different parts
   doesn't touch the same files; if a second part starts using it, move it to
   `common`.
-- **Each kind of page gets only its sections' messages**: the layout's `kind`
-  prop (`map`, the default, `legal` or `admin`) picks them
-  (`runtimeTranslations` in `src/i18n/index.js`). A script asking for another
+- **The client loads no i18n.** Each page's HTML carries only its
+  language's and its sections' runtime messages, baked in by Astro at build
+  time: the layout's `kind` prop (`map`, the default, `legal` or `admin`)
+  picks them (`PAGE_SECTIONS` in `src/i18n/index.js`). A script asking
+  for another
   section's message logs "Missing message", which
   `tests/translations.spec.js` catches.
 - **Page text** (`page`): components read it with
   `translations(Astro.currentLocale).page`, and Astro renders it at build
   time.
-- **Messages scripts show** (`messages`), e.g. statuses: Astro renders each
+- **Messages scripts show** (`messages`), e.g. statuses: Astro bakes the
   language's templates into the page, and scripts fill them in with
   `message(key, values)` from `src/lib/messages.js`. `{name}` is a
   placeholder. A message with a count has a form for each plural category of
@@ -617,8 +622,9 @@ language is missing a key that English has.
   `charger-values.js`), and `values` in each language file labels them. Names
   and addresses are shown as the source gives them.
 - **Adding a language**: add it to `i18n.locales` in `astro.config.mjs`,
-  create `src/i18n/{language}/` with every section, and add it to `SECTIONS`
-  in `src/i18n/index.js`. The Worker redirects `/` to it for browsers that
+  create `src/i18n/{language}/` with every section and its `index.js`,
+  and add it to `SECTIONS` in `src/i18n/index.js`. The Worker redirects
+  `/` to it for browsers that
   prefer it, without changes.
 
 ```javascript

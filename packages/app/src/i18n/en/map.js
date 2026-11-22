@@ -67,6 +67,8 @@ const map = {
     nearbyFilterHint: "Within 150 m, from OpenStreetMap.",
   },
   messages: {
+    power: "{power} kW",
+
     chargersFound: {
       one: "{count} EV charger found",
       other: "{count} EV chargers found",
