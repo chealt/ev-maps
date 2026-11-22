@@ -1,6 +1,6 @@
 ---
 title: Polityka prywatności
-updated: 2026-11-21
+updated: 2026-11-22
 ---
 
 EV Maps (ev.chealt.com, „my”) to mapa stacji ładowania samochodów elektrycznych.
@@ -46,6 +46,12 @@ konta. Przechowujemy je w naszej bazie danych wraz z Twoimi sesjami logowania, w
 tym adresem IP i przeglądarką każdej sesji. Plik cookie sesji utrzymuje Cię
 zalogowanym.
 
+Gdy logujesz się adresem e-mail, przechowujemy ten adres i wysyłamy na niego
+link do logowania przez naszego dostawcę poczty; otwarcie linku potwierdza
+adres i za pierwszym razem tworzy konto. Jeśli dodasz klucz dostępu,
+przechowujemy jego klucz publiczny, identyfikator i typ (nigdy odcisk palca,
+twarz ani blokadę ekranu, które pozostają na Twoim urządzeniu).
+
 ## W jakim celu
 
 Zgodnie z ogólnym rozporządzeniem o ochronie danych (RODO):
@@ -76,6 +82,7 @@ analitycznych.
   Google](https://policies.google.com/privacy).
 - **GitHub, Microsoft i Apple** przetwarzają Twoje dane, gdy logujesz się za ich
   pośrednictwem, zgodnie z własnymi politykami prywatności.
+- **Resend, Inc.** wysyła w naszym imieniu e-maile z linkiem do logowania.
 
 Część tych firm ma siedzibę w Stanach Zjednoczonych. Przekazywanie danych opiera
 się na ramach ochrony danych UE–USA (Data Privacy Framework) lub standardowych

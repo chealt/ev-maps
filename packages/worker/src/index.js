@@ -161,6 +161,10 @@ const withoutIndexing = (response) => {
 
 // The API parts by path, with their access policy (see guard.js).
 const apiPolicy = (request, url) => {
+  // Sending a sign-in email: much stricter than the rest of sign-in.
+  if (request.method === "POST" && url.pathname === "/api/auth/sign-in/magic-link") {
+    return "email";
+  }
   if (isAuthPath(url.pathname)) {
     return "auth";
   }
@@ -199,7 +203,7 @@ const route = async (request, env, context) => {
   if (policy === "favorites") {
     return favoritesResponse(request, env, userId);
   }
-  if (policy === "auth") {
+  if (policy === "auth" || policy === "email") {
     return handleAuth(request, env);
   }
   if (policy === "route") {

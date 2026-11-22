@@ -1,10 +1,15 @@
 // Sign-in with Better Auth (https://www.better-auth.com): OAuth with each
-// provider, and users and sessions in D1 (migrations/0002_auth.sql). The
-// session is an httpOnly cookie, so signing in survives a reload. Its API is
-// /api/auth/*, e.g. /api/auth/get-session.
+// provider, an emailed sign-in link (which verifies the address), and
+// passkeys a signed-in user adds; users and sessions in D1
+// (migrations/0002_auth.sql, 0007_passkeys.sql). The session is an httpOnly
+// cookie, so signing in survives a reload. Its API is /api/auth/*, e.g.
+// /api/auth/get-session.
 
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
+import { magicLink } from "better-auth/plugins";
 import { appleClientSecret, hasAppleCredentials } from "./apple-client-secret.js";
+import { canSendEmail, sendSignInLink } from "./email.js";
 
 const AUTH_PATH = "/api/auth";
 // Which providers have credentials, so the page only offers those.
@@ -15,6 +20,7 @@ const PROVIDERS_PATH = "/api/sign-in-providers";
 const APPLE_ORIGIN = "https://appleid.apple.com";
 // Instances are recreated daily, which also signs a new Apple client secret.
 const INSTANCE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const SIGN_IN_LINK_SECONDS = 15 * 60;
 
 // Only providers with credentials are offered; see docs/DEPLOYMENT.md. A
 // user who signs in with another provider later, with the same verified
@@ -69,6 +75,7 @@ const appleSecretFor = async (env) => {
 const createAuth = async (env, baseURL) => {
   const appleSecret = await appleSecretFor(env);
   const providers = socialProviders(env, { appleSecret });
+  const { hostname, origin } = new URL(baseURL);
   const auth = betterAuth({
     baseURL,
     basePath: AUTH_PATH,
@@ -77,11 +84,30 @@ const createAuth = async (env, baseURL) => {
     socialProviders: providers,
     trustedOrigins: appleSecret ? [APPLE_ORIGIN] : [],
     telemetry: { enabled: false },
+    plugins: [
+      // New users are created by their first link: no account without a
+      // verified email.
+      magicLink({
+        expiresIn: SIGN_IN_LINK_SECONDS,
+        sendMagicLink: ({ email, url }) => sendSignInLink(env, { email, url }),
+      }),
+      // Only for signed-in users (the plugin's default), so every passkey
+      // belongs to a verified email. Each deployment's own host.
+      passkey({ rpID: hostname, rpName: "EV Maps", origin }),
+    ],
     // The session, signed, in a cookie for 5 minutes: checking who's signed
     // in (e.g. for every status request) doesn't need the database then.
     session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },
   });
-  return { auth, providers: Object.keys(providers) };
+  // Passkeys always; email where it can be sent (or locally, where the link
+  // is logged).
+  const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
+  const methods = [
+    ...Object.keys(providers),
+    "passkey",
+    ...(canSendEmail(env) || isLocal ? ["email"] : []),
+  ];
+  return { auth, providers: methods };
 };
 
 // Better Auth needs the site's URL for the OAuth callbacks and its origin
@@ -117,11 +143,12 @@ const handleAuth = async (request, env) => {
     : auth.handler(request);
 };
 
-// The signed-in user's ID, or null.
+// The signed-in user's ID, or null: only users with a verified email count
+// as signed in for the rest of the API.
 const userIdOf = async (request, env) => {
   const { auth } = await authFor(env, request);
   const session = await auth.api.getSession({ headers: request.headers }).catch(() => null);
-  return session?.user?.id ?? null;
+  return session?.user?.emailVerified ? session.user.id : null;
 };
 
 export { handleAuth, isAuthPath, userIdOf };

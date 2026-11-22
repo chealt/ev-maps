@@ -5,9 +5,16 @@ const ADA = { id: "user-1", name: "Ada Lovelace", email: "ada@example.com", imag
 
 const fakeAuthApi = async (
   page,
-  { signedIn = false, user = ADA, signInStatus = 200, providers = ["google"] } = {}
+  {
+    signedIn = false,
+    user = ADA,
+    signInStatus = 200,
+    providers = ["google"],
+    passkeys = [],
+    magicLinkStatus = 200,
+  } = {}
 ) => {
-  const state = { signedIn };
+  const state = { signedIn, passkeys: [...passkeys] };
   const signInRequests = [];
   await page.route("**/api/sign-in-providers", (route) => route.fulfill({ json: { providers } }));
   await page.route("**/api/auth/get-session", (route) =>
@@ -26,7 +33,63 @@ const fakeAuthApi = async (
     state.signedIn = false;
     return route.fulfill({ json: { success: true } });
   });
+  // Sign-in links: recorded with the email and where they return to.
+  await page.route("**/api/auth/sign-in/magic-link", (route) => {
+    signInRequests.push({ magicLink: route.request().postDataJSON() });
+    return route.fulfill({ status: magicLinkStatus, json: { status: magicLinkStatus === 200 } });
+  });
+  // Passkeys: real WebAuthn options for localhost (the browser's virtual
+  // authenticator answers them); verifying always succeeds.
+  const challenge = "dGVzdC1jaGFsbGVuZ2UtZm9yLWV2LW1hcHM";
+  await page.route("**/api/auth/passkey/list-user-passkeys", (route) =>
+    route.fulfill({ json: state.passkeys })
+  );
+  await page.route("**/api/auth/passkey/generate-register-options", (route) =>
+    route.fulfill({
+      json: {
+        challenge,
+        rp: { name: "EV Maps", id: "localhost" },
+        user: { id: "dXNlci0x", name: user.email, displayName: user.email },
+        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+        authenticatorSelection: { residentKey: "required", userVerification: "preferred" },
+        attestation: "none",
+        excludeCredentials: [],
+      },
+    })
+  );
+  await page.route("**/api/auth/passkey/verify-registration", (route) => {
+    signInRequests.push({ passkeyRegistration: route.request().postDataJSON() });
+    state.passkeys.push({ id: "passkey-1" });
+    return route.fulfill({ json: { id: "passkey-1" } });
+  });
+  await page.route("**/api/auth/passkey/generate-authenticate-options", (route) =>
+    route.fulfill({
+      json: { challenge, rpId: "localhost", allowCredentials: [], userVerification: "preferred" },
+    })
+  );
+  await page.route("**/api/auth/passkey/verify-authentication", (route) => {
+    signInRequests.push({ passkeyAuthentication: route.request().postDataJSON() });
+    state.signedIn = true;
+    return route.fulfill({ json: { session: { userId: user.id } } });
+  });
   return signInRequests;
 };
 
-export { fakeAuthApi };
+// A WebAuthn authenticator in the browser (Chromium's virtual one) that
+// says yes without a prompt, so passkeys can be added and used in tests.
+const addVirtualAuthenticator = async (page) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("WebAuthn.enable");
+  await cdp.send("WebAuthn.addVirtualAuthenticator", {
+    options: {
+      protocol: "ctap2",
+      transport: "internal",
+      hasResidentKey: true,
+      hasUserVerification: true,
+      isUserVerified: true,
+      automaticPresenceSimulation: true,
+    },
+  });
+};
+
+export { addVirtualAuthenticator, fakeAuthApi };

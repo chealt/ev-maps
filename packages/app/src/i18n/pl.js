@@ -78,6 +78,13 @@ const pl = {
     nearby: "W pobliżu",
     signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
     nearbyFilterHint: "Do 150 m, według OpenStreetMap.",
+    signInWithPasskey: "Zaloguj się kluczem dostępu",
+    orWithEmail: "lub adresem e-mail",
+    emailAddress: "Adres e-mail",
+    emailMeALink: "Wyślij mi link do logowania",
+    emailLinkHint: "Jesteś tu pierwszy raz? Link utworzy konto, gdy go otworzysz.",
+    addPasskey: "Dodaj klucz dostępu",
+    addPasskeyHint: "Następnym razem zaloguj się odciskiem palca, twarzą lub blokadą ekranu.",
     account: "Konto",
     signedInAs: "Zalogowano jako",
     signOut: "Wyloguj się",
@@ -169,6 +176,12 @@ const pl = {
     unknownOperator: "Nieznany operator",
     filtersNotSaved:
       "Nie udało się zapisać filtrów na Twoim koncie. Nadal są zapisane na tym urządzeniu.",
+    signInLinkSent: "Wysłaliśmy link do logowania na adres {email}. Otwórz go w ciągu 15 minut.",
+    tooManySignInEmails: "Zbyt wiele wiadomości z linkiem. Spróbuj ponownie za minutę.",
+    passkeySignInFailed:
+      "Logowanie kluczem dostępu nie powiodło się. Spróbuj ponownie lub użyj adresu e-mail.",
+    passkeyAdded: "Dodano klucz dostępu. Następnym razem zaloguj się nim.",
+    passkeyNotAdded: "Nie udało się dodać klucza dostępu. Spróbuj ponownie.",
     accountOf: "Konto: {name}",
   },
   values: {

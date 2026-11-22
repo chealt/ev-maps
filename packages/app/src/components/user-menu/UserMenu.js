@@ -4,6 +4,13 @@
 import { message } from "../../lib/messages.js";
 import { requestFavorites } from "../../lib/favorites.js";
 import { setSignedIn } from "../../lib/session.js";
+import {
+  addPasskey,
+  hasPasskey,
+  sendSignInLink,
+  signInWithPasskey,
+  supportsPasskeys,
+} from "./passkeys.js";
 
 const SESSION_URL = "/api/auth/get-session";
 const PROVIDERS_URL = "/api/sign-in-providers";
@@ -51,6 +58,12 @@ class UserMenuElement extends HTMLElement {
     }
     this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
     this.querySelector(".favorites-button").addEventListener("click", () => this.showFavorites());
+    this.querySelector(".passkey").addEventListener("click", () => this.signInWithPasskey());
+    this.querySelector(".email-sign-in").addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.emailSignInLink();
+    });
+    this.querySelector(".add-passkey").addEventListener("click", () => this.addPasskey());
 
     this.showReturnedError();
     this.loadSession();
@@ -69,6 +82,13 @@ class UserMenuElement extends HTMLElement {
       const { providers } = await response.json();
       for (const button of this.querySelectorAll("[data-provider]")) {
         button.hidden = !providers.includes(button.dataset.provider);
+      }
+      // Passkeys and email, where the Worker offers them (and passkeys where
+      // the browser can).
+      for (const method of this.querySelectorAll("[data-method]")) {
+        method.hidden =
+          !providers.includes(method.dataset.method) ||
+          (method.dataset.method === "passkey" && !supportsPasskeys());
       }
       this.querySelector(".sign-in").classList.toggle("unavailable", providers.length === 0);
     } catch (error) {
@@ -99,6 +119,55 @@ class UserMenuElement extends HTMLElement {
     }
     this.menu.hidePopover();
     requestFavorites();
+  }
+
+  async signInWithPasskey() {
+    this.errorEl.textContent = "";
+    const result = await signInWithPasskey();
+    if (result === "signed-in") {
+      this.menu.hidePopover();
+      await this.loadSession();
+    } else if (result === "failed") {
+      this.errorEl.textContent = message("passkeySignInFailed");
+    }
+  }
+
+  // Emails a link that signs in (creating the account the first time) once
+  // opened: only a verified email gets an account.
+  async emailSignInLink() {
+    this.errorEl.textContent = "";
+    const sent = this.querySelector(".sign-in .sent");
+    sent.textContent = "";
+    const email = this.querySelector(".email-input").value.trim();
+    const result = await sendSignInLink(email, {
+      callbackURL: returnUrl({ failed: false }),
+      errorCallbackURL: returnUrl({ failed: true }),
+    });
+    if (result === "sent") {
+      sent.textContent = message("signInLinkSent", { email });
+    } else {
+      this.errorEl.textContent = message(
+        result === "too-many" ? "tooManySignInEmails" : "signInFailed"
+      );
+    }
+  }
+
+  async addPasskey() {
+    const status = this.querySelector(".passkey-status");
+    status.textContent = "";
+    const result = await addPasskey();
+    if (result === "added") {
+      this.querySelector(".passkey-setup").hidden = true;
+      status.textContent = message("passkeyAdded");
+    } else if (result === "failed") {
+      status.textContent = message("passkeyNotAdded");
+    }
+  }
+
+  // Signed in without a passkey, the profile offers to add one.
+  async offerPasskey() {
+    const setup = this.querySelector(".passkey-setup");
+    setup.hidden = !supportsPasskeys() || (await hasPasskey());
   }
 
   async signIn(provider) {
@@ -154,6 +223,7 @@ class UserMenuElement extends HTMLElement {
     this.querySelector(".name").textContent = displayName;
     this.querySelector(".email").textContent = email ?? "";
     this.setSignedIn(true);
+    this.offerPasskey();
     this.dispatchEvent(
       new CustomEvent("sign-in", { detail: { name, email }, bubbles: true, composed: true })
     );

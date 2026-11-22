@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@ev-maps/tiles": "workspace:*",
+    "@simplewebauthn/browser": "^13.3.0",
     "astro": "^7.4.12",
     "idb-keyval": "^6.3.0",
     "lucide-static": "^1.73.0",

@@ -1,5 +1,5 @@
 ---
-import { Heart, LogOut, Zap } from "lucide-static";
+import { Heart, KeyRound, LogOut, Mail, Zap } from "lucide-static";
 import Button from "../button/Button.astro";
 import Icon from "../icon/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
@@ -70,6 +70,15 @@ const { page } = translations(lang);
       <p class="label">{page.signedInAs}</p>
       <p class="name"></p>
       <p class="email"></p>
+      <!-- Signed in without a passkey yet: offer one, for next time. -->
+      <div class="passkey-setup" hidden>
+        <Button variant="secondary" size="small" class="add-passkey">
+          <Icon icon={KeyRound} size="sm" />
+          {page.addPasskey}
+        </Button>
+        <p class="hint">{page.addPasskeyHint}</p>
+      </div>
+      <p class="passkey-status" role="status"></p>
     </div>
     <section class="sign-in unavailable" aria-labelledby="sign-in-title">
       <h2 class="legend" id="sign-in-title">
@@ -81,6 +90,31 @@ const { page } = translations(lang);
           {fill(page.signInWith, { provider: name })}
         </button>
       ))}
+      <button type="button" class="provider passkey" data-method="passkey" hidden>
+        <Icon icon={KeyRound} size="sm" />
+        {page.signInWithPasskey}
+      </button>
+      <form class="email-sign-in" data-method="email" hidden>
+        <p class="divider">{page.orWithEmail}</p>
+        <label class="email-label" for="sign-in-email">
+          {page.emailAddress}
+        </label>
+        <input
+          class="email-input"
+          id="sign-in-email"
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          spellcheck="false"
+        />
+        <button type="submit" class="provider email-link">
+          <Icon icon={Mail} size="sm" />
+          {page.emailMeALink}
+        </button>
+        <p class="hint">{page.emailLinkHint}</p>
+      </form>
+      <p class="sent" role="status"></p>
       <p class="error" role="alert"></p>
     </section>
     <div class="favorites">

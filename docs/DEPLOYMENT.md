@@ -122,6 +122,7 @@ asks for sign-in where needed and is rate limited per minute:
 | ----------------------------------- | --------- | ------------------ |
 | `/api/chargers/{z}/{x}/{y}` (tiles) | Everyone  | 600 per IP address |
 | `/api/auth/*`, sign-in providers    | Everyone  | 60 per IP address  |
+| Sending a sign-in email             | Everyone  | 5 per IP address   |
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
 | `/api/settings`                     | Signed in | 60 per user        |
@@ -234,3 +235,23 @@ key's ID) and `APPLE_PRIVATE_KEY` (the `.p8` file's contents). Apple's client
 secret is a JWT signed with that key, valid for at most six months; the Worker
 signs a new one itself (`src/apple-client-secret.js`), so nothing expires. If
 the key can't be used, the Worker logs why and leaves Apple out of the menu.
+
+## Email and passkeys
+
+Signing in with an email address sends a link with
+[Resend](https://resend.com); opening it verifies the address and signs in
+(the first time, it creates the account). Signed in, users can add a passkey
+and sign in with it from then on. Only users with a verified email count as
+signed in for the rest of the API.
+
+1. In Resend, add and verify the domain `chealt.com` (it gives the DNS records
+   to add in Cloudflare).
+2. Create an API key with **Sending access**, and set it as the Worker's
+   secret: `bunx wrangler secret put RESEND_API_KEY`.
+3. The sender is `EMAIL_FROM` in `wrangler.toml` (`EV Maps
+   <sign-in@chealt.com>`).
+
+Without `RESEND_API_KEY` the Worker doesn't offer email sign-in, except
+locally, where it logs the link instead (`bun run dev`'s output). Passkeys need
+nothing to set up; each host (production, the workers.dev address, previews,
+`localhost`) has its own passkeys.

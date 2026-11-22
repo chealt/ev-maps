@@ -18,6 +18,7 @@ const isBlockedAgent = (request) => {
 // needs a signed-in user (then the limit is per user).
 const POLICIES = {
   auth: { limiter: "AUTH_LIMITER", signedIn: false },
+  email: { limiter: "EMAIL_LIMITER", signedIn: false },
   tiles: { limiter: "TILE_LIMITER", signedIn: false },
   status: { limiter: "STATUS_LIMITER", signedIn: true },
   route: { limiter: "ROUTE_LIMITER", signedIn: true },
