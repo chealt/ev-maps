@@ -1,14 +1,13 @@
-// Playwright's test and expect for every spec, with an accessibility check:
-// at the end of each test, axe (axe-core) checks the page as the test left it
-// against WCAG 2.1 A and AA, and the test fails on any violation. The
-// results are attached to the test ("axe"), for the accessibility report
-// (scripts/a11y-report.js).
+// Playwright's test and expect for any end-to-end suite, with nothing of
+// the app in it. At the end of each test, axe (axe-core) checks the page as
+// the test left it against WCAG 2.1 A and AA, and the test fails on any
+// violation. The results are attached to the test ("axe"), e.g. for an
+// accessibility report.
 //
 // Tests tagged @performance (test("…", { tag: "@performance" }, …)), those
 // that load a whole page, also measure its load (TTFB, FCP, LCP, CLS) before
 // that: they fail if a metric is poor by Google's thresholds, and attach them
-// ("web-vitals") for the performance report, which has each page's P75
-// (scripts/performance-report.js).
+// ("web-vitals"), e.g. for a performance report of each page's P75.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
 import { THRESHOLDS, measureWebVitals } from "./web-vitals.js";

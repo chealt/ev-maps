@@ -1,12 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
-import { fakeChargersApi, requestCovers } from "@ev-maps/e2e/chargers-api.js";
+import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
-// The fake Google Maps script, injected into the page (@ev-maps/e2e).
-const fakeGoogleMaps = await readFile(
-  new URL("../../e2e/src/fake-google-maps.js", import.meta.url)
-);
+const fakeGoogleMaps = await readFile(new URL("./fixtures/fake-google-maps.js", import.meta.url));
 
 const downtownChargerLabel = "Downtown Supercharger";
 const xssElement = '<img src="x" onerror="window.__xss = true">';

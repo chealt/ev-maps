@@ -2,19 +2,11 @@
   "name": "@ev-maps/e2e",
   "version": "0.0.1",
   "private": true,
-  "description": "EV Maps' E2E test fixtures: Playwright's test with accessibility and performance checks, and fake APIs for the app's dependencies",
+  "description": "Playwright's test extended for end-to-end suites: an axe accessibility check of every page a test leaves behind, and web-vitals measurement for tests tagged @performance",
   "type": "module",
   "exports": {
     "./test.js": "./src/test.js",
-    "./web-vitals.js": "./src/web-vitals.js",
-    "./auth-api.js": "./src/auth-api.js",
-    "./chargers-api.js": "./src/chargers-api.js",
-    "./chargers.json": "./src/chargers.json",
-    "./fake-google-maps.js": "./src/fake-google-maps.js",
-    "./favorites-api.js": "./src/favorites-api.js",
-    "./google.js": "./src/google.js",
-    "./page-data.js": "./src/page-data.js",
-    "./settings-api.js": "./src/settings-api.js"
+    "./web-vitals.js": "./src/web-vitals.js"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",
@@ -23,7 +15,6 @@
   },
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@ev-maps/tiles": "workspace:*",
     "@playwright/test": "^1.65.1"
   },
   "devDependencies": {

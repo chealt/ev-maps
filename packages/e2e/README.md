@@ -1,18 +1,18 @@
-# E2E fixtures
+# E2E
 
-The Playwright fixtures and fake APIs every E2E spec shares, as a package:
-`test` (Playwright's, extended with an axe accessibility check and, for tests
-tagged `@performance`, web-vitals measurement — see the app's
-`docs/features/test-reports.md`), and fakes for the app's APIs (sign-in,
-chargers, Google Maps, settings, favorites) that specs route the browser's
-requests to.
+Playwright's `test` and `expect` for end-to-end suites, with nothing of the
+app in it, like a third-party library:
 
-The app's specs import them, e.g.:
+- every passing test's page is checked with axe against WCAG 2.1 A and AA,
+  and any violation fails the test; the results are attached ("axe")
+- tests tagged `@performance` also have their page's load measured (TTFB,
+  FCP, LCP, CLS), fail on Google's poor thresholds, and attach them
+  ("web-vitals")
 
 ```js
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeChargersApi } from "@ev-maps/e2e/chargers-api.js";
 ```
 
-The country pages' charger data (`tests/fixtures/country-chargers`) stays
-with the app: the dev server loads it, not the tests.
+An app's own fixtures (its fake APIs, test data) stay with its tests; this
+package is only the generic harness. See the app's
+`docs/features/test-reports.md` for the reports built from the attachments.
