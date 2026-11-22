@@ -1,0 +1,30 @@
+---
+import "./BarChart.css";
+
+interface Props {
+  // The chart's title, and its heading's ID (for aria-labelledby).
+  title: string;
+  id: string;
+}
+
+const { title, id } = Astro.props;
+---
+
+<!-- One bar per day; a script fills it in with renderBarChart (bar-chart.js).
+     Each bar's text, e.g. "Nov 24: 7", is for screen readers and tooltips. -->
+<div class="bar-chart">
+  <h3 class="chart-title" id={id}>
+    {title}
+  </h3>
+  <ol class="chart" aria-labelledby={id}></ol>
+  <p class="chart-range">
+    <span class="from"></span>
+    <span class="to"></span>
+  </p>
+  <template class="bar-template">
+    <li class="bar">
+      <span class="fill"></span>
+      <span class="visually-hidden label"></span>
+    </li>
+  </template>
+</div>

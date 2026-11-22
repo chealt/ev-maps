@@ -1,13 +1,9 @@
 import { formatNumber, message, valueLabel } from "../../lib/messages.js";
+import { formatDay, renderBarChart } from "../bar-chart/bar-chart.js";
 
 const USAGE_URL = "/api/admin/usage";
 
 const language = () => document.documentElement.lang || "en";
-
-const formatDay = (day) =>
-  new Intl.DateTimeFormat(language(), { month: "short", day: "numeric", timeZone: "UTC" }).format(
-    new Date(`${day}T00:00:00Z`)
-  );
 
 const displayName = (type, code) => {
   try {
@@ -76,22 +72,7 @@ class AdminUsageElement extends HTMLElement {
   }
 
   renderChart({ days, events }) {
-    const byDay = events.page_view?.byDay ?? {};
-    const max = Math.max(1, ...days.map((day) => byDay[day] ?? 0));
-    const template = this.querySelector(".bar-template");
-    this.querySelector(".chart").replaceChildren(
-      ...days.map((day) => {
-        const count = byDay[day] ?? 0;
-        const bar = template.content.firstElementChild.cloneNode(true);
-        const text = message("adminDayCount", { day: formatDay(day), count });
-        bar.style.setProperty("--share", String(count / max));
-        bar.title = text;
-        bar.querySelector(".label").textContent = text;
-        return bar;
-      })
-    );
-    this.querySelector(".chart-range .from").textContent = formatDay(days[0]);
-    this.querySelector(".chart-range .to").textContent = formatDay(days.at(-1));
+    renderBarChart(this.querySelector(".bar-chart"), days, events.page_view?.byDay ?? {});
   }
 
   renderBreakdowns({ events }) {

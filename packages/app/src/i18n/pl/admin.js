@@ -13,6 +13,8 @@ const admin = {
   messages: {
     adminSignedInAs: "Zalogowano jako {email}",
     adminSignedOut: "Zaloguj się kontem administratora, aby zobaczyć tę stronę.",
+    // A bar of a chart (components/bar-chart).
+    adminDayCount: "{day}: {count}",
   },
 };
 
