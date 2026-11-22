@@ -42,6 +42,8 @@ export default defineConfig({
       },
     },
     // The API runs in the Worker, which `bun run dev` starts on port 8787.
-    server: { proxy: { "/api": "http://localhost:8787" } },
+    // The tests fake the API and run no Worker (EV_MAPS_NO_API_PROXY): calls
+    // they don't fake get a 404 instead of failing in the proxy.
+    server: process.env.EV_MAPS_NO_API_PROXY ? {} : { proxy: { "/api": "http://localhost:8787" } },
   },
 });
