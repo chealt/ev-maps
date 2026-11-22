@@ -31,3 +31,15 @@ Pull requests from forks don't get the secrets, so their reports are only the
 
 The bucket's lifecycle rule deletes the files after 30 days, and a job the
 rows.
+
+## Accessibility report
+
+Every end-to-end test ends with an axe check of its page
+(`tests/fixtures/test.js`), and attaches the results ("axe"). After
+publishing the Playwright report, `scripts/a11y-report.js` puts them
+together from `playwright-results.json` into one page: totals, the rules
+violated, the rules to check by hand (where axe couldn't decide), and each
+test's page. It's uploaded next to the report, in `reports/{id}/a11y/`, and
+linked from its own commit status, "Accessibility report" (failure if any
+rule was violated). Locally, after a run with the JSON reporter:
+`bun scripts/a11y-report.js` in `packages/app`.
