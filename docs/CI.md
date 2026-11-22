@@ -57,7 +57,13 @@ features, bug fixes, …), from their Conventional Commit titles
 into the next release. To preview the notes: `bun scripts/release-notes.js
 <previous tag>`.
 
-The `Test` job caches Playwright's Chromium per Playwright version, so most
+The Playwright tests run in 3 shards in parallel (`Test shard 1/3` …), each
+saving a blob report. The `Test` job, the required check, merges them
+(`playwright merge-reports`) into one HTML report and fails if any shard did.
+To change the number of shards, edit the matrix in `app.yml`. Locally:
+`bunx playwright test --shard=1/3`.
+
+Each shard caches Playwright's Chromium per Playwright version, so most
 runs skip downloading it and only install its system libraries.
 
 The Playwright HTML report, with videos of every test and traces of failures,
