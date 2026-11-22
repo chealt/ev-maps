@@ -1,5 +1,6 @@
+import { renderBarChart } from "@ev-maps/ui/bar-chart.js";
+import { dayCount } from "../../lib/day-count.js";
 import { formatNumber, message } from "../../lib/messages.js";
-import { renderBarChart } from "../bar-chart/bar-chart.js";
 
 const DASHBOARD_URL = "/api/admin/dashboard";
 
@@ -24,7 +25,7 @@ class AdminDashboardElement extends HTMLElement {
     for (const card of this.querySelectorAll(".card[data-key]")) {
       const byDay = stats[card.dataset.key] ?? {};
       const total = Object.values(byDay).reduce((sum, count) => sum + count, 0);
-      renderBarChart(card.querySelector(".bar-chart"), stats.days, byDay);
+      renderBarChart(card.querySelector(".bar-chart"), stats.days, byDay, dayCount);
       card.querySelector(".total").textContent = message("adminTotal", { count: total });
     }
     this.renderTopPages(stats.topPages ?? []);
