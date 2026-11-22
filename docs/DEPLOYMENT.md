@@ -3,7 +3,9 @@
 ## Cloudflare Workers
 
 The app is served by the `ev-maps` Cloudflare Worker (`packages/worker`) as
-static assets (`packages/worker/wrangler.toml` points at `packages/app/dist`).
+static assets (`packages/worker/wrangler.toml` points at
+`packages/app/dist/client`), and hands the server-rendered pages to Astro's
+server in `packages/app/dist/server`.
 The `Deploy` job in
 `.github/workflows/app.yml` deploys it once lint, build and tests pass:
 

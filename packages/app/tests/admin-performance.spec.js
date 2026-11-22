@@ -154,6 +154,8 @@ test("switches the period, and is in the admin navigation", async ({ page }) => 
   await page.goto("/en/admin/");
   await page.locator(".admin-section").getByRole("link", { name: "Performance" }).click();
   await expect(page).toHaveURL("/en/admin/performance/");
+  // Loaded, so the page's script is listening.
+  await expect(page.getByText("The last 7 days")).toBeVisible();
 
   await page.getByRole("button", { name: "Last 14 days" }).click();
 

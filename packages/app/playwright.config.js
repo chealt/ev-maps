@@ -26,7 +26,9 @@ export default defineConfig({
     // --ignore-lock: a one-off server in the foreground, next to any running
     // `astro dev` (Astro otherwise refuses a second one, and backgrounds the
     // server when it detects a coding agent).
-    command: `bunx --bun astro dev --port ${PORT} --ignore-lock`,
+    // Node, not Bun: the Cloudflare adapter's dev server (workerd, through
+    // miniflare) doesn't start under Bun.
+    command: `node node_modules/.bin/astro dev --port ${PORT} --ignore-lock`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     env: {

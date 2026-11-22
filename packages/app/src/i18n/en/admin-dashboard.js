@@ -7,7 +7,6 @@ const adminDashboard = {
     adminErrorsPerDay: "Errors per day",
     adminPageViewsChart: "Page views per day",
     adminSignInsPerDay: "Sign-ins per day",
-    adminAllErrors: "All errors",
     adminDashboardNotLoaded: "The dashboard couldn't be loaded. Try again.",
     adminAllUsage: "All usage stats",
   },

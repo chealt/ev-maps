@@ -1,5 +1,6 @@
-# The ev-maps Worker: serves the app's static site (packages/app/dist, built
-# by `bun run build`), the charger tile API and the redirect from / to the
+# The ev-maps Worker: serves the app's static site (packages/app/dist/client,
+# built by `bun run build`) and its server-rendered pages (src/app-server.js),
+# the charger tile API and the redirect from / to the
 # visitor's language and country, and imports chargers into D1 on a schedule.
 #
 # The top level is production. [env.local] is local development (`bun run dev`
@@ -32,7 +33,9 @@ EMAIL_FROM = "EV Maps <sign-in@chealt.com>"
 ADMIN_EMAIL_DOMAIN = "chealt.com"
 
 [assets]
-directory = "../app/dist"
+# The app's static files; its server-rendered pages are in ../app/dist/server
+# (src/app-server.js).
+directory = "../app/dist/client"
 binding = "ASSETS"
 # Everything else is served straight from the static assets.
 # The admin pages too: the Worker only serves them to admins (src/admin.js).

@@ -20,11 +20,8 @@ const adminErrors = {
     adminUserLabel: "Użytkownik",
     adminCountryLabel: "Kraj",
     adminStackTrace: "Ślad stosu",
-  },
-  messages: {
     adminErrorsNotLoaded: "Nie udało się wczytać błędów. Spróbuj ponownie.",
     adminNoErrors: "Brak błędów w ostatnich 30 dniach.",
-    adminPageOf: "Strona {page} z {pages}",
     adminNone: "–",
     adminErrorGroups: {
       one: "{count} rodzaj błędu w ostatnich 30 dniach",
@@ -38,9 +35,8 @@ const adminErrors = {
       many: "Wystąpił {count} razy w ostatnich 30 dniach",
       other: "Wystąpienia w ostatnich 30 dniach: {count}",
     },
-  },
-  values: {
-    errorSources: {
+    // Where an error happened.
+    adminErrorSources: {
       worker: "Serwer",
       page: "Przeglądarka",
     },

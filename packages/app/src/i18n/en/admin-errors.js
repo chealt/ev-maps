@@ -20,11 +20,8 @@ const adminErrors = {
     adminUserLabel: "User",
     adminCountryLabel: "Country",
     adminStackTrace: "Stack trace",
-  },
-  messages: {
     adminErrorsNotLoaded: "The errors couldn't be loaded. Try again.",
     adminNoErrors: "No errors in the last 30 days.",
-    adminPageOf: "Page {page} of {pages}",
     adminNone: "–",
     adminErrorGroups: {
       one: "{count} kind of error in the last 30 days",
@@ -34,9 +31,8 @@ const adminErrors = {
       one: "Happened {count} time in the last 30 days",
       other: "Happened {count} times in the last 30 days",
     },
-  },
-  values: {
-    errorSources: {
+    // Where an error happened.
+    adminErrorSources: {
       worker: "Server",
       page: "Browser",
     },

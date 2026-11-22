@@ -98,21 +98,21 @@ See
 
 Run from the repository root:
 
-| Script                    | Description                                   |
-| ------------------------- | --------------------------------------------- |
-| `bun run dev`             | Start the dev server and the Worker (API)     |
-| `bun run dev:app`         | Start only the dev server                     |
-| `bun run dev:worker`      | Start only the Worker                         |
-| `bun run build`           | Build for production into `packages/app/dist` |
-| `bun run export:chargers` | Export chargers for the country pages         |
-| `bun run preview`         | Preview production build                      |
-| `bun run test`            | Run Playwright tests                          |
-| `bun run lint`            | Lint JS, CSS and Markdown                     |
-| `bun run lint:md`         | Lint Markdown only                            |
-| `bun run format`          | Format code                                   |
-| `bun run format:check`    | Check formatting                              |
-| `bun run format:md`       | Format Markdown only                          |
-| `bun run format:md:check` | Check Markdown formatting only                |
+| Script                    | Description                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `bun run dev`             | Start the dev server and the Worker (API)                                                          |
+| `bun run dev:app`         | Start only the dev server                                                                          |
+| `bun run dev:worker`      | Start only the Worker                                                                              |
+| `bun run build`           | Build for production into `packages/app/dist` (`client/`: static, `server/`: rendered per request) |
+| `bun run export:chargers` | Export chargers for the country pages                                                              |
+| `bun run preview`         | Preview production build                                                                           |
+| `bun run test`            | Run Playwright tests                                                                               |
+| `bun run lint`            | Lint JS, CSS and Markdown                                                                          |
+| `bun run lint:md`         | Lint Markdown only                                                                                 |
+| `bun run format`          | Format code                                                                                        |
+| `bun run format:check`    | Check formatting                                                                                   |
+| `bun run format:md`       | Format Markdown only                                                                               |
+| `bun run format:md:check` | Check Markdown formatting only                                                                     |
 
 ## Tests
 

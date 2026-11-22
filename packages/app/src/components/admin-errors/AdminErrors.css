@@ -1,4 +1,4 @@
-ev-admin-errors {
+.admin-errors {
   display: block;
 
   .section-title {
@@ -65,11 +65,8 @@ ev-admin-errors {
     }
   }
 
+  /* Links to the previous and next page; at either end, a dimmed label. */
   .pager {
-    &[hidden] {
-      display: none;
-    }
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -77,19 +74,18 @@ ev-admin-errors {
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-sm);
 
-    button {
+    .previous,
+    .next {
       padding: var(--spacing-xs) var(--spacing-md);
       border: var(--border-width) solid var(--color-border-strong);
       border-radius: var(--border-radius-full);
       background: var(--color-surface);
       color: var(--color-text);
-      font: inherit;
-      cursor: pointer;
+      text-decoration: none;
+    }
 
-      &:disabled {
-        opacity: var(--opacity-disabled);
-        cursor: not-allowed;
-      }
+    [aria-disabled="true"] {
+      opacity: var(--opacity-disabled);
     }
   }
 

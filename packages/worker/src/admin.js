@@ -20,15 +20,50 @@ const json = (data, status = 200) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
 
-// An admin page for admins; for everyone else, as if there were none.
-const adminPageResponse = async (request, env, user) => {
+// The admin pages Astro renders on the server, by path (the rest are
+// static): each gets its data from here, as the page's props.
+const SERVER_RENDERED_PAGES = [
+  {
+    path: /^\/(en|pl|hu)\/admin\/errors\/$/,
+    data: (env, url) => {
+      const error = url.searchParams.get("error");
+      return /^[0-9a-f]{8}$/.test(error ?? "")
+        ? errorOccurrences(env.ADMIN_DB, error, pageOf(url))
+        : errorGroups(env.ADMIN_DB, pageOf(url));
+    },
+  },
+];
+
+// A server-rendered page's data; if it can't be read, the page says so.
+const pageData = async (page, env, url) => {
+  try {
+    return { data: await page.data(env, url) };
+  } catch (error) {
+    console.error("Could not read an admin page's data:", error);
+    return { failed: true };
+  }
+};
+
+// An admin page for admins; for everyone else, as if there were none. Most
+// are static; the server-rendered ones go to `render` (Astro's server,
+// src/app-server.js) with their data as the context's props.
+const adminPageResponse = async (request, env, user, { render, context } = {}) => {
   if (!isAdmin(env, user)) {
     return new Response("Not found", {
       status: 404,
       headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
     });
   }
-  const page = await env.ASSETS.fetch(request);
+  const url = new URL(request.url);
+  const serverPage = SERVER_RENDERED_PAGES.find(({ path }) => path.test(url.pathname));
+  const page =
+    serverPage && render
+      ? await render(request, env, {
+          waitUntil: (promise) => context?.waitUntil(promise),
+          passThroughOnException: () => context?.passThroughOnException(),
+          props: await pageData(serverPage, env, url),
+        })
+      : await env.ASSETS.fetch(request);
   const headers = new Headers(page.headers);
   // Per user: no shared cache may keep it.
   headers.set("cache-control", "private, no-store");
@@ -172,8 +207,8 @@ const pageRoutes = [
   {
     name: "admin page",
     matches: (request, url) => isAdminPage(url.pathname),
-    handle: async ({ request, env, signedInUser }) =>
-      adminPageResponse(request, env, await signedInUser()),
+    handle: async ({ request, env, context, signedInUser, renderAppPage }) =>
+      adminPageResponse(request, env, await signedInUser(), { render: renderAppPage, context }),
   },
 ];
 

@@ -1,5 +1,6 @@
 import { readdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import cloudflare from "@astrojs/cloudflare";
 import { defineConfig } from "astro/config";
 
 // Lists the built files for the service worker to precache (public/sw.js).
@@ -19,6 +20,10 @@ const precacheManifest = () => ({
 
 export default defineConfig({
   output: "static",
+  // Pages are static, except those with `prerender = false` (the admin errors
+  // page): the adapter builds those into dist/server, which the Worker runs
+  // (packages/worker/src/app-server.js); the static files go to dist/client.
+  adapter: cloudflare(),
   // Production's main address, for absolute URLs such as the pages' hreflang
   // links. It also answers on ev-maps.chealt.workers.dev.
   site: "https://ev.chealt.com",
@@ -34,6 +39,13 @@ export default defineConfig({
     routing: { prefixDefaultLocale: true },
   },
   vite: {
+    // Pages render in workerd in development (the Cloudflare adapter), where
+    // process.env is empty: the build's settings are inlined instead.
+    define: {
+      "process.env.EV_MAPS_MAX_PAGE_CHARGERS": JSON.stringify(
+        process.env.EV_MAPS_MAX_PAGE_CHARGERS ?? ""
+      ),
+    },
     resolve: {
       alias: {
         // The exported chargers the country pages are built from (see
