@@ -67,6 +67,11 @@ const map = {
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
     nearbyFilterHint: "150 méteren belül, az OpenStreetMap alapján.",
+    shortcuts: {
+      title: "Billentyűparancsok",
+      help: "Súgó megjelenítése",
+      closeDialogs: "Párbeszédablakok és a töltő részleteinek bezárása",
+    },
   },
   messages: {
     power: "{power} kW",

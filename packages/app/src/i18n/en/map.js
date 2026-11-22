@@ -65,6 +65,11 @@ const map = {
     nearby: "Nearby",
     signInForNearby: "Sign in to find chargers with places next to them.",
     nearbyFilterHint: "Within 150 m, from OpenStreetMap.",
+    shortcuts: {
+      title: "Keyboard shortcuts",
+      help: "Show this help",
+      closeDialogs: "Close dialogs and the charger details",
+    },
   },
   messages: {
     power: "{power} kW",

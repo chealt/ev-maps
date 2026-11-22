@@ -22,6 +22,7 @@ import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
 import RouteButton from "../route-button/RouteButton.astro";
 import RoutePlanner from "../route-planner/RoutePlanner.astro";
+import ShortcutsDialog from "../shortcuts-dialog/ShortcutsDialog.astro";
 import { translations } from "../../i18n/index.js";
 import "./GoogleMap.css";
 
@@ -141,6 +142,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     </div>
 
     <RoutePlanner id="route-planner" />
+    <ShortcutsDialog />
 
     <dialog
       class="fullscreen-dialog filter-dialog"
