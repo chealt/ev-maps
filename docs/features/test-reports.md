@@ -4,8 +4,8 @@ CI's Playwright reports, for admins only, kept 30 days.
 
 ## Publishing
 
-The App workflow's Test job runs Playwright with the HTML reporter and a
-JSON summary (`playwright-results.json`), then
+The App workflow's Test job merges the test shards' blob reports into the
+HTML report and a JSON summary (`playwright-results.json`), then runs
 `packages/app/scripts/publish-test-report.js`:
 
 1. uploads every file of the HTML report, with R2's S3 API, to the R2 bucket
