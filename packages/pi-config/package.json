@@ -1,0 +1,27 @@
+{
+  "name": "@ev-maps/pi-config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The pi coding agent's extensions and settings for working on EV Maps, as a pi package",
+  "keywords": [
+    "pi-package"
+  ],
+  "type": "module",
+  "scripts": {
+    "lint": "oxlint -c ../dev-config/oxlint.json extensions",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/*/index.ts"
+    ],
+    "changelogPath": ""
+  }
+}
