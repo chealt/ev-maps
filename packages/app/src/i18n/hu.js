@@ -136,6 +136,7 @@ const hu = {
     choosePlaces: "Mindkét helyet a javaslatok közül válaszd ki",
     alongRoute: "Az útvonal sorrendjében",
     offRoute: "{distance} az útvonaltól",
+    chargerNoneFree: "{name}, nincs szabad töltőpont",
     pointsFree: {
       one: "Szabad töltőpontok: {available} / {count}",
       other: "Szabad töltőpontok: {available} / {count}",

@@ -145,6 +145,7 @@ const pl = {
     choosePlaces: "Wybierz oba miejsca z podpowiedzi",
     alongRoute: "W kolejności na trasie",
     offRoute: "{distance} od trasy",
+    chargerNoneFree: "{name}, brak wolnych punktów",
     pointsFree: {
       one: "Wolne punkty: {available} z {count}",
       other: "Wolne punkty: {available} z {count}",

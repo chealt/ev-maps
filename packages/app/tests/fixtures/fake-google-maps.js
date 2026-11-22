@@ -86,10 +86,24 @@
   }
 
   class AdvancedMarkerElement {
-    constructor({ map, title }) {
+    constructor({ map, title, content }) {
       this.element = document.createElement("button");
-      this.element.textContent = title;
+      this.label = document.createElement("span");
+      this.element.append(this.label);
+      // The pin, e.g. to check its classes; the title names the button.
+      this.content = content;
+      if (content) {
+        this.element.append(content);
+      }
+      this.title = title;
       this.map = map;
+    }
+    set title(title) {
+      this._title = title;
+      this.label.textContent = title;
+    }
+    get title() {
+      return this._title;
     }
     set map(map) {
       this._map = map;
