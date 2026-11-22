@@ -7,6 +7,8 @@
 // Each favorite keeps a copy of the charger as the page had it (name,
 // address, location...), so the list shows without the chargers' tiles.
 
+import { countEvent } from "./usage.js";
+
 const FAVORITES_PATH = "/api/favorites";
 const FAVORITE_PATH = /^\/api\/favorites\/([^/]+)$/;
 const MAX_FAVORITES = 500;
@@ -97,4 +99,20 @@ const favoritesResponse = async (request, env, userId) => {
   return json({ error: "Method not allowed" }, 405);
 };
 
-export { favoritesResponse, isFavoritesPath, validCharger };
+const routes = [
+  {
+    name: "favorites",
+    limiter: "FAVORITES_LIMITER",
+    signedIn: true,
+    matches: (request, url) => isFavoritesPath(url.pathname),
+    handle: async ({ request, env, context, userId }) => {
+      const response = await favoritesResponse(request, env, userId);
+      if (request.method === "PUT" && response.ok) {
+        context.waitUntil(countEvent(env, "favorite_added"));
+      }
+      return response;
+    },
+  },
+];
+
+export { favoritesResponse, isFavoritesPath, routes, validCharger };

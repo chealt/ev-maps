@@ -158,4 +158,24 @@ const userOf = async (request, env) => {
   return user?.emailVerified ? { id: user.id, email: user.email } : null;
 };
 
-export { handleAuth, isAuthPath, userOf };
+// Sign-in (src/auth.js): sending a sign-in email is limited much more than
+// the rest.
+const routes = [
+  {
+    name: "email",
+    limiter: "EMAIL_LIMITER",
+    signedIn: false,
+    matches: (request, url) =>
+      request.method === "POST" && url.pathname === "/api/auth/sign-in/magic-link",
+    handle: ({ request, env }) => handleAuth(request, env),
+  },
+  {
+    name: "auth",
+    limiter: "AUTH_LIMITER",
+    signedIn: false,
+    matches: (request, url) => isAuthPath(url.pathname),
+    handle: ({ request, env }) => handleAuth(request, env),
+  },
+];
+
+export { handleAuth, isAuthPath, routes, userOf };

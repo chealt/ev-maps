@@ -95,4 +95,15 @@ const settingsResponse = async (request, env, userId) => {
   return json({ settings });
 };
 
-export { SETTINGS_PATH, mergeSettings, settingsResponse, validSection };
+const routes = [
+  {
+    name: "settings",
+    limiter: "SETTINGS_LIMITER",
+    signedIn: true,
+    matches: (request, url) =>
+      (request.method === "GET" || request.method === "PUT") && url.pathname === SETTINGS_PATH,
+    handle: ({ request, env, userId }) => settingsResponse(request, env, userId),
+  },
+];
+
+export { SETTINGS_PATH, mergeSettings, routes, settingsResponse, validSection };

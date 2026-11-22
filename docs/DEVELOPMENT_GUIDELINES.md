@@ -478,6 +478,32 @@ components/
 - **Variables**: camelCase (e.g., `buttonId`, `currentPosition`)
 - **Props**: camelCase (e.g., `variant`, `disabled`, `onClick`)
 
+## Domains: Keeping Changes Apart
+
+Features are worked on in parallel, in stacked pull requests, so each one
+should touch its own files. Where every feature has to register itself, it
+adds **one line** to a list, never code to a shared function.
+
+- **Worker routes**: a domain keeps its API routes (`routes`) and scheduled
+  jobs (`jobs`) in its own module, and adds one line to
+  `src/api-routes.js` or `src/jobs.js`; see
+  [The API](features/api.md). Never add an `if` to `src/index.js` or a
+  policy to `src/guard.js`.
+- **Translations**: each part of the site has its own section,
+  `src/i18n/{language}/{section}.js`, e.g. `map`, `account`, and one per
+  admin page (`admin-errors`, `admin-usage`); see [Languages](#languages).
+- **Admin pages**: each is its own component and page, and adds one line to
+  `src/components/admin-page/sections.js`, which builds the navigation and
+  the overview.
+- **Docs**: each feature has its own page in `docs/features/`;
+  `ARCHITECTURE.md` only links to them.
+- **Tests**: one spec file per feature in `packages/app/tests`, and tests
+  next to the module in `packages/worker/src`.
+- **Shared lists stay sorted** (imports, routes, sections), so two
+  additions rarely land on the same line. Unavoidable shared files are
+  `wrangler.toml` (bindings, rate limits) and database migrations, whose
+  numbers must be unique: take the next free number when rebasing.
+
 ## Astro-Specific Guidelines
 
 ### Component Props

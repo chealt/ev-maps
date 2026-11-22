@@ -1,6 +1,7 @@
 ---
 import Layout from "../../../layouts/Layout.astro";
 import AdminPage from "../../../components/admin-page/AdminPage.astro";
+import { ADMIN_SECTIONS } from "../../../components/admin-page/sections.js";
 import { translations } from "../../../i18n/index.js";
 import { languages } from "../../../lib/pages.js";
 
@@ -16,20 +17,15 @@ const { page } = translations(Astro.currentLocale ?? "en");
     <section class="admin-section">
       <h2>{page.adminSections}</h2>
       <ul>
-        <li>
-          <a class="section-link" href={`/${lang}/admin/errors/`}>
-            {page.adminErrors}
-          </a>
-          {" – "}
-          {page.adminErrorsDescription}
-        </li>
-        <li>
-          <a class="section-link" href={`/${lang}/admin/usage/`}>
-            {page.adminUsage}
-          </a>
-          {" – "}
-          {page.adminUsageDescription}
-        </li>
+        {ADMIN_SECTIONS.map(({ path, label, description }) => (
+          <li>
+            <a class="section-link" href={`/${lang}/admin/${path}/`}>
+              {page[label]}
+            </a>
+            {" – "}
+            {page[description]}
+          </li>
+        ))}
       </ul>
     </section>
   </AdminPage>

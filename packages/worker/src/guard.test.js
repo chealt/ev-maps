@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import { API_ROUTES } from "./api-routes.js";
 import { guard, isBlockedAgent } from "./guard.js";
+
+// The real routes' access, by name.
+const ROUTE = Object.fromEntries(API_ROUTES.map((route) => [route.name, route]));
 
 const CHROME =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
@@ -52,11 +56,17 @@ describe("guard", () => {
     const admin = { id: "user-2", email: "grace@chealt.com" };
     const isAdmin = (user) => user.email.endsWith("@chealt.com");
 
-    const { refused: signedOutResponse } = await guard(request(), env, "admin", signedOut, isAdmin);
+    const { refused: signedOutResponse } = await guard(
+      request(),
+      env,
+      ROUTE.admin,
+      signedOut,
+      isAdmin
+    );
     expect(signedOutResponse.status).toBe(401);
-    const { refused: userResponse } = await guard(request(), env, "admin", signedIn, isAdmin);
+    const { refused: userResponse } = await guard(request(), env, ROUTE.admin, signedIn, isAdmin);
     expect(userResponse.status).toBe(403);
-    expect(await guard(request(), env, "admin", async () => admin, isAdmin)).toEqual({
+    expect(await guard(request(), env, ROUTE.admin, async () => admin, isAdmin)).toEqual({
       userId: "user-2",
       user: admin,
     });
@@ -66,7 +76,7 @@ describe("guard", () => {
     const { refused: response } = await guard(
       request({ "user-agent": "curl/8.7.1" }),
       {},
-      "tiles",
+      ROUTE.tiles,
       signedOut
     );
     expect(response.status).toBe(403);
@@ -74,20 +84,23 @@ describe("guard", () => {
 
   test("lets anyone load tiles, limited per IP address", async () => {
     const env = { TILE_LIMITER: limiter() };
-    expect(await guard(request(), env, "tiles", signedOut)).toEqual({ userId: null, user: null });
+    expect(await guard(request(), env, ROUTE.tiles, signedOut)).toEqual({
+      userId: null,
+      user: null,
+    });
     expect(env.TILE_LIMITER.keys).toEqual(["tiles:ip:203.0.113.7"]);
   });
 
   test("asks to sign in for live availability and routes", async () => {
-    for (const policy of ["status", "route", "settings", "favorites"]) {
-      const { refused: response } = await guard(request(), {}, policy, signedOut);
+    for (const name of ["status", "route", "settings", "favorites"]) {
+      const { refused: response } = await guard(request(), {}, ROUTE[name], signedOut);
       expect(response.status).toBe(401);
     }
   });
 
   test("limits signed-in users per user", async () => {
     const env = { STATUS_LIMITER: limiter() };
-    expect(await guard(request(), env, "status", signedIn)).toEqual({
+    expect(await guard(request(), env, ROUTE.status, signedIn)).toEqual({
       userId: "user-1",
       user: ADA,
     });
@@ -96,8 +109,11 @@ describe("guard", () => {
 
   test("says when the limit is reached", async () => {
     const env = { ROUTE_LIMITER: limiter(1) };
-    expect(await guard(request(), env, "route", signedIn)).toEqual({ userId: "user-1", user: ADA });
-    const { refused: response } = await guard(request(), env, "route", signedIn);
+    expect(await guard(request(), env, ROUTE.route, signedIn)).toEqual({
+      userId: "user-1",
+      user: ADA,
+    });
+    const { refused: response } = await guard(request(), env, ROUTE.route, signedIn);
     expect(response.status).toBe(429);
     expect(response.headers.get("retry-after")).toBe("60");
   });

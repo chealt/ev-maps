@@ -1,39 +1,18 @@
 // The ev-maps Worker. Static assets, including the country pages, are served
-// directly; the Worker only runs for:
-// - /api/chargers/{z}/{x}/{y}: chargers in a map tile, from D1
-// - POST /api/chargers/route: chargers along a route (see route-chargers.js)
-// - /api/chargers/status: live availability (see live-status.js)
+// directly; the Worker runs for:
+// - /api/*: each domain's routes (src/api-routes.js), behind the guard
+//   (bots, sign-in, admins, rate limits; src/guard.js)
+// - /{lang}/admin*: the admin pages, only for admins (src/admin.js)
 // - /: redirects to the page for the visitor's language and country
-// - /api/auth/*: sign-in and sessions (see auth.js)
-// It also runs the charger import on a schedule (see import/index.js), and
-// refreshes the live statuses every few minutes.
+// and runs each domain's scheduled jobs (src/jobs.js).
 
-import { TILE_FORMAT_VERSION, tileBounds } from "@ev-maps/tiles";
-import {
-  ADMIN_API_PREFIX,
-  adminApiResponse,
-  adminPageResponse,
-  isAdmin,
-  isAdminPage,
-} from "./admin.js";
-import { handleAuth, isAuthPath, userOf } from "./auth.js";
-import { ERRORS_PATH, deleteOldErrors, errorReportResponse, recordWorkerError } from "./errors.js";
-import { USAGE_PATH, countEvent, deleteOldUsage, usageReportResponse } from "./usage.js";
-import { chargersInBounds, toClientCharger } from "./db.js";
-import { mergeDuplicates } from "./duplicates.js";
+import { adminPageResponse, isAdmin, isAdminPage } from "./admin.js";
+import { API_ROUTES } from "./api-routes.js";
+import { userOf } from "./auth.js";
+import { recordWorkerError } from "./errors.js";
 import { guard } from "./guard.js";
-import { SETTINGS_PATH, settingsResponse } from "./settings.js";
-import { favoritesResponse, isFavoritesPath } from "./favorites.js";
-import { runImport } from "./import/index.js";
-import { STATUS_PATH, refreshStatuses, statusResponse } from "./live-status.js";
-import { routeChargersResponse } from "./route-chargers.js";
+import { JOBS } from "./jobs.js";
 
-const MAX_CHARGERS_PER_TILE = 2000;
-const MAX_TILE_ZOOM = 18;
-// The data changes weekly: browsers keep tiles for an hour, the edge a day.
-const TILE_CACHE_CONTROL = "public, max-age=3600, s-maxage=86400";
-// wrangler.toml's crons: the import every 15 minutes, statuses every 5.
-const STATUS_CRON = "*/5 * * * *";
 const DEFAULT_LANGUAGE = "en";
 // Set by the app's language picker; it wins over the browser's languages.
 const LANGUAGE_COOKIE = "ev-maps-language";
@@ -45,42 +24,6 @@ const json = (data, { status = 200, headers = {} } = {}) =>
     status,
     headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
-
-// Tiles are cached by their path and the current format, whatever the query
-// string: a new format starts a new cache, and random queries can't fill it.
-const tileCacheKey = (request) => {
-  const url = new URL(request.url);
-  return new Request(new URL(`${url.pathname}?v=${TILE_FORMAT_VERSION}`, url.origin));
-};
-
-const tileResponse = async (request, env, { zoom, x, y }, context) => {
-  const cacheKey = tileCacheKey(request);
-  const cached = await caches.default.match(cacheKey);
-  if (cached) {
-    return cached;
-  }
-  const { rows, full } = await chargersInBounds(
-    env.DB,
-    tileBounds({ zoom, x, y }),
-    MAX_CHARGERS_PER_TILE
-  );
-  const response = json(
-    { chargers: mergeDuplicates(rows.map(toClientCharger)), full },
-    { headers: { "cache-control": TILE_CACHE_CONTROL } }
-  );
-  context.waitUntil(caches.default.put(cacheKey, response.clone()));
-  return response;
-};
-
-const parseTile = (pathname) => {
-  const match = /^\/api\/chargers\/(\d+)\/(\d+)\/(\d+)$/.exec(pathname);
-  if (!match) {
-    return null;
-  }
-  const [zoom, x, y] = match.slice(1).map(Number);
-  const tiles = 2 ** zoom;
-  return zoom <= MAX_TILE_ZOOM && x < tiles && y < tiles ? { zoom, x, y } : null;
-};
 
 // The languages of an Accept-Language header, most preferred first:
 // "hu-HU,hu;q=0.9,en;q=0.8" -> ["hu", "en"].
@@ -168,102 +111,19 @@ const withoutIndexing = (response) => {
   });
 };
 
-// The API parts by path, with their access policy (see guard.js).
-const apiPolicy = (request, url) => {
-  // Sending a sign-in email: much stricter than the rest of sign-in.
-  if (request.method === "POST" && url.pathname === "/api/auth/sign-in/magic-link") {
-    return "email";
-  }
-  if (isAuthPath(url.pathname)) {
-    return "auth";
-  }
-  if (request.method === "POST" && url.pathname === "/api/chargers/route") {
-    return "route";
-  }
-  if (request.method === "GET" && url.pathname === STATUS_PATH) {
-    return "status";
-  }
-  if ((request.method === "GET" || request.method === "PUT") && url.pathname === SETTINGS_PATH) {
-    return "settings";
-  }
-  if (isFavoritesPath(url.pathname)) {
-    return "favorites";
-  }
-  if (url.pathname.startsWith(ADMIN_API_PREFIX)) {
-    return "admin";
-  }
-  if (url.pathname === ERRORS_PATH) {
-    return "errors";
-  }
-  if (url.pathname === USAGE_PATH) {
-    return "usage";
-  }
-  if (request.method === "GET" && url.pathname.startsWith("/api/chargers/")) {
-    return "tiles";
-  }
-  return null;
-};
-
 const route = async (request, env, context) => {
   const url = new URL(request.url);
-  const policy = apiPolicy(request, url);
-  let userId = null;
-  let user = null;
-  if (policy) {
-    const guarded = await guard(
-      request,
-      env,
-      policy,
-      () => userOf(request, env),
-      (signedIn) => isAdmin(env, signedIn)
-    );
+  const apiRoute = API_ROUTES.find((candidate) => candidate.matches(request, url));
+  if (apiRoute) {
+    const signedInUser = () => userOf(request, env);
+    const guarded = await guard(request, env, apiRoute, signedInUser, (user) => isAdmin(env, user));
     if (guarded.refused) {
       return guarded.refused;
     }
-    ({ userId, user } = guarded);
-  }
-  if (policy === "admin") {
-    return adminApiResponse(request, env, user);
-  }
-  if (policy === "usage") {
-    return usageReportResponse(request, env);
-  }
-  if (policy === "errors") {
-    // Anyone may report a page's error; signed in, with who it happened to.
-    const reporter = await userOf(request, env).catch(() => null);
-    return errorReportResponse(request, env, reporter?.id ?? null);
+    return apiRoute.handle({ request, env, context, url, ...guarded, signedInUser });
   }
   if (isAdminPage(url.pathname)) {
     return adminPageResponse(request, env, await userOf(request, env));
-  }
-  if (policy === "settings") {
-    return settingsResponse(request, env, userId);
-  }
-  if (policy === "favorites") {
-    const response = await favoritesResponse(request, env, userId);
-    if (request.method === "PUT" && response.ok) {
-      context.waitUntil(countEvent(env, "favorite_added"));
-    }
-    return response;
-  }
-  if (policy === "auth" || policy === "email") {
-    return handleAuth(request, env);
-  }
-  if (policy === "route") {
-    const response = await routeChargersResponse(request, env);
-    if (response.ok) {
-      context.waitUntil(countEvent(env, "route_planned"));
-    }
-    return response;
-  }
-  if (policy === "status") {
-    return statusResponse(request, env);
-  }
-  if (policy === "tiles") {
-    const tile = parseTile(url.pathname);
-    return tile
-      ? tileResponse(request, env, tile, context)
-      : json({ error: "Not found" }, { status: 404 });
   }
   if ((request.method === "GET" || request.method === "HEAD") && url.pathname === "/") {
     return redirectToLocalizedPage(request, env);
@@ -287,21 +147,18 @@ export default {
     return isApi ? withoutIndexing(response) : response;
   },
 
-  // Awaited, not passed to waitUntil(): work after the handler returns is
-  // cancelled after ~30 s, but a scheduled handler itself may run 15 minutes.
+  // Each scheduled job of the cron that fired (src/jobs.js), in order; one
+  // failing doesn't stop the others. Awaited, not passed to waitUntil():
+  // work after the handler returns is cancelled after ~30 s, but a scheduled
+  // handler itself may run 15 minutes.
   async scheduled(controller, env) {
-    try {
-      if (controller.cron === STATUS_CRON) {
-        await refreshStatuses(env, controller.scheduledTime);
-        return;
+    for (const job of JOBS.filter((candidate) => candidate.cron === controller.cron)) {
+      try {
+        await job.run(env, controller);
+      } catch (error) {
+        console.error(`Job ${job.name} failed:`, error);
+        await recordWorkerError(env, error, { context: `job ${job.name}` });
       }
-      await deleteOldErrors(env);
-      await deleteOldUsage(env);
-      // IMPORT_BUDGET_MS shortens a run, e.g. when trying the import locally.
-      await runImport(env, { budgetMs: Number(env.IMPORT_BUDGET_MS) || undefined });
-    } catch (error) {
-      await recordWorkerError(env, error, { context: `scheduled ${controller.cron}` });
-      throw error;
     }
   },
 };

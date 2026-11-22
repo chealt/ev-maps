@@ -14,24 +14,6 @@ const isBlockedAgent = (request) => {
   return !userAgent || BOT_USER_AGENT.test(userAgent);
 };
 
-// The rate limit for each part of the API: its binding, and whether it
-// needs a signed-in user (then the limit is per user).
-const POLICIES = {
-  auth: { limiter: "AUTH_LIMITER", signedIn: false },
-  email: { limiter: "EMAIL_LIMITER", signedIn: false },
-  tiles: { limiter: "TILE_LIMITER", signedIn: false },
-  status: { limiter: "STATUS_LIMITER", signedIn: true },
-  route: { limiter: "ROUTE_LIMITER", signedIn: true },
-  settings: { limiter: "SETTINGS_LIMITER", signedIn: true },
-  favorites: { limiter: "FAVORITES_LIMITER", signedIn: true },
-  // Only Chealt's own people (src/admin.js).
-  admin: { limiter: "ADMIN_LIMITER", signedIn: true, admin: true },
-  // Pages reporting their errors (src/errors.js).
-  errors: { limiter: "ERRORS_LIMITER", signedIn: false },
-  // Pages sending their usage counts (src/usage.js).
-  usage: { limiter: "USAGE_LIMITER", signedIn: false },
-};
-
 const errorResponse = (status, error, headers = {}) =>
   new Response(JSON.stringify({ error }), {
     status,
@@ -42,29 +24,30 @@ const errorResponse = (status, error, headers = {}) =>
     },
   });
 
-// { refused: the response refusing the request } or { userId } (null when the
-// policy doesn't need a signed-in user), with { user }. `userOf(request)`
-// resolves to the signed-in user, { id, email }, or null; `isAdmin(user)`
-// says if they may use admin policies.
-const guard = async (request, env, policyName, userOf, isAdmin = () => false) => {
+// { refused: the response refusing the request } or { userId, user } (null
+// when the route doesn't need a signed-in user). `route` is an API route's
+// access (src/api-routes.js): { name, limiter (a ratelimits binding in
+// wrangler.toml), signedIn, admin }. `userOf(request)` resolves to the
+// signed-in user, { id, email }, or null; `isAdmin(user)` says if they may
+// use admin routes.
+const guard = async (request, env, route, userOf, isAdmin = () => false) => {
   if (isBlockedAgent(request)) {
     return { refused: errorResponse(403, "Automated access isn't allowed; see the terms of use.") };
   }
-  const policy = POLICIES[policyName];
   let key = `ip:${request.headers.get("cf-connecting-ip") ?? "local"}`;
   let user = null;
-  if (policy.signedIn) {
+  if (route.signedIn) {
     user = await userOf(request);
     if (!user) {
       return { refused: errorResponse(401, "Sign in to use this.") };
     }
-    if (policy.admin && !isAdmin(user)) {
+    if (route.admin && !isAdmin(user)) {
       return { refused: errorResponse(403, "Only for admins.") };
     }
     key = `user:${user.id}`;
   }
-  const limiter = env[policy.limiter];
-  if (limiter && !(await limiter.limit({ key: `${policyName}:${key}` })).success) {
+  const limiter = env[route.limiter];
+  if (limiter && !(await limiter.limit({ key: `${route.name}:${key}` })).success) {
     return {
       refused: errorResponse(429, "Too many requests; try again in a minute.", {
         "retry-after": "60",

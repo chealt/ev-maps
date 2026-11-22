@@ -5,6 +5,8 @@
 //   scheduled jobs, and import or status jobs that fail.
 // - The pages report theirs to POST /api/errors (public, rate limited).
 
+import { EVERY_15_MINUTES } from "./crons.js";
+
 const ERRORS_PATH = "/api/errors";
 const KEEP_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_BODY_BYTES = 16 * 1024;
@@ -144,11 +146,30 @@ const deleteOldErrors = async (env) => {
     .run();
 };
 
+// Pages reporting their errors; anyone may, and signed in, with who it
+// happened to.
+const routes = [
+  {
+    name: "errors",
+    limiter: "ERRORS_LIMITER",
+    signedIn: false,
+    matches: (request, url) => url.pathname === ERRORS_PATH,
+    handle: async ({ request, env, signedInUser }) => {
+      const reporter = await signedInUser().catch(() => null);
+      return errorReportResponse(request, env, reporter?.id ?? null);
+    },
+  },
+];
+
+const jobs = [{ name: "delete old errors", cron: EVERY_15_MINUTES, run: deleteOldErrors }];
+
 export {
   ERRORS_PATH,
   deleteOldErrors,
   errorReportResponse,
   fingerprintOf,
+  jobs,
   recordError,
   recordWorkerError,
+  routes,
 };
