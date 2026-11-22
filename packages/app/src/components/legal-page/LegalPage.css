@@ -67,8 +67,10 @@
       margin-top: var(--spacing-xs);
     }
 
+    /* Underlined: in running text, color alone doesn't mark a link. */
     a {
       color: var(--color-primary-light-text);
+      text-decoration: underline;
       overflow-wrap: anywhere;
     }
   }

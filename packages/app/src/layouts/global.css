@@ -14,6 +14,7 @@
   /* Colors: light-dark(light value, dark value) */
   --color-primary: #059669;
   --color-primary-dark: #047857;
+  --color-primary-darker: #065f46;
   --color-primary-light: light-dark(#d1fae5, #064e3b);
   --color-primary-light-text: light-dark(#047857, #6ee7b7);
   --color-primary-contrast: #ffffff;
@@ -28,12 +29,13 @@
   --color-surface-glass: light-dark(rgba(255, 255, 255, 0.82), rgba(15, 23, 42, 0.82));
   --color-surface-translucent: light-dark(rgba(255, 255, 255, 0.9), rgba(15, 23, 42, 0.9));
   --color-text: light-dark(#0f172a, #f1f5f9);
-  --color-text-muted: light-dark(#64748b, #94a3b8);
+  /* Readable (4.5:1 and more) on every background, the admin pages' too. */
+  --color-text-muted: light-dark(#475569, #94a3b8);
   --color-danger: #ef4444;
   --color-danger-dark: #dc2626;
   --color-danger-darker: #b91c1c;
   --color-danger-light: light-dark(#fee2e2, #450a0a);
-  --color-danger-light-text: light-dark(#dc2626, #fca5a5);
+  --color-danger-light-text: light-dark(#b91c1c, #fca5a5);
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-border: light-dark(#e2e8f0, #334155);

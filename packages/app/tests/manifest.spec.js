@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures/test.js";
 
 // The web app manifest is what browsers read to install the app, so these
 // tests check what it tells them.

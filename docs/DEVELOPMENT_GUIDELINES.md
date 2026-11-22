@@ -934,6 +934,20 @@ Use Astro's Image component or optimize images manually:
 - Provide text alternatives for visual content
 - Test with screen reader software
 
+### Automated checks (axe)
+
+- Every Playwright spec imports `test` and `expect` from
+  `tests/fixtures/test.js`, not `@playwright/test`. At the end of each
+  passing test, axe checks the page against WCAG 2.1 A and AA, and any
+  violation fails the test.
+- `tests/accessibility.spec.js` also checks the main screens on the way, in
+  both themes.
+- Text needs 4.5:1 contrast: white text goes on the darker brand colors
+  (`--color-primary-dark`, `--color-danger-dark`), and links in running text
+  are underlined.
+- A control's accessible name includes its visible text, so name it by its
+  content (visually hidden text if needed) rather than `aria-label`.
+
 ## Commit Messages
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/)

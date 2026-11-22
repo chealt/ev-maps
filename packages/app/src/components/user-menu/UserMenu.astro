@@ -50,10 +50,12 @@ const { page } = translations(lang);
       aria-haspopup="dialog"
       aria-expanded="false"
       aria-busy="true"
-      aria-label={page.loadingAccount}
     >
       <!-- Until the session is known: neither "Sign in" nor the avatar. -->
       <span class="loading" aria-hidden="true"></span>
+      <!-- The button's name while loading, and signed in ("Account: …"); from
+           its content, not aria-label, so it includes what it shows. -->
+      <span class="account-name visually-hidden">{page.loadingAccount}</span>
       <!-- Signed out, the button is named Sign in; the box shows the app's name. -->
       <span class="sign-in-label visually-hidden" hidden>
         {page.signIn}
