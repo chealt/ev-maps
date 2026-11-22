@@ -181,7 +181,7 @@ test("charts each Web Vital's P75 per day", { tag: "@ui" }, async ({ page }) => 
   await fakePerformanceApi(page);
   await page.goto("/en/admin/performance/");
 
-  const chart = page.getByRole("list", { name: "P75 per day, the last 14 days" });
+  const chart = page.getByRole("list", { name: "P75 per day, over 14 days" });
   await expect(chart.getByRole("listitem")).toHaveText([
     "Nov 22: 3.2 s",
     "Nov 23: no measurements",

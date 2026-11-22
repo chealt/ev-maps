@@ -14,7 +14,7 @@ const adminPerformance = {
     adminVitalCLS: "Cumulative Layout Shift",
     adminVitalFCP: "First Contentful Paint",
     adminVitalTTFB: "Time to First Byte",
-    adminVitalTrend: "P75 naponta, az utolsó 14 napban",
+    adminVitalTrend: "P75 naponta, 14 napon át",
     adminVitalTrendPick: "Ábrázolt Web Vital",
     adminPerformanceRequests: "Kérések a Workerben",
     adminPerformancePageRequests: "API-hívások az oldal szemszögéből",

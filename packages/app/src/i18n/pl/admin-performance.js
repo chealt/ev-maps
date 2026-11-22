@@ -14,7 +14,7 @@ const adminPerformance = {
     adminVitalCLS: "Cumulative Layout Shift",
     adminVitalFCP: "First Contentful Paint",
     adminVitalTTFB: "Time to First Byte",
-    adminVitalTrend: "P75 dziennie, ostatnie 14 dni",
+    adminVitalTrend: "P75 dziennie, przez 14 dni",
     adminVitalTrendPick: "Web Vital na wykresie",
     adminPerformanceRequests: "Zapytania w Workerze",
     adminPerformancePageRequests: "Wywołania API widziane przez stronę",
