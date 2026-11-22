@@ -78,11 +78,13 @@ into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:
   run of it left), so the review sees them next to the code
 - on main, hands them to the release notes as a "UI changes" section
 
-The comment and the notes embed the screenshot from
-`/reports/{id}/ui/{file}` (the site's only public report path, for the
-
-screenshots and videos of the app's own UI; everything else about a report
-stays for admins), linking to the report the evidence came from.
+The comment and the notes embed each screenshot the test took, with links
+to its video and the report, from `/reports/{id}/ui/{file}` (the site's only
+public report path, for the screenshots and videos of the app's own UI;
+everything else about a report stays for admins). On a pull request, a
+separate "UI evidence" job comments once the pull request's own preview is
+deployed (`scripts/pr-ui-evidence-comment.js`), so the embeds come from code
+that already serves them.
 
 To show another control, tag its test:
 `test("…", { tag: "@ui" }, async ({ page }) => { … })`. Run only those with

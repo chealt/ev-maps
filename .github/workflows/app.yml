@@ -276,6 +276,7 @@ jobs:
       performance-report-url: ${{ steps.publish.outputs.performance-report-url }}
       performance-summary: ${{ steps.publish.outputs.performance-summary }}
       ui-evidence: ${{ steps.publish.outputs.ui-evidence }}
+      ui-files: ${{ steps.publish.outputs.ui-files }}
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
@@ -362,6 +363,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
+      url: ${{ steps.url.outputs.url }}
+    # Where this run was deployed, e.g. for the UI evidence job's embeds.
+    outputs:
       url: ${{ steps.url.outputs.url }}
     steps:
       - name: Check Cloudflare configuration
@@ -457,6 +461,34 @@ jobs:
         run: |
           url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
           echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
+
+  # The UI evidence of a pull request's @ui tests
+  # (scripts/publish-test-report.js): commented on it once its own preview
+  # deployment is up, so the embedded screenshots and linked videos resolve
+  # with the code that serves them. Forks don't deploy, so they get no
+  # comment; their reports are the workflow's artifact anyway.
+  ui-evidence:
+    name: UI evidence
+    needs: [changes, test, deploy]
+    if: needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && needs.test.outputs.ui-files != '' && needs.test.outputs.ui-files != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Comment the UI evidence on the pull request
+        working-directory: packages/app
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          UI_FILES: ${{ needs.test.outputs.ui-files }}
+          DEPLOY_URL: ${{ needs.deploy.outputs.url }}
+          REPORT_URL: ${{ needs.test.outputs.report-url }}
+        run: bun scripts/pr-ui-evidence-comment.js
 
   # Each production deploy gets a GitHub release, tagged with the date and
   # time it went out, with notes listing the pull requests merged since the

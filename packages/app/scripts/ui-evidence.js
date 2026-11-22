@@ -71,17 +71,16 @@ const materialize = async (resultsFile = RESULTS_FILE, directory = EVIDENCE_DIR)
   return entries;
 };
 
-// The evidence as markdown: the screenshot embedded, linking to the report
-// it came from, and the video linked next to it, e.g.
+// The evidence as markdown: the screenshot the test took, embedded, with
+// links to its video and the report, e.g.
 //   [![The ? key opens the keyboard shortcuts](…/ui/screenshot.png)](…/reports/123-1/)
 //   [Watch the video](…/ui/screenshot.webm)
 const uiEvidenceMarkdown = (entries, fileUrl, reportUrl) =>
   entries
     .map(({ title, png, webm }) => {
-      const section = [`[![${title}](${fileUrl}${png})](${reportUrl})`];
-      if (webm) {
-        section.push("", `[Watch the video](${fileUrl}${webm})`);
-      }
+      const section = [`**${title}**`, "", `![${title}](${fileUrl}${png})`];
+      const links = [webm && `[Video](${fileUrl}${webm})`, `[Report](${reportUrl})`];
+      section.push("", links.filter(Boolean).join(" · "));
       return section.join("\n");
     })
     .join("\n\n");
