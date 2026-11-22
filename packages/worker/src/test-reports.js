@@ -42,13 +42,36 @@ const notFound = () =>
     headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
   });
 
-const listReports = async (db, page) => {
-  const { total } = await db.prepare("SELECT COUNT(*) AS total FROM test_reports").first();
-  const { results } = await db
-    .prepare("SELECT * FROM test_reports ORDER BY created_at DESC LIMIT ? OFFSET ?")
-    .bind(PAGE_SIZE, (page - 1) * PAGE_SIZE)
-    .all();
-  return { reports: results, page, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), total };
+// A page of the reports, the latest first, of one branch or (branch null)
+// all; with the branches that have reports, most recently run first, for the
+// filter.
+const listReports = async (db, page, branch = null) => {
+  const where = branch === null ? "" : "WHERE branch = ?";
+  const filter = branch === null ? [] : [branch];
+  const [{ total }, { results }, { results: branches }] = await Promise.all([
+    db
+      .prepare(`SELECT COUNT(*) AS total FROM test_reports ${where}`)
+      .bind(...filter)
+      .first(),
+    db
+      .prepare(`SELECT * FROM test_reports ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`)
+      .bind(...filter, PAGE_SIZE, (page - 1) * PAGE_SIZE)
+      .all(),
+    db
+      .prepare(
+        `SELECT branch FROM test_reports WHERE branch IS NOT NULL
+         GROUP BY branch ORDER BY MAX(created_at) DESC`
+      )
+      .all(),
+  ]);
+  return {
+    reports: results,
+    branch,
+    branches: branches.map((row) => row.branch),
+    page,
+    pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    total,
+  };
 };
 
 const contentTypeOf = (file) =>
@@ -93,7 +116,9 @@ const routes = [
     matches: (request, url) => request.method === "GET" && url.pathname === LIST_PATH,
     handle: async ({ env, url }) => {
       const page = Math.max(1, Number.parseInt(url.searchParams.get("page"), 10) || 1);
-      return json(await listReports(env.ADMIN_DB, page));
+      // ?branch=main for one branch; without it, every branch.
+      const branch = url.searchParams.get("branch")?.slice(0, 200) || null;
+      return json(await listReports(env.ADMIN_DB, page, branch));
     },
   },
 ];

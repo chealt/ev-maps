@@ -67,6 +67,24 @@ describe("listReports", () => {
       "1024-1",
     ]);
   });
+
+  test("filters by branch, and lists the branches, latest run first", async () => {
+    const db = adminDb();
+    db.sqlite
+      .prepare(
+        `INSERT INTO test_reports (id, branch, commit_sha, status, passed, failed, flaky, skipped,
+           duration_ms, created_at) VALUES ('2000-1', 'feat/x', 'def', 'failed', 1, 1, 0, 0, 1, ?)`
+      )
+      .run(NOW + 1000);
+
+    const featureReports = await listReports(db, 1, "feat/x");
+    expect(featureReports.reports.map((report) => report.id)).toEqual(["2000-1"]);
+    expect(featureReports.total).toBe(1);
+    expect(featureReports.branch).toBe("feat/x");
+    expect(featureReports.branches).toEqual(["feat/x", "main"]);
+    expect((await listReports(db, 1, "main")).total).toBe(25);
+    expect((await listReports(db, 1)).total).toBe(26);
+  });
 });
 
 describe("reportFileResponse", () => {

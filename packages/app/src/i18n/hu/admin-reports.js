@@ -3,6 +3,8 @@
 
 const adminReports = {
   page: {
+    adminBranchFilter: "Ág",
+    adminAllBranches: "Minden ág",
     adminReports: "Tesztjelentések",
     adminReportsDescription: "a CI Playwright-jelentései, a legújabbal kezdve",
     adminResultColumn: "Eredmény",

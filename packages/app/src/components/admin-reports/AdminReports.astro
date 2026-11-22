@@ -12,6 +12,16 @@ const { page } = translations(Astro.currentLocale ?? "en");
     <h2 class="section-title" id="admin-reports-title">
       {page.adminReports}
     </h2>
+    <!-- Filled in with the branches that have reports; "main" until then. -->
+    <label class="branch-filter">
+      {page.adminBranchFilter}
+      <select class="branch-select">
+        <option value="">{page.adminAllBranches}</option>
+        <option value="main" selected>
+          main
+        </option>
+      </select>
+    </label>
     <p class="summary"></p>
     <div class="table-wrapper">
       <table class="reports">

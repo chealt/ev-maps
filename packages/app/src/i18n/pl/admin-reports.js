@@ -3,6 +3,8 @@
 
 const adminReports = {
   page: {
+    adminBranchFilter: "Gałąź",
+    adminAllBranches: "Wszystkie gałęzie",
     adminReports: "Raporty testów",
     adminReportsDescription: "raporty Playwright z CI, najnowsze najpierw",
     adminResultColumn: "Wynik",
