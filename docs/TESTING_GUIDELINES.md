@@ -152,7 +152,7 @@ mobile to the pull request.
 ## External Services
 
 Tests never call real external services. Google Maps is replaced by a local
-fake (`packages/app/tests/fixtures/fake-google-maps.js`), so tests need no
+fake (`@ev-maps/e2e/fake-google-maps.js`), so tests need no
 API key or network access and always get the same data.
 
 Reading the fake's recorded state with `page.evaluate()`, such as

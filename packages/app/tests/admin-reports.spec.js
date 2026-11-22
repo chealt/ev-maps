@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const RUN = "https://github.com/chealt/ev-maps/actions/runs";

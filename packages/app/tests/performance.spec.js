@@ -1,7 +1,7 @@
-import { expect, test } from "./fixtures/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
+import { fakeChargersApi } from "@ev-maps/e2e/chargers-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/google.js";
 
 // Pages sample their traces at random: 0 always samples, 0.99 never does.
 const withRandom = (page, value) =>

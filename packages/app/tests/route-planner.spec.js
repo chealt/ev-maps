@@ -1,7 +1,7 @@
-import { expect, test } from "./fixtures/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeChargersApi, fakeRouteChargersApi } from "./fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
+import { fakeChargersApi, fakeRouteChargersApi } from "@ev-maps/e2e/chargers-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/google.js";
 
 // The fake route API places chargers along any route; these add a café to
 // the first only.

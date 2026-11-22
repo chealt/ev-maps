@@ -30,6 +30,7 @@
       "devDependencies": {
         "@axe-core/playwright": "^4.14.0",
         "@ev-maps/dev-config": "workspace:*",
+        "@ev-maps/e2e": "workspace:*",
         "@playwright/test": "^1.65.1",
       },
     },
@@ -42,6 +43,18 @@
       "version": "0.0.1",
       "dependencies": {
         "@ev-maps/biome-plugin-css-units": "workspace:*",
+      },
+    },
+    "packages/e2e": {
+      "name": "@ev-maps/e2e",
+      "version": "0.0.1",
+      "dependencies": {
+        "@axe-core/playwright": "^4.14.0",
+        "@ev-maps/tiles": "workspace:*",
+        "@playwright/test": "^1.65.1",
+      },
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
       },
     },
     "packages/tiles": {
@@ -279,6 +292,8 @@
     "@ev-maps/biome-plugin-css-units": ["@ev-maps/biome-plugin-css-units@workspace:packages/biome-plugin-css-units"],
 
     "@ev-maps/dev-config": ["@ev-maps/dev-config@workspace:packages/dev-config"],
+
+    "@ev-maps/e2e": ["@ev-maps/e2e@workspace:packages/e2e"],
 
     "@ev-maps/tiles": ["@ev-maps/tiles@workspace:packages/tiles"],
 

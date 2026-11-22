@@ -1,8 +1,8 @@
-import { expect, test } from "./fixtures/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
-import { fakeFavoritesApi } from "./fixtures/favorites-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
+import { fakeChargersApi } from "@ev-maps/e2e/chargers-api.js";
+import { fakeFavoritesApi } from "@ev-maps/e2e/favorites-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/google.js";
 
 // Far enough apart that they aren't clustered at the default zoom; the map
 // starts at New York.

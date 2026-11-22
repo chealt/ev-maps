@@ -8,7 +8,7 @@
 //
 // Returns (and prints) the totals: { samples, pages, poor }.
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { THRESHOLDS } from "../tests/fixtures/web-vitals.js";
+import { THRESHOLDS } from "@ev-maps/e2e/web-vitals.js";
 import { attachmentsNamed, escapeHtml } from "./report-attachments.js";
 
 const RESULTS_FILE = "playwright-results.json";

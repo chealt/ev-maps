@@ -1,14 +1,14 @@
-import { expect, test } from "./fixtures/test.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
 import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/google.js";
 import {
   fakeChargersApi,
   fakeStatusApi,
   requestCovers,
   tileWidth,
-} from "./fixtures/chargers-api.js";
-import fixtureChargers from "./fixtures/chargers.json" with { type: "json" };
+} from "@ev-maps/e2e/chargers-api.js";
+import fixtureChargers from "@ev-maps/e2e/chargers.json" with { type: "json" };
 
 test.beforeEach(async ({ page }) => {
   await fakeGoogleMaps(page);

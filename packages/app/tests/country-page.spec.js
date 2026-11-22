@@ -1,7 +1,7 @@
-import { expect, test } from "./fixtures/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
+import { expect, test } from "@ev-maps/e2e/test.js";
+import { fakeAuthApi } from "@ev-maps/e2e/auth-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/google.js";
+import { fakeChargersApi, requestCovers } from "@ev-maps/e2e/chargers-api.js";
 
 // The country pages are built from tests/fixtures/country-chargers (see
 // playwright.config.js): Hungary has four chargers.
