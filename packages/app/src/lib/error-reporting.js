@@ -1,6 +1,10 @@
 // Reports the page's uncaught errors and rejected promises to the Worker
 // (POST /api/errors), for the admin area: at most a few per page, each once,
-// and not the ones browser extensions or other sites' scripts cause.
+// and not the ones browser extensions or other sites' scripts cause. With a
+// service worker, it sends them (./report-channel.js), and keeps the ones it
+// can't send yet; without one, the page sends them itself.
+
+import { postReport } from "./report-channel.js";
 
 const ERRORS_URL = "/api/errors";
 const MAX_REPORTS = 10;
@@ -23,6 +27,9 @@ const report = (error) => {
     return;
   }
   reported.add(key);
+  if (postReport("error", details)) {
+    return;
+  }
   // keepalive: the report survives the page being closed.
   fetch(ERRORS_URL, {
     method: "POST",
