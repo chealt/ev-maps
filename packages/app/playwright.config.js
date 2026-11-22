@@ -32,6 +32,8 @@ export default defineConfig({
       EV_MAPS_CHARGERS_DIR: "tests/fixtures/country-chargers",
       // Poland's fixture has 6 chargers, so its page holds only some of them.
       EV_MAPS_MAX_PAGE_CHARGERS: "4",
+      // No Worker runs: the tests fake the API, so no proxy to it.
+      EV_MAPS_NO_API_PROXY: "1",
     },
   },
 });
