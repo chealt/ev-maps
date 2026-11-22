@@ -47,6 +47,12 @@ class RoutePlannerElement extends HTMLElement {
     this.dialog.showModal();
   }
 
+  // Called by <ev-google-map> when it restores a route after a reload.
+  setPlaces(origin, destination) {
+    this.from?.setPlace(origin);
+    this.to?.setPlace(destination);
+  }
+
   // Called by <ev-google-map> when a route is shown or cleared.
   setRouteShown(shown) {
     this.clearButton.disabled = !shown;
