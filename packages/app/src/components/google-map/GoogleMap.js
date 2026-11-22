@@ -537,14 +537,16 @@ class GoogleMapElement extends HTMLElement {
       this.filtersChanged();
       return;
     }
-    const signedInFilter = event.target.closest(".favorites-filter, .nearby-filter");
+    const signedInFilter = event.target.closest(
+      ".favorites-filter, .availability-filter, .nearby-filter"
+    );
     if (signedInFilter?.getAttribute("aria-disabled") === "true") {
       this.filterPanel.close();
       requestSignIn();
       return;
     }
     const button = event.target.closest(
-      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
     );
     if (!button) {
       return;
@@ -575,7 +577,7 @@ class GoogleMapElement extends HTMLElement {
 
   clearFilters() {
     for (const button of this.querySelectorAll(
-      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-pressed", "false");
     }
@@ -645,6 +647,7 @@ class GoogleMapElement extends HTMLElement {
       connectorTypes: this.activeConnectorGroups(),
       excludedOperators: [...this.excludedOperators].sort(),
       onlyFavorites: this.favoritesFilterPressed(),
+      hideUnavailable: this.availabilityFilterPressed(),
       nearby: this.pressedAmenities(),
       updatedAt: this.filtersUpdatedAt ?? 0,
     };
@@ -659,6 +662,7 @@ class GoogleMapElement extends HTMLElement {
       this.activeConnectorGroups().length +
       (this.excludedOperators.size > 0 ? 1 : 0) +
       (this.onlyFavorites() ? 1 : 0) +
+      (this.hideUnavailable() ? 1 : 0) +
       this.activeAmenities().length;
     const active = count > 0;
     customElements
@@ -692,6 +696,7 @@ class GoogleMapElement extends HTMLElement {
     connectorTypes = [],
     excludedOperators = [],
     onlyFavorites = false,
+    hideUnavailable = false,
     nearby = [],
     updatedAt = 0,
   }) {
@@ -699,6 +704,10 @@ class GoogleMapElement extends HTMLElement {
       button.setAttribute("aria-pressed", String(nearby.includes(button.dataset.amenity)));
     }
     this.querySelector(".favorites-filter")?.setAttribute("aria-pressed", String(onlyFavorites));
+    this.querySelector(".availability-filter")?.setAttribute(
+      "aria-pressed",
+      String(hideUnavailable)
+    );
     this.excludedOperators = new Set(excludedOperators);
     this.showOperatorChoices();
     for (const button of this.querySelectorAll(".power-filter")) {
@@ -859,6 +868,7 @@ class GoogleMapElement extends HTMLElement {
     const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
     this.listOperators(chargers);
     const onlyFavorites = this.onlyFavorites();
+    const hideUnavailable = this.hideUnavailable();
     const amenities = this.activeAmenities();
     const matching = chargers.filter(
       (charger) =>
@@ -866,6 +876,7 @@ class GoogleMapElement extends HTMLElement {
         matchesConnectors(charger, types) &&
         !this.excludedOperators.has(operatorOf(charger)) &&
         (!onlyFavorites || isFavorite(charger.id)) &&
+        (!hideUnavailable || this.isAvailable(charger)) &&
         amenities.every((amenity) => charger.amenities?.includes(amenity))
     );
 
@@ -1059,6 +1070,22 @@ class GoogleMapElement extends HTMLElement {
     return isSignedIn() && this.favoritesFilterPressed();
   }
 
+  // Whether "Hide unavailable" is pressed; it only applies signed in, as
+  // live statuses do.
+  availabilityFilterPressed() {
+    return this.querySelector(".availability-filter")?.getAttribute("aria-pressed") === "true";
+  }
+
+  hideUnavailable() {
+    return isSignedIn() && this.availabilityFilterPressed();
+  }
+
+  // False while the live statuses say none of the charger's points is free;
+  // chargers without statuses are kept, as nothing says they're taken.
+  isAvailable(charger) {
+    return noneFree(this.cachedStatuses(liveStatusIds(charger))) !== true;
+  }
+
   pressedAmenities() {
     return [...this.querySelectorAll('.nearby-filter[aria-pressed="true"]')].map(
       (button) => button.dataset.amenity
@@ -1074,12 +1101,12 @@ class GoogleMapElement extends HTMLElement {
   // disabled, say to sign in, and open the sign-in options.
   showFavoritesSignedIn(signedIn) {
     for (const button of this.querySelectorAll(
-      ".favorite-button, .favorites-filter, .nearby-filter"
+      ".favorite-button, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-disabled", String(!signedIn));
     }
     for (const hint of this.querySelectorAll(
-      "#favorite-sign-in-hint, #favorites-filter-hint, #nearby-filter-hint"
+      "#favorite-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
     )) {
       hint.hidden = signedIn;
     }
@@ -1227,12 +1254,22 @@ class GoogleMapElement extends HTMLElement {
 
   // Signed in, loads the live statuses of the chargers pinned on the map
   // (in batches, the recent ones from memory) and colors their pins.
+  // With "Hide unavailable", also the statuses of the loaded chargers in
+  // view that it hides, so they come back once a point is free; and the
+  // chargers are filtered again when new statuses came in.
   async showPinAvailability() {
     const markers = [...this.markersById.values()].filter((marker) =>
       this.chargersByMarker.has(marker)
     );
+    const before = this.statusesVersion;
     if (isSignedIn()) {
-      const ids = markers.flatMap((marker) => liveStatusIds(this.chargersByMarker.get(marker)));
+      const bounds = this.map?.getBounds()?.toJSON();
+      const shown = markers.map((marker) => this.chargersByMarker.get(marker));
+      const hidden =
+        this.hideUnavailable() && bounds
+          ? (this.loaded?.chargers ?? []).filter((charger) => isInBounds(charger.location, bounds))
+          : [];
+      const ids = [...shown, ...hidden].flatMap(liveStatusIds);
       try {
         await this.loadStatuses(ids);
       } catch (error) {
@@ -1241,6 +1278,9 @@ class GoogleMapElement extends HTMLElement {
     }
     for (const marker of markers) {
       this.showMarkerAvailability(marker);
+    }
+    if (this.statusesVersion !== before && this.hideUnavailable()) {
+      await this.showMatchingChargers();
     }
   }
 
@@ -1396,6 +1436,7 @@ class GoogleMapElement extends HTMLElement {
       for (const id of batch) {
         this.statuses.set(id, { status: statuses[id] ?? null, fetchedAt: Date.now() });
       }
+      this.statusesVersion = (this.statusesVersion ?? 0) + 1;
     }
     return true;
   }

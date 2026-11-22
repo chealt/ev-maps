@@ -13,3 +13,9 @@ request per batch, and drops them all on sign-out. Signed in, the page also
 asks for the statuses of the charger pins on the map (in batches of up to 100
 IDs, again every 2 minutes while visible) and makes a pin red while none of
 its charger's points is free.
+
+Signed in, the Filters dialog's "Hide unavailable" hides the chargers whose
+statuses say none of their points is free (saved with the filters as
+`hideUnavailable`); chargers without statuses stay, as nothing says they're
+taken. While it's on, the statuses of the hidden chargers in view are
+refreshed with the pins', so they come back once a point is free.

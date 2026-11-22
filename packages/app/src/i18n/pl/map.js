@@ -62,6 +62,9 @@ const map = {
     noOperators: "Przesuń mapę do stacji ładowania, aby wybrać ich operatorów.",
     favorite: "Ulubiona",
     onlyFavorites: "Tylko ulubione",
+    hideUnavailable: "Ukryj niedostępne",
+    hideUnavailableHint:
+      "Ukrywa stacje, których żaden punkt według aktualnego stanu nie jest wolny.",
     nearby: "W pobliżu",
     signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
     nearbyFilterHint: "Do 150 m, według OpenStreetMap.",

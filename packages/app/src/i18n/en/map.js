@@ -62,6 +62,9 @@ const map = {
     noOperators: "Move the map to chargers to choose between their operators.",
     favorite: "Favorite",
     onlyFavorites: "Only favorites",
+    hideUnavailable: "Hide unavailable",
+    hideUnavailableHint:
+      "Hides the chargers whose live availability says none of their points is free.",
     nearby: "Nearby",
     signInForNearby: "Sign in to find chargers with places next to them.",
     nearbyFilterHint: "Within 150 m, from OpenStreetMap.",
