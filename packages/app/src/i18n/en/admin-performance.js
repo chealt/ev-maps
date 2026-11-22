@@ -14,6 +14,8 @@ const adminPerformance = {
     adminVitalCLS: "Cumulative Layout Shift",
     adminVitalFCP: "First Contentful Paint",
     adminVitalTTFB: "Time to First Byte",
+    adminVitalTrend: "P75 per day, the last 14 days",
+    adminVitalTrendPick: "Web Vital to chart",
     adminPerformanceRequests: "Requests, in the Worker",
     adminPerformancePageRequests: "API calls, as the page saw them",
     adminPerformanceQueries: "Slowest database queries",
@@ -31,6 +33,8 @@ const adminPerformance = {
   messages: {
     adminMilliseconds: "{value} ms",
     adminSeconds: "{value} s",
+    adminVitalDay: "{day}: {value}",
+    adminNoMeasurements: "no measurements",
     adminPerformanceNotLoaded: "The performance couldn't be loaded. Try again.",
     adminPerformancePeriod: {
       one: "The last {count} day",
