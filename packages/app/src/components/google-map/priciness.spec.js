@@ -1,6 +1,6 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeChargersApi } from "#fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "#fixtures/google.js";
 
 // Charged per kWh, close enough together to load on one map and not cluster
 // apart... they need distinct spots; far enough apart not to cluster.

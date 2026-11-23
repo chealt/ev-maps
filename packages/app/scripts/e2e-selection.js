@@ -13,7 +13,7 @@ import { Glob } from "bun";
 
 const REGRESSION_TAG = "@regression";
 const APP_DIR = "packages/app/";
-const SPEC_FILE = /^packages\/app\/tests\/([\w-]+)\.spec\.js$/;
+const SPEC_FILE = /^packages\/app\/src\/(?:[\w-]+\/)*([\w-]+)\.spec\.js$/;
 
 const matches = (patterns, file) => patterns.some((pattern) => new Glob(pattern).match(file));
 
