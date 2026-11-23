@@ -564,6 +564,10 @@ ev-google-map {
     overflow-wrap: anywhere;
   }
 
+  .navigate {
+    margin-top: var(--spacing-md);
+  }
+
   .address {
     display: flex;
     align-items: flex-start;
