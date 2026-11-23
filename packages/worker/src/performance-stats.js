@@ -55,10 +55,45 @@ const percentiles = (source) => `
     SUM(extra) AS errors
   FROM ranked GROUP BY group_key ORDER BY p75 DESC LIMIT ${TOP}`;
 
+// Each Web Vital's P75 per day over the last TREND_DAYS days, for the chart
+// of how they change: { days: ["2026-11-10", ...], vitals: { LCP: { day:
+// p75 } } }. Days without measurements have none.
+const TREND_DAYS = 14;
+const isoDay = (timestamp) => new Date(timestamp).toISOString().slice(0, 10);
+
+const vitalsByDay = async (db, now = Date.now()) => {
+  const days = Array.from({ length: TREND_DAYS }, (_, index) =>
+    isoDay(now - (TREND_DAYS - 1 - index) * DAY_MS)
+  );
+  const { results } = await db
+    .prepare(
+      `WITH measured AS (
+         SELECT name, date(created_at / 1000, 'unixepoch') AS day, value
+         FROM web_vitals WHERE created_at >= ?1
+       ),
+       ranked AS (
+         SELECT name, day, value,
+           ROW_NUMBER() OVER (PARTITION BY name, day ORDER BY value) AS rank,
+           COUNT(*) OVER (PARTITION BY name, day) AS n
+         FROM measured
+       )
+       SELECT name, day, MAX(CASE WHEN rank = CAST(n * 0.75 + 0.999999 AS INTEGER) THEN value END) AS p75
+       FROM ranked GROUP BY name, day`
+    )
+    .bind(Date.parse(`${days[0]}T00:00:00Z`))
+    .all();
+  const vitals = {};
+  for (const { name, day, p75 } of results) {
+    vitals[name] ??= {};
+    vitals[name][day] = p75;
+  }
+  return { days, vitals };
+};
+
 const performanceSummary = async (db, days, now = Date.now()) => {
   const since = now - days * DAY_MS;
   const query = (sql) => db.prepare(sql).bind(since).all();
-  const [vitals, server, page, queries, slowest] = await Promise.all([
+  const [vitals, server, page, queries, slowest, trend] = await Promise.all([
     query(
       percentiles(
         "SELECT name AS group_key, value, 0 AS extra FROM web_vitals WHERE created_at >= ?1"
@@ -81,6 +116,7 @@ const performanceSummary = async (db, days, now = Date.now()) => {
         json_extract(attributes, '$."url.path"') AS path
       FROM spans WHERE service = 'worker' AND kind = 'server' AND created_at >= ?1
       ORDER BY duration DESC LIMIT ${TOP}`),
+    vitalsByDay(db, now),
   ]);
   const groups = ({ results }) =>
     results.map(({ group_key: name, ...stats }) => ({ name, ...stats }));
@@ -96,6 +132,7 @@ const performanceSummary = async (db, days, now = Date.now()) => {
     pageRequests: groups(page),
     queries: groups(queries),
     slowestRequests: slowest.results,
+    vitalsByDay: trend,
   };
 };
 
@@ -136,4 +173,4 @@ const routes = [
   },
 ];
 
-export { performanceResponse, performanceSummary, ratingOf, routes, traceSpans };
+export { performanceResponse, performanceSummary, ratingOf, routes, traceSpans, vitalsByDay };
