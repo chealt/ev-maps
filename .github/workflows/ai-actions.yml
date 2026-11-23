@@ -1,0 +1,65 @@
+name: AI actions
+
+# Keeps a workflow per AI action config (packages/ai-action-configs/configs)
+# in .github/workflows/ai-{name}.yml: new configs get one, changed ones are
+# regenerated, removed ones lose theirs. Runs hourly, when the configs
+# change on main, or by hand, and opens a pull request with the changes.
+#
+# GitHub's own token can't change workflow files, so the pull request needs
+# the AI_ACTIONS_TOKEN secret: a fine-grained token with Contents, Pull
+# requests and Workflows write access to this repository.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - "packages/ai-action-configs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-actions
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync the AI action workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Test the generator
+        working-directory: packages/ai-action-configs
+        run: bun test
+
+      - name: Generate the workflows
+        working-directory: packages/ai-action-configs
+        run: bun run generate | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Check the token
+        env:
+          AI_ACTIONS_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN }}
+        run: |
+          if [ -n "$(git status --porcelain .github/workflows)" ] && [ -z "$AI_ACTIONS_TOKEN" ]; then
+            echo "::error::Set the AI_ACTIONS_TOKEN secret (Contents, Pull requests and Workflows write) to open the pull request."
+            exit 1
+          fi
+
+      - name: Open a pull request with the workflows
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.AI_ACTIONS_TOKEN }}
+          add-paths: .github/workflows/ai-*.yml
+          branch: ai/actions-sync
+          delete-branch: true
+          title: "ci: sync the AI action workflows"
+          commit-message: "ci: sync the AI action workflows"
+          body: |
+            Generated from `packages/ai-action-configs/configs` by `scripts/generate-workflows.js`.

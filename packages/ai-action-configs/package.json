@@ -1,0 +1,17 @@
+{
+  "name": "@ev-maps/ai-action-configs",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Prompts pi runs on a schedule in GitHub Actions: one workflow per config, generated",
+  "type": "module",
+  "scripts": {
+    "generate": "bun scripts/generate-workflows.js",
+    "test": "bun test",
+    "lint": "oxlint -c ../dev-config/oxlint.json src scripts",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  }
+}

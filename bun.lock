@@ -29,6 +29,13 @@
         "astro": ">=7",
       },
     },
+    "packages/ai-action-configs": {
+      "name": "@ev-maps/ai-action-configs",
+      "version": "0.0.1",
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
+      },
+    },
     "packages/app": {
       "name": "@ev-maps/app",
       "version": "0.0.1",
@@ -374,6 +381,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.28.2", "", { "os": "win32", "cpu": "x64" }, "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g=="],
 
     "@ev-maps/admin": ["@ev-maps/admin@workspace:packages/admin"],
+
+    "@ev-maps/ai-action-configs": ["@ev-maps/ai-action-configs@workspace:packages/ai-action-configs"],
 
     "@ev-maps/app": ["@ev-maps/app@workspace:packages/app"],
 
