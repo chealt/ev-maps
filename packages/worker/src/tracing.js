@@ -7,6 +7,7 @@
 // The current trace is found with AsyncLocalStorage, so the D1 bindings can
 // be wrapped once and used by anything (e.g. Better Auth's cached instance).
 
+import { isRealTraffic } from "./real-traffic.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 const TRACEPARENT = /^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/;
@@ -196,7 +197,7 @@ const INSERT_SPAN = `INSERT INTO spans (trace_id, span_id, parent_span_id, name,
 // Adds the request's server span and writes the trace, if it's sampled, slow
 // or failed.
 const finishTrace = async (env, trace, { request, status }) => {
-  if (!trace.route || !env.ADMIN_DB) {
+  if (!trace.route || !env.ADMIN_DB || !isRealTraffic(request, env)) {
     return;
   }
   const duration = Date.now() - trace.start;

@@ -41,6 +41,16 @@ summary carries it as `vitalsByDay` (`packages/worker/src/performance-stats.js`)
 computed with the same window functions as the P75s, per vital and day. A day
 without measurements says so instead of showing 0, as CLS can really be 0.
 
+## Only real users
+
+The numbers are meant to be real users': only production's own addresses
+(`PRODUCTION_HOSTS` in `wrangler.toml`, `src/real-traffic.js`) record
+traces and the pages' telemetry. The pull requests' previews share the
+databases but record nothing (their telemetry is accepted and dropped),
+and the Worker's own tooling routes, CI's test reports and the UI evidence
+GitHub fetches for pull request comments, are `untraced`. Locally, without
+the setting, everything records.
+
 ## Sending
 
 Spans and Web Vitals go batched to `POST /api/telemetry`
