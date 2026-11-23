@@ -11,6 +11,7 @@ import {
   Heart,
   Info,
   List,
+  ZoomIn,
   MapPin,
   PlugZap,
   RouteOff,
@@ -125,13 +126,14 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         {!apiKey && page.apiKeyMissing}
       </span>
       <Icon icon={List} size="sm" class="list-icon" />
+      <Icon icon={ZoomIn} size="sm" class="zoom-icon" />
     </button>
 
     <div class="map-controls">
       <LocateButton autoLocate={autoLocate} />
       <RouteButton controls="route-planner" />
       <FilterButton controls="map-filter-panel" />
-      <Button variant="secondary" class="clear-filters" hidden>
+      <Button variant="secondary" class="clear-filters" aria-keyshortcuts="c" hidden>
         <Icon icon={FilterX} />
         <span class="label">{page.clearFilters}</span>
       </Button>
@@ -341,10 +343,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="header">
-        <span class="badge">
-          <Icon icon={Zap} size="sm" />
-          {page.badge}
-        </span>
+        <h2 class="name" id="charger-details-name"></h2>
         <div class="actions">
           <!-- Signed out: disabled-looking, says to sign in, and opens the
                sign-in options. -->
@@ -369,7 +368,6 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </div>
       </div>
-      <h2 class="name" id="charger-details-name"></h2>
       <p class="address">
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>

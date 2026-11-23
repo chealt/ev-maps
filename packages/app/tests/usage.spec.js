@@ -76,3 +76,53 @@ test("counts sign-in attempts by method", async ({ page }) => {
   await expect.poll(() => batches.length).toBe(1);
   expect(batches[0].events.sign_in_started).toEqual({ google: 1 });
 });
+
+test.describe("with the service worker", () => {
+  // Every other test blocks service workers (see playwright.config.js).
+  test.use({ serviceWorkers: "allow" });
+
+  // Requests the service worker makes only reach routes on the context.
+  const fakeReportApis = async (page) => {
+    const sent = { usage: [], errors: [], fromPage: 0 };
+    const record = (list) => (route) => {
+      if (!route.request().serviceWorker()) {
+        sent.fromPage++;
+      }
+      list.push(route.request().postDataJSON());
+      return route.fulfill({ status: 202, json: {} });
+    };
+    await page.context().route("**/api/usage", record(sent.usage));
+    await page.context().route("**/api/errors", record(sent.errors));
+    return sent;
+  };
+
+  test("hands the counts and errors to it, which sends them for the page", async ({ page }) => {
+    const sent = await fakeReportApis(page);
+    await page.goto("/");
+    await page.waitForFunction(() => navigator.serviceWorker.controller);
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    const before = sent.usage.length;
+
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    await page.evaluate(() => setTimeout(() => Promise.reject(new Error("Lost charger"))));
+    await leavePage(page);
+
+    // The counts of both visits, merged by the service worker: the first
+    // visit's went to it as soon as it took over the page.
+    await expect.poll(() => sent.usage.length, { timeout: 20000 }).toBeGreaterThan(before);
+    const counts = sent.usage.slice(before).reduce((all, { events }) => {
+      for (const [event, dimensions] of Object.entries(events)) {
+        for (const [dimension, count] of Object.entries(dimensions)) {
+          all[`${event}:${dimension}`] = (all[`${event}:${dimension}`] ?? 0) + count;
+        }
+      }
+      return all;
+    }, {});
+    expect(counts).toMatchObject({ "page_view:en:home": 2, "charger_opened:ocm": 1 });
+    await expect.poll(() => sent.errors.map((error) => error.message)).toContain("Lost charger");
+    // The page itself sent nothing: no timers, no pagehide sends.
+    expect(sent.fromPage).toBe(0);
+  });
+});

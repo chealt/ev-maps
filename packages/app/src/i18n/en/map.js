@@ -13,7 +13,6 @@ const map = {
     done: "Done",
     chargerList: "EV chargers",
     closeList: "Close list",
-    badge: "EV charging",
     close: "Close",
     connectors: "Connectors",
     details: "Details",
@@ -72,6 +71,10 @@ const map = {
       title: "Keyboard shortcuts",
       help: "Show this help",
       closeDialogs: "Close dialogs and the charger details",
+      filters: "Show or hide the filters",
+      clearFilters: "Clear the filters",
+      locate: "Locate me",
+      route: "Plan a route",
     },
   },
   messages: {
