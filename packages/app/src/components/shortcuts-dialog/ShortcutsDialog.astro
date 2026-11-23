@@ -29,6 +29,22 @@ const { page } = translations(Astro.currentLocale ?? "en");
           <kbd>Esc</kbd>
           <span>{page.shortcuts.closeDialogs}</span>
         </li>
+        <li>
+          <kbd>f</kbd>
+          <span>{page.shortcuts.filters}</span>
+        </li>
+        <li>
+          <kbd>c</kbd>
+          <span>{page.shortcuts.clearFilters}</span>
+        </li>
+        <li>
+          <kbd>l</kbd>
+          <span>{page.shortcuts.locate}</span>
+        </li>
+        <li>
+          <kbd>r</kbd>
+          <span>{page.shortcuts.route}</span>
+        </li>
       </ul>
     </div>
   </dialog>

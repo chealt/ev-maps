@@ -71,6 +71,10 @@ const map = {
       title: "Billentyűparancsok",
       help: "Súgó megjelenítése",
       closeDialogs: "Párbeszédablakok és a töltő részleteinek bezárása",
+      filters: "Szűrők megjelenítése vagy elrejtése",
+      clearFilters: "Szűrők törlése",
+      locate: "Saját helyzetem",
+      route: "Útvonal tervezése",
     },
   },
   messages: {
