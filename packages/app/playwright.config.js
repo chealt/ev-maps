@@ -4,6 +4,9 @@ const PORT = 4322;
 
 export default defineConfig({
   testDir: "./tests",
+  // Warms the development server, so tests measure pages, not Vite compiling
+  // them on their first visit.
+  globalSetup: "./tests/global-setup.js",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a
