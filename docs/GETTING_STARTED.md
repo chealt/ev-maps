@@ -123,6 +123,6 @@ cd packages/app && bunx playwright install chromium
 ```
 
 Tests replace Google Maps, the sign-in API and the charger API with local
-fakes (`packages/app/tests/fixtures/`), so they need neither API keys nor
+fakes (`packages/e2e/fixtures/`), so they need neither API keys nor
 network access. Before writing tests, read the
 [Testing Guidelines](TESTING_GUIDELINES.md).

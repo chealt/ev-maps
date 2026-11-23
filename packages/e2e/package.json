@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     "./test.js": "./src/test.js",
-    "./web-vitals.js": "./src/web-vitals.js"
+    "./web-vitals.js": "./src/web-vitals.js",
+    "./fixtures/*": "./fixtures/*"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",
@@ -15,6 +16,7 @@
   },
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "@ev-maps/tiles": "workspace:*",
     "@playwright/test": "^1.65.1"
   },
   "devDependencies": {

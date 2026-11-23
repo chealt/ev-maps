@@ -9,7 +9,7 @@ const escapeHtml = (text) =>
   );
 
 // [{ title, file, value }] for every test result with a JSON attachment of
-// that name (e.g. "axe", "web-vitals"; tests/fixtures/test.js).
+// that name (e.g. "axe", "web-vitals"; packages/e2e/src/test.js).
 const attachmentsNamed = (results, name) => {
   const found = [];
   const walk = (suite, titles) => {

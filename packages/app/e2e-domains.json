@@ -1,5 +1,5 @@
 {
-  "$comment": "Which end-to-end specs a pull request runs (scripts/select-e2e.js): the specs of every domain whose paths it changed, and the tests tagged @regression. A change to `everything`, or to a file under packages/app that no domain lists, runs them all. Paths are from the repository's root; tests are spec names in packages/app/tests.",
+  "$comment": "Which end-to-end specs a pull request runs (scripts/select-e2e.js): the specs of every domain whose paths it changed, and the tests tagged @regression. A change to `everything`, or to a file under packages/app that no domain lists, runs them all. Paths are from the repository's root; tests are spec names (the specs live next to what they test (packages/app/src/**, packages/admin/components/**)).",
   "everything": [
     "package.json",
     "bun.lock",
@@ -10,7 +10,7 @@
     "packages/app/e2e-domains.json",
     "packages/app/scripts/select-e2e.js",
     "packages/app/scripts/e2e-selection.js",
-    "packages/app/tests/fixtures/**",
+    "packages/e2e/fixtures/**",
     "packages/app/src/layouts/**",
     "packages/app/src/pages/**",
     "packages/app/src/i18n/index.js",
@@ -114,7 +114,7 @@
     },
     "admin": {
       "paths": [
-        "packages/app/src/components/admin-*/**",
+        "packages/admin/components/admin-*/**",
         "packages/app/src/lib/day-count.js",
         "packages/app/src/i18n/*/admin*.js"
       ],

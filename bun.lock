@@ -23,6 +23,7 @@
       },
       "devDependencies": {
         "@ev-maps/dev-config": "workspace:*",
+        "@ev-maps/e2e": "workspace:*",
       },
       "peerDependencies": {
         "astro": ">=7",
@@ -66,6 +67,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@axe-core/playwright": "^4.14.0",
+        "@ev-maps/tiles": "workspace:*",
         "@playwright/test": "^1.65.1",
       },
       "devDependencies": {

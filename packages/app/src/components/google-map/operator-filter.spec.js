@@ -1,8 +1,8 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeSettingsApi } from "./fixtures/settings-api.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
+import { fakeSettingsApi } from "@ev-maps/e2e/fixtures/settings-api.js";
 
 // Far enough apart that they aren't clustered at the default zoom.
 const charger = (id, name, [lat, lng], operator) => ({

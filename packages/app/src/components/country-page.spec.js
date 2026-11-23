@@ -1,9 +1,9 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
+import { fakeChargersApi, requestCovers } from "@ev-maps/e2e/fixtures/chargers-api.js";
 
-// The country pages are built from tests/fixtures/country-chargers (see
+// The country pages are built from packages/e2e/fixtures/country-chargers (see
 // playwright.config.js): Hungary has four chargers.
 
 test.beforeEach(async ({ page }) => {

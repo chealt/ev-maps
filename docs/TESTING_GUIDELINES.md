@@ -158,7 +158,7 @@ the control as Playwright actually exercised it.
 ## External Services
 
 Tests never call real external services. Google Maps is replaced by a local
-fake (`packages/app/tests/fixtures/fake-google-maps.js`), so tests need no
+fake (`packages/e2e/fixtures/fake-google-maps.js`), so tests need no
 API key or network access and always get the same data.
 
 Reading the fake's recorded state with `page.evaluate()`, such as
@@ -172,8 +172,10 @@ the real Google Maps markers, so tests can find them by role.
 On a pull request, CI runs only the end-to-end specs of the domains it
 changed, plus every test tagged `@regression`.
 `packages/app/e2e-domains.json` maps each domain's paths (globs from the
-repository's root) to its specs, and `scripts/select-e2e.js` turns the
-pull request's changed files into one `--grep` for Playwright, which
+repository's root) to its specs; the specs live next to what they test (a
+component, a page, a `src/lib` module), with the fakes in
+`packages/e2e/fixtures``, and `scripts/select-e2e.js`turns the
+pull request's changed files into one`--grep` for Playwright, which
 matches spec files and tags alike, so the shards stay as they are.
 
 - A change to a shared file (`everything`: dependencies, the Playwright

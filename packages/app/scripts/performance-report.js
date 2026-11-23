@@ -1,5 +1,5 @@
 // The performance report of a CI run: the load metrics of every page the
-// @performance tests measured (tests/fixtures/test.js), as each page's P75,
+// @performance tests measured (packages/e2e/src/test.js), as each page's P75,
 // rated by Google's thresholds, in one HTML page,
 // performance-report/index.html. CI publishes it with the Playwright report
 // (scripts/publish-test-report.js).

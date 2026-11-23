@@ -1,6 +1,6 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { ERRORS_PAGE, fakePageData } from "./fixtures/page-data.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { ERRORS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const minutesAgo = (minutes) => Date.now() - minutes * 60 * 1000;

@@ -30,7 +30,8 @@
     "lucide-static": "^1.73.0"
   },
   "devDependencies": {
-    "@ev-maps/dev-config": "workspace:*"
+    "@ev-maps/dev-config": "workspace:*",
+    "@ev-maps/e2e": "workspace:*"
   },
   "peerDependencies": {
     "astro": ">=7"
