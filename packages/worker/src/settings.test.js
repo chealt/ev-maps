@@ -159,3 +159,16 @@ describe("distanceUnit", () => {
     }
   });
 });
+
+describe("filters' price levels", () => {
+  test("takes the levels on, 1 to 3", () => {
+    expect(validSection("filters", { priceLevels: ["1", "3"], updatedAt: 1 })).toBe(true);
+    expect(validSection("filters", { priceLevels: [], updatedAt: 1 })).toBe(true);
+  });
+
+  test("turns down other levels", () => {
+    for (const priceLevels of [["4"], [1], ["cheap"], ["1", "2", "3", "1"]]) {
+      expect(validSection("filters", { priceLevels, updatedAt: 1 })).toBe(false);
+    }
+  });
+});

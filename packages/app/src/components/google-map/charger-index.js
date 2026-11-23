@@ -8,6 +8,7 @@
 // copies of the chargers.
 
 import Supercluster from "supercluster";
+import { pricinessAmong } from "../../lib/priciness.js";
 
 const CLUSTER_RADIUS = 60;
 const CLUSTER_MAX_ZOOM = 16;
@@ -55,6 +56,18 @@ class ChargerIndex {
   setChargers(chargers) {
     this.chargers = chargers;
     this.index = null;
+    this.priceLevels = null;
+  }
+
+  // Each charger's price level among the loaded chargers (1–3, as its
+  // details show it), or none without a comparable per-kWh price: worked out
+  // the first time the price filter is on, once for these chargers.
+  priceLevelOf(charger) {
+    if (!this.priceLevels) {
+      const of = pricinessAmong(this.chargers);
+      this.priceLevels = new Map(this.chargers.map((each) => [each.id, of(each)?.level ?? null]));
+    }
+    return this.priceLevels.get(charger.id);
   }
 
   // Indexes the chargers matching the filters and returns their IDs, and
@@ -62,8 +75,17 @@ class ChargerIndex {
   // operator list): { matching, available }. Filters:
   // { ranges: [{ minKw, maxKw }], connectorTypes: [], excludedOperators: [],
   //   favoriteIds: [] or null for any, unavailableIds: [] to hide (the live
-  //   statuses are the page's), amenities: [] }.
-  filter({ ranges, connectorTypes, excludedOperators, favoriteIds, unavailableIds, amenities }) {
+  //   statuses are the page's), amenities: [], priceLevels: [1, 2, 3]: with
+  //   none, every charger; with some, only those at them }.
+  filter({
+    ranges,
+    connectorTypes,
+    excludedOperators,
+    favoriteIds,
+    unavailableIds,
+    amenities,
+    priceLevels = [],
+  }) {
     const types = new Set(connectorTypes);
     const excluded = new Set(excludedOperators);
     const favorites = favoriteIds ? new Set(favoriteIds) : null;
@@ -74,7 +96,8 @@ class ChargerIndex {
         matchesConnectors(charger, types) &&
         (!favorites || favorites.has(charger.id)) &&
         !unavailable.has(charger.id) &&
-        amenities.every((amenity) => charger.amenities?.includes(amenity))
+        amenities.every((amenity) => charger.amenities?.includes(amenity)) &&
+        (priceLevels.length === 0 || priceLevels.includes(this.priceLevelOf(charger)))
     );
     const matching = available.filter((charger) => !excluded.has(operatorOf(charger)));
     this.index = new Supercluster({

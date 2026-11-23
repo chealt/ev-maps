@@ -13,6 +13,9 @@ const SECTIONS = {
   filters: {
     powerRanges: (value) => isStringList(value, 10),
     connectorTypes: (value) => isStringList(value, 20),
+    // The price levels on: "1" cheaper, "2" average, "3" pricier.
+    priceLevels: (value) =>
+      isStringList(value, 3) && value.every((level) => ["1", "2", "3"].includes(level)),
     // Operator names as the charger data has them; "" is "unknown operator".
     excludedOperators: (value) => isStringList(value, 200, 120),
     onlyFavorites: (value) => typeof value === "boolean",

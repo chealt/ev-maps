@@ -74,6 +74,10 @@ const map = {
     nearby: "W pobliżu",
     signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
     nearbyFilterHint: "Do {distance}, według OpenStreetMap.",
+    price: "Cena",
+    priceLevels: { 1: "Tańsze", 2: "Średnie", 3: "Droższe" },
+    priceFilterHint:
+      "Według ceny za kWh, w porównaniu ze stacjami tutaj. Stacje bez niej są pomijane, gdy poziom jest włączony.",
     shortcuts: {
       title: "Skróty klawiszowe",
       help: "Pokaż tę pomoc",

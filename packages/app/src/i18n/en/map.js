@@ -74,6 +74,10 @@ const map = {
     nearby: "Nearby",
     signInForNearby: "Sign in to find chargers with places next to them.",
     nearbyFilterHint: "Within {distance}, from OpenStreetMap.",
+    price: "Price",
+    priceLevels: { 1: "Cheaper", 2: "Average", 3: "Pricier" },
+    priceFilterHint:
+      "By the per-kWh price, compared with the chargers here. Chargers without one are left out while a level is on.",
     shortcuts: {
       title: "Keyboard shortcuts",
       help: "Show this help",
