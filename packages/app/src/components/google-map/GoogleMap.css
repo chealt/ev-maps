@@ -538,6 +538,27 @@ ev-google-map {
   }
 }
 
+/* Along a route, a charger's distances from the start, to the end and off
+   the route, in the list and in its details: in a row, wrapping between
+   them, not within one. */
+.route-distances {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 0 var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-light-text);
+
+  &[hidden] {
+    display: none;
+  }
+
+  span {
+    white-space: nowrap;
+  }
+}
+
 .charger-details {
   position: absolute;
   top: var(--header-offset);
@@ -591,6 +612,10 @@ ev-google-map {
     &:has(.text:empty) {
       display: none;
     }
+  }
+
+  .route-distances {
+    margin-top: var(--spacing-xs);
   }
 
   .directions {
@@ -801,26 +826,6 @@ ev-google-map {
     grid-column: 1 / -1;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
-  }
-
-  /* From the start, to the end, off the route: in a row, wrapping between
-     them, not within one. */
-  .route-distances {
-    display: flex;
-    flex-wrap: wrap;
-    grid-column: 1 / -1;
-    gap: 0 var(--spacing-md);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-primary-light-text);
-
-    &[hidden] {
-      display: none;
-    }
-
-    span {
-      white-space: nowrap;
-    }
   }
 }
 
