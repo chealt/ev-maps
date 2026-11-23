@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
@@ -14,7 +14,7 @@ const shortcuts = (page) => page.getByRole("dialog", { name: "Keyboard shortcuts
 test(
   "the ? key opens the keyboard shortcuts, Escape closes it",
   { tag: "@ui" },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     await page.keyboard.press("?");
 
     const dialog = shortcuts(page);
@@ -29,6 +29,7 @@ test(
     ]) {
       await expect(dialog.getByRole("listitem").filter({ hasText: label })).toContainText(key);
     }
+    await captureUi(page, testInfo, "the keyboard shortcuts");
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
