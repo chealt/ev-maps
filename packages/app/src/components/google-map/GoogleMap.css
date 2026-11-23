@@ -368,6 +368,16 @@ ev-google-map {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--filter-option-min-width), 1fr));
     gap: var(--spacing-sm);
+
+    /* A label longer than its cell (a language's, a wider font, a larger
+       text size) wraps inside the button instead of running past it. */
+    .button {
+      min-width: 0;
+      padding-inline: var(--spacing-md);
+      white-space: normal;
+      text-wrap: balance;
+      text-align: center;
+    }
   }
 
   .footer {
