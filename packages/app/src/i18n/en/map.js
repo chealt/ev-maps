@@ -13,7 +13,6 @@ const map = {
     done: "Done",
     chargerList: "EV chargers",
     closeList: "Close list",
-    badge: "EV charging",
     close: "Close",
     connectors: "Connectors",
     details: "Details",
