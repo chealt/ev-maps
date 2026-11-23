@@ -137,11 +137,6 @@ const worldPixel = ({ lat, lng }, zoom) => {
   };
 };
 
-// Google Maps' directions to a location; without an origin, they start from
-// the user's location when they allow it.
-const directionsUrl = ({ lat, lng }) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-
 const isInBounds = ({ lat, lng }, { north, south, east, west }) =>
   lat >= south && lat <= north && lng >= west && lng <= east;
 
@@ -410,6 +405,13 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".favorite-button")
       ?.addEventListener("click", () => this.toggleFavorite());
+    // Navigate: a route to the open charger, planned here.
+    this.detailsPanel?.querySelector(".navigate")?.addEventListener("click", () => {
+      const charger = this.activeCharger;
+      if (charger) {
+        this.routePlanner?.planTo({ label: chargerName(charger), location: charger.location });
+      }
+    });
     // A charger picked in the favorites list.
     document.addEventListener("show-charger", (event) =>
       this.showFavoriteCharger(event.detail.charger)
@@ -1411,7 +1413,6 @@ class GoogleMapElement extends HTMLElement {
     this.activeCharger = charger;
     panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
-    panel.querySelector(".navigate").href = directionsUrl(charger.location);
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$

@@ -15,7 +15,6 @@ const map = {
     closeList: "Lista bezárása",
     close: "Bezárás",
     navigate: "Útvonal ide",
-    navigateHint: "Új lapon nyitja meg a Google Térképet, a helyzetedtől.",
     connectors: "Csatlakozók",
     details: "Részletek",
     openChargeMapCredit: {

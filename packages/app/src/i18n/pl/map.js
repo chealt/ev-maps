@@ -15,7 +15,6 @@ const map = {
     closeList: "Zamknij listę",
     close: "Zamknij",
     navigate: "Nawiguj",
-    navigateHint: "Otwiera Mapy Google w nowej karcie, z Twojej lokalizacji.",
     connectors: "Złącza",
     details: "Szczegóły",
     openChargeMapCredit: {

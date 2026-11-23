@@ -560,7 +560,6 @@ ev-google-map {
 
   .navigate {
     margin-top: var(--spacing-md);
-    text-decoration: none;
   }
 
   .address {
