@@ -15,6 +15,7 @@ import {
 const filterCount = (filters = {}) =>
   (filters.powerRanges?.length ?? 0) +
   (filters.connectorTypes?.length ?? 0) +
+  (filters.priceLevels?.length ?? 0) +
   (filters.excludedOperators?.length ? 1 : 0) +
   (filters.onlyFavorites ? 1 : 0) +
   (filters.hideUnavailable ? 1 : 0) +

@@ -51,7 +51,7 @@ const saveMapView = ({ center, zoom }) => write(MAP_VIEW_KEY, { center, zoom });
 const stringList = (value) =>
   Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 
-// { powerRanges: ["150-300", ...], connectorTypes: ["ccs", ...],
+// { powerRanges: ["150-300", ...], connectorTypes: ["ccs", ...], priceLevels: ["1", ...],
 //   excludedOperators: ["Operator", ...], onlyFavorites, hideUnavailable,
 //   nearby: ["coffee", ...], updatedAt },
 // updatedAt being when the user last changed them (0 if never).
@@ -60,6 +60,7 @@ const readFilters = async () => {
   return {
     powerRanges: stringList(filters?.powerRanges),
     connectorTypes: stringList(filters?.connectorTypes),
+    priceLevels: stringList(filters?.priceLevels),
     excludedOperators: stringList(filters?.excludedOperators),
     onlyFavorites: filters?.onlyFavorites === true,
     hideUnavailable: filters?.hideUnavailable === true,

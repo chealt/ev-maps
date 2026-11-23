@@ -275,6 +275,34 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             ))}
           </div>
         </div>
+        <!-- Where a charger's per-kWh price sits among the chargers here, by
+             thirds (src/lib/priciness.js): with a level on, only chargers at
+             it match, so those without a comparable price don't. -->
+        <div class="group" role="group" aria-labelledby="price-filter-title">
+          <h3 class="subtitle" id="price-filter-title">
+            {page.price}
+          </h3>
+          <div class="options">
+            {[1, 2, 3].map((level) => (
+              <Button
+                variant="secondary"
+                size="large"
+                class="price-filter"
+                aria-pressed="false"
+                aria-describedby="price-filter-hint"
+                data-price-level={level}
+              >
+                <span class="price-scale" aria-hidden="true">
+                  {"$".repeat(level)}
+                </span>
+                {page.priceLevels[level]}
+              </Button>
+            ))}
+          </div>
+          <p class="hint" id="price-filter-hint">
+            {page.priceFilterHint}
+          </p>
+        </div>
         <div class="group" role="group" aria-labelledby="operator-filter-title">
           <div class="group-header">
             <h3 class="subtitle" id="operator-filter-title">

@@ -75,6 +75,10 @@ const map = {
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
     nearbyFilterHint: "Legfeljebb {distance} távolságban, az OpenStreetMap alapján.",
+    price: "Ár",
+    priceLevels: { 1: "Olcsóbb", 2: "Átlagos", 3: "Drágább" },
+    priceFilterHint:
+      "A kWh-nkénti ár alapján, az itt lévő töltőkhöz képest. Amíg egy szint be van kapcsolva, az ár nélküli töltők nem látszanak.",
     shortcuts: {
       title: "Billentyűparancsok",
       help: "Súgó megjelenítése",

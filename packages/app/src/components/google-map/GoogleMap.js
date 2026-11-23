@@ -597,14 +597,14 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const button = event.target.closest(
-      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .price-filter, .favorites-filter, .availability-filter, .nearby-filter"
     );
     if (!button) {
       return;
     }
     button.setAttribute("aria-pressed", String(button.getAttribute("aria-pressed") !== "true"));
     if (button.getAttribute("aria-pressed") === "true") {
-      // Which kind of filter: "power", "connector", "favorites", "nearby".
+      // Which kind of filter: "power", "connector", "price", "favorites", "nearby".
       track("filter_used", button.className.match(/\b(\w+)-filter\b/)?.[1] ?? "other");
     }
     this.filtersChanged();
@@ -628,7 +628,7 @@ class GoogleMapElement extends HTMLElement {
 
   clearFilters() {
     for (const button of this.querySelectorAll(
-      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .price-filter, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-pressed", "false");
     }
@@ -703,6 +703,7 @@ class GoogleMapElement extends HTMLElement {
     return {
       powerRanges: this.activePowerRanges(),
       connectorTypes: this.activeConnectorGroups(),
+      priceLevels: this.activePriceLevels(),
       excludedOperators: [...this.excludedOperators].sort(),
       onlyFavorites: this.favoritesFilterPressed(),
       hideUnavailable: this.availabilityFilterPressed(),
@@ -718,6 +719,7 @@ class GoogleMapElement extends HTMLElement {
     const count =
       this.activePowerRanges().length +
       this.activeConnectorGroups().length +
+      this.activePriceLevels().length +
       (this.excludedOperators.size > 0 ? 1 : 0) +
       (this.onlyFavorites() ? 1 : 0) +
       (this.hideUnavailable() ? 1 : 0) +
@@ -741,6 +743,13 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
+  // The price levels on ("1" cheaper, "2" average, "3" pricier).
+  activePriceLevels() {
+    return [...this.querySelectorAll('.price-filter[aria-pressed="true"]')].map(
+      (button) => button.dataset.priceLevel
+    );
+  }
+
   activeConnectorGroups() {
     return [...this.querySelectorAll('.connector-filter[aria-pressed="true"]')].map(
       (button) => button.dataset.connectorGroup
@@ -752,6 +761,7 @@ class GoogleMapElement extends HTMLElement {
   applyFilters({
     powerRanges = [],
     connectorTypes = [],
+    priceLevels = [],
     excludedOperators = [],
     onlyFavorites = false,
     hideUnavailable = false,
@@ -776,6 +786,9 @@ class GoogleMapElement extends HTMLElement {
         "aria-pressed",
         String(connectorTypes.includes(button.dataset.connectorGroup))
       );
+    }
+    for (const button of this.querySelectorAll(".price-filter")) {
+      button.setAttribute("aria-pressed", String(priceLevels.includes(button.dataset.priceLevel)));
     }
     this.filtersUpdatedAt = updatedAt;
     this.updateClearFiltersButtons();
@@ -940,6 +953,7 @@ class GoogleMapElement extends HTMLElement {
         ? chargers.filter((charger) => !this.isAvailable(charger)).map((charger) => charger.id)
         : [],
       amenities: this.activeAmenities(),
+      priceLevels: this.activePriceLevels().map(Number),
     });
     // A newer load replaced these chargers while they were filtered.
     if (this.loaded?.chargers !== chargers) {
