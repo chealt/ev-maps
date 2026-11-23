@@ -327,9 +327,9 @@ test("keeps the routes planned, with their filters, to plan again", async ({ pag
   await page.getByRole("button", { name: "Route", exact: true }).click();
   const recent = dialog.getByRole("region", { name: "Recent routes" });
   await expect(
-    recent.getByRole("button", { name: /Budapest, Hungary → Vienna, Austria/ })
+    recent.getByRole("button", { name: /^Budapest, Hungary → Vienna, Austria/ })
   ).toHaveText(/.*1 filter on.*/);
-  await recent.getByRole("button", { name: /Budapest, Hungary → Vienna, Austria/ }).click();
+  await recent.getByRole("button", { name: /^Budapest, Hungary → Vienna, Austria/ }).click();
 
   await expect(page.getByRole("status")).toHaveText(
     "1 of 2 EV chargers along the route match the filters"

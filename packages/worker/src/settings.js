@@ -24,6 +24,12 @@ const SECTIONS = {
   routeHistory: {
     routes: (value) => Array.isArray(value) && value.length <= MAX_ROUTES && value.every(isRoute),
   },
+  // The routes the user saved as favorites, listed before the history, in
+  // the same shape (the app's src/components/google-map/route-history.js).
+  favoriteRoutes: {
+    routes: (value) =>
+      Array.isArray(value) && value.length <= MAX_FAVORITE_ROUTES && value.every(isRoute),
+  },
   // The app "Open in maps" opens a charger in, remembered when the user
   // asked; null asks every time (the app's src/lib/maps-app.js).
   mapsApp: {
@@ -34,6 +40,7 @@ const SECTIONS = {
 const MAPS_APPS = ["google", "osm", "apple"];
 
 const MAX_ROUTES = 10;
+const MAX_FAVORITE_ROUTES = 20;
 
 const isLocation = (location) =>
   Number.isFinite(location?.lat) &&

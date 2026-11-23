@@ -3,7 +3,12 @@
 import { message } from "../../lib/messages.js";
 import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
-import { readRouteHistory } from "../google-map/route-history.js";
+import {
+  readFavoriteRoutes,
+  readRouteHistory,
+  sameRoute,
+  toggleFavoriteRoute,
+} from "../google-map/route-history.js";
 
 // How many filters a route was planned with, as the Filters badge counts
 // them (the operator filter once).
@@ -61,20 +66,39 @@ class RoutePlannerElement extends HTMLElement {
     openDialog(this.dialog);
   }
 
-  // Lists the routes planned before, signed in; choosing one asks
-  // <ev-google-map> to plan it again with its filters (route-from-history).
-  async showRecentRoutes() {
-    const section = this.querySelector(".recent-routes");
-    const routes = isSignedIn() ? await readRouteHistory() : [];
+  // Lists the favorite routes, then the others planned before, signed in;
+  // choosing one asks <ev-google-map> to plan it again with its filters
+  // (route-from-history), and its heart saves or removes it. `focusRoute`:
+  // after a heart was pressed, its route's heart keeps the focus, in
+  // whichever list it moved to.
+  async showRecentRoutes(focusRoute = null) {
+    const [favorites, history] = isSignedIn()
+      ? await Promise.all([readFavoriteRoutes(), readRouteHistory()])
+      : [[], []];
+    const others = history.filter((route) => !favorites.some((saved) => sameRoute(saved, route)));
+    this.fillRoutes(this.querySelector(".favorite-routes"), favorites, true);
+    this.fillRoutes(this.querySelector(".recent-routes.history"), others, false);
+    if (focusRoute) {
+      const items = [...this.querySelectorAll(".route-item")];
+      items
+        .find((item) => sameRoute(item.route, focusRoute))
+        ?.querySelector(".favorite-route")
+        .focus();
+    }
+  }
+
+  fillRoutes(section, routes, favorite) {
     section.hidden = routes.length === 0;
     const template = this.querySelector(".recent-route-template");
-    this.querySelector(".recent-route-list").replaceChildren(
+    section.querySelector(".recent-route-list").replaceChildren(
       ...routes.map((route) => {
         const item = template.content.firstElementChild.cloneNode(true);
-        item.querySelector(".route-ends").textContent = message("routeEnds", {
+        item.route = route;
+        const ends = message("routeEnds", {
           from: route.origin.label,
           to: route.destination.label,
         });
+        item.querySelector(".route-ends").textContent = ends;
         const count = filterCount(route.filters);
         item.querySelector(".route-filters").textContent = count
           ? message("activeFilters", { count })
@@ -82,6 +106,16 @@ class RoutePlannerElement extends HTMLElement {
         item.querySelector(".recent-route").addEventListener("click", () => {
           this.dialog.close();
           this.emit("route-from-history", route);
+        });
+        const heart = item.querySelector(".favorite-route");
+        heart.setAttribute("aria-pressed", String(favorite));
+        heart.setAttribute(
+          "aria-label",
+          message(favorite ? "removeFavoriteRoute" : "saveFavoriteRoute", { route: ends })
+        );
+        heart.addEventListener("click", async () => {
+          await toggleFavoriteRoute(route);
+          await this.showRecentRoutes(route);
         });
         return item;
       })

@@ -63,9 +63,10 @@
         "packages/app/src/components/route-button/**",
         "packages/app/src/components/route-planner/**",
         "packages/app/src/components/place-input/**",
-        "packages/app/src/components/google-map/route.js"
+        "packages/app/src/components/google-map/route.js",
+        "packages/app/src/components/google-map/route-history.js"
       ],
-      "tests": ["route-planner", "navigate"]
+      "tests": ["route-planner", "favorite-routes", "navigate"]
     },
     "motion": {
       "paths": ["packages/app/src/lib/motion.js", "packages/app/src/components/motion-setting/**"],

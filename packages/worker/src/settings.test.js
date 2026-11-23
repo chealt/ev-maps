@@ -103,3 +103,32 @@ describe("mapsApp", () => {
     expect(validSection("mapsApp", { app: "google" })).toBe(false);
   });
 });
+
+describe("favoriteRoutes", () => {
+  const route = {
+    origin: { label: "Budapest, Hungary", placeId: "budapest" },
+    destination: { label: "Vienna, Austria", placeId: "vienna" },
+    filters: { connectorTypes: ["ccs"] },
+    plannedAt: 1,
+  };
+
+  test("takes up to 20 routes, as the history has them", () => {
+    expect(validSection("favoriteRoutes", { routes: [route], updatedAt: 1 })).toBe(true);
+    expect(validSection("favoriteRoutes", { routes: [], updatedAt: 1 })).toBe(true);
+    expect(
+      validSection("favoriteRoutes", {
+        routes: Array.from({ length: 21 }, () => route),
+        updatedAt: 1,
+      })
+    ).toBe(false);
+  });
+
+  test("turns down routes the history would", () => {
+    expect(
+      validSection("favoriteRoutes", {
+        routes: [{ ...route, origin: { label: "Nowhere" } }],
+        updatedAt: 1,
+      })
+    ).toBe(false);
+  });
+});
