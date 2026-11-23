@@ -143,7 +143,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={FilterX} />
         <span class="label">{page.clearFilters}</span>
       </Button>
-      <Button variant="secondary" class="clear-route" hidden>
+      <Button variant="secondary" class="clear-route" aria-keyshortcuts="x" hidden>
         <Icon icon={RouteOff} />
         <span class="label">{page.clearRoute}</span>
       </Button>

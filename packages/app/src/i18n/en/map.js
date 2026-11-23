@@ -81,6 +81,7 @@ const map = {
       clearFilters: "Clear the filters",
       locate: "Locate me",
       route: "Plan a route",
+      clearRoute: "Clear the route",
     },
   },
   messages: {

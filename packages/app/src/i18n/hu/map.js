@@ -83,6 +83,7 @@ const map = {
       clearFilters: "Szűrők törlése",
       locate: "Saját helyzetem",
       route: "Útvonal tervezése",
+      clearRoute: "Útvonal törlése",
     },
   },
   messages: {
