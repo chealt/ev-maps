@@ -67,6 +67,12 @@ const map = {
     operatorFilterHint:
       "A térképen lévő töltők üzemeltetői. Vedd ki a pipát, hogy elrejtsd a töltőit.",
     noOperators: "Mozgasd a térképet töltőkhöz, hogy az üzemeltetőik közül választhass.",
+    sortBy: "Rendezés",
+    sortByOptions: {
+      start: "Távolság az indulástól",
+      end: "Távolság a célig",
+      route: "Távolság az útvonaltól",
+    },
     favorite: "Kedvenc",
     onlyFavorites: "Csak a kedvencek",
     hideUnavailable: "Foglaltak elrejtése",
@@ -165,6 +171,10 @@ const map = {
     withinDistance: "{distance} távolságon belül",
     choosePlaces: "Mindkét helyet a javaslatok közül válaszd ki",
     alongRoute: "Az útvonal sorrendjében",
+    sortedBy: "Rendezve: {by}",
+    sortBy_start: "indulástól való távolság",
+    sortBy_end: "céltól való távolság",
+    sortBy_route: "útvonaltól való távolság",
     fromStart: "{distance} az indulástól",
     toEnd: "{distance} a célig",
     offRoute: "{distance} az útvonaltól",

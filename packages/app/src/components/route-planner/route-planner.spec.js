@@ -90,7 +90,7 @@ test("lists the chargers in order along the route", { tag: "@ui" }, async ({ pag
   await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
 
   const list = page.getByRole("dialog", { name: "2 EV chargers" });
-  await expect(list.getByText("In order along the route")).toBeVisible();
+  await expect(list.getByText("Sorted by: distance from start")).toBeVisible();
   const entries = list.getByRole("listitem");
   await expect(entries.nth(0)).toContainText("Downtown Supercharger");
   // Each distance says what it is: from the start, to the end, off the route.
@@ -440,3 +440,38 @@ test(
     await captureUi(page, testInfo, "a route's charger's details");
   }
 );
+
+test("sorts the chargers along the route by distance from the start, the end or off it", async ({
+  page,
+}) => {
+  await fakeRouteChargersApi(page, { chargers: chargersWithPlaces });
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
+
+  const list = page.getByRole("dialog", { name: "2 EV chargers" });
+  const names = () =>
+    list.locator(".recent-route, .item .name").evaluateAll((els) => els.map((e) => e.textContent));
+  const sortBy = (label) => list.getByRole("radio", { name: label }).check();
+
+  await expect(list.getByText("Sorted by: distance from start")).toBeVisible();
+  expect(await names()).toEqual(["Café charger", "Bare charger"]);
+
+  await sortBy("Distance to end");
+  await expect(list.getByText("Sorted by: distance to end")).toBeVisible();
+  expect(await names()).toEqual(["Bare charger", "Café charger"]);
+
+  await sortBy("Distance off the route");
+  await expect(list.getByText("Sorted by: distance off the route")).toBeVisible();
+
+  // Not along a route: no sorting to choose.
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Clear route" }).click();
+  await page.getByRole("button", { name: "2 EV chargers found" }).click();
+  await expect(page.getByRole("dialog", { name: "2 EV chargers" }).getByRole("radio")).toHaveCount(
+    0
+  );
+});
