@@ -166,7 +166,10 @@ test("links the overview to the errors", async ({ page }) => {
   await fakeErrorsData(page, 0);
   await page.goto("/en/admin/");
 
-  await page.locator(".admin-section").getByRole("link", { name: "Errors" }).click();
+  await page
+    .getByRole("navigation", { name: "Admin" })
+    .getByRole("link", { name: "Errors" })
+    .click();
 
   await expect(page).toHaveURL("/en/admin/errors/");
   await expect(page.getByRole("link", { name: "Errors" }).first()).toHaveAttribute(
