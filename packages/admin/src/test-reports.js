@@ -1,16 +1,18 @@
-// The Playwright reports of CI runs, for admins only. CI uploads each HTML
-// report to R2 (the REPORTS bucket, reports/{id}/) and records it in the
-// admin database (test_reports); see packages/app/scripts/publish-test-report.js.
+// Test reports of CI runs, for admins only. CI uploads each HTML report to
+// an object store (reports/{id}/) and records it in a database (test_reports).
 //
-// - GET /api/admin/test-reports?page=: the reports, the latest first
-// - /{lang}/admin/reports/{id}/{file}: the report's files, from R2; the
+// createTestReports({ locales, isAdmin }) builds the routes, page routes and
+// jobs:
+// - GET {listPath}?page=&branch=: the reports, the latest first
+// - /{lang}{pagePrefix}/{id}/{file}: the report's files, from the store; the
 //   report's own links (data/, trace/) stay under it
 
 import { EVERY_15_MINUTES } from "./crons.js";
-import { isAdmin } from "./admin.js";
 
-const LIST_PATH = "/api/admin/test-reports";
-const FILE_PATH = /^\/(?:en|pl|hu)\/admin\/reports\/(\d+-\d+)\/(.*)$/;
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const DEFAULT_LIST_PATH = "/api/admin/test-reports";
+const DEFAULT_PAGE_PREFIX = "/admin/reports";
 const PAGE_SIZE = 20;
 const KEEP_MS = 30 * 24 * 60 * 60 * 1000;
 const CONTENT_TYPES = {
@@ -77,36 +79,15 @@ const listReports = async (db, page, branch = null) => {
 const contentTypeOf = (file) =>
   CONTENT_TYPES[file.split(".").pop()?.toLowerCase()] ?? "application/octet-stream";
 
-// A report's file, for admins; for everyone else, as if there were none.
-const reportFileResponse = async (request, env, user, url) => {
-  if (!isAdmin(env, user) || !env.REPORTS) {
-    return notFound();
-  }
-  return reportFile(url, env, { cacheControl: "private, max-age=3600" });
-};
-
-// The UI evidence of a run's @ui tests (scripts/ui-evidence.js):
-// screenshots and videos of the app's own UI, published to be embedded
-// outside the admin area, e.g. in a pull request's comment. Only these
-// files of a report are public; the rest stays for admins.
-const UI_FILE_PATH = /^\/reports\/(\d+-\d+)\/(ui\/[\w-]+\.(?:png|webm))$/;
-
-const uiFileResponse = async (request, env, url) => {
-  if (!env.REPORTS || !UI_FILE_PATH.test(url.pathname)) {
-    return notFound();
-  }
-  return reportFile(url, env, { cacheControl: "public, max-age=86400" });
-};
-
-// The R2 object behind a report's file path, with the given caching.
-const reportFile = async (url, env, { cacheControl }) => {
-  const match = url.pathname.match(FILE_PATH) ?? url.pathname.match(UI_FILE_PATH);
+// The object behind a report's file path, with the given caching.
+const reportFile = async (url, bucket, { cacheControl, filePath, uiFilePath }) => {
+  const match = url.pathname.match(filePath) ?? url.pathname.match(uiFilePath);
   const [, id, file] = match;
   const key = `reports/${id}/${decodeURIComponent(file || "index.html")}`;
   if (key.includes("..")) {
     return notFound();
   }
-  const object = await env.REPORTS.get(key);
+  const object = await bucket.get(key);
   if (!object) {
     return notFound();
   }
@@ -119,57 +100,102 @@ const reportFile = async (url, env, { cacheControl }) => {
   });
 };
 
-const deleteOldReports = async (env, now = Date.now()) => {
-  await env.ADMIN_DB?.prepare("DELETE FROM test_reports WHERE created_at < ?")
+// A report's file, for admins; for everyone else, as if there were none.
+const reportFileResponse = (isAdmin, filePath, uiFilePath) => async (request, env, user, url) => {
+  const bucket = env.REPORTS;
+  if (!isAdmin(env, user) || !bucket) {
+    return notFound();
+  }
+  return reportFile(url, bucket, { cacheControl: "private, max-age=3600", filePath, uiFilePath });
+};
+
+// A run's public evidence files (e.g. screenshots and videos), published to
+// be embedded outside the admin area, such as in a pull request's comment.
+// Only these files of a report are public; the rest stays for admins.
+const UI_FILE_PATH = /^\/reports\/(\d+-\d+)\/(ui\/[\w-]+\.(?:png|webm))$/;
+
+const uiFileResponse = (uiFilePath, filePath) => async (request, env, url) => {
+  const bucket = env.REPORTS;
+  if (!bucket || !uiFilePath.test(url.pathname)) {
+    return notFound();
+  }
+  return reportFile(url, bucket, { cacheControl: "public, max-age=86400", filePath, uiFilePath });
+};
+
+const deleteOldReports = async (db, now = Date.now()) => {
+  await db
+    ?.prepare("DELETE FROM test_reports WHERE created_at < ?")
     .bind(now - KEEP_MS)
     .run();
 };
 
-const routes = [
-  {
-    name: "test reports",
-    limiter: "ADMIN_LIMITER",
-    signedIn: true,
-    admin: true,
-    matches: (request, url) => request.method === "GET" && url.pathname === LIST_PATH,
-    handle: async ({ env, url }) => {
-      const page = Math.max(1, Number.parseInt(url.searchParams.get("page"), 10) || 1);
-      // ?branch=main for one branch; without it, every branch.
-      const branch = url.searchParams.get("branch")?.slice(0, 200) || null;
-      return json(await listReports(env.ADMIN_DB, page, branch));
+// createTestReports({ locales, isAdmin, listPath, pagePrefix, db }) builds
+// the module's routes, page routes and jobs. db is (env) => the database
+// binding, defaulting to ADMIN_DB; the object store is the REPORTS binding.
+const createTestReports = ({
+  locales,
+  isAdmin,
+  listPath = DEFAULT_LIST_PATH,
+  pagePrefix = DEFAULT_PAGE_PREFIX,
+  db = (env) => env.ADMIN_DB,
+}) => {
+  const locale = locales.map(escapeRegExp).join("|");
+  const filePath = new RegExp(`^/(?:${locale})${escapeRegExp(pagePrefix)}/(\\d+-\\d+)/(.*)$`);
+  const fileResponse = reportFileResponse(isAdmin, filePath, UI_FILE_PATH);
+  const uiResponse = uiFileResponse(UI_FILE_PATH, filePath);
+  const routes = [
+    {
+      name: "test reports",
+      limiter: "ADMIN_LIMITER",
+      signedIn: true,
+      admin: true,
+      matches: (request, url) => request.method === "GET" && url.pathname === listPath,
+      handle: async ({ env, url }) => {
+        const page = Math.max(1, Number.parseInt(url.searchParams.get("page"), 10) || 1);
+        // ?branch=main for one branch; without it, every branch.
+        const branch = url.searchParams.get("branch")?.slice(0, 200) || null;
+        return json(await listReports(db(env), page, branch));
+      },
     },
-  },
-];
-
-const pageRoutes = [
-  {
-    name: "test report",
-    // CI's reports, not the site: not in the performance numbers.
-    untraced: true,
-    matches: (request, url) => request.method === "GET" && FILE_PATH.test(url.pathname),
-    handle: async ({ request, env, url, signedInUser }) =>
-      reportFileResponse(request, env, await signedInUser(), url),
-  },
-  {
-    name: "ui evidence",
-    // Fetched by GitHub for pull request comments, not by users.
-    untraced: true,
-    matches: (request, url) => request.method === "GET" && UI_FILE_PATH.test(url.pathname),
-    handle: async ({ request, env, url }) => uiFileResponse(request, env, url),
-  },
-];
-
-const jobs = [
-  { name: "delete old test reports", cron: EVERY_15_MINUTES, run: (env) => deleteOldReports(env) },
-];
+  ];
+  const pageRoutes = [
+    {
+      name: "test report",
+      // CI's reports, not the site: not in the performance numbers.
+      untraced: true,
+      matches: (request, url) => request.method === "GET" && filePath.test(url.pathname),
+      handle: async ({ request, env, url, signedInUser }) =>
+        reportFileResponse(isAdmin, filePath, UI_FILE_PATH)(
+          request,
+          env,
+          await signedInUser(),
+          url
+        ),
+    },
+    {
+      name: "ui evidence",
+      // Fetched by CI for pull request comments, not by users.
+      untraced: true,
+      matches: (request, url) => request.method === "GET" && UI_FILE_PATH.test(url.pathname),
+      handle: async ({ request, env, url }) =>
+        uiFileResponse(UI_FILE_PATH, filePath)(request, env, url),
+    },
+  ];
+  const jobs = [
+    {
+      name: "delete old test reports",
+      cron: EVERY_15_MINUTES,
+      run: (env) => deleteOldReports(db(env)),
+    },
+  ];
+  return { jobs, pageRoutes, reportFileResponse: fileResponse, routes, uiFileResponse: uiResponse };
+};
 
 export {
   contentTypeOf,
+  createTestReports,
   deleteOldReports,
-  jobs,
   listReports,
-  pageRoutes,
   reportFileResponse,
-  routes,
   uiFileResponse,
 };

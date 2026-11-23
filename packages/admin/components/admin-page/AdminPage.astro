@@ -1,7 +1,6 @@
 ---
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
-import { translations } from "#i18n/index.js";
 import { ADMIN_SECTIONS } from "./sections.js";
 import "./AdminPage.css";
 
@@ -9,10 +8,12 @@ interface Props {
   // The section shown, for the navigation: "overview" or a section's ID
   // (./sections.js).
   current?: string;
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
 }
 
+const { page } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
-const { page } = translations(lang);
 const { current = "overview" } = Astro.props;
 const sections = [
   { id: "overview", href: `/${lang}/admin/`, label: page.adminOverview },

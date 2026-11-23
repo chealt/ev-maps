@@ -36,9 +36,9 @@ const fakeUsageAdminApi = async (page) => {
           sign_in: { total: 3, byDay, byDimension: {} },
           sign_in_started: { total: 4, byDay, byDimension: { passkey: 3, google: 1 } },
         },
-        mostFavorited: [
-          { id: "ocm:1", name: "Downtown Supercharger", users: 2 },
-          { id: "eipa:2", name: null, users: 1 },
+        top: [
+          { id: "ocm:1", name: "Downtown Supercharger", count: 2 },
+          { id: "eipa:2", name: null, count: 1 },
         ],
       },
     });
@@ -80,12 +80,9 @@ test(
     await expect(
       page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
     ).toBeVisible();
-    // Without a saved name, a charger shows its ID.
-    const favorited = page.getByRole("region", { name: "Most favorited chargers, now" });
-    await expect(favorited.getByRole("row")).toHaveText([
-      "Downtown Supercharger2 users",
-      "eipa:21 user",
-    ]);
+    // Without a saved name, an item shows its ID.
+    const top = page.getByRole("region", { name: "Most favorited chargers, now" });
+    await expect(top.getByRole("row")).toHaveText(["Downtown Supercharger2 users", "eipa:21 user"]);
   }
 );
 

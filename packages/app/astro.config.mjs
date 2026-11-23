@@ -51,10 +51,6 @@ export default defineConfig({
         // The exported chargers the country pages are built from (see
         // src/lib/pages.js); the tests point it at their own fixtures.
         "@country-chargers": resolve(process.env.EV_MAPS_CHARGERS_DIR ?? "data/chargers"),
-        // The admin package's components (packages/admin/components) import the
-        // app's i18n and lib by these names.
-        "#i18n": resolve("src/i18n"),
-        "#lib": resolve("src/lib"),
       },
     },
     // The API runs in the Worker, which `bun run dev` starts on port 8787.

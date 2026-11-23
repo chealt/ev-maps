@@ -2,10 +2,15 @@
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
-import { fill, translations } from "#i18n/index.js";
+import { fill } from "@ev-maps/ui/format.js";
 import "./AdminPerformance.css";
 
-const { page } = translations(Astro.currentLocale ?? "en");
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
 
 const periods = [1, 7, 14];
 const vitals = ["LCP", "INP", "CLS", "FCP", "TTFB"];

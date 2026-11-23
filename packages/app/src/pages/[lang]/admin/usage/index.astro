@@ -8,11 +8,43 @@ import { languages } from "../../../../lib/pages.js";
 // The Worker only serves this page to admins (packages/admin/src/admin.js).
 export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, values } = translations(Astro.currentLocale ?? "en");
+
+// The events this site counts: the totals at the top, the breakdowns below,
+// and how each broken-down event's dimension reads (the values table its
+// labels are in).
+const totals = [
+  "page_view",
+  "sign_up",
+  "sign_in",
+  "route_planned",
+  "favorite_added",
+  "charger_opened",
+  "locate_me",
+  "list_opened",
+];
+const breakdowns = [
+  "page_view",
+  "visitor_country",
+  "charger_opened",
+  "filter_used",
+  "sign_in_started",
+];
+const dimensionLabels = {
+  charger_opened: "chargerSources",
+  filter_used: "filterKinds",
+  sign_in_started: "signInMethods",
+};
 ---
 
 <Layout title={`EV Maps - ${page.adminUsage}`} noindex kind="admin">
-  <AdminPage current="usage">
-    <AdminUsage />
+  <AdminPage current="usage" page={page}>
+    <AdminUsage
+      page={page}
+      values={values}
+      totals={totals}
+      breakdowns={breakdowns}
+      dimensionLabels={dimensionLabels}
+    />
   </AdminPage>
 </Layout>

@@ -2,11 +2,16 @@ import { describe, expect, test } from "bun:test";
 import { testD1 } from "./test-d1.js";
 import {
   contentTypeOf,
+  createTestReports,
   deleteOldReports,
   listReports,
-  reportFileResponse,
-  uiFileResponse,
 } from "@ev-maps/admin/test-reports.js";
+import { isAdmin } from "./admin-area.js";
+
+const { reportFileResponse, uiFileResponse } = createTestReports({
+  locales: ["en", "pl", "hu"],
+  isAdmin,
+});
 
 const NOW = Date.UTC(2026, 10, 24, 12);
 const ADMIN = { id: "1", email: "grace@chealt.com" };
@@ -151,7 +156,7 @@ describe("deleteOldReports", () => {
     db.sqlite
       .prepare("UPDATE test_reports SET created_at = ? WHERE id = '1024-1'")
       .run(NOW - 31 * 86400000);
-    await deleteOldReports({ ADMIN_DB: db }, NOW);
+    await deleteOldReports(db, NOW);
     expect((await listReports(db, 1)).total).toBe(24);
   });
 });

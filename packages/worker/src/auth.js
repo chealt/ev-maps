@@ -10,7 +10,7 @@ import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
 import { appleClientSecret, hasAppleCredentials } from "./apple-client-secret.js";
 import { canSendEmail, sendSignInLink } from "./email.js";
-import { countEvent } from "@ev-maps/admin/usage.js";
+import { countEvent } from "./admin-area.js";
 
 const AUTH_PATH = "/api/auth";
 // Which providers have credentials, so the page only offers those.

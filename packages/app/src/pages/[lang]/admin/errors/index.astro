@@ -9,7 +9,7 @@ import { pageData } from "../../../../lib/page-data.js";
 // with the errors as its data (packages/admin/src/admin.js).
 export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages } = translations(Astro.currentLocale ?? "en");
 const error = Astro.url.searchParams.get("error");
 const pageNumber = Astro.url.searchParams.get("page") ?? "1";
 const data = await pageData(
@@ -21,7 +21,7 @@ const data = await pageData(
 ---
 
 <Layout title={`EV Maps - ${page.adminErrors}`} noindex kind="admin">
-  <AdminPage current="errors">
-    <AdminErrors pageData={data} />
+  <AdminPage current="errors" page={page}>
+    <AdminErrors pageData={data} page={page} messages={messages} />
   </AdminPage>
 </Layout>

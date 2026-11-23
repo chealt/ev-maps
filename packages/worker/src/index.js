@@ -6,7 +6,7 @@
 //   of / to the visitor's language and country (src/page-routes.js)
 // and runs each domain's scheduled jobs (src/jobs.js).
 
-import { isAdmin } from "@ev-maps/admin/admin.js";
+import { isAdmin } from "./admin-area.js";
 import { API_ROUTES } from "./api-routes.js";
 import { renderAppPage } from "./app-server.js";
 import { userOf } from "./auth.js";

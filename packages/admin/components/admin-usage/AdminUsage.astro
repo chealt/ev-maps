@@ -1,34 +1,37 @@
 ---
-import { fill, translations } from "#i18n/index.js";
+import { fill } from "@ev-maps/ui/format.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminUsage.css";
 
-const { page, values } = translations(Astro.currentLocale ?? "en");
+interface Props {
+  // The page's strings and the labels of the usage events (the host's
+  // translations for this section).
+  page: Record<string, string>;
+  values: { usageEvents: Record<string, string> };
+  // The events shown as totals at the top, and those broken down by their
+  // dimension below.
+  totals: string[];
+  breakdowns: string[];
+  // The ?days= periods the API answers, the middle one the default.
+  periods?: number[];
+  // How each broken-down event's dimension reads: the values table its
+  // dimension's labels are in (the host's translations), e.g.
+  // { charger_opened: "chargerSources" }.
+  dimensionLabels?: Record<string, string>;
+}
 
-// Totals shown at the top, and the events broken down by their dimension
-// (packages/admin/src/usage.js).
-const totals = [
-  "page_view",
-  "sign_up",
-  "sign_in",
-  "route_planned",
-  "favorite_added",
-  "charger_opened",
-  "locate_me",
-  "list_opened",
-];
-const breakdowns = [
-  "page_view",
-  "visitor_country",
-  "charger_opened",
-  "filter_used",
-  "sign_in_started",
-];
-const periods = [7, 30, 90];
+const {
+  page,
+  values,
+  totals,
+  breakdowns,
+  periods = [7, 30, 90],
+  dimensionLabels = {},
+} = Astro.props;
 ---
 
 <!-- Usage stats (GET /api/admin/usage): counts per day, no identifiers. -->
-<ev-admin-usage>
+<ev-admin-usage data-dimension-labels={JSON.stringify(dimensionLabels)}>
   <section class="usage" aria-labelledby="admin-usage-title">
     <div class="usage-header">
       <h2 class="section-title" id="admin-usage-title">
@@ -69,10 +72,10 @@ const periods = [7, 30, 90];
           </p>
         </section>
       ))}
-      <!-- Now, not in the period: favorites are kept, not counted per day. -->
-      <section class="breakdown most-favorited" aria-labelledby="admin-most-favorited">
-        <h3 class="subtitle" id="admin-most-favorited">
-          {page.adminMostFavorited}
+      <!-- Now, not in the period: the host's top items, e.g. favorites. -->
+      <section class="breakdown top-items" aria-labelledby="admin-top-items">
+        <h3 class="subtitle" id="admin-top-items">
+          {page.adminTopItems}
         </h3>
         <table>
           <tbody></tbody>

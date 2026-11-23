@@ -1,18 +1,22 @@
 ---
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
-import { formatMessage, translations } from "#i18n/index.js";
+import { formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminErrors.css";
 
 // Rendered on the server: the error groups, or with ?error={fingerprint} one
 // group's occurrences, from the Worker (packages/admin/src/admin.js).
 interface Props {
-  // { data } or { failed: true } (src/lib/page-data.js)
+  // { data } or { failed: true } (the host's page data)
   pageData: { data?: any; failed?: boolean };
+  // The page's strings (the host's translations for this section).
+  page: Record<string, any>;
+  // The runtime message templates (for the pager's "page X of Y").
+  messages: Record<string, any>;
 }
 
+const { page, messages } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
-const { page, messages } = translations(lang);
 const { data, failed } = Astro.props.pageData;
 const now = Date.now();
 

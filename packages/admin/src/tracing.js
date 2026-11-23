@@ -71,7 +71,7 @@ const setTraceRoute = (route) => {
   }
 };
 
-// "SELECT chargers", "INSERT favorites", from the statement.
+// the statement, e.g. "SELECT chargers".
 const operationOf = (sql) => {
   const operation = sql.trim().split(/\s+/)[0]?.toUpperCase() ?? "QUERY";
   const table = /\b(?:FROM|INTO|UPDATE|JOIN)\s+"?(\w+)"?/i.exec(sql)?.[1];
@@ -155,7 +155,7 @@ const traceD1 = (db, binding) =>
           if (!trace) {
             return target.batch(unwrapped);
           }
-          // Named after the operations in it, e.g. "BATCH INSERT chargers".
+          // Named after the operations in it, e.g. "BATCH INSERT items".
           const sqls = statements.map((statement) => statement.sql ?? "");
           const operations = [...new Set(sqls.map(operationOf))].join(", ");
           return recordQuery(trace, binding, sqls.join("; "), () => target.batch(unwrapped), {

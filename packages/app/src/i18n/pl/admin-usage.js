@@ -7,12 +7,12 @@ const adminUsage = {
     adminLastDays: "Ostatnie {days} dni",
     adminPageViewsPerDay: "Wyświetlenia stron dziennie",
     adminNoData: "Jeszcze nic.",
-    adminMostFavorited: "Najczęściej ulubione stacje, teraz",
+    adminTopItems: "Najczęściej ulubione stacje, teraz",
   },
   messages: {
     adminUsageNotLoaded: "Nie udało się wczytać statystyk. Spróbuj ponownie.",
     adminUsagePeriod: "{from} – {to}",
-    adminFavoritedBy: {
+    adminTopCount: {
       one: "{count} użytkownik",
       few: "{count} użytkownicy",
       many: "{count} użytkowników",

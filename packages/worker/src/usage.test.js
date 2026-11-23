@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { startTrace, withTrace } from "@ev-maps/admin/tracing.js";
-import {
-  countEvent,
-  countUsage,
-  dayOf,
-  deleteOldUsage,
-  pageCounts,
-  usageReportResponse,
-} from "@ev-maps/admin/usage.js";
+import { countUsage, dayOf, deleteOldUsage } from "@ev-maps/admin/usage.js";
+import { usage } from "./admin-area.js";
+
+const countEvent = usage.countEvent;
+const pageCountsOf = usage.pageCounts;
+const report = usage.usageReportResponse;
 import { testD1 } from "./test-d1.js";
 
 // testD1 with D1's batch().
@@ -27,7 +25,7 @@ const rows = (db) =>
 describe("pageCounts", () => {
   test("takes the known events with valid dimensions, capping counts", () => {
     expect(
-      pageCounts({
+      pageCountsOf({
         events: {
           page_view: { "en:home": 2, "hu:country": 1, "xx:home": 1, "en:admin": 1 },
           page_path: { "/hu/hu/": 1, "/en/privacy/": 1, "/en/admin/": 1, "/x": 1 },
@@ -46,8 +44,8 @@ describe("pageCounts", () => {
       { event: "filter_used", dimension: "connector-type", count: 50 },
       { event: "charger_opened", dimension: "irve", count: 1 },
     ]);
-    expect(pageCounts(null)).toEqual([]);
-    expect(pageCounts({ events: { page_view: "lots" } })).toEqual([]);
+    expect(pageCountsOf(null)).toEqual([]);
+    expect(pageCountsOf({ events: { page_view: "lots" } })).toEqual([]);
   });
 });
 
@@ -56,12 +54,12 @@ describe("countUsage", () => {
     const env = { ADMIN_DB: adminDb() };
     const now = Date.UTC(2026, 10, 23, 12);
     await countUsage(
-      env,
+      env.ADMIN_DB,
       [{ event: "sign_in" }, { event: "page_view", dimension: "en:home", count: 2 }],
       now
     );
-    await countUsage(env, [{ event: "page_view", dimension: "en:home", count: 3 }], now);
-    await countUsage(env, [{ event: "sign_in" }], Date.UTC(2026, 10, 24, 1));
+    await countUsage(env.ADMIN_DB, [{ event: "page_view", dimension: "en:home", count: 3 }], now);
+    await countUsage(env.ADMIN_DB, [{ event: "sign_in" }], Date.UTC(2026, 10, 24, 1));
     expect(rows(env.ADMIN_DB)).toEqual([
       { day: "2026-11-23", event: "page_view", dimension: "en:home", count: 5 },
       { day: "2026-11-23", event: "sign_in", dimension: "", count: 1 },
@@ -70,8 +68,8 @@ describe("countUsage", () => {
   });
 
   test("does nothing without the admin database or counts", async () => {
-    await countUsage({}, [{ event: "sign_in" }]);
-    await countUsage({ ADMIN_DB: adminDb() }, []);
+    await countUsage(null, [{ event: "sign_in" }]);
+    await countUsage(adminDb(), []);
   });
 });
 
@@ -84,7 +82,7 @@ describe("usageReportResponse", () => {
 
   test("counts a page's batch", async () => {
     const env = { ADMIN_DB: adminDb() };
-    const response = await usageReportResponse(post({ events: { list_opened: { "": 2 } } }), env);
+    const response = await report(post({ events: { list_opened: { "": 2 } } }), env);
     expect(response.status).toBe(202);
     expect(rows(env.ADMIN_DB)).toEqual([
       { day: dayOf(Date.now()), event: "list_opened", dimension: "", count: 2 },
@@ -97,7 +95,7 @@ describe("usageReportResponse", () => {
       events: { page_view: { "hu:country": 2 }, visitor_country: { US: 9 } },
     });
     Object.defineProperty(request, "cf", { value: { country: "HU" } });
-    await usageReportResponse(request, env);
+    await report(request, env);
     expect(
       rows(env.ADMIN_DB).map(({ event, dimension, count }) => [event, dimension, count])
     ).toEqual([
@@ -108,11 +106,9 @@ describe("usageReportResponse", () => {
 
   test("refuses what isn't a batch", async () => {
     const env = { ADMIN_DB: adminDb() };
-    expect((await usageReportResponse(post("nope"), env)).status).toBe(400);
-    expect((await usageReportResponse(post("x".repeat(9000)), env)).status).toBe(413);
-    expect(
-      (await usageReportResponse(new Request("https://ev.chealt.com/api/usage"), env)).status
-    ).toBe(405);
+    expect((await report(post("nope"), env)).status).toBe(400);
+    expect((await report(post("x".repeat(9000)), env)).status).toBe(413);
+    expect((await report(new Request("https://ev.chealt.com/api/usage"), env)).status).toBe(405);
     expect(rows(env.ADMIN_DB)).toEqual([]);
   });
 });
@@ -121,9 +117,9 @@ describe("deleteOldUsage", () => {
   test("keeps about 13 months", async () => {
     const env = { ADMIN_DB: adminDb() };
     const now = Date.UTC(2026, 10, 23);
-    await countUsage(env, [{ event: "sign_in" }], Date.UTC(2025, 9, 1));
-    await countUsage(env, [{ event: "sign_up" }], Date.UTC(2025, 11, 1));
-    await deleteOldUsage(env, now);
+    await countUsage(env.ADMIN_DB, [{ event: "sign_in" }], Date.UTC(2025, 9, 1));
+    await countUsage(env.ADMIN_DB, [{ event: "sign_up" }], Date.UTC(2025, 11, 1));
+    await deleteOldUsage(env.ADMIN_DB, 400, now);
     expect(rows(env.ADMIN_DB).map((row) => row.event)).toEqual(["sign_up"]);
   });
 });
@@ -149,7 +145,7 @@ describe("preview traffic", () => {
       method: "POST",
       body: JSON.stringify({ events: { page_view: { "en:home": 3 } } }),
     });
-    await within(preview.url, environment, () => usageReportResponse(preview, environment));
+    await within(preview.url, environment, () => report(preview, environment));
     expect(total(environment.ADMIN_DB)).toBe(1);
   });
 });

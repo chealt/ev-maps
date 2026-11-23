@@ -1,5 +1,5 @@
-// The cron schedules, as wrangler.toml's triggers take them: every job of a
-// firing cron runs in order (packages/worker/src/jobs.js).
+// The cron schedules, as the host's wrangler.toml takes them: every job of
+// a firing cron runs in order.
 
 const EVERY_15_MINUTES = "*/15 * * * *";
 const EVERY_5_MINUTES = "*/5 * * * *";

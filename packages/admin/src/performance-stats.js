@@ -161,7 +161,7 @@ const performanceResponse = async (request, env) => {
   return json(await performanceSummary(env.ADMIN_DB, PERIODS.includes(days) ? days : 7));
 };
 
-// Only Chealt's own people: the guard checks they're admins.
+// Only admins: the guard checks they are.
 const routes = [
   {
     name: "performance",

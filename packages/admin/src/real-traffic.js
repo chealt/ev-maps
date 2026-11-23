@@ -1,7 +1,7 @@
 // Whether a request is real users' traffic, for the admin area's
-// performance numbers: production's own addresses (PRODUCTION_HOSTS in
-// wrangler.toml), not the pull requests' previews, which share its
-// databases. Without the setting (local development), every request is.
+// performance numbers: the production hosts (the PRODUCTION_HOSTS
+// setting), not previews, which share the databases. Without the setting
+// (local development), every request is.
 
 const isRealTraffic = (request, env) => {
   const hosts = env.PRODUCTION_HOSTS?.split(",")

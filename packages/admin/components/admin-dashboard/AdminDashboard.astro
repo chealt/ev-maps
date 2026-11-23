@@ -1,10 +1,14 @@
 ---
-import { translations } from "#i18n/index.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminDashboard.css";
 
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
-const { page } = translations(lang);
 
 // Each chart: what it counts (the field of GET /api/admin/dashboard), its
 // title, and the page with more.

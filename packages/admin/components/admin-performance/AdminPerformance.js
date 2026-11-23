@@ -1,4 +1,4 @@
-import { formatNumber, message } from "#lib/messages.js";
+import { formatNumber, message } from "@ev-maps/ui/messages.js";
 import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
 
 const SUMMARY_URL = "/api/admin/performance";

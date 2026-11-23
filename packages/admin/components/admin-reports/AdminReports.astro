@@ -1,8 +1,12 @@
 ---
-import { translations } from "#i18n/index.js";
 import "./AdminReports.css";
 
-const { page } = translations(Astro.currentLocale ?? "en");
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
 ---
 
 <!-- CI's Playwright reports (GET /api/admin/test-reports), the latest first;

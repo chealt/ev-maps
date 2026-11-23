@@ -7,9 +7,8 @@
 // A new domain keeps its page routes in its own module and adds one line
 // here; put specific paths before general ones.
 
-import { pageRoutes as admin } from "@ev-maps/admin/admin.js";
+import { adminPageRoutes as admin, testReportsPageRoutes as testReports } from "./admin-area.js";
 import { pageRoutes as languageRedirect } from "./language-redirect.js";
-import { pageRoutes as testReports } from "@ev-maps/admin/test-reports.js";
 
 const PAGE_ROUTES = [
   // Before the admin pages: /{lang}/admin/reports/{id}/...

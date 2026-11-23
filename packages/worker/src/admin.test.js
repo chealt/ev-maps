@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { usageStats } from "@ev-maps/admin/admin.js";
 import {
   adminApiResponse,
   adminPageResponse,
   isAdmin,
   isAdminPage,
   mostFavorited,
-  usageStats,
-} from "@ev-maps/admin/admin.js";
+} from "./admin-area.js";
 import { testD1 } from "./test-d1.js";
 
 const env = {
@@ -304,9 +304,9 @@ describe("mostFavorited", () => {
     add.run("grace", "irve:3", "not json");
 
     expect(await mostFavorited(db)).toEqual([
-      { id: "ocm:1", name: "Downtown", users: 2 },
-      { id: "eipa:2", name: "Warsaw", users: 1 },
-      { id: "irve:3", name: null, users: 1 },
+      { id: "ocm:1", name: "Downtown", count: 2 },
+      { id: "eipa:2", name: "Warsaw", count: 1 },
+      { id: "irve:3", name: null, count: 1 },
     ]);
     expect(await mostFavorited(db, 1)).toHaveLength(1);
   });

@@ -8,7 +8,11 @@
 // A new domain keeps its routes in its own module and adds one line here;
 // put specific paths before general ones (tiles take /api/chargers/*).
 
-import { routes as admin } from "@ev-maps/admin/admin.js";
+import {
+  adminRoutes as admin,
+  testReportsRoutes as testReports,
+  usageRoutes as usage,
+} from "./admin-area.js";
 import { routes as adminDashboard } from "@ev-maps/admin/admin-dashboard.js";
 import { routes as auth } from "./auth.js";
 import { routes as errors } from "@ev-maps/admin/errors.js";
@@ -18,9 +22,7 @@ import { routes as performance } from "@ev-maps/admin/performance-stats.js";
 import { routes as routeChargers } from "./route-chargers.js";
 import { routes as settings } from "./settings.js";
 import { routes as telemetry } from "@ev-maps/admin/telemetry.js";
-import { routes as testReports } from "@ev-maps/admin/test-reports.js";
 import { routes as tiles } from "./tiles.js";
-import { routes as usage } from "@ev-maps/admin/usage.js";
 
 const API_ROUTES = [
   ...admin,

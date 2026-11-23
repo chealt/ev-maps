@@ -5,7 +5,7 @@
 import { chargersInEachBounds, toClientCharger } from "./db.js";
 import { mergeDuplicates } from "./duplicates.js";
 import { cumulativeMeters, nearestOnRoute, routeChunks } from "./route.js";
-import { countEvent } from "@ev-maps/admin/usage.js";
+import { countEvent } from "./admin-area.js";
 
 const MAX_POINTS = 5000;
 const DEFAULT_CORRIDOR_KM = 5;

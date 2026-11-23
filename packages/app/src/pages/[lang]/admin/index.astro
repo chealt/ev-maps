@@ -12,7 +12,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <Layout title={`EV Maps - ${page.admin}`} noindex kind="admin">
-  <AdminPage current="overview">
-    <AdminDashboard />
+  <AdminPage current="overview" page={page}>
+    <AdminDashboard page={page} />
   </AdminPage>
 </Layout>
