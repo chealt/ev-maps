@@ -158,7 +158,10 @@ test("opens a slow request's trace as a waterfall, and goes back", async ({ page
 test("switches the period, and is in the admin navigation", async ({ page }) => {
   const requests = await fakePerformanceApi(page);
   await page.goto("/en/admin/");
-  await page.locator(".admin-section").getByRole("link", { name: "Performance" }).click();
+  await page
+    .getByRole("navigation", { name: "Admin" })
+    .getByRole("link", { name: "Performance" })
+    .click();
   await expect(page).toHaveURL("/en/admin/performance/");
   // Loaded, so the page's script is listening.
   await expect(page.getByText("The last 7 days")).toBeVisible();

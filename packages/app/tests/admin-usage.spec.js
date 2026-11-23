@@ -103,7 +103,10 @@ test("is in the admin navigation and overview", async ({ page }) => {
   await fakeUsageAdminApi(page);
   await page.goto("/en/admin/");
 
-  await page.locator(".admin-section").getByRole("link", { name: "Usage" }).click();
+  await page
+    .getByRole("navigation", { name: "Admin" })
+    .getByRole("link", { name: "Usage" })
+    .click();
 
   await expect(page).toHaveURL("/en/admin/usage/");
   await expect(
