@@ -113,6 +113,130 @@ const liveStatuses = async (request) => {
   return json({ statuses: found });
 };
 
+// Reports the pages post here (src/lib/report-channel.js): usage counts,
+// performance spans and Web Vitals, and errors. They're merged into one
+// outbox in IndexedDB, sent a few seconds after the first of a batch for
+// every tab at once, and kept for Background Sync when they can't be sent,
+// so closing or freezing a tab loses none.
+const REPORTS_KEY = "reports-outbox";
+const REPORTS_SYNC_TAG = "reports-sync";
+const REPORT_DELAY_MS = 10 * 1000;
+const USAGE_URL = "/api/usage";
+const TELEMETRY_URL = "/api/telemetry";
+const ERRORS_URL = "/api/errors";
+
+const emptyReports = () => ({ usage: {}, spans: [], vitals: [], errors: [] });
+
+// Adds a report to the outbox: usage counts add up, the rest are listed.
+const mergeReport = (outbox, { kind, payload }) => {
+  if (kind === "usage") {
+    for (const [event, dimensions] of Object.entries(payload)) {
+      outbox.usage[event] ??= {};
+      for (const [dimension, count] of Object.entries(dimensions)) {
+        outbox.usage[event][dimension] = (outbox.usage[event][dimension] ?? 0) + count;
+      }
+    }
+  } else if (kind === "span" || kind === "vital" || kind === "error") {
+    outbox[`${kind}s`].push(payload);
+  }
+  return outbox;
+};
+
+const postJson = (url, data) =>
+  fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+// True when the Worker took it or never will (e.g. a 400): not worth
+// sending again.
+const delivered = (request) =>
+  request.then(
+    (response) => response.ok || isFinal(response.status),
+    () => false
+  );
+
+// Sends the outbox; what couldn't be sent goes back into it, with anything
+// added meanwhile. False while something is left.
+const sendReports = async () => {
+  const outbox = await serially(async () => {
+    const queued = (await readState(REPORTS_KEY)) ?? emptyReports();
+    await deleteState(REPORTS_KEY);
+    return queued;
+  });
+  const left = emptyReports();
+  const sends = [];
+  if (Object.keys(outbox.usage).length) {
+    sends.push(
+      delivered(postJson(USAGE_URL, { events: outbox.usage })).then((ok) => {
+        if (!ok) {
+          left.usage = outbox.usage;
+        }
+      })
+    );
+  }
+  if (outbox.spans.length || outbox.vitals.length) {
+    sends.push(
+      delivered(postJson(TELEMETRY_URL, { spans: outbox.spans, vitals: outbox.vitals })).then(
+        (ok) => {
+          if (!ok) {
+            left.spans = outbox.spans;
+            left.vitals = outbox.vitals;
+          }
+        }
+      )
+    );
+  }
+  for (const details of outbox.errors) {
+    sends.push(
+      delivered(postJson(ERRORS_URL, details)).then((ok) => {
+        if (!ok) {
+          left.errors.push(details);
+        }
+      })
+    );
+  }
+  await Promise.all(sends);
+  const unsent =
+    Object.keys(left.usage).length || left.spans.length || left.vitals.length || left.errors.length;
+  if (unsent) {
+    await serially(async () => {
+      const added = (await readState(REPORTS_KEY)) ?? emptyReports();
+      for (const [event, dimensions] of Object.entries(left.usage)) {
+        mergeReport(added, { kind: "usage", payload: { [event]: dimensions } });
+      }
+      added.spans.unshift(...left.spans);
+      added.vitals.unshift(...left.vitals);
+      added.errors.unshift(...left.errors);
+      await writeState(REPORTS_KEY, added);
+    });
+    await self.registration.sync?.register(REPORTS_SYNC_TAG).catch(() => {});
+  }
+  return !unsent;
+};
+
+// One send a few seconds after the first report of a batch; the message
+// event waits for it, which keeps the worker alive until it's done.
+let reportsSend = null;
+const scheduleReports = () => {
+  reportsSend ??= new Promise((resolve) => setTimeout(resolve, REPORT_DELAY_MS))
+    .then(sendReports)
+    .catch(() => false)
+    .finally(() => {
+      reportsSend = null;
+    });
+  return reportsSend;
+};
+
+const queueReport = async (report) => {
+  await serially(async () => {
+    const outbox = (await readState(REPORTS_KEY)) ?? emptyReports();
+    await writeState(REPORTS_KEY, mergeReport(outbox, report));
+  });
+  await scheduleReports();
+};
+
 const isFresh = (response) =>
   Date.now() - Number(response.headers.get(CACHED_AT_HEADER)) < MAX_AGE_MS;
 
@@ -375,6 +499,15 @@ const changeFavorite = async (event, id) => {
 
 // Throws while changes are left, so the browser tries again later.
 self.addEventListener("sync", (event) => {
+  if (event.tag === REPORTS_SYNC_TAG) {
+    event.waitUntil(
+      sendReports().then((sent) => {
+        if (!sent) {
+          throw new Error("Reports not sent yet");
+        }
+      })
+    );
+  }
   if (event.tag === FAVORITES_SYNC_TAG) {
     event.waitUntil(
       flushFavorites().then((sent) => {
@@ -388,6 +521,10 @@ self.addEventListener("sync", (event) => {
 
 // The page says when the user signed out: their favorites go.
 self.addEventListener("message", (event) => {
+  if (event.data?.type === "report") {
+    event.waitUntil(queueReport(event.data).catch(() => {}));
+    return;
+  }
   if (event.data?.type === "forget-favorites") {
     // Live statuses are for signed-in users only.
     statuses.clear();
