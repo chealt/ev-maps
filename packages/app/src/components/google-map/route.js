@@ -2,8 +2,13 @@
 
 // The Worker takes at most 5000 points (packages/worker/src/route-chargers.js).
 const MAX_POINTS = 5000;
-// Points closer than this to the last one kept add nothing to a 5 km corridor.
+// Points closer than this to the last one kept add nothing to a corridor of
+// even 1 km (the narrowest choice).
 const MIN_STEP_METERS = 200;
+// How far from the route chargers are shown, in km: the planner's choices
+// (within the Worker's 1 to 10, packages/worker/src/route-chargers.js), and
+// the default, also for routes saved before it could be chosen.
+const CORRIDOR_OPTIONS_KM = [1, 2, 5, 10];
 const CORRIDOR_KM = 5;
 const METERS_PER_DEGREE_LAT = 111320;
 // 5 decimals is about a meter.
@@ -46,7 +51,7 @@ const pathBounds = (path) => {
   };
 };
 
-const fetchChargersAlongRoute = async (path) => {
+const fetchChargersAlongRoute = async (path, corridorKm = CORRIDOR_KM) => {
   const response = await fetch("/api/chargers/route", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -55,7 +60,7 @@ const fetchChargersAlongRoute = async (path) => {
         Number(lat.toFixed(COORDINATE_DECIMALS)),
         Number(lng.toFixed(COORDINATE_DECIMALS)),
       ]),
-      corridorKm: CORRIDOR_KM,
+      corridorKm,
     }),
   });
   if (!response.ok) {
@@ -64,4 +69,4 @@ const fetchChargersAlongRoute = async (path) => {
   return response.json();
 };
 
-export { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng };
+export { CORRIDOR_KM, CORRIDOR_OPTIONS_KM, fetchChargersAlongRoute, pathBounds, toLatLng };

@@ -114,4 +114,4 @@ const routes = [
   },
 ];
 
-export { chargersAlongRoute, routeChargersResponse, routes };
+export { MAX_CORRIDOR_KM, MIN_CORRIDOR_KM, chargersAlongRoute, routeChargersResponse, routes };
