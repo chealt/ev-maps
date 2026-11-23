@@ -30,6 +30,15 @@ const mapState = (page) =>
 const loadedChargersAround = (location) =>
   chargerRequests.some((request) => requestCovers(request, location));
 
+test("filters and clusters the chargers in a Web Worker, off the main thread", async ({ page }) => {
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button", { name: downtownChargerLabel, exact: true })).toBeVisible();
+
+  expect(page.workers().map((worker) => worker.url())).toContainEqual(
+    expect.stringContaining("charger-worker")
+  );
+});
+
 test("initializes the map with the configured center and map ID", async ({ page }) => {
   await expect(page.getByRole("region", { name: "EV charging station map" })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
@@ -44,13 +53,15 @@ test("shows EV charger markers", { tag: "@performance" }, async ({ page }) => {
   await expect(map.getByRole("button")).toHaveCount(2);
 });
 
-test("shows charger details when a marker is clicked", async ({ page }) => {
+test("shows charger details when a marker is clicked", { tag: "@ui" }, async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
   await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
 
   const details = page.getByRole("complementary", { name: downtownChargerLabel });
   await expect(details).toBeVisible();
   await expect(details.getByRole("heading", { name: downtownChargerLabel })).toBeVisible();
+  // The name heads the panel, with no label above it.
+  await expect(details.getByText("EV charging", { exact: true })).toHaveCount(0);
   await expect(details.getByText("1 Main St, New York, NY, 10001")).toBeVisible();
   await expect(details.getByText("CCS (Type 1): 4× · 150 kW")).toBeVisible();
   await expect(details.getByText("NACS (Tesla): 4× · 250 kW")).toBeVisible();
