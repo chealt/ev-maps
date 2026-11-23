@@ -2,33 +2,17 @@
 import Layout from "../../../layouts/Layout.astro";
 import AdminDashboard from "../../../components/admin-dashboard/AdminDashboard.astro";
 import AdminPage from "../../../components/admin-page/AdminPage.astro";
-import { ADMIN_SECTIONS } from "../../../components/admin-page/sections.js";
 import { translations } from "../../../i18n/index.js";
 import { languages } from "../../../lib/pages.js";
 
 // The Worker only serves this page to admins (packages/worker/src/admin.js).
 export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
 
-const { lang } = Astro.params;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <Layout title={`EV Maps - ${page.admin}`} noindex kind="admin">
   <AdminPage current="overview">
     <AdminDashboard />
-    <section class="admin-section">
-      <h2>{page.adminSections}</h2>
-      <ul>
-        {ADMIN_SECTIONS.map(({ path, label, description }) => (
-          <li>
-            <a class="section-link" href={`/${lang}/admin/${path}/`}>
-              {page[label]}
-            </a>
-            {" – "}
-            {page[description]}
-          </li>
-        ))}
-      </ul>
-    </section>
   </AdminPage>
 </Layout>
