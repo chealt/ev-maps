@@ -1,6 +1,6 @@
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
-import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
+import { fakeChargersApi, fakeRouteChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
 
 test.beforeEach(async ({ page }) => {
@@ -26,6 +26,7 @@ test(
       ["c", "Clear the filters"],
       ["l", "Locate me"],
       ["r", "Plan a route"],
+      ["x", "Clear the route"],
     ]) {
       await expect(dialog.getByRole("listitem").filter({ hasText: label })).toContainText(key);
     }
@@ -76,6 +77,33 @@ test("r opens the route planner", async ({ page }) => {
   await page.reload();
   await page.keyboard.press("r");
   await expect(page.getByRole("dialog", { name: "Plan a route" })).toBeVisible();
+});
+
+test("x clears the route shown", async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeRouteChargersApi(page);
+  await page.reload();
+  // Without a route, nothing to clear.
+  await page.keyboard.press("x");
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  await page.keyboard.press("r");
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  for (const [field, text, option] of [
+    ["From", "Buda", "Budapest, Hungary"],
+    ["To", "Vie", "Vienna, Austria"],
+  ]) {
+    await dialog.getByRole("combobox", { name: field }).fill(text);
+    await dialog.getByRole("option", { name: option }).click();
+  }
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  const clear = page.locator(".map-controls").getByRole("button", { name: "Clear route" });
+  await expect(clear).toHaveAttribute("aria-keyshortcuts", "x");
+
+  await page.keyboard.press("x");
+  await expect(clear).toBeHidden();
+  await expect(page.evaluate(() => window.__fakeRouteLine)).resolves.toBeNull();
 });
 
 test("? belongs to an open dialog, not the shortcuts", async ({ page }) => {

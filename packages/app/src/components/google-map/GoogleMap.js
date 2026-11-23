@@ -384,7 +384,7 @@ class GoogleMapElement extends HTMLElement {
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
     // the map's shortcuts (see the ? dialog): f filters, c clears them, l
-    // locates, r plans a route. Not while typing or in a dialog: those keys
+    // locates, r plans a route, x clears it. Not while typing or in a dialog: those keys
     // belong to it.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -408,6 +408,7 @@ class GoogleMapElement extends HTMLElement {
         c: () => !this.querySelector(".map-controls .clear-filters")?.hidden && this.clearFilters(),
         l: () => this.querySelector("ev-locate-button button")?.click(),
         r: () => this.routePlanner?.open(),
+        x: () => this.route && this.clearRoute(),
       };
       shortcuts[event.key.toLowerCase()]?.();
     });
