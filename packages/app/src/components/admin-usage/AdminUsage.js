@@ -62,6 +62,23 @@ class AdminUsageElement extends HTMLElement {
     this.renderTotals(stats);
     this.renderChart(stats);
     this.renderBreakdowns(stats);
+    this.renderMostFavorited(stats);
+  }
+
+  // How many users have each as a favorite; chargers without a saved name
+  // show their ID.
+  renderMostFavorited({ mostFavorited = [] }) {
+    const section = this.querySelector(".most-favorited");
+    const template = this.querySelector(".row-template");
+    section.querySelector(".empty").hidden = mostFavorited.length > 0;
+    section.querySelector("tbody").replaceChildren(
+      ...mostFavorited.map(({ id, name, users }) => {
+        const row = template.content.firstElementChild.cloneNode(true);
+        row.querySelector(".name").textContent = name ?? id;
+        row.querySelector(".count").textContent = message("adminFavoritedBy", { count: users });
+        return row;
+      })
+    );
   }
 
   renderTotals({ events }) {
@@ -78,7 +95,7 @@ class AdminUsageElement extends HTMLElement {
 
   renderBreakdowns({ events }) {
     const template = this.querySelector(".row-template");
-    for (const section of this.querySelectorAll(".breakdown")) {
+    for (const section of this.querySelectorAll(".breakdown[data-event]")) {
       const { event } = section.dataset;
       const label = DIMENSION_LABELS[event] ?? ((dimension) => dimension);
       const counts = Object.entries(events[event]?.byDimension ?? {});
