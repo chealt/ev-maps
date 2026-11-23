@@ -1,4 +1,6 @@
 ---
+import DistanceText from "../distance-text/DistanceText.astro";
+import { CORRIDOR_KM } from "../google-map/route.js";
 import { History, LocateFixed, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
@@ -38,7 +40,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
         </Button>
       </PlaceInput>
       <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
-      <p class="hint">{page.routeCorridor}</p>
+      <DistanceText class="hint" template={page.routeCorridor} meters={CORRIDOR_KM * 1000} />
       <p class="error" role="alert"></p>
       <!-- The routes planned before, with the filters on then; choosing one
            plans it again with them (route-history.js). -->

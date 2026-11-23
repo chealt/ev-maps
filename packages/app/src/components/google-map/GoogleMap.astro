@@ -26,6 +26,7 @@ import FilterButton from "../filter-button/FilterButton.astro";
 import RouteButton from "../route-button/RouteButton.astro";
 import RoutePlanner from "../route-planner/RoutePlanner.astro";
 import ShortcutsDialog from "../shortcuts-dialog/ShortcutsDialog.astro";
+import DistanceText from "../distance-text/DistanceText.astro";
 import { translations } from "../../i18n/index.js";
 import "./GoogleMap.css";
 
@@ -67,6 +68,9 @@ const {
 } = Astro.props;
 
 const { page, values } = translations(Astro.currentLocale ?? "en");
+// How near a place must be for the "nearby" filters: the Worker's
+// NEARBY_METERS (packages/worker/src/amenities.js).
+const NEARBY_METERS = 150;
 
 // Kinds of places next to chargers (packages/worker/src/amenities.js).
 const amenities = [
@@ -230,7 +234,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <p class="hint" id="nearby-filter-hint">
             {page.signInForNearby}
           </p>
-          <p class="hint">{page.nearbyFilterHint}</p>
+          <DistanceText class="hint" template={page.nearbyFilterHint} meters={NEARBY_METERS} />
         </div>
         <div class="group" role="group" aria-labelledby="connector-filter-title">
           <h3 class="subtitle" id="connector-filter-title">

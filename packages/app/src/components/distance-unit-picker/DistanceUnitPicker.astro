@@ -1,0 +1,26 @@
+---
+import { translations } from "../../i18n/index.js";
+import "../maps-app-picker/preference-picker.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+// "" follows the locale (src/lib/distance-unit.js's null).
+const options = [
+  { value: "", label: page.distanceUnits.auto },
+  { value: "metric", label: page.distanceUnits.metric },
+  { value: "imperial", label: page.distanceUnits.imperial },
+];
+---
+
+<!-- The unit distances are shown in: by default the user's locale's. -->
+<ev-distance-unit-picker>
+  <fieldset class="preference-picker">
+    <legend class="legend">{page.distanceUnit}</legend>
+    {options.map(({ value, label }) => (
+      <label class="option">
+        <input type="radio" name="distance-unit" value={value} checked={value === ""} />
+        {label}
+      </label>
+    ))}
+  </fieldset>
+  <script src="./DistanceUnitPicker.js"></script>
+</ev-distance-unit-picker>

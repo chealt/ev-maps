@@ -29,7 +29,14 @@ const SECTIONS = {
   mapsApp: {
     app: (value) => value === null || MAPS_APPS.includes(value),
   },
+  // The unit distances are shown in; null follows the user's locale (the
+  // app's src/lib/distance-unit.js).
+  distanceUnit: {
+    unit: (value) => value === null || DISTANCE_UNITS.includes(value),
+  },
 };
+
+const DISTANCE_UNITS = ["metric", "imperial"];
 
 const MAPS_APPS = ["google", "osm", "apple"];
 

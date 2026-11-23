@@ -116,6 +116,15 @@
       ],
       "tests": ["usage", "performance", "error-reporting", "accessibility"]
     },
+    "distances": {
+      "paths": [
+        "packages/app/src/lib/distance-unit.js",
+        "packages/app/src/lib/account-preference.js",
+        "packages/app/src/components/distance-text/**",
+        "packages/app/src/components/distance-unit-picker/**"
+      ],
+      "tests": ["distance-unit", "route-planner", "favorites", "nearby", "open-in-maps"]
+    },
     "admin": {
       "paths": [
         "packages/admin/components/admin-*/**",
