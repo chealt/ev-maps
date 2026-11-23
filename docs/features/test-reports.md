@@ -58,7 +58,9 @@ thresholds, and attaches them ("web-vitals"). `scripts/performance-report.js`
 puts them together into each page's P75, rated good, needs improvement or
 poor, uploaded in `reports/{id}/performance/` and linked from a
 "Performance report" commit status (failure if any P75 is poor). The tests
-run against the development server with the APIs faked, so the numbers are
+run against the development server with the APIs faked, warmed up first
+(`tests/global-setup.js` loads each measured page once, so no test measures
+Vite compiling it), so the numbers are
 for comparing runs; the admin area's performance page has production's.
 
 To measure another test's page, tag it:
@@ -67,9 +69,11 @@ those with `bunx playwright test --grep @performance`.
 
 ## UI evidence
 
-Tests that show a new or updated UI control are tagged `@ui`. At their end
-they attach a screenshot of the page as the test left it
-(`@ev-maps/e2e/test.js`); with the video CI records of every test, that is
+Tests that show a new or updated UI control are tagged `@ui`. They attach
+screenshots of the moments that show it, captioned
+(`captureUi(page, testInfo, "the dialog open")` from `@ev-maps/e2e/test.js`),
+before closing what they opened; a test that captures none gets the page as
+it left it. With the video CI records of every test, that is
 the evidence of what the control looks and feels like, straight from
 Playwright. `scripts/publish-test-report.js` puts the two, per `@ui` test,
 into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:

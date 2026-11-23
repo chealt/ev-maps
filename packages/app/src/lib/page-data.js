@@ -3,7 +3,8 @@
 // (packages/worker/src/admin.js). In development, without the Worker in front:
 // - the tests set it with the x-ev-maps-page-data header (JSON)
 // - otherwise it's read from the Worker's API (`bun run dev`, port 8787), as
-//   the signed-in user
+//   the signed-in user, unless no Worker runs (EV_MAPS_NO_API_PROXY, the
+//   tests): then the page shows it couldn't load, as it would offline
 const DEV_API = "http://localhost:8787";
 const TEST_DATA_HEADER = "x-ev-maps-page-data";
 
@@ -11,6 +12,9 @@ const devPageData = async (request, apiPath) => {
   const testData = request.headers.get(TEST_DATA_HEADER);
   if (testData) {
     return JSON.parse(testData);
+  }
+  if (process.env.EV_MAPS_NO_API_PROXY) {
+    return { failed: true };
   }
   try {
     const response = await fetch(`${DEV_API}${apiPath}`, {

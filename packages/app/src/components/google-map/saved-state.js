@@ -3,6 +3,7 @@ import { get, set } from "idb-keyval";
 
 const FILTERS_KEY = "ev-maps:filters";
 const MAP_VIEW_KEY = "ev-maps:map-view";
+const ROUTE_KEY = "ev-maps:route";
 // Older versions kept the Locate Me position in localStorage.
 const LEGACY_LOCATION_KEY = "ev-maps:last-location";
 
@@ -51,7 +52,7 @@ const stringList = (value) =>
   Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 
 // { powerRanges: ["150-300", ...], connectorTypes: ["ccs", ...],
-//   excludedOperators: ["Operator", ...], onlyFavorites,
+//   excludedOperators: ["Operator", ...], onlyFavorites, hideUnavailable,
 //   nearby: ["coffee", ...], updatedAt },
 // updatedAt being when the user last changed them (0 if never).
 const readFilters = async () => {
@@ -61,6 +62,7 @@ const readFilters = async () => {
     connectorTypes: stringList(filters?.connectorTypes),
     excludedOperators: stringList(filters?.excludedOperators),
     onlyFavorites: filters?.onlyFavorites === true,
+    hideUnavailable: filters?.hideUnavailable === true,
     nearby: stringList(filters?.nearby),
     updatedAt: Number(filters?.updatedAt) || 0,
   };
@@ -68,4 +70,16 @@ const readFilters = async () => {
 
 const saveFilters = (filters) => write(FILTERS_KEY, filters);
 
-export { readFilters, readMapView, saveFilters, saveMapView };
+// The shown route's ends, as { label, placeId } (a Google place) or
+// { label, location }, so a reload shows it again; null once it's cleared.
+const isEnd = (end) =>
+  typeof end?.label === "string" && (typeof end.placeId === "string" || isLocation(end.location));
+
+const readRoute = async () => {
+  const route = await read(ROUTE_KEY);
+  return isEnd(route?.origin) && isEnd(route?.destination) ? route : null;
+};
+
+const saveRoute = (route) => write(ROUTE_KEY, route);
+
+export { readFilters, readMapView, readRoute, saveFilters, saveMapView, saveRoute };

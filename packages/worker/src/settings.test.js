@@ -28,6 +28,8 @@ describe("validSection", () => {
   test("accepts showing only favorites, as a boolean", () => {
     expect(validSection("filters", { onlyFavorites: true, updatedAt: 1 })).toBe(true);
     expect(validSection("filters", { onlyFavorites: "yes", updatedAt: 1 })).toBe(false);
+    expect(validSection("filters", { hideUnavailable: true, updatedAt: 1 })).toBe(true);
+    expect(validSection("filters", { hideUnavailable: 1, updatedAt: 1 })).toBe(false);
   });
 
   test("refuses unknown sections and fields, wrong types and missing times", () => {
@@ -55,5 +57,34 @@ describe("mergeSettings", () => {
     expect(mergeSettings({}, { filters: { powerRanges: [], updatedAt: 1 } })).toEqual({
       filters: { powerRanges: [], updatedAt: 1 },
     });
+  });
+});
+
+describe("routeHistory", () => {
+  const route = {
+    origin: { label: "Budapest, Hungary", placeId: "budapest" },
+    destination: { label: "My location", location: { lat: 48.2, lng: 16.37 } },
+    filters: { powerRanges: ["150-300"], onlyFavorites: false },
+    plannedAt: 1,
+  };
+
+  test("takes up to 10 routes with their places and filters", () => {
+    expect(validSection("routeHistory", { routes: [route], updatedAt: 1 })).toBe(true);
+    expect(validSection("routeHistory", { routes: [], updatedAt: 1 })).toBe(true);
+    expect(
+      validSection("routeHistory", {
+        routes: Array.from({ length: 11 }, () => route),
+        updatedAt: 1,
+      })
+    ).toBe(false);
+  });
+
+  test("turns down routes without places or with unknown filters", () => {
+    const without = (changes) =>
+      validSection("routeHistory", { routes: [{ ...route, ...changes }], updatedAt: 1 });
+    expect(without({ origin: { label: "Nowhere" } })).toBe(false);
+    expect(without({ destination: { label: "x", location: { lat: 99, lng: 0 } } })).toBe(false);
+    expect(without({ filters: { colour: "red" } })).toBe(false);
+    expect(without({ plannedAt: "yesterday" })).toBe(false);
   });
 });

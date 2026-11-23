@@ -148,10 +148,12 @@ What's fine:
 
 Review visual changes by hand instead, and show them from the tests: a pull
 request with new or updated UI controls has tests tagged `@ui`
-(`test("…", { tag: "@ui" }, …)`), which attach a screenshot of the page as
-the test left it, next to the video CI records of every test. Both are in
-the Playwright report the CI publishes, linked from its commit status, so
-the review sees the control as Playwright actually exercised it.
+(`test("…", { tag: "@ui" }, …)`), which attach screenshots of the moments
+that show the control (`captureUi(page, testInfo, "the dialog open")`, e.g.
+before closing what they opened; without one, the page as the test left
+it), next to the video CI records of every test. Both are in the Playwright
+report the CI publishes, linked from its commit status, so the review sees
+the control as Playwright actually exercised it.
 
 ## External Services
 
@@ -164,6 +166,31 @@ Reading the fake's recorded state with `page.evaluate()`, such as
 what the app asked the service to do, not the DOM. Markers rendered by the
 fake must be accessible (e.g. a `<button>` named after the charger), like
 the real Google Maps markers, so tests can find them by role.
+
+## Which Tests a Pull Request Runs
+
+On a pull request, CI runs only the end-to-end specs of the domains it
+changed, plus every test tagged `@regression`.
+`packages/app/e2e-domains.json` maps each domain's paths (globs from the
+repository's root) to its specs; the specs live next to what they test (a
+component, a page, a `src/lib` module), with the fakes in
+`packages/app/tests/fixtures``, and `scripts/select-e2e.js`turns the
+pull request's changed files into one`--grep` for Playwright, which
+matches spec files and tags alike, so the shards stay as they are.
+
+- A change to a shared file (`everything`: dependencies, the Playwright
+  config, the fixtures, layouts, pages, the shared packages), or to a file
+  under `packages/app` that no domain lists, runs every test.
+- Changes outside the app, such as the Worker's (which the end-to-end tests
+  fake) or the docs, run only the `@regression` tests.
+- Main and runs started by hand run every test.
+
+When adding a spec, add it to a domain (a test checks that every spec is
+in one); when adding code to the app, add its path to a domain, or it runs
+everything. Tag a test `@regression`
+(`test("…", { tag: "@regression" }, …)`) when it covers a journey every
+change must keep working, such as seeing chargers on the map, opening one,
+planning a route, saving a favorite or signing out; keep the list short.
 
 ## Running Tests
 

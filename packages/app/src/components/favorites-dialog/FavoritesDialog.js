@@ -3,20 +3,10 @@ import { distanceInMeters, formatDistance } from "../../lib/distance.js";
 import { listFavorites, onFavoritesChange, removeFavorite } from "../../lib/favorites.js";
 import { message } from "../../lib/messages.js";
 import { getMapCenter } from "../../lib/map-center.js";
+import { withViewTransition } from "../../lib/motion.js";
 
 const SHOW_FAVORITES = "show-favorites";
 const SHOW_CHARGER = "show-charger";
-
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Runs a DOM update as a view transition where supported and wanted.
-const withViewTransition = (update) => {
-  if (!document.startViewTransition || prefersReducedMotion()) {
-    update();
-    return Promise.resolve();
-  }
-  return document.startViewTransition(update).finished.catch(() => {});
-};
 
 // Where the account box is, to morph from and back to.
 const accountBox = () => document.querySelector(".user-menu .bar");

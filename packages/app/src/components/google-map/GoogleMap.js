@@ -8,10 +8,19 @@ import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
+import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
+import { forgetRouteHistory, recordRoute } from "./route-history.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
-import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
+import {
+  readFilters,
+  readMapView,
+  readRoute,
+  saveFilters,
+  saveMapView,
+  saveRoute,
+} from "./saved-state.js";
 
 // Signed in, filters are saved to the account this long after the last change.
 const ACCOUNT_SAVE_DELAY = 1000;
@@ -105,18 +114,11 @@ const ROUTE_LINE = { strokeOpacity: 0.85, strokeWeight: 5 };
 // A chosen place, as the Routes library takes it: a Google Place, or a location.
 const routeEndpoint = ({ place, location }) => place ?? location;
 
+// A chosen place as it's saved: a Google place by its ID, or a location.
+const savedEnd = ({ label, place, location }) =>
+  place?.id ? { label, placeId: place.id } : { label, location };
+
 const LIST_ZOOM = 15;
-
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Runs a DOM update as a view transition where supported and wanted.
-const withViewTransition = (update) => {
-  if (!document.startViewTransition || prefersReducedMotion()) {
-    update();
-    return Promise.resolve();
-  }
-  return document.startViewTransition(update).finished.catch(() => {});
-};
 
 const boundsCenter = ({ north, south, east, west }) => ({
   lat: (north + south) / 2,
@@ -190,11 +192,13 @@ const readActiveConnectorTypes = (panel) =>
 // How many of the chargers each operator has: most first, then by name, the
 // unknown operator last. The `kept` operators are listed even without
 // chargers, e.g. ones turned off, so they can be turned back on.
-const countOperators = (chargers, kept) => {
-  const counts = new Map([...kept].map((operator) => [operator, 0]));
-  for (const charger of chargers) {
+const countOperators = (chargers, kept, available = chargers) => {
+  // Every loaded charger's operator is listed, with how many of the
+  // `available` ones (those the other filters leave) it has, maybe none.
+  const counts = new Map([...kept, ...chargers.map(operatorOf)].map((operator) => [operator, 0]));
+  for (const charger of available) {
     const operator = operatorOf(charger);
-    counts.set(operator, (counts.get(operator) ?? 0) + 1);
+    counts.set(operator, counts.get(operator) + 1);
   }
   return [...counts].sort(
     ([nameA, countA], [nameB, countB]) =>
@@ -210,6 +214,7 @@ class GoogleMapElement extends HTMLElement {
   // The charger each charger pin (not cluster) is for.
   chargersByMarker = new Map();
   searchId = 0;
+  routeId = 0;
   // The loaded chargers' filtering and clustering, off the main thread.
   chargerIndex = new ChargerIndexClient();
   // The loaded chargers by ID, to map the index's answers back to them.
@@ -309,7 +314,10 @@ class GoogleMapElement extends HTMLElement {
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
-    this.addEventListener("route-requested", (event) => this.showRoute(event.detail));
+    this.addEventListener("route-requested", (event) =>
+      this.showRoute({ ...event.detail, record: true })
+    );
+    this.addEventListener("route-from-history", (event) => this.showRouteFromHistory(event.detail));
     this.addEventListener("route-cleared", () => this.clearRoute());
     this.clearRouteButton?.addEventListener("click", () => this.clearRoute());
     // The status pill opens the list of chargers, or, too far out to load
@@ -348,6 +356,9 @@ class GoogleMapElement extends HTMLElement {
       }
     }, PIN_STATUS_REFRESH_MS);
     this.showFavoritesSignedIn(isSignedIn());
+    if (isSignedIn()) {
+      this.restoreRoute();
+    }
     onSessionChange((signedIn) => {
       if (!signedIn) {
         this.statuses.clear();
@@ -357,6 +368,11 @@ class GoogleMapElement extends HTMLElement {
       this.showFilterSyncSignedIn(signedIn);
       if (signedIn) {
         this.syncAccountFilters();
+        this.restoreRoute();
+      } else {
+        // Routes are for signed-in users; the next one starts afresh.
+        saveRoute(null);
+        forgetRouteHistory();
       }
     });
     // Live availability needs a signed-in user; show it once there is one.
@@ -371,7 +387,7 @@ class GoogleMapElement extends HTMLElement {
 
     this.detailsPanel
       ?.querySelector(".close")
-      ?.addEventListener("click", () => this.hideChargerDetails());
+      ?.addEventListener("click", () => this.closeChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
     // the map's shortcuts (see the ? dialog): f filters, c clears them, l
@@ -380,7 +396,7 @@ class GoogleMapElement extends HTMLElement {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
-          this.hideChargerDetails();
+          this.closeChargerDetails();
         }
         return;
       }
@@ -405,6 +421,13 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".favorite-button")
       ?.addEventListener("click", () => this.toggleFavorite());
+    // Navigate: a route to the open charger, planned here.
+    this.detailsPanel?.querySelector(".navigate")?.addEventListener("click", () => {
+      const charger = this.activeCharger;
+      if (charger) {
+        this.routePlanner?.planTo({ label: chargerName(charger), location: charger.location });
+      }
+    });
     // A charger picked in the favorites list.
     document.addEventListener("show-charger", (event) =>
       this.showFavoriteCharger(event.detail.charger)
@@ -428,13 +451,16 @@ class GoogleMapElement extends HTMLElement {
       button.addEventListener("click", () => this.clearFilters());
     }
     for (const button of this.filterPanel?.querySelectorAll(".close, .done") ?? []) {
-      button.addEventListener("click", () => this.filterPanel.close());
+      button.addEventListener("click", () => closeDialog(this.filterPanel));
+    }
+    if (this.filterPanel) {
+      animateEscape(this.filterPanel);
     }
     // However the dialog closes (buttons, Escape), the Filters button follows.
     this.filterPanel?.addEventListener("close", () => {
       this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
       // Operators kept in place while the dialog was open can go now.
-      this.listOperators(this.loaded?.chargers ?? []);
+      this.listOperators(this.loaded?.chargers ?? [], this.availableChargers);
       this.flushAccountSave();
     });
     // Leaving the page doesn't lose a save that's waiting.
@@ -550,8 +576,8 @@ class GoogleMapElement extends HTMLElement {
     if (!this.filterPanel || this.filterPanel.open) {
       return;
     }
-    this.filterPanel.showModal();
     this.querySelector(".filter-button")?.setAttribute("aria-expanded", "true");
+    openDialog(this.filterPanel);
   }
 
   handleFilterClick(event) {
@@ -566,14 +592,16 @@ class GoogleMapElement extends HTMLElement {
       this.filtersChanged();
       return;
     }
-    const signedInFilter = event.target.closest(".favorites-filter, .nearby-filter");
+    const signedInFilter = event.target.closest(
+      ".favorites-filter, .availability-filter, .nearby-filter"
+    );
     if (signedInFilter?.getAttribute("aria-disabled") === "true") {
       this.filterPanel.close();
       requestSignIn();
       return;
     }
     const button = event.target.closest(
-      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
     );
     if (!button) {
       return;
@@ -604,7 +632,7 @@ class GoogleMapElement extends HTMLElement {
 
   clearFilters() {
     for (const button of this.querySelectorAll(
-      ".power-filter, .connector-filter, .favorites-filter, .nearby-filter"
+      ".power-filter, .connector-filter, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-pressed", "false");
     }
@@ -617,7 +645,10 @@ class GoogleMapElement extends HTMLElement {
   // turned off. The list is only rebuilt when the operators change, and
   // while the dialog is open none is removed, so ticking one keeps it, and
   // the focus, in place.
-  listOperators(chargers) {
+  // `available` are the chargers the other filters leave: operators with
+  // none of them are listed, but can't be picked (unless they're turned
+  // off, so they can be turned back on).
+  listOperators(chargers, available = chargers) {
     const list = this.filterPanel?.querySelector(".operator-options");
     if (!list) {
       return;
@@ -628,7 +659,7 @@ class GoogleMapElement extends HTMLElement {
         kept.add(checkbox.dataset.operator);
       }
     }
-    const operators = countOperators(chargers, kept);
+    const operators = countOperators(chargers, kept, available);
     const signature = JSON.stringify(operators);
     if (signature !== this.operatorsSignature) {
       this.operatorsSignature = signature;
@@ -636,7 +667,9 @@ class GoogleMapElement extends HTMLElement {
       list.replaceChildren(
         ...operators.map(([operator, count]) => {
           const option = template.content.cloneNode(true);
-          option.querySelector(".operator-filter").dataset.operator = operator;
+          const checkbox = option.querySelector(".operator-filter");
+          checkbox.dataset.operator = operator;
+          checkbox.dataset.count = String(count);
           option.querySelector(".operator-name").textContent =
             operator || message("unknownOperator");
           option.querySelector(".operator-count").textContent = formatNumber(count);
@@ -653,7 +686,9 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     for (const checkbox of this.filterPanel.querySelectorAll(".operator-filter")) {
-      checkbox.checked = !this.excludedOperators.has(checkbox.dataset.operator);
+      const excluded = this.excludedOperators.has(checkbox.dataset.operator);
+      checkbox.checked = !excluded;
+      checkbox.disabled = !excluded && checkbox.dataset.count === "0";
     }
     this.filterPanel.querySelector(".show-all-operators").hidden =
       this.excludedOperators.size === 0;
@@ -674,6 +709,7 @@ class GoogleMapElement extends HTMLElement {
       connectorTypes: this.activeConnectorGroups(),
       excludedOperators: [...this.excludedOperators].sort(),
       onlyFavorites: this.favoritesFilterPressed(),
+      hideUnavailable: this.availabilityFilterPressed(),
       nearby: this.pressedAmenities(),
       updatedAt: this.filtersUpdatedAt ?? 0,
     };
@@ -688,6 +724,7 @@ class GoogleMapElement extends HTMLElement {
       this.activeConnectorGroups().length +
       (this.excludedOperators.size > 0 ? 1 : 0) +
       (this.onlyFavorites() ? 1 : 0) +
+      (this.hideUnavailable() ? 1 : 0) +
       this.activeAmenities().length;
     const active = count > 0;
     customElements
@@ -721,6 +758,7 @@ class GoogleMapElement extends HTMLElement {
     connectorTypes = [],
     excludedOperators = [],
     onlyFavorites = false,
+    hideUnavailable = false,
     nearby = [],
     updatedAt = 0,
   }) {
@@ -728,6 +766,10 @@ class GoogleMapElement extends HTMLElement {
       button.setAttribute("aria-pressed", String(nearby.includes(button.dataset.amenity)));
     }
     this.querySelector(".favorites-filter")?.setAttribute("aria-pressed", String(onlyFavorites));
+    this.querySelector(".availability-filter")?.setAttribute(
+      "aria-pressed",
+      String(hideUnavailable)
+    );
     this.excludedOperators = new Set(excludedOperators);
     this.showOperatorChoices();
     for (const button of this.querySelectorAll(".power-filter")) {
@@ -835,6 +877,7 @@ class GoogleMapElement extends HTMLElement {
       }
       this.loaded = null;
       this.clearMarkers();
+      this.availableChargers = [];
       this.listOperators([]);
       this.hideChargerDetails();
       this.setStatus(message("zoomIn"), "warning");
@@ -884,25 +927,32 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const { chargers, truncated } = this.loaded;
-    this.listOperators(chargers);
     if (this.indexedChargers !== chargers) {
       this.indexedChargers = chargers;
       this.chargersById = new Map(chargers.map((charger) => [charger.id, charger]));
       this.chargerIndex.setChargers(chargers);
     }
-    const matchingIds = await this.chargerIndex.filter({
+    const { matching: matchingIds, available: availableIds } = await this.chargerIndex.filter({
       ranges: this.filterPanel ? readActivePowerRanges(this.filterPanel) : [],
       connectorTypes: this.filterPanel ? [...readActiveConnectorTypes(this.filterPanel)] : [],
       excludedOperators: [...this.excludedOperators],
       favoriteIds: this.onlyFavorites()
         ? chargers.filter((charger) => isFavorite(charger.id)).map((charger) => charger.id)
         : null,
+      // "Hide unavailable": the chargers the live statuses say are full.
+      unavailableIds: this.hideUnavailable()
+        ? chargers.filter((charger) => !this.isAvailable(charger)).map((charger) => charger.id)
+        : [],
       amenities: this.activeAmenities(),
     });
     // A newer load replaced these chargers while they were filtered.
     if (this.loaded?.chargers !== chargers) {
       return;
     }
+    // The operators are listed by what every other filter leaves.
+    const available = availableIds.map((id) => this.chargersById.get(id));
+    this.availableChargers = available;
+    this.listOperators(chargers, available);
     const matching = matchingIds.map((id) => this.chargersById.get(id));
     await this.renderMarkers();
     this.setListedChargers(matching);
@@ -981,9 +1031,14 @@ class GoogleMapElement extends HTMLElement {
 
   // Plans the route with Google's Routes library, draws it, and shows the
   // chargers along it (POST /api/chargers/route) instead of the map's.
-  async showRoute({ origin, destination }) {
+  // `record`: put it in the user's route history, with the filters on now
+  // (not for a route restored after a reload).
+  async showRoute({ origin, destination, record = false }) {
     await this.mapReady;
-    const searchId = ++this.searchId;
+    // A newer route replaces this one; the map's own loads don't, but this
+    // cancels theirs.
+    const routeId = ++this.routeId;
+    ++this.searchId;
     this.setStatus(message("routeLoading"), "loading");
     try {
       const { Route } = await this.maps.importLibrary("routes");
@@ -996,13 +1051,13 @@ class GoogleMapElement extends HTMLElement {
       });
       const path = routes?.[0]?.path?.map(toLatLng);
       if (!path?.length) {
-        if (searchId === this.searchId) {
+        if (routeId === this.routeId) {
           this.setStatus(message("noRoute"), "error");
         }
         return;
       }
       const { chargers, full } = await fetchChargersAlongRoute(path);
-      if (searchId !== this.searchId) {
+      if (routeId !== this.routeId) {
         return;
       }
       const { Polyline } = await this.maps.importLibrary("maps");
@@ -1014,16 +1069,64 @@ class GoogleMapElement extends HTMLElement {
       this.setRouteShown(true);
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
+      saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination) });
+      if (record) {
+        const { updatedAt: _, ...filters } = this.currentFilters();
+        recordRoute({
+          origin: savedEnd(origin),
+          destination: savedEnd(destination),
+          filters,
+          plannedAt: Date.now(),
+        }).catch((error) => console.error("Could not save the route history:", error));
+      }
       await this.showMatchingChargers();
     } catch (error) {
       console.error("Could not plan the route:", error);
-      if (searchId === this.searchId) {
+      if (routeId === this.routeId) {
         this.setStatus(message(navigator.onLine ? "routeFailed" : "offlineChargers"), "error");
       }
     }
   }
 
+  // A saved route's ends as the Routes library takes them: a Google place
+  // rebuilt from its ID, or a location.
+  async routeEnds({ origin, destination }) {
+    await this.mapReady;
+    const { Place } = await this.maps.importLibrary("places");
+    const toEnd = ({ label, placeId, location }) =>
+      placeId ? { label, place: new Place({ id: placeId }) } : { label, location };
+    return { origin: toEnd(origin), destination: toEnd(destination) };
+  }
+
+  // A route from the history: its filters back on, then the route planned
+  // again, and moved to the top of the history.
+  async showRouteFromHistory(route) {
+    this.applyFilters({ ...route.filters, updatedAt: Date.now() });
+    this.filtersChanged();
+    const { origin, destination } = await this.routeEnds(route);
+    this.routePlanner?.setPlaces(origin, destination);
+    await this.showRoute({ origin, destination, record: true });
+  }
+
+  // Shows the route saved before a reload again, once per page, and its
+  // places in the route planner.
+  async restoreRoute() {
+    if (this.routeRestored) {
+      return;
+    }
+    this.routeRestored = true;
+    const saved = await readRoute();
+    if (!saved || this.route) {
+      return;
+    }
+    await this.mapReady;
+    const { origin, destination } = await this.routeEnds(saved);
+    this.routePlanner?.setPlaces(origin, destination);
+    await this.showRoute({ origin, destination });
+  }
+
   clearRoute() {
+    saveRoute(null);
     if (!this.route) {
       return;
     }
@@ -1089,6 +1192,22 @@ class GoogleMapElement extends HTMLElement {
     return isSignedIn() && this.favoritesFilterPressed();
   }
 
+  // Whether "Hide unavailable" is pressed; it only applies signed in, as
+  // live statuses do.
+  availabilityFilterPressed() {
+    return this.querySelector(".availability-filter")?.getAttribute("aria-pressed") === "true";
+  }
+
+  hideUnavailable() {
+    return isSignedIn() && this.availabilityFilterPressed();
+  }
+
+  // False while the live statuses say none of the charger's points is free;
+  // chargers without statuses are kept, as nothing says they're taken.
+  isAvailable(charger) {
+    return noneFree(this.cachedStatuses(liveStatusIds(charger))) !== true;
+  }
+
   pressedAmenities() {
     return [...this.querySelectorAll('.nearby-filter[aria-pressed="true"]')].map(
       (button) => button.dataset.amenity
@@ -1104,12 +1223,12 @@ class GoogleMapElement extends HTMLElement {
   // disabled, say to sign in, and open the sign-in options.
   showFavoritesSignedIn(signedIn) {
     for (const button of this.querySelectorAll(
-      ".favorite-button, .favorites-filter, .nearby-filter"
+      ".favorite-button, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-disabled", String(!signedIn));
     }
     for (const hint of this.querySelectorAll(
-      "#favorite-sign-in-hint, #favorites-filter-hint, #nearby-filter-hint"
+      "#favorite-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
     )) {
       hint.hidden = signedIn;
     }
@@ -1277,12 +1396,22 @@ class GoogleMapElement extends HTMLElement {
 
   // Signed in, loads the live statuses of the chargers pinned on the map
   // (in batches, the recent ones from memory) and colors their pins.
+  // With "Hide unavailable", also the statuses of the loaded chargers in
+  // view that it hides, so they come back once a point is free; and the
+  // chargers are filtered again when new statuses came in.
   async showPinAvailability() {
     const markers = [...this.markersById.values()].filter((marker) =>
       this.chargersByMarker.has(marker)
     );
+    const before = this.statusesVersion;
     if (isSignedIn()) {
-      const ids = markers.flatMap((marker) => liveStatusIds(this.chargersByMarker.get(marker)));
+      const bounds = this.map?.getBounds()?.toJSON();
+      const shown = markers.map((marker) => this.chargersByMarker.get(marker));
+      const hidden =
+        this.hideUnavailable() && bounds
+          ? (this.loaded?.chargers ?? []).filter((charger) => isInBounds(charger.location, bounds))
+          : [];
+      const ids = [...shown, ...hidden].flatMap(liveStatusIds);
       try {
         await this.loadStatuses(ids);
       } catch (error) {
@@ -1291,6 +1420,9 @@ class GoogleMapElement extends HTMLElement {
     }
     for (const marker of markers) {
       this.showMarkerAvailability(marker);
+    }
+    if (this.statusesVersion !== before && this.hideUnavailable()) {
+      await this.showMatchingChargers();
     }
   }
 
@@ -1451,6 +1583,7 @@ class GoogleMapElement extends HTMLElement {
       for (const id of batch) {
         this.statuses.set(id, { status: statuses[id] ?? null, fetchedAt: Date.now() });
       }
+      this.statusesVersion = (this.statusesVersion ?? 0) + 1;
     }
     return true;
   }
@@ -1522,6 +1655,12 @@ class GoogleMapElement extends HTMLElement {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
     section.hidden = false;
+  }
+
+  // Closed by the user (the close button, Escape): it slides out. Other
+  // flows hide it at once, as they may show another charger right after.
+  closeChargerDetails() {
+    withViewTransition(() => this.hideChargerDetails());
   }
 
   hideChargerDetails() {

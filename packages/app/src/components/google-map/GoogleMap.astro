@@ -13,6 +13,7 @@ import {
   List,
   ZoomIn,
   MapPin,
+  Navigation,
   PlugZap,
   RouteOff,
   X,
@@ -181,6 +182,30 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             {page.signInForFavorites}
           </p>
         </div>
+        <div class="group" role="group" aria-labelledby="availability-filter-title">
+          <h3 class="subtitle" id="availability-filter-title">
+            {page.availability}
+          </h3>
+          <div class="options">
+            <Button
+              variant="secondary"
+              size="large"
+              class="availability-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="availability-filter-hint availability-filter-about"
+            >
+              <Icon icon={Activity} size="sm" />
+              {page.hideUnavailable}
+            </Button>
+          </div>
+          <p class="hint" id="availability-filter-hint">
+            {page.signInForAvailability}
+          </p>
+          <p class="hint" id="availability-filter-about">
+            {page.hideUnavailableHint}
+          </p>
+        </div>
         <div class="group" role="group" aria-labelledby="nearby-filter-title">
           <h3 class="subtitle" id="nearby-filter-title">
             {page.nearby}
@@ -319,10 +344,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="header">
-        <span class="badge">
-          <Icon icon={Zap} size="sm" />
-          {page.badge}
-        </span>
+        <h2 class="name" id="charger-details-name"></h2>
         <div class="actions">
           <!-- Signed out: disabled-looking, says to sign in, and opens the
                sign-in options. -->
@@ -347,11 +369,16 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </div>
       </div>
-      <h2 class="name" id="charger-details-name"></h2>
       <p class="address">
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
       </p>
+      <!-- Plans a route here, in the route planner: from where the user is,
+           if they already allow it, else they choose where from. -->
+      <Button variant="primary" class="navigate" aria-haspopup="dialog">
+        <Icon icon={Navigation} size="sm" />
+        {page.navigate}
+      </Button>
       <section class="section availability" hidden>
         <h3 class="title">
           <Icon icon={Activity} size="sm" />

@@ -7,10 +7,15 @@ const adminUsage = {
     adminLastDays: "Elmúlt {days} nap",
     adminPageViewsPerDay: "Oldalmegtekintések naponta",
     adminNoData: "Még nincs adat.",
+    adminMostFavorited: "A legtöbbször kedvelt töltők, most",
   },
   messages: {
     adminUsageNotLoaded: "Nem sikerült betölteni a statisztikát. Próbáld újra.",
     adminUsagePeriod: "{from} – {to}",
+    adminFavoritedBy: {
+      one: "{count} felhasználó",
+      other: "{count} felhasználó",
+    },
   },
   values: {
     usageEvents: {

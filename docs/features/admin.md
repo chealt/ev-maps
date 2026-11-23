@@ -15,7 +15,8 @@ total and a link to the page with more (errors, usage), and the 10 most
 visited pages of those days (the `page_path` counts), each with a bar as long
 as its share of the first. One request,
 `GET /api/admin/dashboard` (`packages/worker/src/admin-dashboard.js`), counts
-them from the admin database. Below it, the sections are listed.
+them from the admin database. The sections are only in the navigation at
+the top of every admin page.
 
 The charts are `components/bar-chart`, shared with the usage page: the Astro
 component renders the chart's frame, and `renderBarChart` fills in a bar per

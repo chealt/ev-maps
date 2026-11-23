@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = 4322;
 
 export default defineConfig({
-  testDir: "./tests",
+  // The specs live next to what they test (a component, a page, a lib), with
+  // the fakes in tests/fixtures.
+  testDir: "./src",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a
@@ -15,6 +17,10 @@ export default defineConfig({
     // Requests made by a service worker bypass page.route(), so the external
     // APIs couldn't be faked; without it the app fetches directly.
     serviceWorkers: "block",
+    // No animations, so a test can act as soon as something shows, as a
+    // user's next click would; tests/motion.spec.js turns them on to check
+    // the animated path.
+    reducedMotion: "reduce",
     // CI keeps a video of every test and a trace of every failed attempt;
     // both are attached to the HTML report artifact.
     trace: process.env.CI ? "retain-on-failure" : "on-first-retry",

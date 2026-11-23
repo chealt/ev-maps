@@ -41,3 +41,58 @@
     padding-bottom: var(--spacing-lg);
   }
 }
+
+/* The routes planned before (route-history.js), with the filters on then. */
+.recent-routes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+
+  &[hidden] {
+    display: none;
+  }
+
+  .subtitle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+  }
+}
+
+.recent-route-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-route {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+
+  .route-ends {
+    font-weight: var(--font-weight-medium);
+    overflow-wrap: anywhere;
+  }
+
+  .route-filters {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+}
