@@ -18,3 +18,10 @@ Below the breakdowns, the 10 chargers most users have as a favorite now:
 charger (`mostFavorited` in `packages/worker/src/admin.js`), named from the
 copy the favorites keep. Favorites are kept, not counted per day, so this
 doesn't change with the period.
+
+Only production's own traffic is counted, as for the performance numbers
+(`PRODUCTION_HOSTS`, `src/real-traffic.js`): the pull requests' previews
+share the admin database but count nothing, neither the pages' reports nor
+the Worker's own events (sign-ins, routes, favorites). The request's
+trace carries the decision, so events counted without the request at hand
+(e.g. Better Auth's hooks) follow it too.

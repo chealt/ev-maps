@@ -35,6 +35,10 @@ GOOGLE_CLIENT_ID = "605162380909-92ejnikf2hpgjd6hk6t17rgp1hjtauua.apps.googleuse
 EMAIL_FROM = "EV Maps <sign-in@chealt.com>"
 # Users with a verified email at this domain see the admin area.
 ADMIN_EMAIL_DOMAIN = "chealt.com"
+# Production's addresses: only their traffic counts in the admin area's
+# performance numbers (src/real-traffic.js), not the pull requests'
+# previews, which share the databases.
+PRODUCTION_HOSTS = "ev.chealt.com,ev-maps.chealt.workers.dev"
 
 [assets]
 # The app's static files; its server-rendered pages are in ../app/dist/server

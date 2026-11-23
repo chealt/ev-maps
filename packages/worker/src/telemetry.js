@@ -3,6 +3,7 @@
 // traces as the Worker's (src/tracing.js), and Core Web Vitals. Kept 14 days
 // in the admin database; no user IDs, no IP addresses.
 
+import { isRealTraffic } from "./real-traffic.js";
 import { EVERY_15_MINUTES } from "./crons.js";
 import { INSERT_SPAN } from "./tracing.js";
 
@@ -78,6 +79,10 @@ const telemetryResponse = async (request, env, now = Date.now()) => {
   const text = await request.text();
   if (text.length > MAX_BODY_BYTES) {
     return json({ error: "Too large" }, 413);
+  }
+  // A preview's visitors aren't real users: accepted, not recorded.
+  if (!isRealTraffic(request, env)) {
+    return json({ spans: 0, vitals: 0 }, 202);
   }
   let body;
   try {

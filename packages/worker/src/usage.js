@@ -3,6 +3,7 @@
 // sign-ins, routes, favorites); pages send theirs, batched, to
 // POST /api/usage. No identifiers are stored; counts are kept ~13 months.
 
+import { isRealRequest } from "./tracing.js";
 import { EVERY_15_MINUTES } from "./crons.js";
 
 const USAGE_PATH = "/api/usage";
@@ -27,6 +28,10 @@ const dayOf = (time) => new Date(time).toISOString().slice(0, 10);
 
 // Adds the counts, [{ event, dimension, count }], to today's.
 const countUsage = async (env, counts, now = Date.now()) => {
+  // A preview's visitors aren't real users (src/real-traffic.js).
+  if (!isRealRequest()) {
+    return;
+  }
   if (!env.ADMIN_DB || counts.length === 0) {
     return;
   }

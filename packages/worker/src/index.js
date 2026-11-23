@@ -50,7 +50,9 @@ const route = async (request, env, context) => {
   }
   const pageRoute = PAGE_ROUTES.find((candidate) => candidate.matches(request, url));
   if (pageRoute) {
-    setTraceRoute(pageRoute.name);
+    if (!pageRoute.untraced) {
+      setTraceRoute(pageRoute.name);
+    }
     return pageRoute.handle({
       request,
       env,
