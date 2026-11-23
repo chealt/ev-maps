@@ -240,3 +240,32 @@ test("asks to sign in before planning a route", async ({ page }) => {
   const menu = page.getByRole("dialog", { name: "Account" });
   await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
 });
+
+test("keeps the route after a reload, until it's cleared", async ({ page }) => {
+  await fakeRouteChargersApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+  await page.reload();
+
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
+  expect(await page.evaluate(() => window.__fakeRouteLine.path.length)).toBe(21);
+  // The same places, by their IDs, and in the route planner.
+  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
+  expect(routeRequest).toMatchObject({ origin: { id: "budapest" }, destination: { id: "vienna" } });
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("Budapest, Hungary");
+  await expect(dialog.getByRole("combobox", { name: "To" })).toHaveValue("Vienna, Austria");
+  await dialog.getByRole("button", { name: "Close" }).click();
+
+  await page.getByRole("button", { name: "Clear route" }).click();
+  await page.reload();
+
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  await expect(page.getByRole("button", { name: "Clear route" })).toBeHidden();
+});
