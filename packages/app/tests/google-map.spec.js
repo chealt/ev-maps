@@ -30,6 +30,15 @@ const mapState = (page) =>
 const loadedChargersAround = (location) =>
   chargerRequests.some((request) => requestCovers(request, location));
 
+test("filters and clusters the chargers in a Web Worker, off the main thread", async ({ page }) => {
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button", { name: downtownChargerLabel, exact: true })).toBeVisible();
+
+  expect(page.workers().map((worker) => worker.url())).toContainEqual(
+    expect.stringContaining("charger-worker")
+  );
+});
+
 test("initializes the map with the configured center and map ID", async ({ page }) => {
   await expect(page.getByRole("region", { name: "EV charging station map" })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");

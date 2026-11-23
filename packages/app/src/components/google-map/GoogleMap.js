@@ -1,4 +1,3 @@
-import Supercluster from "supercluster";
 import { fetchChargersInBounds } from "./chargers.js";
 import { chargerName } from "../../lib/charger-name.js";
 import { distanceInMeters, formatDistance } from "../../lib/distance.js";
@@ -9,17 +8,15 @@ import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
+import { ChargerIndexClient } from "./charger-index-client.js";
+import { operatorOf } from "./charger-index.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
 
 // Signed in, filters are saved to the account this long after the last change.
 const ACCOUNT_SAVE_DELAY = 1000;
 
-// Chargers closer than this many pixels are grouped; above the max zoom never.
-const CLUSTER_RADIUS = 60;
-const CLUSTER_MAX_ZOOM = 16;
-// Google Maps tiles are 256px, so the radius is in screen pixels.
-const CLUSTER_EXTENT = 256;
+// How a cluster's pin is sized by its count (clustering: ./charger-index.js).
 const CLUSTER_SIZES = [
   { minCount: 100, size: "large" },
   { minCount: 10, size: "medium" },
@@ -129,12 +126,6 @@ const boundsCenter = ({ north, south, east, west }) => ({
 const isInBounds = ({ lat, lng }, { north, south, east, west }) =>
   lat >= south && lat <= north && lng >= west && lng <= east;
 
-const toFeature = (charger) => ({
-  type: "Feature",
-  geometry: { type: "Point", coordinates: [charger.location.lng, charger.location.lat] },
-  properties: { charger },
-});
-
 const chargerCountMessage = ({ shown, total, filtered, truncated, alongRoute }) => {
   if (!total) {
     return message(alongRoute ? "noRouteChargers" : "noChargers");
@@ -182,9 +173,6 @@ const readActiveConnectorTypes = (panel) =>
     )
   );
 
-// A charger's operator as the operator filter knows it; "" is unknown.
-const operatorOf = (charger) => charger.operator?.trim() ?? "";
-
 // How many of the chargers each operator has: most first, then by name, the
 // unknown operator last. The `kept` operators are listed even without
 // chargers, e.g. ones turned off, so they can be turned back on.
@@ -200,21 +188,6 @@ const countOperators = (chargers, kept) => {
   );
 };
 
-// With no connector type active, every charger matches; otherwise it needs a
-// connector of one of the active types.
-const matchesConnectors = (charger, types) =>
-  types.size === 0 || charger.connectors.some((connector) => types.has(connector.type));
-
-// With no range active, every charger matches, including those without power
-// data; otherwise its fastest connector must be in one of the active ranges.
-const matchesPower = (charger, ranges) => {
-  if (!ranges.length) {
-    return true;
-  }
-  const power = charger.maxPowerKw;
-  return power != null && ranges.some((range) => power >= range.minKw && power < range.maxKw);
-};
-
 class GoogleMapElement extends HTMLElement {
   map = null;
   maps = null;
@@ -223,6 +196,10 @@ class GoogleMapElement extends HTMLElement {
   // The charger each charger pin (not cluster) is for.
   chargersByMarker = new Map();
   searchId = 0;
+  // The loaded chargers' filtering and clustering, off the main thread.
+  chargerIndex = new ChargerIndexClient();
+  // The loaded chargers by ID, to map the index's answers back to them.
+  chargersById = new Map();
   mapReady = new Promise((resolve) => {
     this.resolveMapReady = resolve;
   });
@@ -876,25 +853,26 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const { chargers, truncated } = this.loaded;
-    const ranges = this.filterPanel ? readActivePowerRanges(this.filterPanel) : [];
-    const types = this.filterPanel ? readActiveConnectorTypes(this.filterPanel) : new Set();
     this.listOperators(chargers);
-    const onlyFavorites = this.onlyFavorites();
-    const amenities = this.activeAmenities();
-    const matching = chargers.filter(
-      (charger) =>
-        matchesPower(charger, ranges) &&
-        matchesConnectors(charger, types) &&
-        !this.excludedOperators.has(operatorOf(charger)) &&
-        (!onlyFavorites || isFavorite(charger.id)) &&
-        amenities.every((amenity) => charger.amenities?.includes(amenity))
-    );
-
-    this.clusterIndex = new Supercluster({
-      radius: CLUSTER_RADIUS,
-      extent: CLUSTER_EXTENT,
-      maxZoom: CLUSTER_MAX_ZOOM,
-    }).load(matching.map(toFeature));
+    if (this.indexedChargers !== chargers) {
+      this.indexedChargers = chargers;
+      this.chargersById = new Map(chargers.map((charger) => [charger.id, charger]));
+      this.chargerIndex.setChargers(chargers);
+    }
+    const matchingIds = await this.chargerIndex.filter({
+      ranges: this.filterPanel ? readActivePowerRanges(this.filterPanel) : [],
+      connectorTypes: this.filterPanel ? [...readActiveConnectorTypes(this.filterPanel)] : [],
+      excludedOperators: [...this.excludedOperators],
+      favoriteIds: this.onlyFavorites()
+        ? chargers.filter((charger) => isFavorite(charger.id)).map((charger) => charger.id)
+        : null,
+      amenities: this.activeAmenities(),
+    });
+    // A newer load replaced these chargers while they were filtered.
+    if (this.loaded?.chargers !== chargers) {
+      return;
+    }
+    const matching = matchingIds.map((id) => this.chargersById.get(id));
     await this.renderMarkers();
     this.setListedChargers(matching);
 
@@ -1140,30 +1118,22 @@ class GoogleMapElement extends HTMLElement {
   async showFavoriteCharger(charger) {
     await this.mapReady;
     this.displayChargerDetails(charger);
-    this.map.setZoom(this.unclusteredZoom(charger));
+    this.map.setZoom(await this.unclusteredZoom(charger));
     this.centerInVisibleArea(charger.location);
   }
 
   async showChargerFromList(charger) {
     await this.closeChargerList();
     this.displayChargerDetails(charger);
-    this.map.setZoom(this.unclusteredZoom(charger));
+    this.map.setZoom(await this.unclusteredZoom(charger));
     this.centerInVisibleArea(charger.location);
   }
 
   // The lowest zoom (at least LIST_ZOOM) at which the charger has its own pin
   // instead of being part of a cluster.
   unclusteredZoom(charger) {
-    const { lat, lng } = charger.location;
-    const around = [lng - 1e-6, lat - 1e-6, lng + 1e-6, lat + 1e-6];
     const fromZoom = Math.max(Math.floor(this.map.getZoom()), LIST_ZOOM);
-    for (let zoom = fromZoom; zoom <= CLUSTER_MAX_ZOOM; zoom++) {
-      const features = this.clusterIndex?.getClusters(around, zoom) ?? [];
-      if (features.some((f) => !f.properties.cluster && f.properties.charger.id === charger.id)) {
-        return zoom;
-      }
-    }
-    return CLUSTER_MAX_ZOOM + 1;
+    return this.chargerIndex.unclusteredZoom(charger, fromZoom);
   }
 
   // Centers a location in the part of the map the details panel leaves
@@ -1193,7 +1163,6 @@ class GoogleMapElement extends HTMLElement {
     }
     this.markersById.clear();
     this.chargersByMarker.clear();
-    this.clusterIndex = null;
     this.setListedChargers([]);
     this.activeMarker = null;
   }
@@ -1266,8 +1235,8 @@ class GoogleMapElement extends HTMLElement {
   }
 
   createClusterMarker(AdvancedMarkerElement, cluster) {
-    const { cluster_id: clusterId, point_count: count } = cluster.properties;
-    const [lng, lat] = cluster.geometry.coordinates;
+    const { clusterId, count } = cluster;
+    const [lng, lat] = cluster.coordinates;
     const content = this.cloneTemplate(".charger-cluster-template");
     content.querySelector(".count").textContent = String(count);
     const size = CLUSTER_SIZES.find(({ minCount }) => count >= minCount)?.size;
@@ -1283,19 +1252,19 @@ class GoogleMapElement extends HTMLElement {
     });
     marker.clusterId = clusterId;
     this.showClusterFavorite(marker);
-    marker.addEventListener("gmp-click", () => {
+    marker.addEventListener("gmp-click", async () => {
       this.map.setCenter({ lat, lng });
-      this.map.setZoom(this.clusterIndex.getClusterExpansionZoom(clusterId));
+      this.map.setZoom(await this.chargerIndex.expansionZoom(clusterId));
     });
     return marker;
   }
 
   // A cluster wears the favorite design when any charger in it is one of
   // the user's favorites.
-  showClusterFavorite(marker) {
-    const favorite = this.clusterIndex
-      .getLeaves(marker.clusterId, Infinity)
-      .some(({ properties }) => isFavorite(properties.charger.id));
+  async showClusterFavorite(marker) {
+    const favoriteIds = [...this.chargersById.keys()].filter((id) => isFavorite(id));
+    const favorite =
+      favoriteIds.length > 0 && (await this.chargerIndex.clusterHas(marker.clusterId, favoriteIds));
     marker.content?.classList.toggle("favorite", favorite);
   }
 
@@ -1311,13 +1280,15 @@ class GoogleMapElement extends HTMLElement {
     const { AdvancedMarkerElement } = await this.maps.importLibrary("marker");
     const { north, south, east, west } = bounds;
     const zoom = Math.floor(this.map.getZoom());
-    const features = this.clusterIndex.getClusters([west, south, east, north], zoom);
+    const features = (await this.chargerIndex.clusters([west, south, east, north], zoom)).filter(
+      (feature) => feature.clusterId != null || this.chargersById.has(feature.chargerId)
+    );
 
     const featuresByKey = new Map(
       features.map((feature) => [
-        feature.properties.cluster
-          ? `cluster:${zoom}:${feature.properties.cluster_id}`
-          : `charger:${feature.properties.charger.id}`,
+        feature.clusterId != null
+          ? `cluster:${zoom}:${feature.clusterId}`
+          : `charger:${feature.chargerId}`,
         feature,
       ])
     );
@@ -1334,9 +1305,12 @@ class GoogleMapElement extends HTMLElement {
       if (!this.markersById.has(key)) {
         this.markersById.set(
           key,
-          feature.properties.cluster
+          feature.clusterId != null
             ? this.createClusterMarker(AdvancedMarkerElement, feature)
-            : this.createChargerMarker(AdvancedMarkerElement, feature.properties.charger)
+            : this.createChargerMarker(
+                AdvancedMarkerElement,
+                this.chargersById.get(feature.chargerId)
+              )
         );
       }
     }
