@@ -127,6 +127,34 @@ test("asks to zoom in when the visible area is too large", async ({ page }) => {
   await expect(markers).toHaveCount(2);
 });
 
+test(
+  "zooms in to where chargers load from the zoom in warning",
+  { tag: "@ui" },
+  async ({ page }) => {
+    await fakeChargersApi(page);
+    await page.goto("/");
+    const markers = page
+      .getByRole("region", { name: "EV charging station map" })
+      .getByRole("button");
+    await expect(markers).toHaveCount(2);
+    await page.evaluate(() => window.__fakeMap.setZoom(5));
+
+    // The warning is a button that zooms in, not the list's.
+    const zoomIn = page.getByRole("button", { name: "Zoom in to see EV chargers" });
+    await expect(zoomIn).toBeEnabled();
+    await expect(zoomIn).not.toHaveAttribute("aria-haspopup");
+    await zoomIn.click();
+
+    // To the zoom where chargers load (appConfig's evChargers.minZoom).
+    await expect.poll(() => page.evaluate(() => window.__fakeMap.getZoom())).toBe(9);
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    await expect(page.getByRole("button", { name: "2 EV chargers found" })).toHaveAttribute(
+      "aria-haspopup",
+      "dialog"
+    );
+  }
+);
+
 test("loads smaller tiles where an area is too dense for one request", async ({ page }) => {
   // Tiles at the default zoom are ~0.35° wide; their smaller tiles are ~0.18°.
   const requests = await fakeChargersApi(page, { fullTilesWiderThan: 0.3 });
@@ -301,3 +329,18 @@ test("asks to sign in for live availability", async ({ page }) => {
   await map.getByRole("button", { name: "Downtown Supercharger" }).click();
   await expect(details.getByText("5 of 6 points free")).toBeVisible();
 });
+
+test(
+  "opens the list of the chargers found from the status pill",
+  { tag: "@ui" },
+  async ({ page }) => {
+    await fakeChargersApi(page);
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "2 EV chargers found" }).click();
+
+    const list = page.getByRole("dialog", { name: "2 EV chargers" });
+    await expect(list).toBeVisible();
+    await expect(list.getByRole("listitem")).toHaveCount(2);
+  }
+);

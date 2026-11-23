@@ -36,6 +36,7 @@
       ],
       "tests": [
         "google-map",
+        "charger-details",
         "chargers",
         "scrolling",
         "pin-availability",

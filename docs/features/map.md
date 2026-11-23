@@ -15,4 +15,10 @@ edge for a day and in the browser by the service worker.
 ## Clustering
 
 `supercluster` groups nearby chargers; only the clusters and
-chargers in view are drawn as markers.
+chargers in view are drawn as markers. The filtering and the cluster index
+run in a Web Worker (`charger-worker.js`, around `charger-index.js`), so
+building and querying the index makes no long task on the main thread: the
+page sends it the loaded chargers once, then the filters and the map's
+bounds, and gets back charger IDs and clusters, which it maps to its own
+chargers and draws (markers need the DOM). Where a module worker can't
+start, `charger-index-client.js` answers the same calls in the page.
