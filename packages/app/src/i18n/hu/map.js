@@ -15,6 +15,9 @@ const map = {
     closeList: "Lista bezárása",
     close: "Bezárás",
     navigate: "Útvonal ide",
+    openInMaps: "Megnyitás térképen",
+    rememberMapsApp: "Emlékezzen a választásomra",
+    rememberMapsAppHint: "A fiókmenüben módosíthatod.",
     connectors: "Csatlakozók",
     details: "Részletek",
     openChargeMapCredit: {
@@ -82,6 +85,7 @@ const map = {
     },
   },
   messages: {
+    openInApp: "Megnyitás: {app}",
     power: "{power} kW",
 
     chargersFound: {

@@ -27,6 +27,8 @@ const account = {
     animations: "Animations",
     animationsReducedMotion: "Off: your system asks for reduced motion.",
     language: "Language",
+    mapsApp: "Maps app",
+    mapsAppAsk: "Ask every time",
   },
   messages: {
     signInFailed: "Sign-in failed. Please try again.",
@@ -37,6 +39,13 @@ const account = {
     passkeyAdded: "Passkey added. Next time, sign in with it.",
     passkeyNotAdded: "The passkey couldn't be added. Try again.",
     accountOf: "Account: {name}",
+  },
+  values: {
+    mapsApps: {
+      google: "Google Maps",
+      osm: "OpenStreetMap",
+      apple: "Apple Maps",
+    },
   },
 };
 

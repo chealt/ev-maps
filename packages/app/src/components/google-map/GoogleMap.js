@@ -9,6 +9,7 @@ import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
+import { mapsApp, mapsAppUrl, onMapsAppChange, setMapsApp } from "../../lib/maps-app.js";
 import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
@@ -420,6 +421,7 @@ class GoogleMapElement extends HTMLElement {
         this.routePlanner?.planTo({ label: chargerName(charger), location: charger.location });
       }
     });
+    this.setupOpenInMaps();
     // A charger picked in the favorites list.
     document.addEventListener("show-charger", (event) =>
       this.showFavoriteCharger(event.detail.charger)
@@ -1590,6 +1592,7 @@ class GoogleMapElement extends HTMLElement {
     this.activeCharger = charger;
     panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
+    this.showOpenInMaps(charger);
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$
@@ -1713,6 +1716,75 @@ class GoogleMapElement extends HTMLElement {
   // flows hide it at once, as they may show another charger right after.
   closeChargerDetails() {
     withViewTransition(() => this.hideChargerDetails());
+  }
+
+  // "Open in maps": the remembered app at once, else the list of apps to
+  // choose from, which can remember the choice (src/lib/maps-app.js). The
+  // app is opened in the click itself, so it isn't blocked as a popup.
+  setupOpenInMaps() {
+    const panel = this.detailsPanel;
+    const button = panel?.querySelector(".open-in-maps");
+    if (!button) {
+      return;
+    }
+    const apps = panel.querySelector(".maps-apps");
+    // "Open in maps", as the page was built, for when no app is remembered.
+    this.openInMapsLabel = button.querySelector(".label").textContent.trim();
+    button.addEventListener("click", () => {
+      const app = mapsApp();
+      if (app && this.activeCharger) {
+        window.open(
+          mapsAppUrl(app, this.activeCharger.location, chargerName(this.activeCharger)),
+          "_blank",
+          "noopener"
+        );
+        return;
+      }
+      this.setMapsAppsExpanded(apps.hidden);
+    });
+    apps.addEventListener("click", (event) => {
+      const link = event.target.closest(".app");
+      if (!link) {
+        return;
+      }
+      if (apps.querySelector(".remember-app").checked) {
+        setMapsApp(link.dataset.app);
+      }
+      this.setMapsAppsExpanded(false);
+    });
+    // Remembered or forgotten here or in the account menu.
+    onMapsAppChange(() => this.activeCharger && this.showOpenInMaps(this.activeCharger));
+  }
+
+  // The button for the remembered app ("Open in Google Maps"), or for the
+  // list; the apps' links go to this charger.
+  showOpenInMaps(charger) {
+    const panel = this.detailsPanel;
+    const button = panel?.querySelector(".open-in-maps");
+    if (!button) {
+      return;
+    }
+    const app = mapsApp();
+    button.querySelector(".label").textContent = app
+      ? message("openInApp", { app: valueLabel("mapsApps", app) })
+      : this.openInMapsLabel;
+    if (app) {
+      button.removeAttribute("aria-expanded");
+    }
+    for (const link of panel.querySelectorAll(".maps-apps .app")) {
+      link.href = mapsAppUrl(link.dataset.app, charger.location, chargerName(charger));
+    }
+    panel.querySelector(".remember-app").checked = false;
+    this.setMapsAppsExpanded(false);
+  }
+
+  setMapsAppsExpanded(expanded) {
+    const panel = this.detailsPanel;
+    const button = panel.querySelector(".open-in-maps");
+    panel.querySelector(".maps-apps").hidden = !expanded;
+    if (!mapsApp()) {
+      button.setAttribute("aria-expanded", String(expanded));
+    }
   }
 
   hideChargerDetails() {

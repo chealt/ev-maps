@@ -1,0 +1,28 @@
+---
+import { translations } from "../../i18n/index.js";
+import "./MapsAppPicker.css";
+
+const { page, values } = translations(Astro.currentLocale ?? "en");
+// "" is to ask every time (src/lib/maps-app.js's null).
+const options = [
+  { value: "", label: page.mapsAppAsk },
+  { value: "google", label: values.mapsApps.google },
+  { value: "osm", label: values.mapsApps.osm },
+  { value: "apple", label: values.mapsApps.apple },
+];
+---
+
+<!-- The app a charger's "Open in maps" opens; asking every time by default.
+     The details' dialog can remember one too (src/lib/maps-app.js). -->
+<ev-maps-app-picker>
+  <fieldset class="maps-app-picker">
+    <legend class="legend">{page.mapsApp}</legend>
+    {options.map(({ value, label }) => (
+      <label class="option">
+        <input type="radio" name="maps-app" value={value} checked={value === ""} />
+        {label}
+      </label>
+    ))}
+  </fieldset>
+  <script src="./MapsAppPicker.js"></script>
+</ev-maps-app-picker>

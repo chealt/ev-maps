@@ -29,6 +29,8 @@ const account = {
     animations: "Animációk",
     animationsReducedMotion: "Kikapcsolva: a rendszered csökkentett mozgást kér.",
     language: "Nyelv",
+    mapsApp: "Térképalkalmazás",
+    mapsAppAsk: "Mindig kérdezzen",
   },
   messages: {
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
@@ -40,6 +42,13 @@ const account = {
     passkeyAdded: "Jelkulcs hozzáadva. Legközelebb jelentkezz be vele.",
     passkeyNotAdded: "Nem sikerült hozzáadni a jelkulcsot. Próbáld újra.",
     accountOf: "Fiók: {name}",
+  },
+  values: {
+    mapsApps: {
+      google: "Google Térkép",
+      osm: "OpenStreetMap",
+      apple: "Apple Térképek",
+    },
   },
 };
 

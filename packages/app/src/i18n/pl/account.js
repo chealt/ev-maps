@@ -27,6 +27,8 @@ const account = {
     animations: "Animacje",
     animationsReducedMotion: "Wyłączone: Twój system prosi o ograniczenie ruchu.",
     language: "Język",
+    mapsApp: "Aplikacja map",
+    mapsAppAsk: "Pytaj za każdym razem",
   },
   messages: {
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
@@ -38,6 +40,13 @@ const account = {
     passkeyAdded: "Dodano klucz dostępu. Następnym razem zaloguj się nim.",
     passkeyNotAdded: "Nie udało się dodać klucza dostępu. Spróbuj ponownie.",
     accountOf: "Konto: {name}",
+  },
+  values: {
+    mapsApps: {
+      google: "Mapy Google",
+      osm: "OpenStreetMap",
+      apple: "Mapy Apple",
+    },
   },
 };
 
