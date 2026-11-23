@@ -182,6 +182,30 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             {page.signInForFavorites}
           </p>
         </div>
+        <div class="group" role="group" aria-labelledby="availability-filter-title">
+          <h3 class="subtitle" id="availability-filter-title">
+            {page.availability}
+          </h3>
+          <div class="options">
+            <Button
+              variant="secondary"
+              size="large"
+              class="availability-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="availability-filter-hint availability-filter-about"
+            >
+              <Icon icon={Activity} size="sm" />
+              {page.hideUnavailable}
+            </Button>
+          </div>
+          <p class="hint" id="availability-filter-hint">
+            {page.signInForAvailability}
+          </p>
+          <p class="hint" id="availability-filter-about">
+            {page.hideUnavailableHint}
+          </p>
+        </div>
         <div class="group" role="group" aria-labelledby="nearby-filter-title">
           <h3 class="subtitle" id="nearby-filter-title">
             {page.nearby}

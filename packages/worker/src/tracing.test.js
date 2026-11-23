@@ -141,6 +141,15 @@ describe("tracing a request", () => {
     expect(spans(env.ADMIN_DB).map((span) => span.status)).toEqual(["error", "ok"]);
   });
 
+  test("records nothing for a pull request's preview, even failed", async () => {
+    const env = { ADMIN_DB: adminDb(), TRACE_SAMPLE_RATE: "1", PRODUCTION_HOSTS: "ev.chealt.com" };
+    const preview = new Request("https://my-branch-ev-maps.chealt.workers.dev/api/chargers/status");
+    const trace = startTrace(preview, env);
+    trace.route = "status";
+    await finishTrace(env, trace, { request: preview, status: 500 });
+    expect(spans(env.ADMIN_DB)).toHaveLength(0);
+  });
+
   test("records nothing for requests no route handled", async () => {
     const env = { ADMIN_DB: adminDb(), TRACE_SAMPLE_RATE: "1" };
     const trace = startTrace(request(), env);

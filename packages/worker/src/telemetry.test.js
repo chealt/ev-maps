@@ -29,6 +29,24 @@ const span = (overrides = {}) => ({
 });
 
 describe("telemetryResponse", () => {
+  test("records nothing from a pull request's preview", async () => {
+    const env = { ADMIN_DB: adminDb(), PRODUCTION_HOSTS: "ev.chealt.com" };
+    const response = await telemetryResponse(
+      new Request("https://my-branch-ev-maps.chealt.workers.dev/api/telemetry", {
+        method: "POST",
+        body: JSON.stringify({
+          spans: [span()],
+          vitals: [{ name: "LCP", value: 1800, rating: "good", pageKind: "home" }],
+        }),
+      }),
+      env,
+      NOW
+    );
+    expect(response.status).toBe(202);
+    expect(env.ADMIN_DB.sqlite.query("SELECT COUNT(*) AS n FROM spans").get().n).toBe(0);
+    expect(env.ADMIN_DB.sqlite.query("SELECT COUNT(*) AS n FROM web_vitals").get().n).toBe(0);
+  });
+
   test("stores the page's spans and Web Vitals", async () => {
     const env = { ADMIN_DB: adminDb() };
     const response = await telemetryResponse(

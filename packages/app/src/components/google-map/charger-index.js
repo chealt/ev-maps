@@ -61,16 +61,19 @@ class ChargerIndex {
   // those of the chargers every filter but the operators' leaves (for the
   // operator list): { matching, available }. Filters:
   // { ranges: [{ minKw, maxKw }], connectorTypes: [], excludedOperators: [],
-  //   favoriteIds: [] or null for any, amenities: [] }.
-  filter({ ranges, connectorTypes, excludedOperators, favoriteIds, amenities }) {
+  //   favoriteIds: [] or null for any, unavailableIds: [] to hide (the live
+  //   statuses are the page's), amenities: [] }.
+  filter({ ranges, connectorTypes, excludedOperators, favoriteIds, unavailableIds, amenities }) {
     const types = new Set(connectorTypes);
     const excluded = new Set(excludedOperators);
     const favorites = favoriteIds ? new Set(favoriteIds) : null;
+    const unavailable = new Set(unavailableIds ?? []);
     const available = this.chargers.filter(
       (charger) =>
         matchesPower(charger, ranges) &&
         matchesConnectors(charger, types) &&
         (!favorites || favorites.has(charger.id)) &&
+        !unavailable.has(charger.id) &&
         amenities.every((amenity) => charger.amenities?.includes(amenity))
     );
     const matching = available.filter((charger) => !excluded.has(operatorOf(charger)));

@@ -14,10 +14,44 @@ const SECTIONS = {
     // Operator names as the charger data has them; "" is "unknown operator".
     excludedOperators: (value) => isStringList(value, 200, 120),
     onlyFavorites: (value) => typeof value === "boolean",
+    // Hide chargers whose live statuses say none of their points is free.
+    hideUnavailable: (value) => typeof value === "boolean",
     // Kinds of places that must be next to a charger (src/amenities.js).
     nearby: (value) => isStringList(value, 10),
   },
+  // The routes the user planned, the latest first, each with the filters on
+  // when it was planned (the app's src/components/google-map/route-history.js).
+  routeHistory: {
+    routes: (value) => Array.isArray(value) && value.length <= MAX_ROUTES && value.every(isRoute),
+  },
 };
+
+const MAX_ROUTES = 10;
+
+const isLocation = (location) =>
+  Number.isFinite(location?.lat) &&
+  Number.isFinite(location?.lng) &&
+  Math.abs(location.lat) <= 90 &&
+  Math.abs(location.lng) <= 180;
+
+// A route's end: a Google place by its ID, or a location, with its label.
+const isRouteEnd = (end) =>
+  typeof end?.label === "string" &&
+  end.label.length <= 200 &&
+  ((typeof end.placeId === "string" && end.placeId.length <= 300) || isLocation(end.location));
+
+// The filters on when it was planned: as the filters section, without its
+// updatedAt.
+const isRouteFilters = (filters) =>
+  typeof filters === "object" &&
+  filters !== null &&
+  Object.entries(filters).every(([field, value]) => SECTIONS.filters[field]?.(value));
+
+const isRoute = (route) =>
+  isRouteEnd(route?.origin) &&
+  isRouteEnd(route?.destination) &&
+  isRouteFilters(route?.filters) &&
+  Number.isFinite(route?.plannedAt);
 
 const isStringList = (value, max, maxLength = 40) =>
   Array.isArray(value) &&

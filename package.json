@@ -14,7 +14,7 @@
     "export:chargers": "bun run --cwd packages/worker export -- --out ../app/data/chargers",
     "preview": "bun run --cwd packages/app preview",
     "test": "bun run --cwd packages/app test",
-    "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run --cwd packages/worker lint && bun run --cwd packages/tiles lint && bun run --cwd packages/ui lint && bun run --cwd packages/ui lint:css && bun run --cwd packages/e2e lint && bun run lint:md",
+    "lint": "bun run --cwd packages/app lint && bun run --cwd packages/app lint:css && bun run --cwd packages/worker lint && bun run --cwd packages/tiles lint && bun run --cwd packages/ui lint && bun run --cwd packages/ui lint:css && bun run --cwd packages/e2e lint && bun run --cwd packages/pi-config lint && bun run lint:md",
     "lint:md": "rumdl check --deny-config-warnings --config packages/dev-config/.rumdl.toml .",
     "format": "oxfmt -c packages/dev-config/.oxfmtrc.json .",
     "format:check": "oxfmt -c packages/dev-config/.oxfmtrc.json --check .",

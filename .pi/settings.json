@@ -1,0 +1,6 @@
+{
+  "$schema": "https://pi.dev/schemas/settings.schema.json",
+  "packages": ["../packages/pi-config"],
+  "defaultProvider": "fallback",
+  "defaultModel": "auto"
+}

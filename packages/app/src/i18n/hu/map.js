@@ -49,6 +49,7 @@ const map = {
     showRoute: "Útvonal mutatása",
     clearRoute: "Útvonal törlése",
     routeCorridor: "Az útvonaltól legfeljebb 5 km-re lévő töltőállomások látszanak.",
+    recentRoutes: "Legutóbbi útvonalak",
     signInForAvailability: "Jelentkezz be, hogy lásd, hány töltőpont szabad most.",
     signInForRoutes: "Jelentkezz be az útvonaltervezéshez és az útvonal menti töltőállomásokhoz.",
     connectorType: "Csatlakozótípus",
@@ -63,6 +64,9 @@ const map = {
     noOperators: "Mozgasd a térképet töltőkhöz, hogy az üzemeltetőik közül választhass.",
     favorite: "Kedvenc",
     onlyFavorites: "Csak a kedvencek",
+    hideUnavailable: "Foglaltak elrejtése",
+    hideUnavailableHint:
+      "Elrejti azokat a töltőket, amelyeknek az élő állapota szerint egyik pontja sem szabad.",
     nearby: "A közelben",
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
@@ -142,6 +146,8 @@ const map = {
     routeLoading: "Útvonal tervezése…",
     routeFailed: "Nem sikerült megtervezni az útvonalat",
     noRoute: "Nem található útvonal a két hely között",
+    routeEnds: "{from} → {to}",
+    noFiltersOn: "nincsenek szűrők",
     choosePlaces: "Mindkét helyet a javaslatok közül válaszd ki",
     alongRoute: "Az útvonal sorrendjében",
     offRoute: "{distance} az útvonaltól",

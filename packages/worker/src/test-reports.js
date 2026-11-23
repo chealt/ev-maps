@@ -144,12 +144,16 @@ const routes = [
 const pageRoutes = [
   {
     name: "test report",
+    // CI's reports, not the site: not in the performance numbers.
+    untraced: true,
     matches: (request, url) => request.method === "GET" && FILE_PATH.test(url.pathname),
     handle: async ({ request, env, url, signedInUser }) =>
       reportFileResponse(request, env, await signedInUser(), url),
   },
   {
     name: "ui evidence",
+    // Fetched by GitHub for pull request comments, not by users.
+    untraced: true,
     matches: (request, url) => request.method === "GET" && UI_FILE_PATH.test(url.pathname),
     handle: async ({ request, env, url }) => uiFileResponse(request, env, url),
   },

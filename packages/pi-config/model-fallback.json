@@ -1,0 +1,11 @@
+{
+  "provider": "fallback",
+  "id": "auto",
+  "name": "Opus 5.5 → GLM-5.3 → Mistral Large 4",
+  "chain": [
+    { "provider": "anthropic", "model": "claude-opus-5-5" },
+    { "provider": "zai", "model": "glm-5.3" },
+    { "provider": "mistral", "model": "mistral-large-4" }
+  ],
+  "cooldownMinutes": 30
+}
