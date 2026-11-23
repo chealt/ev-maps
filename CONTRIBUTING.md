@@ -16,3 +16,9 @@ change can be reviewed before it's merged.
 
 Pull requests from this repository get a preview deployment; see
 [Deployment](docs/DEPLOYMENT.md).
+
+## Working with pi
+
+The repository carries its [pi](https://pi.dev) setup: `.pi/settings.json`
+loads `packages/pi-config`, whose extensions (e.g. the model fallback chain)
+pi uses once you trust the project. See `packages/pi-config/README.md`.
