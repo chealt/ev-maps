@@ -16,7 +16,9 @@ const charger = (id, name, [lat, lng]) => ({
   connectors: [{ type: "ccs2", powerKw: 50, quantity: 1 }],
 });
 
-const west = charger(1, "West charger", [40.7128, -74.16]);
+// West and a little north of the center, where even a short panel (top
+// left, from about 80px down) covers its pin.
+const west = charger(1, "West charger", [40.755, -74.16]);
 const east = charger(2, "East charger", [40.7128, -73.9]);
 
 const center = (page) => page.evaluate(() => window.__fakeMap.getCenter().toJSON());
