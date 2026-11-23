@@ -157,6 +157,8 @@ const map = {
     noFiltersOn: "bez filtrów",
     choosePlaces: "Wybierz oba miejsca z podpowiedzi",
     alongRoute: "W kolejności na trasie",
+    fromStart: "{distance} od startu",
+    toEnd: "{distance} do celu",
     offRoute: "{distance} od trasy",
     chargerNoneFree: "{name}, brak wolnych punktów",
     chargerFavorite: "{name}, ulubiona",

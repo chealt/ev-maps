@@ -72,7 +72,7 @@ test("shows the chargers along a route", { tag: "@regression" }, async ({ page }
   expect(await page.evaluate(() => window.__fakeRouteLine.path.length)).toBe(21);
 });
 
-test("lists the chargers in order along the route", async ({ page }) => {
+test("lists the chargers in order along the route", { tag: "@ui" }, async ({ page }) => {
   await fakeRouteChargersApi(page);
   await page.getByRole("button", { name: "Route" }).click();
   const dialog = page.getByRole("dialog", { name: "Plan a route" });
@@ -86,9 +86,13 @@ test("lists the chargers in order along the route", async ({ page }) => {
   await expect(list.getByText("In order along the route")).toBeVisible();
   const entries = list.getByRole("listitem");
   await expect(entries.nth(0)).toContainText("Downtown Supercharger");
-  await expect(entries.nth(0)).toContainText("50 km");
-  await expect(entries.nth(0)).toContainText("1 km off the route");
-  await expect(entries.nth(1)).toContainText("100 km");
+  // Each distance says what it is: from the start, to the end, off the route.
+  await expect(entries.nth(0)).toContainText(
+    "50 km from the start100 km to the end1 km off the route"
+  );
+  await expect(entries.nth(1)).toContainText(
+    "100 km from the start50 km to the end1 km off the route"
+  );
 });
 
 test("filters the chargers along the route by power", async ({ page }) => {

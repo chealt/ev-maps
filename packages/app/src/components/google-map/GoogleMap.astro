@@ -336,6 +336,8 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <button type="button" class="entry">
             <span class="name"></span>
             <span class="distance"></span>
+            <!-- Along a route: from the start, to the end, off the route. -->
+            <span class="route-distances" hidden></span>
             <span class="meta"></span>
           </button>
         </li>
