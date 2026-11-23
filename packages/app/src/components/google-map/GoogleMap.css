@@ -27,6 +27,7 @@ ev-google-map {
 
   /* Route */
   --route-color: var(--color-route);
+  --route-casing-color: var(--color-route-casing);
 
   /* Markers */
   --marker-size: 2.25rem;

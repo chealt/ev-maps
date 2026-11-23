@@ -202,6 +202,15 @@
   };
 
   // The route line on the map, readable by tests as window.__fakeRouteLine.
+  // The polylines on the map: __fakeRouteLines has the options of each (the
+  // route's casing and line), __fakeRouteLine the topmost's, or null.
+  const shownLines = new Set();
+  const showLines = () => {
+    const lines = [...shownLines].map((line) => line.options);
+    lines.sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
+    window.__fakeRouteLines = lines;
+    window.__fakeRouteLine = lines.at(-1) ?? null;
+  };
   class Polyline {
     constructor(options) {
       this.options = options;
@@ -209,7 +218,16 @@
     }
     setMap(map) {
       this.map = map;
-      window.__fakeRouteLine = map ? this.options : null;
+      if (map) {
+        shownLines.add(this);
+      } else {
+        shownLines.delete(this);
+      }
+      showLines();
+    }
+    setOptions(options) {
+      this.options = { ...this.options, ...options };
+      showLines();
     }
   }
 

@@ -92,7 +92,10 @@ const minutesAgo = (timestamp) =>
 
 // Space around a route when the map fits it, in pixels.
 const ROUTE_PADDING = 48;
-const ROUTE_LINE = { strokeOpacity: 0.85, strokeWeight: 5 };
+// The route: a line over a wider casing in the opposite lightness, both
+// opaque, so it stands out on any part of either theme's map.
+const ROUTE_LINE = { strokeOpacity: 1, strokeWeight: 5, zIndex: 2 };
+const ROUTE_CASING = { strokeOpacity: 1, strokeWeight: 9, zIndex: 1 };
 
 // A chosen place, as the Routes library takes it: a Google Place, or a location.
 const routeEndpoint = ({ place, location }) => place ?? location;
@@ -207,6 +210,10 @@ class GoogleMapElement extends HTMLElement {
   });
 
   handleThemeChange = () => this.recreateMap();
+  // Following the system theme, the map changes by itself; the route's
+  // colors are this page's, so they follow too.
+  systemScheme = window.matchMedia("(prefers-color-scheme: dark)");
+  handleSystemSchemeChange = () => this.recolorRoute();
 
   connectedCallback() {
     // Operators the user turned off; every other operator is on.
@@ -252,6 +259,7 @@ class GoogleMapElement extends HTMLElement {
 
   disconnectedCallback() {
     document.removeEventListener("theme-change", this.handleThemeChange);
+    this.systemScheme.removeEventListener("change", this.handleSystemSchemeChange);
     clearInterval(this.pinStatusTimer);
   }
 
@@ -327,6 +335,7 @@ class GoogleMapElement extends HTMLElement {
       }
     });
     document.addEventListener("theme-change", this.handleThemeChange);
+    this.systemScheme.addEventListener("change", this.handleSystemSchemeChange);
     this.showFilterSyncSignedIn(isSignedIn());
     // The session may have loaded before the map did.
     if (isSignedIn()) {
@@ -537,7 +546,9 @@ class GoogleMapElement extends HTMLElement {
     const zoom = this.map.getZoom();
     this.mapEl.replaceChildren();
     this.createMap({ center, zoom });
+    this.route?.casing.setMap(this.map);
     this.route?.line.setMap(this.map);
+    this.recolorRoute();
     for (const marker of this.markersById.values()) {
       marker.map = this.map;
     }
@@ -1078,8 +1089,10 @@ class GoogleMapElement extends HTMLElement {
       }
       const { Polyline } = await this.maps.importLibrary("maps");
       this.removeRouteLine();
+      const colors = this.routeColors;
       this.route = {
-        line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: this.routeColor }),
+        casing: new Polyline({ ...ROUTE_CASING, path, map: this.map, strokeColor: colors.casing }),
+        line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: colors.line }),
       };
       this.loaded = { chargers, truncated: full };
       this.setRouteShown(true);
@@ -1155,7 +1168,18 @@ class GoogleMapElement extends HTMLElement {
     this.loadEvChargers();
   }
 
+  // The route in the current theme's colors.
+  recolorRoute() {
+    if (!this.route) {
+      return;
+    }
+    const colors = this.routeColors;
+    this.route.casing.setOptions({ strokeColor: colors.casing });
+    this.route.line.setOptions({ strokeColor: colors.line });
+  }
+
   removeRouteLine() {
+    this.route?.casing.setMap(null);
     this.route?.line.setMap(null);
   }
 
@@ -1166,9 +1190,21 @@ class GoogleMapElement extends HTMLElement {
     this.routePlanner?.setRouteShown(shown);
   }
 
-  // The line's color is a design token (--color-route in global.css).
-  get routeColor() {
-    return getComputedStyle(this).getPropertyValue("--route-color").trim();
+  // The route's colors, design tokens (--color-route and
+  // --color-route-casing in global.css) for the current theme. They're
+  // light-dark() values, which only a real property resolves, so each is
+  // read as the color of a probe element.
+  get routeColors() {
+    const probe = document.createElement("span");
+    probe.hidden = true;
+    this.append(probe);
+    const colorOf = (variable) => {
+      probe.style.color = `var(${variable})`;
+      return getComputedStyle(probe).color;
+    };
+    const colors = { line: colorOf("--route-color"), casing: colorOf("--route-casing-color") };
+    probe.remove();
+    return colors;
   }
 
   // The status pill morphs into the list: only one element at a time may

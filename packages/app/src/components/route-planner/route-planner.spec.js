@@ -331,3 +331,41 @@ test("keeps the routes planned, with their filters, to plan again", async ({ pag
     page.getByRole("button", { name: "Filters", exact: true })
   ).toHaveAccessibleDescription("1 filter on");
 });
+
+test("draws the route over a casing, in the theme's colors", async ({ page }) => {
+  // The route's line and the casing under it (--color-route and
+  // --color-route-casing).
+  const LIGHT = { line: "rgb(126, 34, 206)", casing: "rgb(255, 255, 255)" };
+  const DARK = { line: "rgb(216, 180, 254)", casing: "rgb(15, 23, 42)" };
+  const routeColors = () =>
+    page.evaluate(() => {
+      const [casing, line] = window.__fakeRouteLines ?? [];
+      if (!line) {
+        return null;
+      }
+      return {
+        line: line.strokeColor,
+        casing: casing.strokeColor,
+        wider: casing.strokeWeight > line.strokeWeight,
+      };
+    });
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await fakeRouteChargersApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect.poll(routeColors).toEqual({ ...LIGHT, wider: true });
+
+  // Following the system theme, the route follows the system's.
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(routeColors).toEqual({ ...DARK, wider: true });
+
+  // Choosing a theme, the route takes its colors, on the new map.
+  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  await page.getByRole("dialog", { name: "Account" }).getByRole("radio", { name: "Light" }).check();
+  await expect.poll(routeColors).toEqual({ ...LIGHT, wider: true });
+  expect(await page.evaluate(() => window.__fakeRouteLines.length)).toBe(2);
+});
