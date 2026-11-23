@@ -24,6 +24,7 @@
     }
     // Like Google Maps, "idle" fires after the map renders or stops moving.
     emitIdle() {
+      this.drawLines();
       clearTimeout(this.idleTimer);
       this.idleTimer = setTimeout(() => {
         for (const { event, handler } of this.listeners) {
@@ -78,6 +79,49 @@
       }
       this.zoom = zoom;
       this.emitIdle();
+    }
+    // A point's place on the map's element, as getBounds() sees the view.
+    pixelOf({ lat, lng }) {
+      const degreesPerPixel = 360 / (TILE_SIZE * 2 ** this.zoom);
+      return {
+        x: (lng - this.center.lng) / degreesPerPixel + this.element.clientWidth / 2,
+        y: (this.center.lat - lat) / degreesPerPixel + this.element.clientHeight / 2,
+      };
+    }
+    // Draws its polylines (e.g. a route) where they are, in an SVG over the
+    // map, so screenshots show them; clicks and assistive tech pass through.
+    drawLines() {
+      const lines = [...(this.lines ?? [])].sort(
+        (a, b) => (a.options.zIndex ?? 0) - (b.options.zIndex ?? 0)
+      );
+      if (!lines.length) {
+        this.svg?.remove();
+        this.svg = null;
+        return;
+      }
+      if (!this.svg) {
+        this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        this.svg.setAttribute("aria-hidden", "true");
+        this.svg.style.cssText =
+          "position:absolute;inset:0;width:100%;height:100%;pointer-events:none";
+      }
+      if (!this.svg.isConnected) {
+        this.element.prepend(this.svg);
+      }
+      this.svg.replaceChildren(
+        ...lines.map(({ options }) => {
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+          const points = (options.path ?? []).map((point) => this.pixelOf(point));
+          line.setAttribute("points", points.map(({ x, y }) => `${x},${y}`).join(" "));
+          line.setAttribute("fill", "none");
+          line.setAttribute("stroke", options.strokeColor ?? "black");
+          line.setAttribute("stroke-width", options.strokeWeight ?? 3);
+          line.setAttribute("stroke-opacity", options.strokeOpacity ?? 1);
+          line.setAttribute("stroke-linecap", "round");
+          line.setAttribute("stroke-linejoin", "round");
+          return line;
+        })
+      );
     }
     // An approximate Web Mercator viewport around the center.
     getBounds() {
@@ -217,9 +261,16 @@
       this.setMap(options.map);
     }
     setMap(map) {
+      if (this.map && this.map !== map) {
+        this.map.lines.delete(this);
+        this.map.drawLines();
+      }
       this.map = map;
       if (map) {
         shownLines.add(this);
+        map.lines ??= new Set();
+        map.lines.add(this);
+        map.drawLines();
       } else {
         shownLines.delete(this);
       }
@@ -227,6 +278,7 @@
     }
     setOptions(options) {
       this.options = { ...this.options, ...options };
+      this.map?.drawLines();
       showLines();
     }
   }

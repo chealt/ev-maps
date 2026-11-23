@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi, fakeRouteChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -46,31 +46,38 @@ const choosePlace = async (dialog, field, text, option) => {
   await dialog.getByRole("option", { name: option }).click();
 };
 
-test("shows the chargers along a route", { tag: "@regression" }, async ({ page }) => {
-  const routeRequests = await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+test(
+  "shows the chargers along a route",
+  { tag: ["@regression", "@ui"] },
+  async ({ page }, testInfo) => {
+    const routeRequests = await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
 
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await captureUi(page, testInfo, "the route planner, filled in");
+    await dialog.getByRole("button", { name: "Show route" }).click();
 
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await expect(map.getByRole("button", { name: "Downtown Supercharger" })).toBeVisible();
-  // What the app asked Google and the Worker for.
-  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
-  expect(routeRequest).toMatchObject({
-    origin: { id: "budapest" },
-    destination: { id: "vienna" },
-    travelMode: "DRIVING",
-  });
-  expect(routeRequests[0].corridorKm).toBe(5);
-  expect(routeRequests[0].path[0]).toEqual([47.4979, 19.0402]);
-  expect(routeRequests[0].path.at(-1)).toEqual([48.2082, 16.3738]);
-  expect(await page.evaluate(() => window.__fakeRouteLine.path.length)).toBe(21);
-});
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+    await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
+    await captureUi(page, testInfo, "the route on the map");
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await expect(map.getByRole("button", { name: "Downtown Supercharger" })).toBeVisible();
+    // What the app asked Google and the Worker for.
+    const [routeRequest] = await page.evaluate(() => window.__routeRequests);
+    expect(routeRequest).toMatchObject({
+      origin: { id: "budapest" },
+      destination: { id: "vienna" },
+      travelMode: "DRIVING",
+    });
+    expect(routeRequests[0].corridorKm).toBe(5);
+    expect(routeRequests[0].path[0]).toEqual([47.4979, 19.0402]);
+    expect(routeRequests[0].path.at(-1)).toEqual([48.2082, 16.3738]);
+    expect(await page.evaluate(() => window.__fakeRouteLine.path.length)).toBe(21);
+  }
+);
 
 test("lists the chargers in order along the route", { tag: "@ui" }, async ({ page }) => {
   await fakeRouteChargersApi(page);
