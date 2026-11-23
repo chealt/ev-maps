@@ -15,7 +15,7 @@
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "test:scripts": "bun test scripts",
+    "test:unit": "bun test .test.js",
     "icons": "bun scripts/generate-icons.js"
   },
   "dependencies": {
