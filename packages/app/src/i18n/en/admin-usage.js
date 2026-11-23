@@ -7,10 +7,15 @@ const adminUsage = {
     adminLastDays: "Last {days} days",
     adminPageViewsPerDay: "Page views per day",
     adminNoData: "Nothing yet.",
+    adminMostFavorited: "Most favorited chargers, now",
   },
   messages: {
     adminUsageNotLoaded: "The usage stats couldn't be loaded. Try again.",
     adminUsagePeriod: "{from} – {to}",
+    adminFavoritedBy: {
+      one: "{count} user",
+      other: "{count} users",
+    },
   },
   values: {
     usageEvents: {

@@ -142,8 +142,10 @@ test("shows a favorite on the map from the list, wherever it is", async ({ page 
 
   await expect(dialog).toBeHidden();
   await expect(details(page, "Budapest charger")).toBeVisible();
-  const center = await page.evaluate(() => window.__fakeMap.getCenter().toJSON());
-  expect(center.lat).toBeCloseTo(47.4979, 0);
+  // The map moves once the charger index (a Web Worker) says how close.
+  await expect
+    .poll(async () => (await page.evaluate(() => window.__fakeMap.getCenter().toJSON())).lat)
+    .toBeCloseTo(47.4979, 0);
 });
 
 test("removes a favorite from the list", async ({ page }) => {

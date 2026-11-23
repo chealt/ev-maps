@@ -1,0 +1,22 @@
+---
+import { Sparkles } from "lucide-static";
+import Icon from "@ev-maps/ui/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./MotionSetting.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<!-- Animations, on by default; the system's reduced motion turns them off
+     whatever this says, and the hint then says so (src/lib/motion.js). -->
+<ev-motion-setting>
+  <label class="motion-setting">
+    <input type="checkbox" class="animations" checked aria-describedby="animations-overridden" />
+    <Icon icon={Sparkles} size="sm" />
+    {page.animations}
+  </label>
+  <p class="hint" id="animations-overridden" hidden>
+    {page.animationsReducedMotion}
+  </p>
+  <script src="./MotionSetting.js"></script>
+</ev-motion-setting>

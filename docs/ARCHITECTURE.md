@@ -89,6 +89,8 @@ changes to different features don't touch the same file:
 - [The map](features/map.md): loading chargers for the map, and clustering
 - [Languages](features/languages.md): the three languages, and the redirect to
   the visitor's language and country
+- [Motion](features/motion.md): the dialogs' and details' animations, and the
+  setting and system preference that turn them off
 - [Live availability](features/live-availability.md): live statuses: polling the
   sources, and showing free points and red pins
 - [Route planner](features/route-planner.md): planning a route and finding the
