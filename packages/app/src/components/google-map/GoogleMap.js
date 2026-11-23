@@ -1,5 +1,6 @@
 import { fetchChargersInBounds } from "./chargers.js";
 import { chargerName } from "../../lib/charger-name.js";
+import { pricinessAmong } from "../../lib/priciness.js";
 import { distanceInMeters, formatDistance } from "../../lib/distance.js";
 import { addFavorite, isFavorite, onFavoritesChange, removeFavorite } from "../../lib/favorites.js";
 import { setMapCenter } from "../../lib/map-center.js";
@@ -54,39 +55,21 @@ const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoin
   ].filter(Boolean);
 };
 
-// A per-kWh price in the cost text, e.g. "$0.40/kWh" → 0.4; null without one.
-const pricePerKwh = (usageCost) => {
-  const match = /(\d+(?:[.,]\d+)?)\s*\/\s*kwh/i.exec(usageCost ?? "");
-  if (!match) {
+// How a priciness (../../lib/priciness.js) reads, e.g. { scale: "$$",
+// comparison: "pricier than 40% of the chargers here" }; null without one.
+const describePriciness = (price) => {
+  if (!price) {
     return null;
   }
-  const price = Number(match[1].replace(",", "."));
-  return price > 0 ? price : null;
-};
-
-// Where a charger's price sits among the loaded ones (the map's or the
-// route's): 1–3 by thirds, and the share of them that are cheaper.
-const priciness = (charger, chargers) => {
-  const price = pricePerKwh(charger.usageCost);
-  if (price == null) {
-    return null;
-  }
-  const prices = chargers
-    .map(({ usageCost }) => pricePerKwh(usageCost))
-    .filter((value) => value != null);
-  if (prices.length < 2) {
-    return null;
-  }
-  const cheaper = prices.filter((value) => value < price).length;
-  const share = cheaper / prices.length;
+  // Whichever side is larger: "pricier than 70%", "cheaper than 80%".
   return {
-    scale: "$".repeat(Math.min(3, Math.floor(share * 3) + 1)),
+    scale: "$".repeat(price.level),
     comparison:
-      share === 0
+      price.cheaper === 0
         ? message("cheapestHere")
-        : message(share > 0.5 ? "pricierThan" : "cheaperThan", {
-            percent: Math.round(share * 100),
-          }),
+        : price.cheaper > price.pricier
+          ? message("pricierThan", { percent: Math.round(price.cheaper * 100) })
+          : message("cheaperThan", { percent: Math.round(price.pricier * 100) }),
   };
 };
 
@@ -1006,6 +989,16 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
+  // Where a charger's price sits among the loaded chargers (the map's or the
+  // route's); the comparison is built once for each set of them.
+  pricinessOf(charger) {
+    const chargers = this.loaded?.chargers ?? [];
+    if (this.pricinessFor?.chargers !== chargers) {
+      this.pricinessFor = { chargers, of: pricinessAmong(chargers) };
+    }
+    return this.pricinessFor.of(charger);
+  }
+
   // Lists the chargers in order along the route, or nearest first: to the
   // user if they've been located, otherwise to the center of the map.
   renderChargerList() {
@@ -1037,8 +1030,11 @@ class GoogleMapElement extends HTMLElement {
         } else {
           item.querySelector(".distance").textContent = formatDistance(meters);
         }
+        const price = describePriciness(this.pricinessOf(charger));
         item.querySelector(".meta").textContent = [
           charger.maxPowerKw ? message("power", { power: charger.maxPowerKw }) : null,
+          // Compared with the loaded chargers, e.g. the route's.
+          price && message("pricinessShort", { scale: price.scale }),
           charger.address,
         ]
           .filter(Boolean)
@@ -1562,7 +1558,7 @@ class GoogleMapElement extends HTMLElement {
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$
     // (pricier than 78% of the chargers here)"; only per-kWh and comparable.
-    const price = priciness(charger, this.loaded?.chargers ?? []);
+    const price = describePriciness(this.pricinessOf(charger));
     if (price) {
       details.push(message("priciness", { scale: price.scale, comparison: price.comparison }));
     }

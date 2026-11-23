@@ -135,6 +135,7 @@ const map = {
     status: "Status: {value}",
     chargingPoints: "Punkty ładowania: {count}",
     priciness: "Poziom ceny: {scale} ({comparison})",
+    pricinessShort: "Poziom ceny: {scale}",
     pricierThan: "droższa niż {percent}% stacji tutaj",
     cheaperThan: "tańsza niż {percent}% stacji tutaj",
     cheapestHere: "najtańsza ze stacji tutaj",
