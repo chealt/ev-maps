@@ -1,8 +1,8 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
-import { ERRORS_PAGE, fakePageData } from "./fixtures/page-data.js";
+import { fakeAuthApi } from "#fixtures/auth-api.js";
+import { fakeChargersApi } from "#fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "#fixtures/google.js";
+import { ERRORS_PAGE, fakePageData } from "#fixtures/page-data.js";
 
 // Each kind of page only gets the messages of its sections (src/i18n),
 // baked into its HTML at build time, so

@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = 4322;
 
 export default defineConfig({
-  testDir: "./tests",
+  // The specs live next to what they test (a component, a page, a lib), with
+  // the fakes in tests/fixtures.
+  testDir: "./src",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a

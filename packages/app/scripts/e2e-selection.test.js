@@ -3,9 +3,17 @@ import { readdirSync } from "node:fs";
 import mapping from "../e2e-domains.json" with { type: "json" };
 import { grepOf, selectE2e } from "./e2e-selection.js";
 
-const specs = readdirSync(new URL("../tests/", import.meta.url))
-  .filter((file) => file.endsWith(".spec.js"))
-  .map((file) => file.slice(0, -".spec.js".length));
+const specs = [];
+const walk = (url) => {
+  for (const entry of readdirSync(url, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      walk(new URL(`${entry.name}/`, url));
+    } else if (entry.name.endsWith(".spec.js")) {
+      specs.push(entry.name.slice(0, -".spec.js".length));
+    }
+  }
+};
+walk(new URL("../src/", import.meta.url));
 
 describe("selectE2e", () => {
   test("runs a domain's specs when its files change", () => {
@@ -28,7 +36,10 @@ describe("selectE2e", () => {
   test("runs a changed spec, even one no domain lists yet", () => {
     expect(
       selectE2e(
-        ["packages/app/tests/favorites.spec.js", "packages/app/tests/brand-new.spec.js"],
+        [
+          "packages/app/src/components/favorites-dialog/favorites.spec.js",
+          "packages/app/src/components/google-map/brand-new.spec.js",
+        ],
         mapping
       )
     ).toEqual({ all: false, tests: ["brand-new", "favorites"], domains: [] });

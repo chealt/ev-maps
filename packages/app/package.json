@@ -4,6 +4,9 @@
   "private": true,
   "description": "EV Maps - Astro + Web Components",
   "type": "module",
+  "imports": {
+    "#fixtures/*": "./tests/fixtures/*"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

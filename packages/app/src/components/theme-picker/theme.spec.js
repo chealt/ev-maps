@@ -1,7 +1,7 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "./fixtures/auth-api.js";
-import { fakeGoogleMaps } from "./fixtures/google.js";
-import { fakeChargersApi } from "./fixtures/chargers-api.js";
+import { fakeAuthApi } from "#fixtures/auth-api.js";
+import { fakeGoogleMaps } from "#fixtures/google.js";
+import { fakeChargersApi } from "#fixtures/chargers-api.js";
 
 const mapState = (page) =>
   page.evaluate(() => ({
