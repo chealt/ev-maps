@@ -23,6 +23,14 @@ on its schedule and opens a pull request with whatever it changed (branch
   `ANTHROPIC_API_KEY` (`src/workflows.js` lists them).
 - The file name is the config's name: lowercase letters, digits and dashes.
 
+## The pull request's description
+
+Every prompt gets one more instruction: pi's final message becomes the
+description of its pull request, so it reports what it changed and why (for
+an upgrade, each package with the version it went from and to) and what it
+left alone. The description is that report, under a header naming the model
+and the config, with the prompt quoted.
+
 ## How the workflows stay in sync
 
 `.github/workflows/ai-actions.yml` runs hourly, when the configs change on

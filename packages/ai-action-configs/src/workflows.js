@@ -59,6 +59,14 @@ const configErrors = (name, config) => {
   return errors;
 };
 
+// Added to every prompt: pi's final message becomes the pull request's
+// description, so a reviewer sees what changed without reading the job log.
+const REPORT_INSTRUCTION =
+  "Your final message becomes the description of the pull request with your changes, " +
+  "so write it in Markdown for its reviewer: what you changed and why (for an upgrade, " +
+  "each package or tool with the version it went from and to), and what you checked but " +
+  "left alone, and why. If you changed nothing, say why.";
+
 // JSON strings are YAML double-quoted strings, escapes and all.
 const yamlString = (value) => JSON.stringify(value);
 
@@ -93,9 +101,9 @@ jobs:
         with:
           bun-version-file: package.json
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: package.json
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -104,28 +112,46 @@ jobs:
         run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
       # --no-approve: only the prompt's model, without the repository's own pi
-      # setup (.pi), and no session saved on the runner.
+      # setup (.pi), and no session saved on the runner. pi's final message,
+      # its report of what it did, is kept for the pull request's description
+      # (bash: pipefail, so a failing pi still fails the step).
       - name: Run the prompt with pi
+        shell: bash
         env:
           ${key}: \${{ secrets.${key} }}
           PROMPT: ${yamlString(prompt)}
+          REPORT_INSTRUCTION: ${yamlString(REPORT_INSTRUCTION)}
         run: >-
           pi --print --no-session --no-approve
           --provider ${yamlString(provider)} --model ${yamlString(model)}
-          "$PROMPT"
+          "$PROMPT"$'\\n\\n'"$REPORT_INSTRUCTION"
+          | tee "$RUNNER_TEMP/pi-report.md"
+
+      - name: Write the pull request's description
+        shell: bash
+        env:
+          HEADER: ${yamlString(
+            `Made by pi (${provider}/${model}) running packages/ai-action-configs/configs/${name}.json:`
+          )}
+          PROMPT: ${yamlString(prompt)}
+        run: |
+          {
+            printf '%s\\n\\n' "$HEADER"
+            printf '%s\\n' "$PROMPT" | sed 's/^/> /'
+            printf '\\n---\\n\\n'
+            cat "$RUNNER_TEMP/pi-report.md"
+          } > "$RUNNER_TEMP/pull-request-body.md"
 
       - name: Open a pull request with the changes
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
           branch: ai/${name}
           delete-branch: true
           title: ${yamlString(`AI: ${name}`)}
           commit-message: ${yamlString(`chore: ${name} (AI action)`)}
-          body: ${yamlString(
-            `Made by pi (${provider}/${model}) running packages/ai-action-configs/configs/${name}.json:\n\n> ${prompt}`
-          )}
+          body-path: \${{ runner.temp }}/pull-request-body.md
 `;
 };
 
-export { GENERATED_MARKER, apiKeyName, configErrors, cronOf, workflowOf };
+export { GENERATED_MARKER, REPORT_INSTRUCTION, apiKeyName, configErrors, cronOf, workflowOf };
