@@ -211,28 +211,32 @@ test("reports a denied location permission", async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText("Location permission denied");
 });
 
-test("the filters open in a dialog that closes with Done, Close or Escape", async ({ page }) => {
-  const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
-  const dialog = page.getByRole("dialog", { name: "Filters" });
-  await expect(dialog).toBeHidden();
+test(
+  "the filters open in a dialog that closes with Done, Close or Escape",
+  { tag: "@ui" },
+  async ({ page }) => {
+    const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
+    const dialog = page.getByRole("dialog", { name: "Filters" });
+    await expect(dialog).toBeHidden();
 
-  await filtersButton.click();
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("group", { name: "Charging power" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
-  await dialog.getByRole("button", { name: "Done" }).click();
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
+    await filtersButton.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("group", { name: "Charging power" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
 
-  await filtersButton.click();
-  await dialog.getByRole("button", { name: "Close filters" }).click();
-  await expect(dialog).toBeHidden();
+    await filtersButton.click();
+    await dialog.getByRole("button", { name: "Close filters" }).click();
+    await expect(dialog).toBeHidden();
 
-  await filtersButton.click();
-  await page.keyboard.press("Escape");
-  await expect(dialog).toBeHidden();
-  await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
-});
+    await filtersButton.click();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
+  }
+);
 
 test("shows the app's name, as on Google's sign-in consent screen", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeVisible();

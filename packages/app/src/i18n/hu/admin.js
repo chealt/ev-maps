@@ -4,11 +4,8 @@
 const admin = {
   page: {
     adminOverview: "Áttekintés",
-    adminSections: "Részek",
-    adminErrorsDescription: "mi romlott el az oldalakon és a szerveren az elmúlt 30 napban",
     adminErrors: "Hibák",
     adminUsage: "Használat",
-    adminUsageDescription: "hogyan használják az oldalt, naponta számolva",
   },
   messages: {
     adminSignedInAs: "Bejelentkezve: {email}",
