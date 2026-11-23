@@ -1,7 +1,12 @@
+import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
+
 class ShortcutsDialogElement extends HTMLElement {
   connectedCallback() {
     this.dialog = this.querySelector("dialog");
-    this.dialog?.querySelector(".close")?.addEventListener("click", () => this.dialog.close());
+    this.dialog?.querySelector(".close")?.addEventListener("click", () => closeDialog(this.dialog));
+    if (this.dialog) {
+      animateEscape(this.dialog);
+    }
     document.addEventListener("keydown", (event) => {
       if (event.key !== "?" || event.ctrlKey || event.metaKey || event.altKey) {
         return;
@@ -16,7 +21,7 @@ class ShortcutsDialogElement extends HTMLElement {
         return;
       }
       event.preventDefault();
-      this.dialog.showModal();
+      openDialog(this.dialog);
     });
   }
 }

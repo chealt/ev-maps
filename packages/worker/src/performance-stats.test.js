@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { performanceResponse, performanceSummary, ratingOf } from "./performance-stats.js";
+import {
+  performanceResponse,
+  performanceSummary,
+  ratingOf,
+  vitalsByDay,
+} from "./performance-stats.js";
 import { testD1 } from "./test-d1.js";
 import { INSERT_SPAN } from "./tracing.js";
 
@@ -165,5 +170,32 @@ describe("performanceSummary", () => {
       ["d1", "SELECT chargers_rtree"],
     ]);
     expect(spans[1].attributes["db.query.text"]).toBe("SELECT * FROM chargers_rtree WHERE ?");
+  });
+});
+
+describe("vitalsByDay", () => {
+  test("gives each vital's P75 per day over the last 14 days", async () => {
+    const db = seeded();
+    const vital = db.sqlite.prepare(
+      "INSERT INTO web_vitals (name, value, rating, page_kind, created_at) VALUES (?, ?, 'good', 'home', ?)"
+    );
+    // Three days ago: 1000 and 4000 ms; and one older than the 14 days.
+    vital.run("LCP", 1000, NOW - 3 * 86400000);
+    vital.run("LCP", 4000, NOW - 3 * 86400000);
+    vital.run("LCP", 9999, NOW - 20 * 86400000);
+
+    const { days, vitals } = await vitalsByDay(db, NOW);
+
+    expect(days).toHaveLength(14);
+    expect(days.at(-1)).toBe("2026-11-24");
+    expect(days[0]).toBe("2026-11-11");
+    // Today: 1000, 2000, 3000, 5000 → the 3rd of 4.
+    expect(vitals.LCP).toEqual({ "2026-11-21": 4000, "2026-11-24": 3000 });
+    expect(vitals.CLS).toEqual({ "2026-11-24": 0.02 });
+  });
+
+  test("comes with the summary", async () => {
+    const summary = await performanceSummary(seeded(), 1, NOW);
+    expect(summary.vitalsByDay.vitals.LCP["2026-11-24"]).toBe(3000);
   });
 });

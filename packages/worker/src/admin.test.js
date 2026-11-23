@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { adminApiResponse, adminPageResponse, isAdmin, isAdminPage, usageStats } from "./admin.js";
+import {
+  adminApiResponse,
+  adminPageResponse,
+  isAdmin,
+  isAdminPage,
+  mostFavorited,
+  usageStats,
+} from "./admin.js";
 import { testD1 } from "./test-d1.js";
 
 const env = {
@@ -280,5 +287,27 @@ describe("usageStats", () => {
     expect(await daysFor("?days=90")).toBe(90);
     expect(await daysFor("?days=1000")).toBe(30);
     expect(await daysFor("")).toBe(30);
+  });
+});
+
+describe("mostFavorited", () => {
+  test("lists the chargers most users have as a favorite, most first", async () => {
+    const db = testD1("../migrations/0002_auth.sql", "../migrations/0005_favorites.sql");
+    db.sqlite.exec("PRAGMA foreign_keys = OFF");
+    const add = db.sqlite.prepare(
+      "INSERT INTO favorites (user_id, charger_id, charger, added_at) VALUES (?, ?, ?, 1)"
+    );
+    const charger = (name) => JSON.stringify({ name });
+    add.run("ada", "ocm:1", charger("Downtown"));
+    add.run("grace", "ocm:1", charger("Downtown"));
+    add.run("ada", "eipa:2", charger("Warsaw"));
+    add.run("grace", "irve:3", "not json");
+
+    expect(await mostFavorited(db)).toEqual([
+      { id: "ocm:1", name: "Downtown", users: 2 },
+      { id: "eipa:2", name: "Warsaw", users: 1 },
+      { id: "irve:3", name: null, users: 1 },
+    ]);
+    expect(await mostFavorited(db, 1)).toHaveLength(1);
   });
 });
