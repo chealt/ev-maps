@@ -24,6 +24,8 @@ const account = {
       light: "Light",
       dark: "Dark",
     },
+    animations: "Animations",
+    animationsReducedMotion: "Off: your system asks for reduced motion.",
     language: "Language",
   },
   messages: {

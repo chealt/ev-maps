@@ -1,6 +1,7 @@
 ---
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
+import BarChart from "@ev-maps/ui/BarChart.astro";
 import { fill, translations } from "../../i18n/index.js";
 import "./AdminPerformance.css";
 
@@ -52,6 +53,23 @@ const tables = [
       ))}
     </dl>
     <p class="hint">{page.adminWebVitalsHint}</p>
+
+    <!-- Each vital's P75 per day, the last 14 days whatever the period. -->
+    <div class="vital-trend">
+      <div class="trend-vitals" role="group" aria-label={page.adminVitalTrendPick}>
+        {vitals.map((name) => (
+          <button
+            type="button"
+            class="trend-vital"
+            data-trend={name}
+            aria-pressed={String(name === "LCP")}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+      <BarChart title={page.adminVitalTrend} id="admin-vital-trend-title" />
+    </div>
 
     {tables.map(({ id, title, nameColumn }) => (
       <section class="timings" data-table={id} aria-labelledby={`admin-${id}-title`}>

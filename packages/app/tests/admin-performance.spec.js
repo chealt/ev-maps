@@ -24,6 +24,10 @@ const summary = (days) => ({
       errors: 0,
     },
   ],
+  vitalsByDay: {
+    days: ["2026-11-22", "2026-11-23", "2026-11-24"],
+    vitals: { LCP: { "2026-11-22": 3200, "2026-11-24": 2100 }, CLS: { "2026-11-23": 0 } },
+  },
   slowestRequests: [
     {
       trace_id: TRACE,
@@ -174,4 +178,28 @@ test("switches the period, and is in the admin navigation", async ({ page }) => 
     "true"
   );
   expect(requests).toEqual([7, 14]);
+});
+
+test("charts each Web Vital's P75 per day", { tag: "@ui" }, async ({ page }) => {
+  await fakePerformanceApi(page);
+  await page.goto("/en/admin/performance/");
+
+  const chart = page.getByRole("list", { name: "P75 per day, over 14 days" });
+  await expect(chart.getByRole("listitem")).toHaveText([
+    "Nov 22: 3.2 s",
+    "Nov 23: no measurements",
+    "Nov 24: 2.1 s",
+  ]);
+
+  // A day's real 0 is a measurement, not a gap.
+  await page
+    .getByRole("group", { name: "Web Vital to chart" })
+    .getByRole("button", { name: "CLS" })
+    .click();
+  await expect(chart.getByRole("listitem")).toHaveText([
+    "Nov 22: no measurements",
+    "Nov 23: 0",
+    "Nov 24: no measurements",
+  ]);
+  await expect(page.getByRole("button", { name: "CLS", pressed: true })).toBeVisible();
 });

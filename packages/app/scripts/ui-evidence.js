@@ -20,8 +20,9 @@ const slug = (title) =>
     .replace(/(^-|-$)/g, "")
     .slice(0, 80);
 
-// [{ title, screenshot, video }] for every test result with a "ui"
-// attachment (@ev-maps/e2e's @ui tag), in the order the summary lists them.
+// [{ title, screenshots: [{ caption, body }], video }] for every test result
+// with UI evidence (@ev-maps/e2e's @ui tag): its "ui" attachments, or
+// "ui: {caption}" for the moments the test captured, in the order taken.
 const uiResults = async (resultsFile = RESULTS_FILE) => {
   const results = JSON.parse(await readFile(resultsFile, "utf8"));
   const found = [];
@@ -29,13 +30,15 @@ const uiResults = async (resultsFile = RESULTS_FILE) => {
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests) {
         for (const result of test.results) {
-          const screenshot = result.attachments?.find((item) => item.name === "ui");
-          if (!screenshot) {
+          const screenshots = (result.attachments ?? [])
+            .filter(({ name }) => name === "ui" || name.startsWith("ui: "))
+            .map(({ name, body }) => ({ caption: name.slice("ui: ".length) || null, body }));
+          if (!screenshots.length) {
             continue;
           }
           found.push({
             title: [...titles, spec.title].join(" › "),
-            screenshot,
+            screenshots,
             video: result.attachments?.find((item) => item.name === "video"),
           });
         }
@@ -51,34 +54,46 @@ const uiResults = async (resultsFile = RESULTS_FILE) => {
   return found;
 };
 
-// Writes each result's screenshot and video into EVIDENCE_DIR as
-// {slug}.png and {slug}.webm, and returns [{ title, png, webm }] with the
-// file names (and webm null without a video).
+// Writes each result's screenshots and video into EVIDENCE_DIR as
+// {slug}.png ({slug}-2.png, …) and {slug}.webm, and returns
+// [{ title, pngs: [{ caption, file }], webm }] (webm null without a video).
 const materialize = async (resultsFile = RESULTS_FILE, directory = EVIDENCE_DIR) => {
   await mkdir(directory, { recursive: true });
   const entries = [];
   for (const result of await uiResults(resultsFile)) {
     const base = slug(result.title);
-    const png = `${base}.png`;
-    await writeFile(join(directory, png), Buffer.from(result.screenshot.body, "base64"));
+    const pngs = [];
+    for (const [index, { caption, body }] of result.screenshots.entries()) {
+      const file = index ? `${base}-${index + 1}.png` : `${base}.png`;
+      await writeFile(join(directory, file), Buffer.from(body, "base64"));
+      pngs.push({ caption, file });
+    }
     let webm = null;
     if (result.video?.path) {
       webm = `${base}.webm`;
       await copyFile(result.video.path, join(directory, webm));
     }
-    entries.push({ title: result.title, png, webm });
+    entries.push({ title: result.title, pngs, webm });
   }
   return entries;
 };
 
-// The evidence as markdown: the screenshot the test took, embedded, with
-// links to its video and the report, e.g.
-//   [![The ? key opens the keyboard shortcuts](…/ui/screenshot.png)](…/reports/123-1/)
-//   [Watch the video](…/ui/screenshot.webm)
+// The evidence as markdown: each screenshot the test took, embedded under
+// its caption, with links to its video and the report, e.g.
+//   **The ? key opens the keyboard shortcuts**
+//   ![the dialog open](…/ui/the-key-opens….png)
+//   [Video](…/ui/the-key-opens….webm) · [Report](…/reports/123-1/)
 const uiEvidenceMarkdown = (entries, fileUrl, reportUrl) =>
   entries
-    .map(({ title, png, webm }) => {
-      const section = [`**${title}**`, "", `![${title}](${fileUrl}${png})`];
+    .map(({ title, pngs, webm }) => {
+      const section = [`**${title}**`];
+      for (const { caption, file } of pngs) {
+        section.push(
+          "",
+          ...(caption ? [`_${caption}_`, ""] : []),
+          `![${caption ?? title}](${fileUrl}${file})`
+        );
+      }
       const links = [webm && `[Video](${fileUrl}${webm})`, `[Report](${reportUrl})`];
       section.push("", links.filter(Boolean).join(" · "));
       return section.join("\n");
