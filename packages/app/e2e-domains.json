@@ -56,7 +56,14 @@
         "packages/app/src/components/google-map/saved-state.js",
         "packages/app/src/lib/account-settings.js"
       ],
-      "tests": ["power-filter", "connector-filter", "operator-filter", "nearby", "filter-labels"]
+      "tests": [
+        "power-filter",
+        "connector-filter",
+        "operator-filter",
+        "price-filter",
+        "nearby",
+        "filter-labels"
+      ]
     },
     "routes": {
       "paths": [
