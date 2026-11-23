@@ -49,6 +49,12 @@ class RoutePlannerElement extends HTMLElement {
     openDialog(this.dialog);
   }
 
+  // Called by <ev-google-map> when it restores a route after a reload.
+  setPlaces(origin, destination) {
+    this.from?.setPlace(origin);
+    this.to?.setPlace(destination);
+  }
+
   // Called by <ev-google-map> when a route is shown or cleared.
   setRouteShown(shown) {
     this.clearButton.disabled = !shown;
@@ -64,6 +70,32 @@ class RoutePlannerElement extends HTMLElement {
     this.errorEl.textContent = "";
     this.dialog.close();
     this.emit("route-requested", { origin, destination });
+  }
+
+  // A route to `destination` ({ label, location }), e.g. a charger's
+  // Navigate: planned right away from where the user is when they're signed
+  // in and already allow their location; otherwise the planner opens with
+  // the destination filled in, to choose where from (or to sign in).
+  async planTo(destination) {
+    this.to.setPlace(destination);
+    const permission = await navigator.permissions
+      ?.query({ name: "geolocation" })
+      .catch(() => null);
+    if (!isSignedIn() || permission?.state !== "granted" || !navigator.geolocation) {
+      this.open();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        this.from.setPlace({
+          label: message("myLocation"),
+          location: { lat: coords.latitude, lng: coords.longitude },
+        });
+        this.requestRoute();
+      },
+      () => this.open(),
+      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS }
+    );
   }
 
   useMyLocation() {

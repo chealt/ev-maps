@@ -153,6 +153,13 @@
 
   class AutocompleteSessionToken {}
 
+  // A place by its ID, as the app rebuilds a saved route's places.
+  class Place {
+    constructor({ id }) {
+      this.id = id;
+    }
+  }
+
   const AutocompleteSuggestion = {
     async fetchAutocompleteSuggestions(request) {
       window.__placeRequests.push(request);
@@ -172,8 +179,10 @@
     },
   };
 
-  // A place or a location, as the app passes them, as { lat, lng }.
-  const pointOf = (endpoint) => endpoint.location ?? endpoint;
+  // A place or a location, as the app passes them, as { lat, lng }; a place
+  // known only by its ID is looked up, as Google would.
+  const pointOf = (endpoint) =>
+    endpoint.location ?? PLACES.find((place) => place.id === endpoint.id)?.location ?? endpoint;
 
   // Drives along a straight line in 20 steps; the ocean has no route.
   const Route = {
@@ -207,7 +216,7 @@
   const libraries = {
     maps: { Map, Polyline },
     marker: { AdvancedMarkerElement },
-    places: { AutocompleteSuggestion, AutocompleteSessionToken },
+    places: { AutocompleteSuggestion, AutocompleteSessionToken, Place },
     routes: { Route },
   };
 

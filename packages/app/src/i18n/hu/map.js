@@ -14,6 +14,7 @@ const map = {
     chargerList: "Töltőállomások",
     closeList: "Lista bezárása",
     close: "Bezárás",
+    navigate: "Útvonal ide",
     connectors: "Csatlakozók",
     details: "Részletek",
     openChargeMapCredit: {
