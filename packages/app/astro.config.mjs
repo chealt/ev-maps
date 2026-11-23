@@ -45,6 +45,8 @@ export default defineConfig({
       "process.env.EV_MAPS_MAX_PAGE_CHARGERS": JSON.stringify(
         process.env.EV_MAPS_MAX_PAGE_CHARGERS ?? ""
       ),
+      // No Worker runs (the tests): pages don't ask it for their data.
+      "process.env.EV_MAPS_NO_API_PROXY": JSON.stringify(process.env.EV_MAPS_NO_API_PROXY ?? ""),
     },
     resolve: {
       alias: {
