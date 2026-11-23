@@ -57,7 +57,9 @@ class ChargerIndex {
     this.index = null;
   }
 
-  // Indexes the chargers matching the filters and returns their IDs. Filters:
+  // Indexes the chargers matching the filters and returns their IDs, and
+  // those of the chargers every filter but the operators' leaves (for the
+  // operator list): { matching, available }. Filters:
   // { ranges: [{ minKw, maxKw }], connectorTypes: [], excludedOperators: [],
   //   favoriteIds: [] or null for any, unavailableIds: [] to hide (the live
   //   statuses are the page's), amenities: [] }.
@@ -66,21 +68,22 @@ class ChargerIndex {
     const excluded = new Set(excludedOperators);
     const favorites = favoriteIds ? new Set(favoriteIds) : null;
     const unavailable = new Set(unavailableIds ?? []);
-    const matching = this.chargers.filter(
+    const available = this.chargers.filter(
       (charger) =>
         matchesPower(charger, ranges) &&
         matchesConnectors(charger, types) &&
-        !excluded.has(operatorOf(charger)) &&
         (!favorites || favorites.has(charger.id)) &&
         !unavailable.has(charger.id) &&
         amenities.every((amenity) => charger.amenities?.includes(amenity))
     );
+    const matching = available.filter((charger) => !excluded.has(operatorOf(charger)));
     this.index = new Supercluster({
       radius: CLUSTER_RADIUS,
       extent: CLUSTER_EXTENT,
       maxZoom: CLUSTER_MAX_ZOOM,
     }).load(matching.map(toFeature));
-    return matching.map((charger) => charger.id);
+    const ids = (chargers) => chargers.map((charger) => charger.id);
+    return { matching: ids(matching), available: ids(available) };
   }
 
   // The clusters and chargers to draw in a box ([west, south, east, north]).

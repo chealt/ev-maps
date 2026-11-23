@@ -111,6 +111,31 @@ const usageStats = async (db, days, now = Date.now()) => {
   }
   return { days: dayList, events };
 };
+const MOST_FAVORITED = 10;
+
+// The chargers most users have as a favorite now (the main database's
+// favorites), most first: [{ id, name, users }]. The name is from the copy
+// the favorites keep.
+const mostFavorited = async (db, limit = MOST_FAVORITED) => {
+  const { results } = await db
+    .prepare(
+      `SELECT charger_id, COUNT(*) AS users, MAX(charger) AS charger FROM favorites
+       GROUP BY charger_id ORDER BY users DESC, charger_id LIMIT ?`
+    )
+    .bind(limit)
+    .all();
+  return results.map(({ charger_id: id, users, charger }) => {
+    let name = null;
+    try {
+      const saved = JSON.parse(charger);
+      name = saved.name || saved.operator || saved.address || null;
+    } catch {
+      // A copy that doesn't parse: the ID is enough to find it.
+    }
+    return { id, name, users };
+  });
+};
+
 const OCCURRENCES_PAGE_SIZE = 20;
 const ERROR_GROUP_PATH = /^\/api\/admin\/errors\/([0-9a-f]{8})$/;
 
@@ -167,7 +192,8 @@ const errorOccurrences = async (db, fingerprint, page) => {
 // - GET /api/admin/me: who the admin is
 // - GET /api/admin/errors?page=: errors grouped, most recent first
 // - GET /api/admin/errors/{fingerprint}?page=: one error's occurrences
-// - GET /api/admin/usage?days=7|30|90: usage stats
+// - GET /api/admin/usage?days=7|30|90: usage stats, and the most favorited
+//   chargers
 const adminApiResponse = async (request, env, user) => {
   const url = new URL(request.url);
   if (request.method !== "GET") {
@@ -181,7 +207,11 @@ const adminApiResponse = async (request, env, user) => {
   }
   if (url.pathname === `${ADMIN_API_PREFIX}usage`) {
     const days = Number(url.searchParams.get("days"));
-    return json(await usageStats(env.ADMIN_DB, USAGE_PERIODS.includes(days) ? days : 30));
+    const [stats, favorited] = await Promise.all([
+      usageStats(env.ADMIN_DB, USAGE_PERIODS.includes(days) ? days : 30),
+      env.DB ? mostFavorited(env.DB) : [],
+    ]);
+    return json({ ...stats, mostFavorited: favorited });
   }
   const fingerprint = url.pathname.match(ERROR_GROUP_PATH)?.[1];
   if (fingerprint) {
@@ -218,6 +248,7 @@ export {
   adminPageResponse,
   isAdmin,
   isAdminPage,
+  mostFavorited,
   pageRoutes,
   routes,
   usageStats,

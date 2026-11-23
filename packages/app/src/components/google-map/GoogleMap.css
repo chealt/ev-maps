@@ -355,6 +355,12 @@ ev-google-map {
       font-size: var(--font-size-sm);
       color: var(--color-text-muted);
     }
+
+    /* None of its chargers is left by the other filters. */
+    &:has(:disabled) {
+      color: var(--color-text-muted);
+      cursor: not-allowed;
+    }
   }
 
   .options {

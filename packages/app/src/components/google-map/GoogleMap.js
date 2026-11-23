@@ -201,11 +201,13 @@ const readActiveConnectorTypes = (panel) =>
 // How many of the chargers each operator has: most first, then by name, the
 // unknown operator last. The `kept` operators are listed even without
 // chargers, e.g. ones turned off, so they can be turned back on.
-const countOperators = (chargers, kept) => {
-  const counts = new Map([...kept].map((operator) => [operator, 0]));
-  for (const charger of chargers) {
+const countOperators = (chargers, kept, available = chargers) => {
+  // Every loaded charger's operator is listed, with how many of the
+  // `available` ones (those the other filters leave) it has, maybe none.
+  const counts = new Map([...kept, ...chargers.map(operatorOf)].map((operator) => [operator, 0]));
+  for (const charger of available) {
     const operator = operatorOf(charger);
-    counts.set(operator, (counts.get(operator) ?? 0) + 1);
+    counts.set(operator, counts.get(operator) + 1);
   }
   return [...counts].sort(
     ([nameA, countA], [nameB, countB]) =>
@@ -460,7 +462,7 @@ class GoogleMapElement extends HTMLElement {
     this.filterPanel?.addEventListener("close", () => {
       this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
       // Operators kept in place while the dialog was open can go now.
-      this.listOperators(this.loaded?.chargers ?? []);
+      this.listOperators(this.loaded?.chargers ?? [], this.availableChargers);
       this.flushAccountSave();
     });
     // Leaving the page doesn't lose a save that's waiting.
@@ -645,7 +647,10 @@ class GoogleMapElement extends HTMLElement {
   // turned off. The list is only rebuilt when the operators change, and
   // while the dialog is open none is removed, so ticking one keeps it, and
   // the focus, in place.
-  listOperators(chargers) {
+  // `available` are the chargers the other filters leave: operators with
+  // none of them are listed, but can't be picked (unless they're turned
+  // off, so they can be turned back on).
+  listOperators(chargers, available = chargers) {
     const list = this.filterPanel?.querySelector(".operator-options");
     if (!list) {
       return;
@@ -656,7 +661,7 @@ class GoogleMapElement extends HTMLElement {
         kept.add(checkbox.dataset.operator);
       }
     }
-    const operators = countOperators(chargers, kept);
+    const operators = countOperators(chargers, kept, available);
     const signature = JSON.stringify(operators);
     if (signature !== this.operatorsSignature) {
       this.operatorsSignature = signature;
@@ -664,7 +669,9 @@ class GoogleMapElement extends HTMLElement {
       list.replaceChildren(
         ...operators.map(([operator, count]) => {
           const option = template.content.cloneNode(true);
-          option.querySelector(".operator-filter").dataset.operator = operator;
+          const checkbox = option.querySelector(".operator-filter");
+          checkbox.dataset.operator = operator;
+          checkbox.dataset.count = String(count);
           option.querySelector(".operator-name").textContent =
             operator || message("unknownOperator");
           option.querySelector(".operator-count").textContent = formatNumber(count);
@@ -681,7 +688,9 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     for (const checkbox of this.filterPanel.querySelectorAll(".operator-filter")) {
-      checkbox.checked = !this.excludedOperators.has(checkbox.dataset.operator);
+      const excluded = this.excludedOperators.has(checkbox.dataset.operator);
+      checkbox.checked = !excluded;
+      checkbox.disabled = !excluded && checkbox.dataset.count === "0";
     }
     this.filterPanel.querySelector(".show-all-operators").hidden =
       this.excludedOperators.size === 0;
@@ -870,6 +879,7 @@ class GoogleMapElement extends HTMLElement {
       }
       this.loaded = null;
       this.clearMarkers();
+      this.availableChargers = [];
       this.listOperators([]);
       this.hideChargerDetails();
       this.setStatus(message("zoomIn"), "warning");
@@ -919,13 +929,12 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const { chargers, truncated } = this.loaded;
-    this.listOperators(chargers);
     if (this.indexedChargers !== chargers) {
       this.indexedChargers = chargers;
       this.chargersById = new Map(chargers.map((charger) => [charger.id, charger]));
       this.chargerIndex.setChargers(chargers);
     }
-    const matchingIds = await this.chargerIndex.filter({
+    const { matching: matchingIds, available: availableIds } = await this.chargerIndex.filter({
       ranges: this.filterPanel ? readActivePowerRanges(this.filterPanel) : [],
       connectorTypes: this.filterPanel ? [...readActiveConnectorTypes(this.filterPanel)] : [],
       excludedOperators: [...this.excludedOperators],
@@ -942,6 +951,10 @@ class GoogleMapElement extends HTMLElement {
     if (this.loaded?.chargers !== chargers) {
       return;
     }
+    // The operators are listed by what every other filter leaves.
+    const available = availableIds.map((id) => this.chargersById.get(id));
+    this.availableChargers = available;
+    this.listOperators(chargers, available);
     const matching = matchingIds.map((id) => this.chargersById.get(id));
     await this.renderMarkers();
     this.setListedChargers(matching);
