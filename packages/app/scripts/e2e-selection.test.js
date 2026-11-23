@@ -31,7 +31,7 @@ describe("selectE2e", () => {
       ],
       mapping
     );
-    expect(selection.tests).toEqual(["navigate", "route-planner", "shortcuts"]);
+    expect(selection.tests).toEqual(["favorite-routes", "navigate", "route-planner", "shortcuts"]);
   });
 
   test("runs a changed spec, even one no domain lists yet", () => {

@@ -96,3 +96,27 @@
     color: var(--color-text-muted);
   }
 }
+
+.route-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+
+  .recent-route {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Saved as a favorite: a filled heart, as on a charger's details, also
+     while hovered (the ghost button's hover color would win otherwise). */
+  .favorite-route[aria-pressed="true"] {
+    &,
+    &:hover:not(:disabled) {
+      color: var(--color-danger);
+    }
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}

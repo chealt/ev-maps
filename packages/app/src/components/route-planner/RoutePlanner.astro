@@ -1,7 +1,7 @@
 ---
 import DistanceText from "../distance-text/DistanceText.astro";
 import { CORRIDOR_KM } from "../google-map/route.js";
-import { History, LocateFixed, X } from "lucide-static";
+import { Heart, History, LocateFixed, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -42,9 +42,17 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
       <DistanceText class="hint" template={page.routeCorridor} meters={CORRIDOR_KM * 1000} />
       <p class="error" role="alert"></p>
-      <!-- The routes planned before, with the filters on then; choosing one
-           plans it again with them (route-history.js). -->
-      <section class="recent-routes" aria-labelledby="recent-routes-title" hidden>
+      <!-- The routes saved as favorites, then the others planned before,
+           each with the filters on then; choosing one plans it again with
+           them, and its heart saves or removes it (route-history.js). -->
+      <section class="recent-routes favorite-routes" aria-labelledby="favorite-routes-title" hidden>
+        <h3 class="subtitle" id="favorite-routes-title">
+          <Icon icon={Heart} size="sm" />
+          {page.favoriteRoutes}
+        </h3>
+        <ol class="recent-route-list"></ol>
+      </section>
+      <section class="recent-routes history" aria-labelledby="recent-routes-title" hidden>
         <h3 class="subtitle" id="recent-routes-title">
           <Icon icon={History} size="sm" />
           {page.recentRoutes}
@@ -52,11 +60,14 @@ const { page } = translations(Astro.currentLocale ?? "en");
         <ol class="recent-route-list"></ol>
       </section>
       <template class="recent-route-template">
-        <li>
+        <li class="route-item">
           <button type="button" class="recent-route">
             <span class="route-ends"></span>
             <span class="route-filters"></span>
           </button>
+          <Button variant="ghost" size="icon-only" class="favorite-route" aria-pressed="false">
+            <Icon icon={Heart} />
+          </Button>
         </li>
       </template>
     </form>
