@@ -14,6 +14,7 @@ const map = {
     chargerList: "Stacje ładowania",
     closeList: "Zamknij listę",
     close: "Zamknij",
+    navigate: "Nawiguj",
     connectors: "Złącza",
     details: "Szczegóły",
     openChargeMapCredit: {

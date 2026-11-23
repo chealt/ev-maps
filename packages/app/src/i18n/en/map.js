@@ -14,6 +14,7 @@ const map = {
     chargerList: "EV chargers",
     closeList: "Close list",
     close: "Close",
+    navigate: "Navigate",
     connectors: "Connectors",
     details: "Details",
     openChargeMapCredit: {

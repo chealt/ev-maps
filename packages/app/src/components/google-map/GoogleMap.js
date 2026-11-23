@@ -429,6 +429,13 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".favorite-button")
       ?.addEventListener("click", () => this.toggleFavorite());
+    // Navigate: a route to the open charger, planned here.
+    this.detailsPanel?.querySelector(".navigate")?.addEventListener("click", () => {
+      const charger = this.activeCharger;
+      if (charger) {
+        this.routePlanner?.planTo({ label: chargerName(charger), location: charger.location });
+      }
+    });
     // A charger picked in the favorites list.
     document.addEventListener("show-charger", (event) =>
       this.showFavoriteCharger(event.detail.charger)
