@@ -13,7 +13,6 @@ const map = {
     done: "Kész",
     chargerList: "Töltőállomások",
     closeList: "Lista bezárása",
-    badge: "Elektromos töltés",
     close: "Bezárás",
     connectors: "Csatlakozók",
     details: "Részletek",
