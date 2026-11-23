@@ -13,7 +13,6 @@ const map = {
     done: "Kész",
     chargerList: "Töltőállomások",
     closeList: "Lista bezárása",
-    badge: "Elektromos töltés",
     close: "Bezárás",
     navigate: "Útvonal ide",
     navigateHint: "Új lapon nyitja meg a Google Térképet, a helyzetedtől.",

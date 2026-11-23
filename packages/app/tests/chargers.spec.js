@@ -329,3 +329,18 @@ test("asks to sign in for live availability", async ({ page }) => {
   await map.getByRole("button", { name: "Downtown Supercharger" }).click();
   await expect(details.getByText("5 of 6 points free")).toBeVisible();
 });
+
+test(
+  "opens the list of the chargers found from the status pill",
+  { tag: "@ui" },
+  async ({ page }) => {
+    await fakeChargersApi(page);
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "2 EV chargers found" }).click();
+
+    const list = page.getByRole("dialog", { name: "2 EV chargers" });
+    await expect(list).toBeVisible();
+    await expect(list.getByRole("listitem")).toHaveCount(2);
+  }
+);

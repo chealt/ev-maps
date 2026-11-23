@@ -13,7 +13,6 @@ const map = {
     done: "Gotowe",
     chargerList: "Stacje ładowania",
     closeList: "Zamknij listę",
-    badge: "Ładowanie EV",
     close: "Zamknij",
     navigate: "Nawiguj",
     navigateHint: "Otwiera Mapy Google w nowej karcie, z Twojej lokalizacji.",

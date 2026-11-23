@@ -320,10 +320,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="header">
-        <span class="badge">
-          <Icon icon={Zap} size="sm" />
-          {page.badge}
-        </span>
+        <h2 class="name" id="charger-details-name"></h2>
         <div class="actions">
           <!-- Signed out: disabled-looking, says to sign in, and opens the
                sign-in options. -->
@@ -348,7 +345,6 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </div>
       </div>
-      <h2 class="name" id="charger-details-name"></h2>
       <p class="address">
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
