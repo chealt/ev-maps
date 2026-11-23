@@ -58,7 +58,9 @@ thresholds, and attaches them ("web-vitals"). `scripts/performance-report.js`
 puts them together into each page's P75, rated good, needs improvement or
 poor, uploaded in `reports/{id}/performance/` and linked from a
 "Performance report" commit status (failure if any P75 is poor). The tests
-run against the development server with the APIs faked, so the numbers are
+run against the development server with the APIs faked, warmed up first
+(`tests/global-setup.js` loads each measured page once, so no test measures
+Vite compiling it), so the numbers are
 for comparing runs; the admin area's performance page has production's.
 
 To measure another test's page, tag it:
