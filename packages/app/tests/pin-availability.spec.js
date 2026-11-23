@@ -112,3 +112,38 @@ test.describe("with the service worker", () => {
     expect(requests).toHaveLength(afterFirstTab);
   });
 });
+
+test("hides the chargers with no point free, with the filter", { tag: "@ui" }, async ({ page }) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeStatusApi(page, statuses);
+  await page.goto("/");
+  await expect(pin(page, "Full station")).toHaveClass(/none-free/);
+
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  const filters = page.getByRole("dialog", { name: "Filters" });
+  await filters.getByRole("button", { name: "Hide unavailable" }).click();
+  await filters.getByRole("button", { name: "Done" }).click();
+
+  // The full and the broken one go; one without statuses stays, as nothing
+  // says it's taken.
+  await expect(page.getByRole("status")).toHaveText("2 of 4 EV chargers match the filters");
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await expect(map.getByRole("button", { name: /Full station/ })).toBeHidden();
+  await expect(map.getByRole("button", { name: /Broken station/ })).toBeHidden();
+  await expect(map.getByRole("button", { name: "Free station" })).toBeVisible();
+  await expect(map.getByRole("button", { name: "Station without statuses" })).toBeVisible();
+});
+
+test("asks to sign in to hide the unavailable chargers", async ({ page }) => {
+  await fakeAuthApi(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+
+  const hide = page.getByRole("dialog", { name: "Filters" }).getByRole("button", {
+    name: "Hide unavailable",
+  });
+  await expect(hide).toHaveAttribute("aria-disabled", "true");
+  await expect(hide).toHaveAccessibleDescription(
+    "Sign in to see how many points are free right now. Hides the chargers whose live availability says none of their points is free."
+  );
+});

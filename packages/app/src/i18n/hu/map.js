@@ -63,6 +63,9 @@ const map = {
     noOperators: "Mozgasd a térképet töltőkhöz, hogy az üzemeltetőik közül választhass.",
     favorite: "Kedvenc",
     onlyFavorites: "Csak a kedvencek",
+    hideUnavailable: "Foglaltak elrejtése",
+    hideUnavailableHint:
+      "Elrejti azokat a töltőket, amelyeknek az élő állapota szerint egyik pontja sem szabad.",
     nearby: "A közelben",
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
