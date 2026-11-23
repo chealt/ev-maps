@@ -14,6 +14,8 @@ const adminPerformance = {
     adminVitalCLS: "Cumulative Layout Shift",
     adminVitalFCP: "First Contentful Paint",
     adminVitalTTFB: "Time to First Byte",
+    adminVitalTrend: "P75 dziennie, przez 14 dni",
+    adminVitalTrendPick: "Web Vital na wykresie",
     adminPerformanceRequests: "Zapytania w Workerze",
     adminPerformancePageRequests: "Wywołania API widziane przez stronę",
     adminPerformanceQueries: "Najwolniejsze zapytania do bazy",
@@ -31,6 +33,8 @@ const adminPerformance = {
   messages: {
     adminMilliseconds: "{value} ms",
     adminSeconds: "{value} s",
+    adminVitalDay: "{day}: {value}",
+    adminNoMeasurements: "brak pomiarów",
     adminPerformanceNotLoaded: "Nie udało się wczytać wydajności. Spróbuj ponownie.",
     adminPerformancePeriod: {
       one: "Ostatni {count} dzień",

@@ -69,6 +69,18 @@ const periods = [7, 30, 90];
           </p>
         </section>
       ))}
+      <!-- Now, not in the period: favorites are kept, not counted per day. -->
+      <section class="breakdown most-favorited" aria-labelledby="admin-most-favorited">
+        <h3 class="subtitle" id="admin-most-favorited">
+          {page.adminMostFavorited}
+        </h3>
+        <table>
+          <tbody></tbody>
+        </table>
+        <p class="empty" hidden>
+          {page.adminNoData}
+        </p>
+      </section>
     </div>
   </section>
 

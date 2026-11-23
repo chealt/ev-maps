@@ -1,4 +1,5 @@
 import { formatNumber, message } from "../../lib/messages.js";
+import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
 
 const SUMMARY_URL = "/api/admin/performance";
 const TRACE_URL = "/api/admin/performance/traces";
@@ -54,6 +55,13 @@ class AdminPerformanceElement extends HTMLElement {
         this.go(JSON.parse(link.dataset.view));
       }
     });
+    this.querySelector(".trend-vitals").addEventListener("click", (event) => {
+      const button = event.target.closest(".trend-vital");
+      if (button) {
+        this.trendVital = button.dataset.trend;
+        this.renderTrend();
+      }
+    });
     this.querySelector(".all-performance").dataset.view = JSON.stringify({ trace: null, days: 7 });
     window.addEventListener("popstate", () => this.show(viewOf()));
     this.show(viewOf());
@@ -89,7 +97,32 @@ class AdminPerformanceElement extends HTMLElement {
     }
   }
 
+  // The chosen vital's P75 per day (LCP until another is picked).
+  renderTrend() {
+    const vital = this.trendVital ?? "LCP";
+    for (const button of this.querySelectorAll(".trend-vital")) {
+      button.setAttribute("aria-pressed", String(button.dataset.trend === vital));
+    }
+    const { days = [], vitals = {} } = this.vitalsByDay ?? {};
+    if (!days.length) {
+      return;
+    }
+    // A day without measurements says so, rather than showing a P75 of 0
+    // (CLS can be a real 0).
+    const measured = vitals[vital] ?? {};
+    const dayOf = new Map(days.map((day) => [formatDay(day), day]));
+    renderBarChart(this.querySelector(".vital-trend .bar-chart"), days, measured, (day, p75) =>
+      message("adminVitalDay", {
+        day,
+        value:
+          dayOf.get(day) in measured ? formatVital(vital, p75) : message("adminNoMeasurements"),
+      })
+    );
+  }
+
   renderSummary(summary) {
+    this.vitalsByDay = summary.vitalsByDay;
+    this.renderTrend();
     for (const button of this.querySelectorAll(".period")) {
       button.setAttribute("aria-pressed", String(Number(button.dataset.days) === summary.days));
     }
