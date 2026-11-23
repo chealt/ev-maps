@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
@@ -53,28 +53,33 @@ test("shows EV charger markers", { tag: "@performance" }, async ({ page }) => {
   await expect(map.getByRole("button")).toHaveCount(2);
 });
 
-test("shows charger details when a marker is clicked", { tag: "@ui" }, async ({ page }) => {
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
+test(
+  "shows charger details when a marker is clicked",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
 
-  const details = page.getByRole("complementary", { name: downtownChargerLabel });
-  await expect(details).toBeVisible();
-  await expect(details.getByRole("heading", { name: downtownChargerLabel })).toBeVisible();
-  // The name heads the panel, with no label above it.
-  await expect(details.getByText("EV charging", { exact: true })).toHaveCount(0);
-  await expect(details.getByText("1 Main St, New York, NY, 10001")).toBeVisible();
-  await expect(details.getByText("CCS (Type 1): 4× · 150 kW")).toBeVisible();
-  await expect(details.getByText("NACS (Tesla): 4× · 250 kW")).toBeVisible();
-  await expect(details.getByText("Operator: Tesla")).toBeVisible();
-  await expect(details.getByText("Access: Public, membership required")).toBeVisible();
-  await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();
-  await expect(details.getByText("Status: Operational")).toBeVisible();
-  await expect(details.getByText("Charging points: 8")).toBeVisible();
-  await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
+    const details = page.getByRole("complementary", { name: downtownChargerLabel });
+    await expect(details).toBeVisible();
+    await expect(details.getByRole("heading", { name: downtownChargerLabel })).toBeVisible();
+    // The name heads the panel, with no label above it.
+    await expect(details.getByText("EV charging", { exact: true })).toHaveCount(0);
+    await expect(details.getByText("1 Main St, New York, NY, 10001")).toBeVisible();
+    await expect(details.getByText("CCS (Type 1): 4× · 150 kW")).toBeVisible();
+    await expect(details.getByText("NACS (Tesla): 4× · 250 kW")).toBeVisible();
+    await expect(details.getByText("Operator: Tesla")).toBeVisible();
+    await expect(details.getByText("Access: Public, membership required")).toBeVisible();
+    await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();
+    await expect(details.getByText("Status: Operational")).toBeVisible();
+    await expect(details.getByText("Charging points: 8")).toBeVisible();
+    await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
+    await captureUi(page, testInfo, "the charger's details");
 
-  await details.getByRole("button", { name: "Close" }).click();
-  await expect(page.getByRole("complementary")).toBeHidden();
-});
+    await details.getByRole("button", { name: "Close" }).click();
+    await expect(page.getByRole("complementary")).toBeHidden();
+  }
+);
 
 test("the Escape key closes the charger details", async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });

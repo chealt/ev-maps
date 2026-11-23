@@ -10,9 +10,11 @@
 // ("web-vitals"), e.g. for a performance report of each page's P75.
 //
 // Tests tagged @ui (test("…", { tag: "@ui" }, …)), those that show a new or
-// updated UI control, attach a screenshot of the page as the test left it
-// ("ui"): with the video CI records of every test, a pull request's report
-// shows what the control looks and feels like.
+// updated UI control, attach screenshots ("ui"): with the video CI records
+// of every test, a pull request's report shows what the control looks and
+// feels like. A test captures the moments that show it with
+// `await captureUi(page, testInfo, "the dialog open")`, e.g. before closing
+// what it opened; one that captures none gets the page as it left it.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
 import { THRESHOLDS, measureWebVitals } from "./web-vitals.js";
@@ -50,6 +52,20 @@ const summaryOf = ({ url, passes, violations, incomplete }) => {
   };
 };
 
+// Attaches a screenshot of the page now as UI evidence, with a caption.
+const captureUi = async (page, testInfo, caption) => {
+  // Colors in the middle of a fade-in aren't what anyone reads.
+  await page.evaluate(() =>
+    Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})))
+  );
+  await testInfo.attach(caption ? `ui: ${caption}` : "ui", {
+    contentType: "image/png",
+    body: await page.screenshot(),
+  });
+};
+
+const isUiEvidence = ({ name }) => name === "ui" || name.startsWith("ui: ");
+
 const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     await use(page);
@@ -69,11 +85,8 @@ const test = base.extend({
         .map(([name]) => `${name} ${vitals[name]}`);
       expect(poor, `Poor load metrics on ${vitals.url}`).toEqual([]);
     }
-    if (testInfo.tags.includes(UI_TAG)) {
-      await testInfo.attach("ui", {
-        contentType: "image/png",
-        body: await page.screenshot(),
-      });
+    if (testInfo.tags.includes(UI_TAG) && !testInfo.attachments.some(isUiEvidence)) {
+      await captureUi(page, testInfo);
     }
     // Colors in the middle of a fade-in aren't what anyone reads.
     await page.evaluate(() =>
@@ -88,4 +101,4 @@ const test = base.extend({
   },
 });
 
-export { expect, test };
+export { captureUi, expect, test };
