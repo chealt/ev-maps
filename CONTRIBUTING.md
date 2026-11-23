@@ -9,7 +9,9 @@ change can be reviewed before it's merged.
 3. Make your changes, following the
    [Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md) and
    [Testing Guidelines](docs/TESTING_GUIDELINES.md)
-4. Run `bun run lint`, `bun run format` and `bun run test`
+4. Run `bun run lint`, `bun run format` and the tests of what you changed
+   (see [Running Tests](docs/TESTING_GUIDELINES.md#running-tests)); CI runs
+   the rest
 5. Commit your changes using
    [Conventional Commits](https://www.conventionalcommits.org/)
 6. Open a pull request
