@@ -1,0 +1,118 @@
+{
+  "$comment": "Which end-to-end specs a pull request runs (scripts/select-e2e.js): the specs of every domain whose paths it changed, and the tests tagged @regression. A change to `everything`, or to a file under packages/app that no domain lists, runs them all. Paths are from the repository's root; tests are spec names in packages/app/tests.",
+  "everything": [
+    "package.json",
+    "bun.lock",
+    ".github/workflows/app.yml",
+    "packages/app/package.json",
+    "packages/app/astro.config.mjs",
+    "packages/app/playwright.config.js",
+    "packages/app/e2e-domains.json",
+    "packages/app/scripts/select-e2e.js",
+    "packages/app/scripts/e2e-selection.js",
+    "packages/app/tests/fixtures/**",
+    "packages/app/src/layouts/**",
+    "packages/app/src/pages/**",
+    "packages/app/src/i18n/index.js",
+    "packages/app/src/lib/messages.js",
+    "packages/app/src/lib/pages.js",
+    "packages/app/src/lib/page-data.js",
+    "packages/app/src/components/HomePage.*",
+    "packages/e2e/**",
+    "packages/ui/**",
+    "packages/tiles/**"
+  ],
+  "domains": {
+    "map": {
+      "paths": [
+        "packages/app/src/components/google-map/**",
+        "packages/app/src/components/locate-button/**",
+        "packages/app/src/config/**",
+        "packages/app/src/lib/charger-name.js",
+        "packages/app/src/lib/distance.js",
+        "packages/app/src/lib/map-center.js",
+        "packages/app/src/i18n/*/map.js",
+        "packages/app/public/**"
+      ],
+      "tests": [
+        "google-map",
+        "chargers",
+        "scrolling",
+        "pin-availability",
+        "priciness",
+        "nearby",
+        "manifest"
+      ]
+    },
+    "filters": {
+      "paths": [
+        "packages/app/src/components/filter-button/**",
+        "packages/app/src/components/google-map/saved-state.js",
+        "packages/app/src/lib/account-settings.js"
+      ],
+      "tests": ["power-filter", "connector-filter", "operator-filter", "nearby"]
+    },
+    "routes": {
+      "paths": [
+        "packages/app/src/components/route-button/**",
+        "packages/app/src/components/route-planner/**",
+        "packages/app/src/components/place-input/**",
+        "packages/app/src/components/google-map/route.js"
+      ],
+      "tests": ["route-planner"]
+    },
+    "shortcuts": {
+      "paths": ["packages/app/src/components/shortcuts-dialog/**"],
+      "tests": ["shortcuts"]
+    },
+    "account": {
+      "paths": [
+        "packages/app/src/components/user-menu/**",
+        "packages/app/src/components/theme-picker/**",
+        "packages/app/src/components/language-picker/**",
+        "packages/app/src/lib/session.js",
+        "packages/app/src/i18n/*/account.js"
+      ],
+      "tests": ["sign-in", "passkeys", "theme", "languages"]
+    },
+    "favorites": {
+      "paths": [
+        "packages/app/src/components/favorites-dialog/**",
+        "packages/app/src/lib/favorites.js"
+      ],
+      "tests": ["favorites"]
+    },
+    "legal": {
+      "paths": ["packages/app/src/components/legal-page/**", "packages/app/src/legal/**"],
+      "tests": ["legal"]
+    },
+    "country pages": {
+      "paths": [
+        "packages/app/src/lib/page-kind.js",
+        "packages/app/tests/fixtures/country-chargers/**"
+      ],
+      "tests": ["country-page"]
+    },
+    "translations": {
+      "paths": ["packages/app/src/i18n/**"],
+      "tests": ["translations", "languages"]
+    },
+    "reporting": {
+      "paths": [
+        "packages/app/src/lib/usage.js",
+        "packages/app/src/lib/performance.js",
+        "packages/app/src/lib/error-reporting.js",
+        "packages/app/scripts/**"
+      ],
+      "tests": ["usage", "performance", "error-reporting", "accessibility"]
+    },
+    "admin": {
+      "paths": [
+        "packages/app/src/components/admin-*/**",
+        "packages/app/src/lib/day-count.js",
+        "packages/app/src/i18n/*/admin*.js"
+      ],
+      "tests": ["admin", "admin-errors", "admin-performance", "admin-reports", "admin-usage"]
+    }
+  }
+}

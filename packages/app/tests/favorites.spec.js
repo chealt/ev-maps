@@ -40,35 +40,39 @@ test.beforeEach(async ({ page }) => {
   await fakeChargersApi(page, { chargers: [near, far] });
 });
 
-test("saves a charger as a favorite with the heart, and removes it", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  const changes = await fakeFavoritesApi(page);
-  await page.goto("/");
-  const panel = await openCharger(page, "Near charger");
-  const heart = panel.getByRole("button", { name: "Favorite" });
-  await expect(heart).toHaveAttribute("aria-pressed", "false");
+test(
+  "saves a charger as a favorite with the heart, and removes it",
+  { tag: "@regression" },
+  async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const changes = await fakeFavoritesApi(page);
+    await page.goto("/");
+    const panel = await openCharger(page, "Near charger");
+    const heart = panel.getByRole("button", { name: "Favorite" });
+    await expect(heart).toHaveAttribute("aria-pressed", "false");
 
-  await heart.click();
+    await heart.click();
 
-  await expect(heart).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(() => changes.length).toBe(1);
-  expect(changes[0]).toMatchObject({ method: "PUT", id: "ocm:1", body: { charger: near } });
+    await expect(heart).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(() => changes.length).toBe(1);
+    expect(changes[0]).toMatchObject({ method: "PUT", id: "ocm:1", body: { charger: near } });
 
-  await page.reload();
-  const reloaded = await openCharger(page, "Near charger");
-  await expect(reloaded.getByRole("button", { name: "Favorite" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+    await page.reload();
+    const reloaded = await openCharger(page, "Near charger");
+    await expect(reloaded.getByRole("button", { name: "Favorite" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
 
-  await reloaded.getByRole("button", { name: "Favorite" }).click();
-  await expect(reloaded.getByRole("button", { name: "Favorite" })).toHaveAttribute(
-    "aria-pressed",
-    "false"
-  );
-  await expect.poll(() => changes.length).toBe(2);
-  expect(changes[1]).toMatchObject({ method: "DELETE", id: "ocm:1" });
-});
+    await reloaded.getByRole("button", { name: "Favorite" }).click();
+    await expect(reloaded.getByRole("button", { name: "Favorite" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    await expect.poll(() => changes.length).toBe(2);
+    expect(changes[1]).toMatchObject({ method: "DELETE", id: "ocm:1" });
+  }
+);
 
 test("undoes the heart when saving fails", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });

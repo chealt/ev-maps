@@ -45,7 +45,7 @@ const choosePlace = async (dialog, field, text, option) => {
   await dialog.getByRole("option", { name: option }).click();
 };
 
-test("shows the chargers along a route", async ({ page }) => {
+test("shows the chargers along a route", { tag: "@regression" }, async ({ page }) => {
   const routeRequests = await fakeRouteChargersApi(page);
   await page.getByRole("button", { name: "Route" }).click();
   const dialog = page.getByRole("dialog", { name: "Plan a route" });

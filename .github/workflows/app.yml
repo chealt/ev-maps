@@ -219,6 +219,9 @@ jobs:
         shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
+        with:
+          # A pull request's tests follow what it changed since its base.
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -249,8 +252,25 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: bunx playwright install-deps chromium
 
+      # Pull requests run the specs of the domains they changed and the
+      # @regression tests (e2e-domains.json, scripts/select-e2e.js); main and
+      # runs started by hand run them all.
+      - name: Select the tests
+        id: select
+        if: github.event_name == 'pull_request'
+        run: |
+          bun test scripts/e2e-selection.test.js
+          bun scripts/select-e2e.js "origin/${{ github.base_ref }}"
+
       - name: Run tests
-        run: bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        env:
+          GREP: ${{ steps.select.outputs.grep }}
+        run: |
+          if [ -n "$GREP" ]; then
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --grep "$GREP" --pass-with-no-tests
+          else
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          fi
 
       - name: Upload blob report
         uses: actions/upload-artifact@v7
