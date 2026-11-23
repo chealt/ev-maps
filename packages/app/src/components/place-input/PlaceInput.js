@@ -130,9 +130,11 @@ class PlaceInputElement extends HTMLElement {
     this.closeOptions();
   }
 
-  setPlace({ label, location }) {
+  // A place chosen elsewhere: a location (e.g. "My location"), or a Google
+  // place (e.g. a route restored after a reload).
+  setPlace({ label, location, place }) {
     this.input.value = label;
-    this.place = { label, location };
+    this.place = place ? { label, place } : { label, location };
     this.closeOptions();
   }
 }
