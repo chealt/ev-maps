@@ -26,6 +26,8 @@ const account = {
       light: "Világos",
       dark: "Sötét",
     },
+    animations: "Animációk",
+    animationsReducedMotion: "Kikapcsolva: a rendszered csökkentett mozgást kér.",
     language: "Nyelv",
   },
   messages: {
