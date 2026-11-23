@@ -68,6 +68,9 @@ jobs:
           - name: Lint JavaScript
             package: app
             script: lint
+          - name: Test the app's scripts
+            package: app
+            script: test:scripts
           - name: Lint CSS
             package: app
             script: lint:css
@@ -258,9 +261,7 @@ jobs:
       - name: Select the tests
         id: select
         if: github.event_name == 'pull_request'
-        run: |
-          bun test scripts/e2e-selection.test.js
-          bun scripts/select-e2e.js "origin/${{ github.base_ref }}"
+        run: bun scripts/select-e2e.js "origin/${{ github.base_ref }}"
 
       - name: Run tests
         env:
