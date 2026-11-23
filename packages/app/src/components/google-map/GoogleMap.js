@@ -123,6 +123,20 @@ const boundsCenter = ({ north, south, east, west }) => ({
   lng: (east + west) / 2,
 });
 
+// A pin's size on the map, in pixels, roughly (--marker-size and its tip).
+const PIN_SIZE = 40;
+const TILE_SIZE = 256;
+
+// A location's pixel in the whole world's map at a zoom (Web Mercator).
+const worldPixel = ({ lat, lng }, zoom) => {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const sin = Math.min(Math.max(Math.sin((lat * Math.PI) / 180), -0.9999), 0.9999);
+  return {
+    x: ((lng + 180) / 360) * scale,
+    y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale,
+  };
+};
+
 const isInBounds = ({ lat, lng }, { north, south, east, west }) =>
   lat >= south && lat <= north && lng >= west && lng <= east;
 
@@ -1140,6 +1154,31 @@ class GoogleMapElement extends HTMLElement {
   // visible: above the bottom sheet on small screens, right of the side
   // panel otherwise. Uses layout offsets, as the panel may still be sliding
   // in with a transform.
+  // Whether the details panel covers a location's pin. The pin's place in
+  // the map comes from the map's center and zoom (Web Mercator, as Google
+  // Maps draws it); the panel's from its layout, as it may still be sliding
+  // in with a transform.
+  isCoveredByDetails(location) {
+    const panel = this.detailsPanel;
+    const container = panel?.offsetParent;
+    if (!panel || panel.hidden || !container || !this.map) {
+      return false;
+    }
+    const zoom = this.map.getZoom();
+    const center = worldPixel(this.map.getCenter().toJSON(), zoom);
+    const point = worldPixel(location, zoom);
+    const x = point.x - center.x + container.clientWidth / 2;
+    const y = point.y - center.y + container.clientHeight / 2;
+    // The pin stands above its location.
+    const pin = { left: x - PIN_SIZE / 2, right: x + PIN_SIZE / 2, top: y - PIN_SIZE, bottom: y };
+    return (
+      pin.right > panel.offsetLeft &&
+      pin.left < panel.offsetLeft + panel.offsetWidth &&
+      pin.bottom > panel.offsetTop &&
+      pin.top < panel.offsetTop + panel.offsetHeight
+    );
+  }
+
   centerInVisibleArea(location) {
     this.map.setCenter(location);
     const panel = this.detailsPanel;
@@ -1188,6 +1227,10 @@ class GoogleMapElement extends HTMLElement {
     marker.addEventListener("gmp-click", () => {
       this.setActiveMarker(marker);
       this.displayChargerDetails(charger);
+      // The details mustn't cover the pin they're about.
+      if (this.isCoveredByDetails(charger.location)) {
+        this.centerInVisibleArea(charger.location);
+      }
     });
     this.chargersByMarker.set(marker, charger);
     this.showMarkerAvailability(marker);
