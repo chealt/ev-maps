@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { apiKeyName, configErrors, cronOf, workflowOf } from "./workflows.js";
+import { REPORT_INSTRUCTION, apiKeyName, configErrors, cronOf, workflowOf } from "./workflows.js";
 
 const config = {
   cron: "daily",
@@ -52,8 +52,24 @@ describe("workflowOf", () => {
   });
 
   test("opens a pull request on a branch of its own", () => {
-    expect(workflow).toContain("uses: peter-evans/create-pull-request@v7");
+    expect(workflow).toContain("uses: peter-evans/create-pull-request@v8");
     expect(workflow).toContain("branch: ai/upgrade-packages");
+  });
+
+  test("describes the pull request with pi's report of what it did", () => {
+    // pi is asked for the report, and its output kept, with pipefail.
+    expect(workflow).toContain(`REPORT_INSTRUCTION: ${JSON.stringify(REPORT_INSTRUCTION)}`);
+    expect(workflow).toContain(`"$PROMPT"$'\\n\\n'"$REPORT_INSTRUCTION"`);
+    expect(workflow).toContain('| tee "$RUNNER_TEMP/pi-report.md"');
+    expect(workflow).toContain("shell: bash");
+    // The description: the header, the prompt quoted, then the report.
+    expect(workflow).toContain('cat "$RUNNER_TEMP/pi-report.md"');
+    expect(workflow).toContain("body-path: ${{ runner.temp }}/pull-request-body.md");
+    expect(workflow).not.toContain("body: ");
+  });
+
+  test("uses the repository's Node version", () => {
+    expect(workflow).toContain("node-version-file: package.json");
   });
 
   test("says it's generated, from which config", () => {

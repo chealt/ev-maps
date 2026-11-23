@@ -27,9 +27,9 @@ jobs:
         with:
           bun-version-file: package.json
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version-file: package.json
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -38,22 +38,40 @@ jobs:
         run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
       # --no-approve: only the prompt's model, without the repository's own pi
-      # setup (.pi), and no session saved on the runner.
+      # setup (.pi), and no session saved on the runner. pi's final message,
+      # its report of what it did, is kept for the pull request's description
+      # (bash: pipefail, so a failing pi still fails the step).
       - name: Run the prompt with pi
+        shell: bash
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          PROMPT: "Check for outdated packages in this Bun monorepo and upgrade those whose new version was published more than a week ago. Run the lint, format check and tests after upgrading, and leave out any upgrade that breaks them."
+          PROMPT: "Check for outdated dependencies in this Bun monorepo and upgrade those whose new version was published more than a week ago. Cover all of them: the npm packages of every workspace (`bun outdated -r`), Bun itself (`packageManager` in the root package.json), and the GitHub Actions the workflows in .github/workflows use (`uses:` versions). The ai-*.yml workflows are generated from packages/ai-action-configs/src/workflows.js, so change the versions there and run `bun run --cwd packages/ai-action-configs generate`. Run the lint, format check and tests after upgrading, and leave out any upgrade that breaks them."
+          REPORT_INSTRUCTION: "Your final message becomes the description of the pull request with your changes, so write it in Markdown for its reviewer: what you changed and why (for an upgrade, each package or tool with the version it went from and to), and what you checked but left alone, and why. If you changed nothing, say why."
         run: >-
           pi --print --no-session --no-approve
           --provider "anthropic" --model "claude-opus-5-5"
-          "$PROMPT"
+          "$PROMPT"$'\n\n'"$REPORT_INSTRUCTION"
+          | tee "$RUNNER_TEMP/pi-report.md"
+
+      - name: Write the pull request's description
+        shell: bash
+        env:
+          HEADER: "Made by pi (anthropic/claude-opus-5-5) running packages/ai-action-configs/configs/upgrade-packages.json:"
+          PROMPT: "Check for outdated dependencies in this Bun monorepo and upgrade those whose new version was published more than a week ago. Cover all of them: the npm packages of every workspace (`bun outdated -r`), Bun itself (`packageManager` in the root package.json), and the GitHub Actions the workflows in .github/workflows use (`uses:` versions). The ai-*.yml workflows are generated from packages/ai-action-configs/src/workflows.js, so change the versions there and run `bun run --cwd packages/ai-action-configs generate`. Run the lint, format check and tests after upgrading, and leave out any upgrade that breaks them."
+        run: |
+          {
+            printf '%s\n\n' "$HEADER"
+            printf '%s\n' "$PROMPT" | sed 's/^/> /'
+            printf '\n---\n\n'
+            cat "$RUNNER_TEMP/pi-report.md"
+          } > "$RUNNER_TEMP/pull-request-body.md"
 
       - name: Open a pull request with the changes
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
           branch: ai/upgrade-packages
           delete-branch: true
           title: "AI: upgrade-packages"
           commit-message: "chore: upgrade-packages (AI action)"
-          body: "Made by pi (anthropic/claude-opus-5-5) running packages/ai-action-configs/configs/upgrade-packages.json:\n\n> Check for outdated packages in this Bun monorepo and upgrade those whose new version was published more than a week ago. Run the lint, format check and tests after upgrading, and leave out any upgrade that breaks them."
+          body-path: ${{ runner.temp }}/pull-request-body.md
