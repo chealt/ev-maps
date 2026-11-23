@@ -82,6 +82,7 @@ const map = {
       clearFilters: "Wyczyść filtry",
       locate: "Moja lokalizacja",
       route: "Zaplanuj trasę",
+      clearRoute: "Wyczyść trasę",
     },
   },
   messages: {

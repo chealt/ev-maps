@@ -410,3 +410,33 @@ test("plans with the distance from the route chosen, and keeps it with the route
     dialog.getByRole("region", { name: "Recent routes" }).getByText("no filters · within 2 km")
   ).toBeVisible();
 });
+
+test(
+  "shows a route's charger's distances in its details",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+    // Without a route, a charger has none.
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    await expect(details).toBeVisible();
+    await expect(details.getByText("off the route")).toBeHidden();
+    await details.getByRole("button", { name: "Close" }).click();
+
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+    // The same charger's pin, kept from the map's load, opens the route's
+    // copy of it, with where it is along the route.
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    await expect(details.getByText("50 km from the start")).toBeVisible();
+    await expect(details.getByText("100 km to the end")).toBeVisible();
+    await expect(details.getByText("1 km off the route")).toBeVisible();
+    await captureUi(page, testInfo, "a route's charger's details");
+  }
+);

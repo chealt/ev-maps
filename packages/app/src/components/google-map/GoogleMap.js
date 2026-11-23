@@ -384,7 +384,7 @@ class GoogleMapElement extends HTMLElement {
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
     // the map's shortcuts (see the ? dialog): f filters, c clears them, l
-    // locates, r plans a route. Not while typing or in a dialog: those keys
+    // locates, r plans a route, x clears it. Not while typing or in a dialog: those keys
     // belong to it.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -408,6 +408,7 @@ class GoogleMapElement extends HTMLElement {
         c: () => !this.querySelector(".map-controls .clear-filters")?.hidden && this.clearFilters(),
         l: () => this.querySelector("ev-locate-button button")?.click(),
         r: () => this.routePlanner?.open(),
+        x: () => this.route && this.clearRoute(),
       };
       shortcuts[event.key.toLowerCase()]?.();
     });
@@ -1419,12 +1420,15 @@ class GoogleMapElement extends HTMLElement {
       content: this.cloneTemplate(".charger-marker-template"),
       gmpClickable: true,
     });
+    // The charger as last loaded: a pin kept across loads (renderMarkers)
+    // shows the newer copy, e.g. a route's, with its distances along it.
     marker.addEventListener("gmp-click", () => {
+      const shown = this.chargersByMarker.get(marker) ?? charger;
       this.setActiveMarker(marker);
-      this.displayChargerDetails(charger);
+      this.displayChargerDetails(shown);
       // The details mustn't cover the pin they're about.
-      if (this.isCoveredByDetails(charger.location)) {
-        this.centerInVisibleArea(charger.location);
+      if (this.isCoveredByDetails(shown.location)) {
+        this.centerInVisibleArea(shown.location);
       }
     });
     this.chargersByMarker.set(marker, charger);
@@ -1553,7 +1557,12 @@ class GoogleMapElement extends HTMLElement {
     }
 
     for (const [key, feature] of featuresByKey) {
-      if (!this.markersById.has(key)) {
+      // A charger's pin kept from before takes its newer copy.
+      const kept = this.markersById.get(key);
+      if (kept && feature.clusterId == null) {
+        this.chargersByMarker.set(kept, this.chargersById.get(feature.chargerId));
+      }
+      if (!kept) {
         this.markersById.set(
           key,
           feature.clusterId != null
@@ -1598,6 +1607,13 @@ class GoogleMapElement extends HTMLElement {
     panel.querySelector(".name").textContent = chargerName(charger);
     panel.querySelector(".address .text").textContent = charger.address;
     this.showOpenInMaps(charger);
+    // A charger of the route shown: where it is along it.
+    const routeDistances = panel.querySelector(".route-distances");
+    if (this.route && charger.route) {
+      this.fillRouteDistances(routeDistances, charger.route);
+    } else {
+      routeDistances.hidden = true;
+    }
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$

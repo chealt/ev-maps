@@ -18,6 +18,7 @@ import { iso1A2Code } from "@rapideditor/country-coder";
 import { getPlatformProxy } from "wrangler";
 import { chargersInRidRange, maxChargerRid, toClientCharger } from "../src/db.js";
 import { mergeDuplicates } from "../src/duplicates.js";
+import { withRetries } from "./retry.js";
 
 // The chargers are read as rid ranges of this size, this many at a time: one
 // after the other, the round trips took most of the export's time in CI.
@@ -39,15 +40,28 @@ if (!out) {
   process.exit(1);
 }
 
+// Remote D1 now and then fails a query in passing (e.g. "Network connection
+// lost", "D1 DB is overloaded"): each is tried again (./retry.js).
+const retried = (what, query) =>
+  withRetries(query, {
+    onRetry: (error, attempt, delay) =>
+      console.warn(
+        `Retrying ${what} in ${Math.round(delay)} ms (attempt ${attempt}): ${error.message}`
+      ),
+  });
+
 const readAllChargers = async (db) => {
-  const maxRid = await maxChargerRid(db);
+  const maxRid = await retried("the last charger's rid", () => maxChargerRid(db));
   const starts = Array.from({ length: Math.ceil(maxRid / RANGE_SIZE) }, (_, i) => i * RANGE_SIZE);
   const ranges = [];
   let next = 0;
   const worker = async () => {
     while (next < starts.length) {
       const index = next++;
-      ranges[index] = await chargersInRidRange(db, starts[index], starts[index] + RANGE_SIZE);
+      const [from, to] = [starts[index], starts[index] + RANGE_SIZE];
+      ranges[index] = await retried(`chargers ${from}–${to}`, () =>
+        chargersInRidRange(db, from, to)
+      );
     }
   };
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));

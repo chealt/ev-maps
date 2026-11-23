@@ -143,7 +143,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={FilterX} />
         <span class="label">{page.clearFilters}</span>
       </Button>
-      <Button variant="secondary" class="clear-route" hidden>
+      <Button variant="secondary" class="clear-route" aria-keyshortcuts="x" hidden>
         <Icon icon={RouteOff} />
         <span class="label">{page.clearRoute}</span>
       </Button>
@@ -380,6 +380,8 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
       </p>
+      <!-- Along a route: from the start, to the end, off the route. -->
+      <p class="route-distances" hidden></p>
       <div class="directions">
         <!-- Plans a route here, in the route planner: from where the user is,
              if they already allow it, else they choose where from. -->
