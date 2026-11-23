@@ -13,7 +13,13 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-route-button>
-  <Button variant="secondary" class="route-button" aria-haspopup="dialog" aria-controls={controls}>
+  <Button
+    variant="secondary"
+    class="route-button"
+    aria-haspopup="dialog"
+    aria-controls={controls}
+    aria-keyshortcuts="r"
+  >
     <Icon icon={Route} />
     <span class="label">{page.route}</span>
   </Button>
