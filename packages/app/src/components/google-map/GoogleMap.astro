@@ -3,6 +3,7 @@ import Button from "@ev-maps/ui/Button.astro";
 import {
   Activity,
   Baby,
+  ExternalLink,
   Coffee,
   Toilet,
   Utensils,
@@ -375,12 +376,44 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Icon icon={MapPin} size="sm" />
         <span class="text"></span>
       </p>
-      <!-- Plans a route here, in the route planner: from where the user is,
-           if they already allow it, else they choose where from. -->
-      <Button variant="primary" class="navigate" aria-haspopup="dialog">
-        <Icon icon={Navigation} size="sm" />
-        {page.navigate}
-      </Button>
+      <div class="directions">
+        <!-- Plans a route here, in the route planner: from where the user is,
+             if they already allow it, else they choose where from. -->
+        <Button variant="primary" class="navigate" aria-haspopup="dialog">
+          <Icon icon={Navigation} size="sm" />
+          {page.navigate}
+        </Button>
+        <!-- Opens the charger in a maps app: the remembered one at once (its
+             name then says which), else the list of them below. -->
+        <Button
+          variant="ghost"
+          class="open-in-maps"
+          aria-expanded="false"
+          aria-controls="charger-maps-apps"
+        >
+          <Icon icon={ExternalLink} size="sm" />
+          <span class="label">{page.openInMaps}</span>
+        </Button>
+      </div>
+      <div class="maps-apps" id="charger-maps-apps" hidden>
+        <ul class="apps">
+          {["google", "osm", "apple"].map((app) => (
+            <li>
+              <a class="app" data-app={app} target="_blank" rel="noopener">
+                {values.mapsApps[app]}
+                <Icon icon={ExternalLink} size="sm" />
+              </a>
+            </li>
+          ))}
+        </ul>
+        <label class="remember">
+          <input type="checkbox" class="remember-app" aria-describedby="remember-maps-app-hint" />
+          {page.rememberMapsApp}
+        </label>
+        <p class="hint" id="remember-maps-app-hint">
+          {page.rememberMapsAppHint}
+        </p>
+      </div>
       <section class="section availability" hidden>
         <h3 class="title">
           <Icon icon={Activity} size="sm" />

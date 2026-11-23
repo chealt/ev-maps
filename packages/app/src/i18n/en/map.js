@@ -15,6 +15,9 @@ const map = {
     closeList: "Close list",
     close: "Close",
     navigate: "Navigate",
+    openInMaps: "Open in maps",
+    rememberMapsApp: "Remember my choice",
+    rememberMapsAppHint: "You can change it in the account menu.",
     connectors: "Connectors",
     details: "Details",
     openChargeMapCredit: {
@@ -80,6 +83,7 @@ const map = {
     },
   },
   messages: {
+    openInApp: "Open in {app}",
     power: "{power} kW",
 
     chargersFound: {

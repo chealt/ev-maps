@@ -88,3 +88,18 @@ describe("routeHistory", () => {
     expect(without({ plannedAt: "yesterday" })).toBe(false);
   });
 });
+
+describe("mapsApp", () => {
+  test("takes one of the maps apps, or null to ask every time", () => {
+    for (const app of ["google", "osm", "apple", null]) {
+      expect(validSection("mapsApp", { app, updatedAt: 1 })).toBe(true);
+    }
+  });
+
+  test("turns down other apps and values", () => {
+    for (const app of ["waze", "", 1, undefined, ["google"]]) {
+      expect(validSection("mapsApp", { app, updatedAt: 1 })).toBe(false);
+    }
+    expect(validSection("mapsApp", { app: "google" })).toBe(false);
+  });
+});

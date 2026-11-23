@@ -24,7 +24,14 @@ const SECTIONS = {
   routeHistory: {
     routes: (value) => Array.isArray(value) && value.length <= MAX_ROUTES && value.every(isRoute),
   },
+  // The app "Open in maps" opens a charger in, remembered when the user
+  // asked; null asks every time (the app's src/lib/maps-app.js).
+  mapsApp: {
+    app: (value) => value === null || MAPS_APPS.includes(value),
+  },
 };
+
+const MAPS_APPS = ["google", "osm", "apple"];
 
 const MAX_ROUTES = 10;
 
