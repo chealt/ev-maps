@@ -8,6 +8,7 @@ import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
+import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
@@ -117,17 +118,6 @@ const savedEnd = ({ label, place, location }) =>
   place?.id ? { label, placeId: place.id } : { label, location };
 
 const LIST_ZOOM = 15;
-
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Runs a DOM update as a view transition where supported and wanted.
-const withViewTransition = (update) => {
-  if (!document.startViewTransition || prefersReducedMotion()) {
-    update();
-    return Promise.resolve();
-  }
-  return document.startViewTransition(update).finished.catch(() => {});
-};
 
 const boundsCenter = ({ north, south, east, west }) => ({
   lat: (north + south) / 2,
@@ -392,7 +382,7 @@ class GoogleMapElement extends HTMLElement {
 
     this.detailsPanel
       ?.querySelector(".close")
-      ?.addEventListener("click", () => this.hideChargerDetails());
+      ?.addEventListener("click", () => this.closeChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
     // the map's shortcuts (see the ? dialog): f filters, c clears them, l
@@ -401,7 +391,7 @@ class GoogleMapElement extends HTMLElement {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
-          this.hideChargerDetails();
+          this.closeChargerDetails();
         }
         return;
       }
@@ -456,7 +446,10 @@ class GoogleMapElement extends HTMLElement {
       button.addEventListener("click", () => this.clearFilters());
     }
     for (const button of this.filterPanel?.querySelectorAll(".close, .done") ?? []) {
-      button.addEventListener("click", () => this.filterPanel.close());
+      button.addEventListener("click", () => closeDialog(this.filterPanel));
+    }
+    if (this.filterPanel) {
+      animateEscape(this.filterPanel);
     }
     // However the dialog closes (buttons, Escape), the Filters button follows.
     this.filterPanel?.addEventListener("close", () => {
@@ -578,8 +571,8 @@ class GoogleMapElement extends HTMLElement {
     if (!this.filterPanel || this.filterPanel.open) {
       return;
     }
-    this.filterPanel.showModal();
     this.querySelector(".filter-button")?.setAttribute("aria-expanded", "true");
+    openDialog(this.filterPanel);
   }
 
   handleFilterClick(event) {
@@ -1587,6 +1580,12 @@ class GoogleMapElement extends HTMLElement {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
     section.hidden = false;
+  }
+
+  // Closed by the user (the close button, Escape): it slides out. Other
+  // flows hide it at once, as they may show another charger right after.
+  closeChargerDetails() {
+    withViewTransition(() => this.hideChargerDetails());
   }
 
   hideChargerDetails() {

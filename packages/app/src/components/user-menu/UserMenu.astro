@@ -4,6 +4,7 @@ import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
+import MotionSetting from "../motion-setting/MotionSetting.astro";
 import { fill, translations } from "../../i18n/index.js";
 import AppleLogo from "./apple-logo.svg";
 import GitHubLogo from "./github-logo.svg";
@@ -134,6 +135,7 @@ const { page } = translations(lang);
       </p>
     </div>
     <ThemePicker />
+    <MotionSetting />
     <LanguagePicker />
     <Button variant="danger" class="sign-out" hidden>
       <Icon icon={LogOut} size="sm" />

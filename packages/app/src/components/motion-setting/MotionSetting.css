@@ -1,0 +1,29 @@
+.motion-setting {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
+
+  &:has(:disabled) {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+
+  input {
+    margin: 0;
+    accent-color: var(--color-primary);
+  }
+}
+
+ev-motion-setting .hint {
+  padding: 0 var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
