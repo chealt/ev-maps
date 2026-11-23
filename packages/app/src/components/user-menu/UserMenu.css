@@ -84,7 +84,7 @@
     height: var(--avatar-size);
     border-radius: var(--border-radius-full);
     background: var(--color-border-strong);
-    animation: session-loading 1.2s ease-in-out infinite alternate;
+    animation: session-loading var(--session-loading-duration, 1.2s) ease-in-out infinite alternate;
 
     &[hidden] {
       display: none;
@@ -127,6 +127,12 @@
     right: var(--spacing-md);
     width: var(--account-menu-width);
     max-width: calc(100vw - 2 * var(--spacing-md));
+    /* Taller than the screen (a short window, many settings), it scrolls. */
+    max-height: calc(
+      100dvh - var(--spacing-md) - var(--brand-mark-size) - var(--spacing-md) - var(--spacing-sm) -
+        var(--spacing-md)
+    );
+    overflow-y: auto;
     margin: 0;
     padding: var(--spacing-md);
     border: var(--border-width) solid var(--color-border);

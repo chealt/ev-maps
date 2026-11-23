@@ -1,6 +1,7 @@
 // The From and To of a route. It only collects them: <ev-google-map> plans
 // the route (route-requested) and clears it (route-cleared).
 import { message } from "../../lib/messages.js";
+import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { readRouteHistory } from "../google-map/route-history.js";
 
@@ -30,7 +31,8 @@ class RoutePlannerElement extends HTMLElement {
       event.preventDefault();
       this.requestRoute();
     });
-    this.querySelector(".close").addEventListener("click", () => this.dialog.close());
+    this.querySelector(".close").addEventListener("click", () => closeDialog(this.dialog));
+    animateEscape(this.dialog);
     this.querySelector(".use-my-location").addEventListener("click", () => this.useMyLocation());
     this.clearButton.addEventListener("click", () => {
       this.dialog.close();
@@ -56,7 +58,7 @@ class RoutePlannerElement extends HTMLElement {
   open() {
     this.errorEl.textContent = "";
     this.showRecentRoutes();
-    this.dialog.showModal();
+    openDialog(this.dialog);
   }
 
   // Lists the routes planned before, signed in; choosing one asks

@@ -8,6 +8,7 @@ import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
+import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
 import { forgetRouteHistory, recordRoute } from "./route-history.js";
@@ -119,17 +120,6 @@ const savedEnd = ({ label, place, location }) =>
 
 const LIST_ZOOM = 15;
 
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// Runs a DOM update as a view transition where supported and wanted.
-const withViewTransition = (update) => {
-  if (!document.startViewTransition || prefersReducedMotion()) {
-    update();
-    return Promise.resolve();
-  }
-  return document.startViewTransition(update).finished.catch(() => {});
-};
-
 const boundsCenter = ({ north, south, east, west }) => ({
   lat: (north + south) / 2,
   lng: (east + west) / 2,
@@ -202,11 +192,13 @@ const readActiveConnectorTypes = (panel) =>
 // How many of the chargers each operator has: most first, then by name, the
 // unknown operator last. The `kept` operators are listed even without
 // chargers, e.g. ones turned off, so they can be turned back on.
-const countOperators = (chargers, kept) => {
-  const counts = new Map([...kept].map((operator) => [operator, 0]));
-  for (const charger of chargers) {
+const countOperators = (chargers, kept, available = chargers) => {
+  // Every loaded charger's operator is listed, with how many of the
+  // `available` ones (those the other filters leave) it has, maybe none.
+  const counts = new Map([...kept, ...chargers.map(operatorOf)].map((operator) => [operator, 0]));
+  for (const charger of available) {
     const operator = operatorOf(charger);
-    counts.set(operator, (counts.get(operator) ?? 0) + 1);
+    counts.set(operator, counts.get(operator) + 1);
   }
   return [...counts].sort(
     ([nameA, countA], [nameB, countB]) =>
@@ -395,7 +387,7 @@ class GoogleMapElement extends HTMLElement {
 
     this.detailsPanel
       ?.querySelector(".close")
-      ?.addEventListener("click", () => this.hideChargerDetails());
+      ?.addEventListener("click", () => this.closeChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
     // the map's shortcuts (see the ? dialog): f filters, c clears them, l
@@ -404,7 +396,7 @@ class GoogleMapElement extends HTMLElement {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
-          this.hideChargerDetails();
+          this.closeChargerDetails();
         }
         return;
       }
@@ -459,13 +451,16 @@ class GoogleMapElement extends HTMLElement {
       button.addEventListener("click", () => this.clearFilters());
     }
     for (const button of this.filterPanel?.querySelectorAll(".close, .done") ?? []) {
-      button.addEventListener("click", () => this.filterPanel.close());
+      button.addEventListener("click", () => closeDialog(this.filterPanel));
+    }
+    if (this.filterPanel) {
+      animateEscape(this.filterPanel);
     }
     // However the dialog closes (buttons, Escape), the Filters button follows.
     this.filterPanel?.addEventListener("close", () => {
       this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
       // Operators kept in place while the dialog was open can go now.
-      this.listOperators(this.loaded?.chargers ?? []);
+      this.listOperators(this.loaded?.chargers ?? [], this.availableChargers);
       this.flushAccountSave();
     });
     // Leaving the page doesn't lose a save that's waiting.
@@ -581,8 +576,8 @@ class GoogleMapElement extends HTMLElement {
     if (!this.filterPanel || this.filterPanel.open) {
       return;
     }
-    this.filterPanel.showModal();
     this.querySelector(".filter-button")?.setAttribute("aria-expanded", "true");
+    openDialog(this.filterPanel);
   }
 
   handleFilterClick(event) {
@@ -648,7 +643,10 @@ class GoogleMapElement extends HTMLElement {
   // turned off. The list is only rebuilt when the operators change, and
   // while the dialog is open none is removed, so ticking one keeps it, and
   // the focus, in place.
-  listOperators(chargers) {
+  // `available` are the chargers the other filters leave: operators with
+  // none of them are listed, but can't be picked (unless they're turned
+  // off, so they can be turned back on).
+  listOperators(chargers, available = chargers) {
     const list = this.filterPanel?.querySelector(".operator-options");
     if (!list) {
       return;
@@ -659,7 +657,7 @@ class GoogleMapElement extends HTMLElement {
         kept.add(checkbox.dataset.operator);
       }
     }
-    const operators = countOperators(chargers, kept);
+    const operators = countOperators(chargers, kept, available);
     const signature = JSON.stringify(operators);
     if (signature !== this.operatorsSignature) {
       this.operatorsSignature = signature;
@@ -667,7 +665,9 @@ class GoogleMapElement extends HTMLElement {
       list.replaceChildren(
         ...operators.map(([operator, count]) => {
           const option = template.content.cloneNode(true);
-          option.querySelector(".operator-filter").dataset.operator = operator;
+          const checkbox = option.querySelector(".operator-filter");
+          checkbox.dataset.operator = operator;
+          checkbox.dataset.count = String(count);
           option.querySelector(".operator-name").textContent =
             operator || message("unknownOperator");
           option.querySelector(".operator-count").textContent = formatNumber(count);
@@ -684,7 +684,9 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     for (const checkbox of this.filterPanel.querySelectorAll(".operator-filter")) {
-      checkbox.checked = !this.excludedOperators.has(checkbox.dataset.operator);
+      const excluded = this.excludedOperators.has(checkbox.dataset.operator);
+      checkbox.checked = !excluded;
+      checkbox.disabled = !excluded && checkbox.dataset.count === "0";
     }
     this.filterPanel.querySelector(".show-all-operators").hidden =
       this.excludedOperators.size === 0;
@@ -866,6 +868,7 @@ class GoogleMapElement extends HTMLElement {
       }
       this.loaded = null;
       this.clearMarkers();
+      this.availableChargers = [];
       this.listOperators([]);
       this.hideChargerDetails();
       this.setStatus(message("zoomIn"), "warning");
@@ -915,13 +918,12 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const { chargers, truncated } = this.loaded;
-    this.listOperators(chargers);
     if (this.indexedChargers !== chargers) {
       this.indexedChargers = chargers;
       this.chargersById = new Map(chargers.map((charger) => [charger.id, charger]));
       this.chargerIndex.setChargers(chargers);
     }
-    const matchingIds = await this.chargerIndex.filter({
+    const { matching: matchingIds, available: availableIds } = await this.chargerIndex.filter({
       ranges: this.filterPanel ? readActivePowerRanges(this.filterPanel) : [],
       connectorTypes: this.filterPanel ? [...readActiveConnectorTypes(this.filterPanel)] : [],
       excludedOperators: [...this.excludedOperators],
@@ -934,6 +936,10 @@ class GoogleMapElement extends HTMLElement {
     if (this.loaded?.chargers !== chargers) {
       return;
     }
+    // The operators are listed by what every other filter leaves.
+    const available = availableIds.map((id) => this.chargersById.get(id));
+    this.availableChargers = available;
+    this.listOperators(chargers, available);
     const matching = matchingIds.map((id) => this.chargersById.get(id));
     await this.renderMarkers();
     this.setListedChargers(matching);
@@ -1606,6 +1612,12 @@ class GoogleMapElement extends HTMLElement {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
     section.hidden = false;
+  }
+
+  // Closed by the user (the close button, Escape): it slides out. Other
+  // flows hide it at once, as they may show another charger right after.
+  closeChargerDetails() {
+    withViewTransition(() => this.hideChargerDetails());
   }
 
   hideChargerDetails() {

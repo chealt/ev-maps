@@ -67,9 +67,11 @@ those with `bunx playwright test --grep @performance`.
 
 ## UI evidence
 
-Tests that show a new or updated UI control are tagged `@ui`. At their end
-they attach a screenshot of the page as the test left it
-(`@ev-maps/e2e/test.js`); with the video CI records of every test, that is
+Tests that show a new or updated UI control are tagged `@ui`. They attach
+screenshots of the moments that show it, captioned
+(`captureUi(page, testInfo, "the dialog open")` from `@ev-maps/e2e/test.js`),
+before closing what they opened; a test that captures none gets the page as
+it left it. With the video CI records of every test, that is
 the evidence of what the control looks and feels like, straight from
 Playwright. `scripts/publish-test-report.js` puts the two, per `@ui` test,
 into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:

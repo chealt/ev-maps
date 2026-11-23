@@ -126,3 +126,35 @@ test("keeps an operator that's turned off listed when it's not on the map", asyn
   await shell.check();
   await expect(dialog.getByRole("button", { name: "Show all" })).toBeHidden();
 });
+
+test("can't pick the operators the other filters leave no chargers of", async ({ page }) => {
+  // Tesla's only charger here has no CCS connector.
+  await fakeChargersApi(page, {
+    chargers: [
+      ...chargers.filter((item) => item.operator !== "Tesla"),
+      {
+        ...charger(3, "Tesla Mall", [40.79, -74.02], "Tesla"),
+        connectors: [{ type: "chademo", powerKw: 50, quantity: 1 }],
+      },
+    ],
+  });
+  await page.goto("/");
+  const dialog = await openFilters(page);
+  const operators = dialog.getByRole("group", { name: "Operator" });
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeEnabled();
+
+  await dialog.getByRole("button", { name: "CCS" }).click();
+
+  // Still listed, so the list doesn't jump, but with none left to show.
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeDisabled();
+  await expect(operators.locator(".operator-count")).toHaveText(["2", "1", "0"]);
+  await expect(operators.getByRole("checkbox", { name: "Ionity" })).toBeEnabled();
+
+  // Back as it was once the filter is off, and after the dialog closes.
+  await dialog.getByRole("button", { name: "CCS" }).click();
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeEnabled();
+  await dialog.getByRole("button", { name: "CCS" }).click();
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await openFilters(page);
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeDisabled();
+});
