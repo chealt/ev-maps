@@ -116,7 +116,10 @@ test("is in the admin navigation", async ({ page }) => {
   await fakeReportsApi(page, 0);
   await page.goto("/en/admin/");
 
-  await page.locator(".admin-section").getByRole("link", { name: "Test reports" }).click();
+  await page
+    .getByRole("navigation", { name: "Admin" })
+    .getByRole("link", { name: "Test reports" })
+    .click();
 
   await expect(page).toHaveURL("/en/admin/reports/");
   await expect(page.getByText("No reports in the last 30 days.")).toBeVisible();
