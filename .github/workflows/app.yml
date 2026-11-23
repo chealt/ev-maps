@@ -14,6 +14,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # `labeled`: adding the `deploy` label deploys the pull request.
+    types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
 # A newer commit on a pull request makes older runs pointless, so cancel them.
@@ -354,12 +356,13 @@ jobs:
   # Deploys the tested build with the ev-maps Cloudflare Worker (static assets
   # plus the API, see packages/worker/wrangler.toml): production for pushes to
   # main and runs started on main, a preview version with its own URL for pull
-  # requests. Pull requests from forks are skipped because they don't get the
-  # Cloudflare secrets, and so are runs started on other branches.
+  # requests that have the `deploy` label (adding it deploys them). Pull
+  # requests from forks are skipped because they don't get the Cloudflare
+  # secrets, and so are runs started on other branches.
   deploy:
     name: Deploy
     needs: [changes, check, build, test]
-    if: needs.changes.outputs.app == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || github.event.pull_request.head.repo.full_name == github.repository)
+    if: needs.changes.outputs.app == 'true' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'deploy')))
     runs-on: ubuntu-latest
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
@@ -463,14 +466,14 @@ jobs:
           echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
 
   # The UI evidence of a pull request's @ui tests
-  # (scripts/publish-test-report.js): commented on it once its own preview
-  # deployment is up, so the embedded screenshots and linked videos resolve
-  # with the code that serves them. Forks don't deploy, so they get no
-  # comment; their reports are the workflow's artifact anyway.
+  # (scripts/publish-test-report.js), commented on it: embedded from its own
+  # preview once that's deployed (with the `deploy` label), else from
+  # production, whose /reports/{id}/ui/ serves them too. Forks get no
+  # comment (no published report); their reports are the workflow's artifact.
   ui-evidence:
     name: UI evidence
     needs: [changes, test, deploy]
-    if: needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && needs.test.outputs.ui-files != '' && needs.test.outputs.ui-files != '[]'
+    if: ${{ !cancelled() && needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.test.result == 'success' && needs.deploy.result != 'failure' && needs.test.outputs.ui-files != '' && needs.test.outputs.ui-files != '[]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -486,7 +489,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
           UI_FILES: ${{ needs.test.outputs.ui-files }}
-          DEPLOY_URL: ${{ needs.deploy.outputs.url }}
+          DEPLOY_URL: ${{ needs.deploy.outputs.url || 'https://ev.chealt.com' }}
           REPORT_URL: ${{ needs.test.outputs.report-url }}
         run: bun scripts/pr-ui-evidence-comment.js
 

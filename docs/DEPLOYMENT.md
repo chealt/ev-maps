@@ -18,9 +18,12 @@ The `Deploy` job in
 - **Every Monday**, `.github/workflows/refresh.yml` runs `app.yml` on `main`
   again, which rebuilds the country pages from the latest chargers and
   deploys them to production.
-- **Pull requests** from this repository upload a preview version, without
-  touching production; its URL (`https://<branch>-ev-maps.<subdomain>.workers.dev`)
-  shows on the pull request. Pull requests from forks are not deployed.
+- **Pull requests** from this repository with the `deploy` label upload a
+  preview version, without touching production; its URL
+  (`https://<branch>-ev-maps.<subdomain>.workers.dev`) shows on the pull
+  request. Adding the label deploys the pull request, and every push after
+  that deploys again; without it, only the checks and tests run. Pull
+  requests from forks are not deployed.
 - **The shared preview**, `https://preview-ev-maps.<subdomain>.workers.dev`,
   always shows the most recently deployed pull request. Google sign-in only
   returns to authorized redirect URIs, which can't contain wildcards, so this
