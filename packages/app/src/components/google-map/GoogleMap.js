@@ -11,7 +11,14 @@ import { loadGoogleMaps } from "./loader.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
-import { readFilters, readMapView, saveFilters, saveMapView } from "./saved-state.js";
+import {
+  readFilters,
+  readMapView,
+  readRoute,
+  saveFilters,
+  saveMapView,
+  saveRoute,
+} from "./saved-state.js";
 
 // Signed in, filters are saved to the account this long after the last change.
 const ACCOUNT_SAVE_DELAY = 1000;
@@ -104,6 +111,10 @@ const ROUTE_LINE = { strokeOpacity: 0.85, strokeWeight: 5 };
 
 // A chosen place, as the Routes library takes it: a Google Place, or a location.
 const routeEndpoint = ({ place, location }) => place ?? location;
+
+// A chosen place as it's saved: a Google place by its ID, or a location.
+const savedEnd = ({ label, place, location }) =>
+  place?.id ? { label, placeId: place.id } : { label, location };
 
 const LIST_ZOOM = 15;
 
@@ -210,6 +221,7 @@ class GoogleMapElement extends HTMLElement {
   // The charger each charger pin (not cluster) is for.
   chargersByMarker = new Map();
   searchId = 0;
+  routeId = 0;
   // The loaded chargers' filtering and clustering, off the main thread.
   chargerIndex = new ChargerIndexClient();
   // The loaded chargers by ID, to map the index's answers back to them.
@@ -348,6 +360,9 @@ class GoogleMapElement extends HTMLElement {
       }
     }, PIN_STATUS_REFRESH_MS);
     this.showFavoritesSignedIn(isSignedIn());
+    if (isSignedIn()) {
+      this.restoreRoute();
+    }
     onSessionChange((signedIn) => {
       if (!signedIn) {
         this.statuses.clear();
@@ -357,6 +372,10 @@ class GoogleMapElement extends HTMLElement {
       this.showFilterSyncSignedIn(signedIn);
       if (signedIn) {
         this.syncAccountFilters();
+        this.restoreRoute();
+      } else {
+        // Routes are for signed-in users; the next one starts afresh.
+        saveRoute(null);
       }
     });
     // Live availability needs a signed-in user; show it once there is one.
@@ -990,7 +1009,10 @@ class GoogleMapElement extends HTMLElement {
   // chargers along it (POST /api/chargers/route) instead of the map's.
   async showRoute({ origin, destination }) {
     await this.mapReady;
-    const searchId = ++this.searchId;
+    // A newer route replaces this one; the map's own loads don't, but this
+    // cancels theirs.
+    const routeId = ++this.routeId;
+    ++this.searchId;
     this.setStatus(message("routeLoading"), "loading");
     try {
       const { Route } = await this.maps.importLibrary("routes");
@@ -1003,13 +1025,13 @@ class GoogleMapElement extends HTMLElement {
       });
       const path = routes?.[0]?.path?.map(toLatLng);
       if (!path?.length) {
-        if (searchId === this.searchId) {
+        if (routeId === this.routeId) {
           this.setStatus(message("noRoute"), "error");
         }
         return;
       }
       const { chargers, full } = await fetchChargersAlongRoute(path);
-      if (searchId !== this.searchId) {
+      if (routeId !== this.routeId) {
         return;
       }
       const { Polyline } = await this.maps.importLibrary("maps");
@@ -1021,16 +1043,39 @@ class GoogleMapElement extends HTMLElement {
       this.setRouteShown(true);
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
+      saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination) });
       await this.showMatchingChargers();
     } catch (error) {
       console.error("Could not plan the route:", error);
-      if (searchId === this.searchId) {
+      if (routeId === this.routeId) {
         this.setStatus(message(navigator.onLine ? "routeFailed" : "offlineChargers"), "error");
       }
     }
   }
 
+  // Shows the route saved before a reload again, once per page, and its
+  // places in the route planner.
+  async restoreRoute() {
+    if (this.routeRestored) {
+      return;
+    }
+    this.routeRestored = true;
+    const saved = await readRoute();
+    if (!saved || this.route) {
+      return;
+    }
+    await this.mapReady;
+    const { Place } = await this.maps.importLibrary("places");
+    const toEnd = ({ label, placeId, location }) =>
+      placeId ? { label, place: new Place({ id: placeId }) } : { label, location };
+    const origin = toEnd(saved.origin);
+    const destination = toEnd(saved.destination);
+    this.routePlanner?.setPlaces(origin, destination);
+    await this.showRoute({ origin, destination });
+  }
+
   clearRoute() {
+    saveRoute(null);
     if (!this.route) {
       return;
     }
