@@ -377,6 +377,40 @@ test("draws the route over a casing, in the theme's colors", async ({ page }) =>
   expect(await page.evaluate(() => window.__fakeRouteLines.length)).toBe(2);
 });
 
+test("plans with the distance from the route chosen, and keeps it with the route", async ({
+  page,
+}) => {
+  const saves = await fakeSettingsApi(page);
+  const routeRequests = await fakeRouteChargersApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  const distances = dialog.getByRole("group", { name: "Distance from the route" });
+  await expect(distances.getByRole("radio", { name: "5 km" })).toBeChecked();
+  await expect(dialog.getByText("Chargers within 5 km of the route are shown.")).toBeVisible();
+
+  await distances.getByRole("radio", { name: "2 km" }).check();
+  await expect(dialog.getByText("Chargers within 2 km of the route are shown.")).toBeVisible();
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  expect(routeRequests.at(-1).corridorKm).toBe(2);
+  await expect.poll(() => saves.at(-1)?.routeHistory?.routes[0]?.corridorKm).toBe(2);
+
+  // After a reload, the route is shown again with it, and the planner says so.
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  expect(routeRequests.at(-1).corridorKm).toBe(2);
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  await expect(distances.getByRole("radio", { name: "2 km" })).toBeChecked();
+  await expect(
+    dialog.getByRole("region", { name: "Recent routes" }).getByText("1 filter on")
+  ).toHaveCount(0);
+  await expect(
+    dialog.getByRole("region", { name: "Recent routes" }).getByText("no filters · within 2 km")
+  ).toBeVisible();
+});
+
 test(
   "shows a route's charger's distances in its details",
   { tag: "@ui" },

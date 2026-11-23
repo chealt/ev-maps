@@ -196,5 +196,11 @@ planning a route, saving a favorite or signing out; keep the list short.
 
 ```bash
 cd packages/app && bunx playwright install chromium  # first time only
-bun run test
+bunx playwright test route-planner favorite-routes   # the specs you changed
+bun scripts/select-e2e.js                            # the specs CI would pick
+bun run test                                         # every test
 ```
+
+Locally, run the specs of what you changed; CI runs the rest on the pull
+request, and every test on `main`. Running every test is rarely needed
+before pushing.

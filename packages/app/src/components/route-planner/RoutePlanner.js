@@ -1,5 +1,6 @@
 // The From and To of a route. It only collects them: <ev-google-map> plans
 // the route (route-requested) and clears it (route-cleared).
+import { formatDistance } from "../../lib/distance.js";
 import { message } from "../../lib/messages.js";
 import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
@@ -9,6 +10,7 @@ import {
   sameRoute,
   toggleFavoriteRoute,
 } from "../google-map/route-history.js";
+import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
 
 // How many filters a route was planned with, as the Filters badge counts
 // them (the operator filter once).
@@ -32,6 +34,9 @@ class RoutePlannerElement extends HTMLElement {
     this.to = this.querySelector("#route-to")?.closest("ev-place-input");
     this.errorEl = this.querySelector(".error");
     this.clearButton = this.querySelector(".clear-route");
+
+    // The hint says how far the chosen distance is.
+    this.querySelector(".corridor").addEventListener("change", () => this.showCorridor());
 
     this.querySelector("form").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -101,9 +106,14 @@ class RoutePlannerElement extends HTMLElement {
         });
         item.querySelector(".route-ends").textContent = ends;
         const count = filterCount(route.filters);
-        item.querySelector(".route-filters").textContent = count
-          ? message("activeFilters", { count })
-          : message("noFiltersOn");
+        // With the filters and the distance it was planned with (routes
+        // saved before it could be chosen: the default).
+        item.querySelector(".route-filters").textContent = [
+          count ? message("activeFilters", { count }) : message("noFiltersOn"),
+          message("withinDistance", {
+            distance: formatDistance((route.corridorKm ?? CORRIDOR_KM) * 1000),
+          }),
+        ].join(" · ");
         item.querySelector(".recent-route").addEventListener("click", () => {
           this.dialog.close();
           this.emit("route-from-history", route);
@@ -124,9 +134,10 @@ class RoutePlannerElement extends HTMLElement {
   }
 
   // Called by <ev-google-map> when it restores a route after a reload.
-  setPlaces(origin, destination) {
+  setPlaces(origin, destination, corridorKm = CORRIDOR_KM) {
     this.from?.setPlace(origin);
     this.to?.setPlace(destination);
+    this.corridorKm = corridorKm;
   }
 
   // Called by <ev-google-map> when a route is shown or cleared.
@@ -143,7 +154,32 @@ class RoutePlannerElement extends HTMLElement {
     }
     this.errorEl.textContent = "";
     this.dialog.close();
-    this.emit("route-requested", { origin, destination });
+    this.emit("route-requested", { origin, destination, corridorKm: this.corridorKm });
+  }
+
+  // How far from the route chargers are shown, in km, as chosen.
+  get corridorKm() {
+    const checked = this.querySelector('input[name="corridor-km"]:checked');
+    return checked ? Number(checked.value) : CORRIDOR_KM;
+  }
+
+  // Chooses a distance (one saved with a route; one no longer offered, the
+  // default).
+  set corridorKm(km) {
+    const value = CORRIDOR_OPTIONS_KM.includes(km) ? km : CORRIDOR_KM;
+    const input = this.querySelector(`input[name="corridor-km"][value="${value}"]`);
+    if (input) {
+      input.checked = true;
+      this.showCorridor();
+    }
+  }
+
+  showCorridor() {
+    const distance = this.querySelector(".corridor-hint .distance-text");
+    if (distance) {
+      distance.dataset.meters = String(this.corridorKm * 1000);
+      distance.textContent = formatDistance(this.corridorKm * 1000);
+    }
   }
 
   // A route to `destination` ({ label, location }), e.g. a charger's

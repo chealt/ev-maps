@@ -14,7 +14,7 @@ import { animateEscape, closeDialog, openDialog, withViewTransition } from "../.
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
 import { forgetRouteHistory, recordRoute } from "./route-history.js";
-import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
+import { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import {
   readFilters,
   readMapView,
@@ -1077,7 +1077,8 @@ class GoogleMapElement extends HTMLElement {
   // chargers along it (POST /api/chargers/route) instead of the map's.
   // `record`: put it in the user's route history, with the filters on now
   // (not for a route restored after a reload).
-  async showRoute({ origin, destination, record = false }) {
+  // `corridorKm`: how far from the route chargers are shown.
+  async showRoute({ origin, destination, corridorKm = CORRIDOR_KM, record = false }) {
     await this.mapReady;
     // A newer route replaces this one; the map's own loads don't, but this
     // cancels theirs.
@@ -1100,7 +1101,7 @@ class GoogleMapElement extends HTMLElement {
         }
         return;
       }
-      const { chargers, full } = await fetchChargersAlongRoute(path);
+      const { chargers, full } = await fetchChargersAlongRoute(path, corridorKm);
       if (routeId !== this.routeId) {
         return;
       }
@@ -1115,13 +1116,14 @@ class GoogleMapElement extends HTMLElement {
       this.setRouteShown(true);
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
-      saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination) });
+      saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination), corridorKm });
       if (record) {
         const { updatedAt: _, ...filters } = this.currentFilters();
         recordRoute({
           origin: savedEnd(origin),
           destination: savedEnd(destination),
           filters,
+          corridorKm,
           plannedAt: Date.now(),
         }).catch((error) => console.error("Could not save the route history:", error));
       }
@@ -1150,8 +1152,10 @@ class GoogleMapElement extends HTMLElement {
     this.applyFilters({ ...route.filters, updatedAt: Date.now() });
     this.filtersChanged();
     const { origin, destination } = await this.routeEnds(route);
-    this.routePlanner?.setPlaces(origin, destination);
-    await this.showRoute({ origin, destination, record: true });
+    // Routes saved before the distance could be chosen have none: the default.
+    const corridorKm = route.corridorKm ?? CORRIDOR_KM;
+    this.routePlanner?.setPlaces(origin, destination, corridorKm);
+    await this.showRoute({ origin, destination, corridorKm, record: true });
   }
 
   // Shows the route saved before a reload again, once per page, and its
@@ -1167,8 +1171,9 @@ class GoogleMapElement extends HTMLElement {
     }
     await this.mapReady;
     const { origin, destination } = await this.routeEnds(saved);
-    this.routePlanner?.setPlaces(origin, destination);
-    await this.showRoute({ origin, destination });
+    const corridorKm = saved.corridorKm ?? CORRIDOR_KM;
+    this.routePlanner?.setPlaces(origin, destination, corridorKm);
+    await this.showRoute({ origin, destination, corridorKm });
   }
 
   clearRoute() {
