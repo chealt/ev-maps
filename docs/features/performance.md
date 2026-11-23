@@ -35,10 +35,16 @@ and the kind of page (home, country, legal).
 
 ## Sending
 
-The page sends its spans and Web Vitals batched to `POST /api/telemetry`
-(`src/telemetry.js`) every 30 seconds and when it's left. The Worker keeps
-only valid spans and vitals, and only known attributes, and deletes what's
-older than 14 days every 15 minutes.
+Spans and Web Vitals go batched to `POST /api/telemetry`
+(`src/telemetry.js`). With a service worker, the page hands each one to it
+(`src/lib/report-channel.js`), together with its usage counts and errors:
+the service worker merges every tab's into one outbox in IndexedDB, sends
+it 10 seconds after the first report of a batch, and keeps what it couldn't
+send for Background Sync, so closing or freezing a tab loses nothing and no
+page keeps a timer. Without one (the first visit until it takes over, or
+when it's blocked), the page sends them itself every 30 seconds and when
+it's left. The Worker keeps only valid spans and vitals, and only known
+attributes, and deletes what's older than 14 days every 15 minutes.
 
 ## The admin page
 
