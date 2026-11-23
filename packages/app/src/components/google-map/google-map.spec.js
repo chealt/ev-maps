@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "#fixtures/auth-api.js";
-import { fakeChargersApi, requestCovers } from "#fixtures/chargers-api.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { fakeChargersApi, requestCovers } from "@ev-maps/e2e/fixtures/chargers-api.js";
 
 const fakeGoogleMaps = await readFile(
-  new URL("../../../tests/fixtures/fake-google-maps.js", import.meta.url)
+  new URL("../../../../e2e/fixtures/fake-google-maps.js", import.meta.url)
 );
 
 const downtownChargerLabel = "Downtown Supercharger";

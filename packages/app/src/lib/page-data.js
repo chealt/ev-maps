@@ -1,6 +1,6 @@
 // The data of a page Astro renders on the server: the Worker reads it and
 // passes it as the request context's props, { data } or { failed: true }
-// (packages/worker/src/admin.js). In development, without the Worker in front:
+// (packages/admin/src/admin.js). In development, without the Worker in front:
 // - the tests set it with the x-ev-maps-page-data header (JSON)
 // - otherwise it's read from the Worker's API (`bun run dev`, port 8787), as
 //   the signed-in user, unless no Worker runs (EV_MAPS_NO_API_PROXY, the

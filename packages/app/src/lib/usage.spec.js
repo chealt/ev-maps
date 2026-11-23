@@ -1,7 +1,7 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "#fixtures/auth-api.js";
-import { fakeChargersApi } from "#fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "#fixtures/google.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
 
 const fakeUsageApi = async (page) => {
   const batches = [];

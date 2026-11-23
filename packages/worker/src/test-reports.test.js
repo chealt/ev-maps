@@ -2,21 +2,26 @@ import { describe, expect, test } from "bun:test";
 import { testD1 } from "./test-d1.js";
 import {
   contentTypeOf,
+  createTestReports,
   deleteOldReports,
   listReports,
-  reportFileResponse,
-  uiFileResponse,
-} from "./test-reports.js";
+} from "@ev-maps/admin/test-reports.js";
+import { isAdmin } from "./admin-area.js";
+
+const { reportFileResponse, uiFileResponse } = createTestReports({
+  locales: ["en", "pl", "hu"],
+  isAdmin,
+});
 
 const NOW = Date.UTC(2026, 10, 24, 12);
 const ADMIN = { id: "1", email: "grace@chealt.com" };
 
 const adminDb = () => {
   const db = testD1(
-    "../admin-migrations/0001_errors.sql",
-    "../admin-migrations/0002_usage.sql",
-    "../admin-migrations/0003_performance.sql",
-    "../admin-migrations/0004_test_reports.sql"
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql",
+    "../../admin/migrations/admin-migrations/0003_performance.sql",
+    "../../admin/migrations/admin-migrations/0004_test_reports.sql"
   );
   const insert = db.sqlite.prepare(
     `INSERT INTO test_reports (id, branch, commit_sha, pull_request, run_url, status, passed, failed,
@@ -151,7 +156,7 @@ describe("deleteOldReports", () => {
     db.sqlite
       .prepare("UPDATE test_reports SET created_at = ? WHERE id = '1024-1'")
       .run(NOW - 31 * 86400000);
-    await deleteOldReports({ ADMIN_DB: db }, NOW);
+    await deleteOldReports(db, NOW);
     expect((await listReports(db, 1)).total).toBe(24);
   });
 });

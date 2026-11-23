@@ -1,0 +1,97 @@
+---
+import { fill } from "@ev-maps/ui/format.js";
+import BarChart from "@ev-maps/ui/BarChart.astro";
+import "./AdminUsage.css";
+
+interface Props {
+  // The page's strings and the labels of the usage events (the host's
+  // translations for this section).
+  page: Record<string, string>;
+  values: { usageEvents: Record<string, string> };
+  // The events shown as totals at the top, and those broken down by their
+  // dimension below.
+  totals: string[];
+  breakdowns: string[];
+  // The ?days= periods the API answers, the middle one the default.
+  periods?: number[];
+  // How each broken-down event's dimension reads: the values table its
+  // dimension's labels are in (the host's translations), e.g.
+  // { charger_opened: "chargerSources" }.
+  dimensionLabels?: Record<string, string>;
+}
+
+const {
+  page,
+  values,
+  totals,
+  breakdowns,
+  periods = [7, 30, 90],
+  dimensionLabels = {},
+} = Astro.props;
+---
+
+<!-- Usage stats (GET /api/admin/usage): counts per day, no identifiers. -->
+<ev-admin-usage data-dimension-labels={JSON.stringify(dimensionLabels)}>
+  <section class="usage" aria-labelledby="admin-usage-title">
+    <div class="usage-header">
+      <h2 class="section-title" id="admin-usage-title">
+        {page.adminUsage}
+      </h2>
+      <div class="periods" role="group" aria-label={page.adminPeriod}>
+        {periods.map((days) => (
+          <button type="button" class="period" data-days={days} aria-pressed={String(days === 30)}>
+            {fill(page.adminLastDays, { days })}
+          </button>
+        ))}
+      </div>
+    </div>
+    <p class="summary" role="status"></p>
+
+    <dl class="totals">
+      {totals.map((event) => (
+        <div class="total" data-event={event}>
+          <dt>{values.usageEvents[event]}</dt>
+          <dd class="value">–</dd>
+        </div>
+      ))}
+    </dl>
+
+    <BarChart title={page.adminPageViewsPerDay} id="admin-chart-title" />
+
+    <div class="breakdowns">
+      {breakdowns.map((event) => (
+        <section class="breakdown" data-event={event} aria-labelledby={`admin-breakdown-${event}`}>
+          <h3 class="subtitle" id={`admin-breakdown-${event}`}>
+            {values.usageEvents[event]}
+          </h3>
+          <table>
+            <tbody></tbody>
+          </table>
+          <p class="empty" hidden>
+            {page.adminNoData}
+          </p>
+        </section>
+      ))}
+      <!-- Now, not in the period: the host's top items, e.g. favorites. -->
+      <section class="breakdown top-items" aria-labelledby="admin-top-items">
+        <h3 class="subtitle" id="admin-top-items">
+          {page.adminTopItems}
+        </h3>
+        <table>
+          <tbody></tbody>
+        </table>
+        <p class="empty" hidden>
+          {page.adminNoData}
+        </p>
+      </section>
+    </div>
+  </section>
+
+  <template class="row-template">
+    <tr>
+      <th scope="row" class="name"></th>
+      <td class="count"></td>
+    </tr>
+  </template>
+  <script src="./AdminUsage.js"></script>
+</ev-admin-usage>

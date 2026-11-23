@@ -8,7 +8,9 @@
     "./Button.astro": "./button/Button.astro",
     "./Icon.astro": "./icon/Icon.astro",
     "./BarChart.astro": "./bar-chart/BarChart.astro",
-    "./bar-chart.js": "./bar-chart/bar-chart.js"
+    "./bar-chart.js": "./bar-chart/bar-chart.js",
+    "./messages.js": "./messages/messages.js",
+    "./format.js": "./format/format.js"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",

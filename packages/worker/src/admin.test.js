@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import { usageStats } from "@ev-maps/admin/admin.js";
 import {
   adminApiResponse,
   adminPageResponse,
   isAdmin,
   isAdminPage,
   mostFavorited,
-  usageStats,
-} from "./admin.js";
+} from "./admin-area.js";
 import { testD1 } from "./test-d1.js";
 
 const env = {
@@ -56,7 +56,7 @@ describe("adminPageResponse", () => {
   });
 
   test("renders the errors page with the errors as its props", async () => {
-    const db = testD1("../admin-migrations/0001_errors.sql");
+    const db = testD1("../../admin/migrations/admin-migrations/0001_errors.sql");
     db.sqlite
       .prepare(
         "INSERT INTO errors (fingerprint, source, message, created_at) VALUES ('0000abcd', 'page', 'Boom', 1)"
@@ -126,7 +126,7 @@ describe("adminApiResponse for errors", () => {
 
   // Two kinds of errors: "a" three times (two users), "b" once, later.
   const seeded = () => {
-    const db = testD1("../admin-migrations/0001_errors.sql");
+    const db = testD1("../../admin/migrations/admin-migrations/0001_errors.sql");
     const insert = db.sqlite.prepare(
       `INSERT INTO errors (fingerprint, source, name, message, stack, url, user_agent, user_id,
          created_at) VALUES (?, ?, 'TypeError', ?, 'stack', '/en/', 'Firefox', ?, ?)`
@@ -234,8 +234,8 @@ describe("adminApiResponse for errors", () => {
 describe("usageStats", () => {
   const db = () => {
     const testDb = testD1(
-      "../admin-migrations/0001_errors.sql",
-      "../admin-migrations/0002_usage.sql"
+      "../../admin/migrations/admin-migrations/0001_errors.sql",
+      "../../admin/migrations/admin-migrations/0002_usage.sql"
     );
     const insert = testDb.sqlite.prepare(
       "INSERT INTO usage_daily (day, event, dimension, count) VALUES (?, ?, ?, ?)"
@@ -304,9 +304,9 @@ describe("mostFavorited", () => {
     add.run("grace", "irve:3", "not json");
 
     expect(await mostFavorited(db)).toEqual([
-      { id: "ocm:1", name: "Downtown", users: 2 },
-      { id: "eipa:2", name: "Warsaw", users: 1 },
-      { id: "irve:3", name: null, users: 1 },
+      { id: "ocm:1", name: "Downtown", count: 2 },
+      { id: "eipa:2", name: "Warsaw", count: 1 },
+      { id: "irve:3", name: null, count: 1 },
     ]);
     expect(await mostFavorited(db, 1)).toHaveLength(1);
   });

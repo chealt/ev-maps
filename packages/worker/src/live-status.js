@@ -7,8 +7,8 @@
 
 import { POINT_POOLS_KEY, downloadEipa } from "./import/eipa.js";
 import { PASSES, POINT_STATIONS_KEY, downloadCsv } from "./import/irve.js";
-import { EVERY_5_MINUTES } from "./crons.js";
-import { recordWorkerError } from "./errors.js";
+import { EVERY_5_MINUTES } from "@ev-maps/admin/crons.js";
+import { recordWorkerError } from "@ev-maps/admin/errors.js";
 import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
 

@@ -2,8 +2,8 @@
 // due jobs (never imported, or last finished over a week ago) until its time
 // budget is spent; a job's cursor lets the next run continue a big country.
 
-import { EVERY_15_MINUTES } from "../crons.js";
-import { recordWorkerError } from "../errors.js";
+import { EVERY_15_MINUTES } from "@ev-maps/admin/crons.js";
+import { recordWorkerError } from "@ev-maps/admin/errors.js";
 import * as amenities from "./amenities.js";
 import * as eipa from "./eipa.js";
 import * as irve from "./irve.js";

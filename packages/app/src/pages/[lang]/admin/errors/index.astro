@@ -1,15 +1,15 @@
 ---
 import Layout from "../../../../layouts/Layout.astro";
-import AdminErrors from "../../../../components/admin-errors/AdminErrors.astro";
-import AdminPage from "../../../../components/admin-page/AdminPage.astro";
+import AdminErrors from "@ev-maps/admin/components/admin-errors/AdminErrors.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import { translations } from "../../../../i18n/index.js";
 import { pageData } from "../../../../lib/page-data.js";
 
 // Rendered on the server, per request: the Worker only serves it to admins,
-// with the errors as its data (packages/worker/src/admin.js).
+// with the errors as its data (packages/admin/src/admin.js).
 export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages } = translations(Astro.currentLocale ?? "en");
 const error = Astro.url.searchParams.get("error");
 const pageNumber = Astro.url.searchParams.get("page") ?? "1";
 const data = await pageData(
@@ -21,7 +21,7 @@ const data = await pageData(
 ---
 
 <Layout title={`EV Maps - ${page.adminErrors}`} noindex kind="admin">
-  <AdminPage current="errors">
-    <AdminErrors pageData={data} />
+  <AdminPage current="errors" page={page}>
+    <AdminErrors pageData={data} page={page} messages={messages} />
   </AdminPage>
 </Layout>

@@ -37,7 +37,7 @@ and the kind of page (home, country, legal).
 
 Below the Web Vitals, a bar chart shows one vital's P75 per day for the last
 14 days, whatever the period, with a button per vital (LCP first). The
-summary carries it as `vitalsByDay` (`packages/worker/src/performance-stats.js`),
+summary carries it as `vitalsByDay` (`packages/admin/src/performance-stats.js`),
 computed with the same window functions as the P75s, per vital and day. A day
 without measurements says so instead of showing 0, as CLS can really be 0.
 

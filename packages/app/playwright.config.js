@@ -4,8 +4,10 @@ const PORT = 4322;
 
 export default defineConfig({
   // The specs live next to what they test (a component, a page, a lib), with
-  // the fakes in tests/fixtures.
-  testDir: "./src",
+  // the fakes in @ev-maps/e2e/fixtures.
+  // The specs of the admin package's components too (packages/admin/components).
+  testDir: "../",
+  testMatch: "**/*.spec.js",
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a
@@ -40,7 +42,7 @@ export default defineConfig({
       VITE_GOOGLE_MAPS_API_KEY: "test-api-key",
       VITE_GOOGLE_MAPS_MAP_ID: "TEST_MAP_ID",
       // The country pages' chargers, instead of an export of the database.
-      EV_MAPS_CHARGERS_DIR: "tests/fixtures/country-chargers",
+      EV_MAPS_CHARGERS_DIR: "../e2e/fixtures/country-chargers",
       // Poland's fixture has 6 chargers, so its page holds only some of them.
       EV_MAPS_MAX_PAGE_CHARGERS: "4",
       // No Worker runs: the tests fake the API, so no proxy to it.

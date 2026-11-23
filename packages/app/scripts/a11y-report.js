@@ -1,5 +1,5 @@
 // The accessibility report of a CI run: every test's axe results (attached by
-// tests/fixtures/test.js) from Playwright's JSON summary, as one HTML page,
+// packages/e2e/src/test.js) from Playwright's JSON summary, as one HTML page,
 // a11y-report/index.html. CI publishes it with the Playwright report
 // (scripts/publish-test-report.js).
 //

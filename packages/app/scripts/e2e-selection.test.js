@@ -14,6 +14,7 @@ const walk = (url) => {
   }
 };
 walk(new URL("../src/", import.meta.url));
+walk(new URL("../../admin/components/", import.meta.url));
 
 describe("selectE2e", () => {
   test("runs a domain's specs when its files change", () => {
@@ -47,7 +48,7 @@ describe("selectE2e", () => {
 
   test("runs everything for shared files, and app files no domain lists", () => {
     expect(selectE2e(["bun.lock"], mapping)).toMatchObject({ all: true });
-    expect(selectE2e(["packages/app/tests/fixtures/auth-api.js"], mapping)).toMatchObject({
+    expect(selectE2e(["packages/e2e/fixtures/auth-api.js"], mapping)).toMatchObject({
       all: true,
     });
     expect(selectE2e(["packages/app/src/lib/something-new.js"], mapping)).toEqual({

@@ -1,8 +1,8 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
-import { fakeAuthApi } from "#fixtures/auth-api.js";
-import { fakeChargersApi } from "#fixtures/chargers-api.js";
-import { fakeGoogleMaps } from "#fixtures/google.js";
-import { ERRORS_PAGE, fakePageData } from "#fixtures/page-data.js";
+import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
+import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
+import { ERRORS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 // Scrolls the page down with the mouse wheel, as a person would (code can
 // scroll even where they can't), and says how far it went.

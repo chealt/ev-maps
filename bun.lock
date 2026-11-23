@@ -13,6 +13,22 @@
         "rumdl": "^0.3.4",
       },
     },
+    "packages/admin": {
+      "name": "@ev-maps/admin",
+      "version": "0.0.1",
+      "dependencies": {
+        "@ev-maps/ui": "workspace:*",
+        "idb-keyval": "^6.3.0",
+        "lucide-static": "^1.73.0",
+      },
+      "devDependencies": {
+        "@ev-maps/dev-config": "workspace:*",
+        "@ev-maps/e2e": "workspace:*",
+      },
+      "peerDependencies": {
+        "astro": ">=7",
+      },
+    },
     "packages/ai-action-configs": {
       "name": "@ev-maps/ai-action-configs",
       "version": "0.0.1",
@@ -25,6 +41,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@astrojs/cloudflare": "14.4.9",
+        "@ev-maps/admin": "workspace:*",
         "@ev-maps/tiles": "workspace:*",
         "@ev-maps/ui": "workspace:*",
         "@simplewebauthn/browser": "^13.3.0",
@@ -57,6 +74,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@axe-core/playwright": "^4.14.0",
+        "@ev-maps/tiles": "workspace:*",
         "@playwright/test": "^1.65.1",
       },
       "devDependencies": {
@@ -95,6 +113,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@better-auth/passkey": "1.7.25",
+        "@ev-maps/admin": "workspace:*",
         "@ev-maps/tiles": "workspace:*",
         "@rapideditor/country-coder": "^6.0.0",
         "better-auth": "^1.7.25",
@@ -360,6 +379,8 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.28.2", "", { "os": "win32", "cpu": "ia32" }, "sha512-YmJbfTlvU7Sdn9BB+4PRES4oB6pxgS37MAONj+hBr/cpXS1aBPKXxNnDbu+QCWPj0o9dgyxeq79g6c5P8KeuYA=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.28.2", "", { "os": "win32", "cpu": "x64" }, "sha512-5ebpxr3nWMzrL/rnUI755Jkuee0bHL/Gq0WTF9lvcpv73wAp5eu8MfBUgWK9bhWvZjj7yX8etf/8tI8Ney695g=="],
+
+    "@ev-maps/admin": ["@ev-maps/admin@workspace:packages/admin"],
 
     "@ev-maps/ai-action-configs": ["@ev-maps/ai-action-configs@workspace:packages/ai-action-configs"],
 

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@better-auth/passkey": "1.7.25",
+    "@ev-maps/admin": "workspace:*",
     "@ev-maps/tiles": "workspace:*",
     "@rapideditor/country-coder": "^6.0.0",
     "better-auth": "^1.7.25",

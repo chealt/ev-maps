@@ -4,9 +4,9 @@ import {
   performanceSummary,
   ratingOf,
   vitalsByDay,
-} from "./performance-stats.js";
+} from "@ev-maps/admin/performance-stats.js";
 import { testD1 } from "./test-d1.js";
-import { INSERT_SPAN } from "./tracing.js";
+import { INSERT_SPAN } from "@ev-maps/admin/tracing.js";
 
 const NOW = Date.UTC(2026, 10, 24, 12);
 const TRACE = "4bf92f3577b34da6a3ce929d0e0e4736";
@@ -15,9 +15,9 @@ const TRACE = "4bf92f3577b34da6a3ce929d0e0e4736";
 // queries and page spans, one slow trace, and some Web Vitals.
 const seeded = () => {
   const db = testD1(
-    "../admin-migrations/0001_errors.sql",
-    "../admin-migrations/0002_usage.sql",
-    "../admin-migrations/0003_performance.sql"
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql",
+    "../../admin/migrations/admin-migrations/0003_performance.sql"
   );
   const span = db.sqlite.prepare(INSERT_SPAN);
   const attrs = (object) => JSON.stringify(object);

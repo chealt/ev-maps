@@ -3,7 +3,7 @@
 // of the current document, in milliseconds (CLS has no unit). A metric the
 // browser hasn't reported is null.
 // Google's thresholds for good and poor (web.dev/articles/vitals); the same
-// as the admin performance page's (packages/worker/src/performance-stats.js).
+// as the admin performance page's (packages/admin/src/performance-stats.js).
 const THRESHOLDS = {
   TTFB: [800, 1800],
   FCP: [1800, 3000],

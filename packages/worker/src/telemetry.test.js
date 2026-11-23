@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { testD1 } from "./test-d1.js";
-import { deleteOldTelemetry, telemetryResponse } from "./telemetry.js";
+import { deleteOldTelemetry, telemetryResponse } from "@ev-maps/admin/telemetry.js";
 
 const adminDb = () => {
   const db = testD1(
-    "../admin-migrations/0001_errors.sql",
-    "../admin-migrations/0002_usage.sql",
-    "../admin-migrations/0003_performance.sql"
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql",
+    "../../admin/migrations/admin-migrations/0003_performance.sql"
   );
   return { ...db, batch: (statements) => Promise.all(statements.map((s) => s.run())) };
 };

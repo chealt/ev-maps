@@ -1,9 +1,9 @@
 // Measures the site's performance for the admin area (POST /api/telemetry,
-// packages/worker/src/telemetry.js), the OpenTelemetry way:
+// packages/admin/src/telemetry.js), the OpenTelemetry way:
 //
 // - Every API call is a client span with a W3C traceparent header, so the
 //   Worker's request and its database queries are spans of the same trace
-//   (packages/worker/src/tracing.js). A page samples its traces at
+//   (packages/admin/src/tracing.js). A page samples its traces at
 //   TRACE_SAMPLE_RATE, and only sampled pages send their spans.
 // - Core Web Vitals (LCP, INP, CLS, FCP, TTFB), with Google's web-vitals.
 //
