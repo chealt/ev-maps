@@ -7,10 +7,13 @@
 //   TRACE_SAMPLE_RATE, and only sampled pages send their spans.
 // - Core Web Vitals (LCP, INP, CLS, FCP, TTFB), with Google's web-vitals.
 //
-// Both are sent batched, every 30 seconds and when the page is left. No
-// identifiers: only the page's kind and the API paths.
+// With a service worker, each span and vital goes to it
+// (./report-channel.js), and it batches and sends them for every tab.
+// Without one, the page batches them itself and sends them every 30 seconds
+// and when it's left. No identifiers: only the page's kind and the API paths.
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from "web-vitals";
 import { pageKind } from "./page-kind.js";
+import { onReportChannel, postReport } from "./report-channel.js";
 
 const TELEMETRY_URL = "/api/telemetry";
 const SEND_EVERY_MS = 30 * 1000;
@@ -43,6 +46,12 @@ const isTraced = (url) =>
 
 const originalFetch = window.fetch.bind(window);
 
+const addSpan = (span) => {
+  if (!postReport("span", span)) {
+    spans.push(span);
+  }
+};
+
 window.fetch = async (input, init) => {
   const request = input instanceof Request ? input : null;
   const url = new URL(request ? request.url : input, window.location.href);
@@ -60,7 +69,7 @@ window.fetch = async (input, init) => {
     if (!sampled) {
       return;
     }
-    spans.push({
+    addSpan({
       traceId,
       spanId,
       name: `${method} ${routeOf(url.pathname)}`,
@@ -85,7 +94,12 @@ window.fetch = async (input, init) => {
 };
 
 if (kind) {
-  const report = ({ name, value, rating }) => vitals.push({ name, value, rating, pageKind: kind });
+  const report = ({ name, value, rating }) => {
+    const vital = { name, value, rating, pageKind: kind };
+    if (!postReport("vital", vital)) {
+      vitals.push(vital);
+    }
+  };
   onLCP(report);
   onINP(report);
   onCLS(report);
@@ -97,9 +111,10 @@ const send = () => {
   if (!spans.length && !vitals.length) {
     return;
   }
-  const body = JSON.stringify({ spans, vitals });
+  const batch = { spans, vitals };
   spans = [];
   vitals = [];
+  const body = JSON.stringify(batch);
   // keepalive: sent even while the page is being left.
   originalFetch(TELEMETRY_URL, {
     method: "POST",
@@ -109,11 +124,27 @@ const send = () => {
   }).catch(() => {});
 };
 
-setInterval(send, SEND_EVERY_MS);
-window.addEventListener("pagehide", send);
-document.addEventListener("visibilitychange", () => {
+const sendWhenHidden = () => {
   if (document.visibilityState === "hidden") {
     send();
+  }
+};
+
+const timer = setInterval(send, SEND_EVERY_MS);
+window.addEventListener("pagehide", send);
+document.addEventListener("visibilitychange", sendWhenHidden);
+
+// Once a service worker controls the page, it does the sending: what the
+// page kept so far goes to it.
+onReportChannel(() => {
+  clearInterval(timer);
+  window.removeEventListener("pagehide", send);
+  document.removeEventListener("visibilitychange", sendWhenHidden);
+  for (const span of spans.splice(0)) {
+    postReport("span", span);
+  }
+  for (const vital of vitals.splice(0)) {
+    postReport("vital", vital);
   }
 });
 
