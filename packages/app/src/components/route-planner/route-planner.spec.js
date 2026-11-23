@@ -141,6 +141,11 @@ test("filters the chargers along the route by the places next to them", async ({
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button", { name: "Café charger" })).toBeVisible();
   await expect(map.getByRole("button", { name: "Bare charger" })).toBeHidden();
+
+  // The route's chargers keep their nearby places, e.g. in their details.
+  await map.getByRole("button", { name: "Café charger" }).click();
+  const details = page.getByRole("complementary", { name: "Café charger" });
+  await expect(details.locator(".nearby")).toContainText("Café");
 });
 
 test("clears the route and goes back to the map's chargers", async ({ page }) => {
