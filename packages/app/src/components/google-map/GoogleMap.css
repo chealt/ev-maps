@@ -728,6 +728,26 @@ ev-google-map {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
   }
+
+  /* From the start, to the end, off the route: in a row, wrapping between
+     them, not within one. */
+  .route-distances {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    gap: 0 var(--spacing-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-primary-light-text);
+
+    &[hidden] {
+      display: none;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
 }
 
 /* The status pill morphs into the charger list and back. */

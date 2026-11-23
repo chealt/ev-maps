@@ -51,6 +51,7 @@ const parseRouteRequest = (body) => {
 
 const chargersAlongRoute = async (db, { path, corridorMeters }) => {
   const cumulative = cumulativeMeters(path);
+  const routeMeters = cumulative.at(-1) ?? 0;
   const chunks = routeChunks(path, corridorMeters, cumulative);
   const results = await chargersInEachBounds(
     db,
@@ -72,6 +73,8 @@ const chargersAlongRoute = async (db, { path, corridorMeters }) => {
         ...toClientCharger(row),
         route: {
           distanceFromStartMeters: Math.round(fromStart),
+          // Along the route to its end, as the start's is measured.
+          distanceToEndMeters: Math.round(Math.max(0, routeMeters - fromStart)),
           distanceFromRouteMeters: Math.round(fromRoute),
         },
       });
@@ -111,4 +114,4 @@ const routes = [
   },
 ];
 
-export { routeChargersResponse, routes };
+export { chargersAlongRoute, routeChargersResponse, routes };

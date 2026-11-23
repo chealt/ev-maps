@@ -968,6 +968,27 @@ class GoogleMapElement extends HTMLElement {
     }
   }
 
+  // Along a route, a listed charger's distances, each saying what it is:
+  // from the start, to the end and off the route.
+  fillRouteDistances(element, route) {
+    element.hidden = false;
+    element.replaceChildren(
+      ...[
+        message("fromStart", { distance: formatDistance(route.distanceFromStartMeters) }),
+        // Not in answers from before the Worker gave it.
+        route.distanceToEndMeters != null &&
+          message("toEnd", { distance: formatDistance(route.distanceToEndMeters) }),
+        message("offRoute", { distance: formatDistance(route.distanceFromRouteMeters) }),
+      ]
+        .filter(Boolean)
+        .map((text) => {
+          const span = document.createElement("span");
+          span.textContent = text;
+          return span;
+        })
+    );
+  }
+
   // Where a charger's price sits among the loaded chargers (the map's or the
   // route's); the comparison is built once for each set of them.
   pricinessOf(charger) {
@@ -1004,15 +1025,14 @@ class GoogleMapElement extends HTMLElement {
         const item = template.content.firstElementChild.cloneNode(true);
         item.querySelector(".entry").dataset.index = String(index);
         item.querySelector(".name").textContent = chargerName(charger);
-        item.querySelector(".distance").textContent = formatDistance(meters);
+        if (this.route) {
+          this.fillRouteDistances(item.querySelector(".route-distances"), charger.route);
+        } else {
+          item.querySelector(".distance").textContent = formatDistance(meters);
+        }
         const price = describePriciness(this.pricinessOf(charger));
         item.querySelector(".meta").textContent = [
           charger.maxPowerKw ? message("power", { power: charger.maxPowerKw }) : null,
-          this.route
-            ? message("offRoute", {
-                distance: formatDistance(charger.route.distanceFromRouteMeters),
-              })
-            : null,
           // Compared with the loaded chargers, e.g. the route's.
           price && message("pricinessShort", { scale: price.scale }),
           charger.address,

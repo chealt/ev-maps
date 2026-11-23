@@ -151,6 +151,8 @@ const map = {
     noFiltersOn: "nincsenek szűrők",
     choosePlaces: "Mindkét helyet a javaslatok közül válaszd ki",
     alongRoute: "Az útvonal sorrendjében",
+    fromStart: "{distance} az indulástól",
+    toEnd: "{distance} a célig",
     offRoute: "{distance} az útvonaltól",
     chargerNoneFree: "{name}, nincs szabad töltőpont",
     chargerFavorite: "{name}, kedvenc",

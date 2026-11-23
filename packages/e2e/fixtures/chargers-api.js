@@ -38,7 +38,8 @@ const fakeChargersApi = async (
 };
 
 // Serves `chargers` for every route, placed on its points in order, each
-// `kmApart` along it and 1 km off it, and records the requests' bodies.
+// `kmApart` along it and 1 km off it, and records the requests' bodies. The
+// route is one `kmApart` longer than its last charger.
 const fakeRouteChargersApi = async (page, { chargers = fixtureChargers, kmApart = 50 } = {}) => {
   const requests = [];
   await page.context().route("**/api/chargers/route", (route) => {
@@ -55,6 +56,7 @@ const fakeRouteChargersApi = async (page, { chargers = fixtureChargers, kmApart 
           },
           route: {
             distanceFromStartMeters: (index + 1) * kmApart * 1000,
+            distanceToEndMeters: (chargers.length - index) * kmApart * 1000,
             distanceFromRouteMeters: 1000,
           },
         })),
