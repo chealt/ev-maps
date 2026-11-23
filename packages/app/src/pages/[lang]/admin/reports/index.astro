@@ -1,11 +1,11 @@
 ---
 import Layout from "../../../../layouts/Layout.astro";
-import AdminPage from "../../../../components/admin-page/AdminPage.astro";
-import AdminReports from "../../../../components/admin-reports/AdminReports.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
+import AdminReports from "@ev-maps/admin/components/admin-reports/AdminReports.astro";
 import { translations } from "../../../../i18n/index.js";
 import { languages } from "../../../../lib/pages.js";
 
-// The Worker only serves this page to admins (packages/worker/src/admin.js).
+// The Worker only serves this page to admins (packages/admin/src/admin.js).
 export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
 
 const { page } = translations(Astro.currentLocale ?? "en");

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isRealTraffic } from "./real-traffic.js";
+import { isRealTraffic } from "@ev-maps/admin/real-traffic.js";
 
 const env = { PRODUCTION_HOSTS: "ev.chealt.com, ev-maps.chealt.workers.dev" };
 const at = (url) => new Request(url);

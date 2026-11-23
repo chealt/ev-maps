@@ -1,6 +1,6 @@
-import { formatNumber, message, valueLabel } from "../../lib/messages.js";
+import { formatNumber, message, valueLabel } from "#lib/messages.js";
 import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
-import { dayCount } from "../../lib/day-count.js";
+import { dayCount } from "#lib/day-count.js";
 
 const USAGE_URL = "/api/admin/usage";
 

@@ -1,0 +1,41 @@
+{
+  "name": "@ev-maps/admin",
+  "version": "0.0.1",
+  "private": true,
+  "description": "EV Maps' admin area: the errors, performance, test reports and usage pages, their APIs, and the error reporting the Worker and pages do. Built for Astro pages and Cloudflare Workers, and useful on its own",
+  "type": "module",
+  "exports": {
+    "./admin.js": "./src/admin.js",
+    "./admin-dashboard.js": "./src/admin-dashboard.js",
+    "./crons.js": "./src/crons.js",
+    "./errors.js": "./src/errors.js",
+    "./performance-stats.js": "./src/performance-stats.js",
+    "./real-traffic.js": "./src/real-traffic.js",
+    "./telemetry.js": "./src/telemetry.js",
+    "./test-reports.js": "./src/test-reports.js",
+    "./tracing.js": "./src/tracing.js",
+    "./usage.js": "./src/usage.js",
+    "./components/*": "./components/*",
+    "./migrations/*": "./migrations/*"
+  },
+  "scripts": {
+    "test": "bun test",
+    "lint": "oxlint -c ../dev-config/oxlint.json src",
+    "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+  },
+  "dependencies": {
+    "@ev-maps/ui": "workspace:*",
+    "idb-keyval": "^6.3.0",
+    "lucide-static": "^1.73.0"
+  },
+  "devDependencies": {
+    "@ev-maps/dev-config": "workspace:*"
+  },
+  "peerDependencies": {
+    "astro": ">=7"
+  },
+  "engines": {
+    "bun": ">=1.4.4"
+  }
+}

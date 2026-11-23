@@ -1,4 +1,4 @@
-import { message } from "../../lib/messages.js";
+import { message } from "#lib/messages.js";
 
 // Says which admin is signed in (GET /api/admin/me, which only answers
 // admins).

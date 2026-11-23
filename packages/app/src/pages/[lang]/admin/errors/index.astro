@@ -1,12 +1,12 @@
 ---
 import Layout from "../../../../layouts/Layout.astro";
-import AdminErrors from "../../../../components/admin-errors/AdminErrors.astro";
-import AdminPage from "../../../../components/admin-page/AdminPage.astro";
+import AdminErrors from "@ev-maps/admin/components/admin-errors/AdminErrors.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import { translations } from "../../../../i18n/index.js";
 import { pageData } from "../../../../lib/page-data.js";
 
 // Rendered on the server, per request: the Worker only serves it to admins,
-// with the errors as its data (packages/worker/src/admin.js).
+// with the errors as its data (packages/admin/src/admin.js).
 export const prerender = false;
 
 const { page } = translations(Astro.currentLocale ?? "en");

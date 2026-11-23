@@ -19,7 +19,7 @@ const group = (index) => ({
 });
 
 // The page is rendered on the server with the errors the Worker gives it
-// (packages/worker/src/admin.js); in development, the tests pass them in a
+// (packages/admin/src/admin.js); in development, the tests pass them in a
 // header (src/lib/page-data.js). `groupCount` groups, 25 a page.
 const fakeErrorsData = async (page, groupCount) => {
   const groups = Array.from({ length: groupCount }, (_, index) => group(index));

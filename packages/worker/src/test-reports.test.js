@@ -6,17 +6,17 @@ import {
   listReports,
   reportFileResponse,
   uiFileResponse,
-} from "./test-reports.js";
+} from "@ev-maps/admin/test-reports.js";
 
 const NOW = Date.UTC(2026, 10, 24, 12);
 const ADMIN = { id: "1", email: "grace@chealt.com" };
 
 const adminDb = () => {
   const db = testD1(
-    "../admin-migrations/0001_errors.sql",
-    "../admin-migrations/0002_usage.sql",
-    "../admin-migrations/0003_performance.sql",
-    "../admin-migrations/0004_test_reports.sql"
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql",
+    "../../admin/migrations/admin-migrations/0003_performance.sql",
+    "../../admin/migrations/admin-migrations/0004_test_reports.sql"
   );
   const insert = db.sqlite.prepare(
     `INSERT INTO test_reports (id, branch, commit_sha, pull_request, run_url, status, passed, failed,

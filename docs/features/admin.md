@@ -1,7 +1,7 @@
 # Admin area
 
 Users with a verified email at `ADMIN_EMAIL_DOMAIN`
-(`chealt.com`, in `wrangler.toml`) are admins (`packages/worker/src/admin.js`).
+(`chealt.com`, in `wrangler.toml`) are admins (`packages/admin/src/admin.js`).
 The Worker runs first for `/{lang}/admin*` and serves those pages only to
 admins (404 for everyone else, never cached), and the admin API
 (`/api/admin/*`, the guard's `admin` policy) answers only them (403
@@ -14,7 +14,7 @@ errors, page views and sign-ins per day for the last 30 days, each with its
 total and a link to the page with more (errors, usage), and the 10 most
 visited pages of those days (the `page_path` counts), each with a bar as long
 as its share of the first. One request,
-`GET /api/admin/dashboard` (`packages/worker/src/admin-dashboard.js`), counts
+`GET /api/admin/dashboard` (`packages/admin/src/admin-dashboard.js`), counts
 them from the admin database. The sections are only in the navigation at
 the top of every admin page.
 

@@ -7,7 +7,7 @@
 // Each favorite keeps a copy of the charger as the page had it (name,
 // address, location...), so the list shows without the chargers' tiles.
 
-import { countEvent } from "./usage.js";
+import { countEvent } from "@ev-maps/admin/usage.js";
 
 const FAVORITES_PATH = "/api/favorites";
 const FAVORITE_PATH = /^\/api\/favorites\/([^/]+)$/;

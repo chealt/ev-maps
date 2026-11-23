@@ -7,7 +7,7 @@ import {
   startTrace,
   traceD1,
   withTrace,
-} from "./tracing.js";
+} from "@ev-maps/admin/tracing.js";
 
 const TRACE_ID = "4bf92f3577b34da6a3ce929d0e0e4736";
 const PARENT_ID = "00f067aa0ba902b7";
@@ -15,9 +15,9 @@ const PARENT_ID = "00f067aa0ba902b7";
 // The admin database, with D1's batch().
 const adminDb = () => {
   const db = testD1(
-    "../admin-migrations/0001_errors.sql",
-    "../admin-migrations/0002_usage.sql",
-    "../admin-migrations/0003_performance.sql"
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql",
+    "../../admin/migrations/admin-migrations/0003_performance.sql"
   );
   return { ...db, batch: (statements) => Promise.all(statements.map((s) => s.run())) };
 };

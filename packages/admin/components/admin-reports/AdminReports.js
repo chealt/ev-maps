@@ -1,5 +1,5 @@
 import { get, set } from "idb-keyval";
-import { formatNumber, message } from "../../lib/messages.js";
+import { formatNumber, message } from "#lib/messages.js";
 
 const REPORTS_URL = "/api/admin/test-reports";
 // The branch filter, remembered in this browser (IndexedDB); the default

@@ -5,7 +5,7 @@ import { fakeGoogleMaps } from "./fixtures/google.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 
-// The Worker's answer to who is an admin (packages/worker/src/admin.js).
+// The Worker's answer to who is an admin (packages/admin/src/admin.js).
 const fakeAdminApi = (page, admin) =>
   page.route("**/api/admin/me", (route) =>
     admin

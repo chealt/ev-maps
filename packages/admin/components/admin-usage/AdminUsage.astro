@@ -1,12 +1,12 @@
 ---
-import { fill, translations } from "../../i18n/index.js";
+import { fill, translations } from "#i18n/index.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminUsage.css";
 
 const { page, values } = translations(Astro.currentLocale ?? "en");
 
 // Totals shown at the top, and the events broken down by their dimension
-// (packages/worker/src/usage.js).
+// (packages/admin/src/usage.js).
 const totals = [
   "page_view",
   "sign_up",

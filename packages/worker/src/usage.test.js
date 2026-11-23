@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { startTrace, withTrace } from "./tracing.js";
+import { startTrace, withTrace } from "@ev-maps/admin/tracing.js";
 import {
   countEvent,
   countUsage,
@@ -7,12 +7,15 @@ import {
   deleteOldUsage,
   pageCounts,
   usageReportResponse,
-} from "./usage.js";
+} from "@ev-maps/admin/usage.js";
 import { testD1 } from "./test-d1.js";
 
 // testD1 with D1's batch().
 const adminDb = () => {
-  const db = testD1("../admin-migrations/0001_errors.sql", "../admin-migrations/0002_usage.sql");
+  const db = testD1(
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql"
+  );
   return { ...db, batch: async (statements) => Promise.all(statements.map((s) => s.run())) };
 };
 

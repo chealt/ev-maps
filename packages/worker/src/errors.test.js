@@ -4,7 +4,7 @@ import {
   errorReportResponse,
   fingerprintOf,
   recordWorkerError,
-} from "./errors.js";
+} from "@ev-maps/admin/errors.js";
 
 // An ADMIN_DB stand-in recording the statements run and their values.
 const fakeDb = () => {

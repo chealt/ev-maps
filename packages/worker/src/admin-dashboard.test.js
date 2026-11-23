@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import { dashboard, routes } from "./admin-dashboard.js";
+import { dashboard, routes } from "@ev-maps/admin/admin-dashboard.js";
 import { testD1 } from "./test-d1.js";
 
 const NOW = Date.UTC(2026, 10, 24, 12);
 const HOUR = 60 * 60 * 1000;
 
 const seeded = () => {
-  const db = testD1("../admin-migrations/0001_errors.sql", "../admin-migrations/0002_usage.sql");
+  const db = testD1(
+    "../../admin/migrations/admin-migrations/0001_errors.sql",
+    "../../admin/migrations/admin-migrations/0002_usage.sql"
+  );
   const error = db.sqlite.prepare(
     "INSERT INTO errors (fingerprint, source, message, created_at) VALUES ('00000000', 'page', 'x', ?)"
   );

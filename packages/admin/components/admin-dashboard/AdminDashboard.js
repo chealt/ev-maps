@@ -1,6 +1,6 @@
 import { renderBarChart } from "@ev-maps/ui/bar-chart.js";
-import { dayCount } from "../../lib/day-count.js";
-import { formatNumber, message } from "../../lib/messages.js";
+import { dayCount } from "#lib/day-count.js";
+import { formatNumber, message } from "#lib/messages.js";
 
 const DASHBOARD_URL = "/api/admin/dashboard";
 

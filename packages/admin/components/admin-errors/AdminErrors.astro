@@ -1,11 +1,11 @@
 ---
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
-import { formatMessage, translations } from "../../i18n/index.js";
+import { formatMessage, translations } from "#i18n/index.js";
 import "./AdminErrors.css";
 
 // Rendered on the server: the error groups, or with ?error={fingerprint} one
-// group's occurrences, from the Worker (packages/worker/src/admin.js).
+// group's occurrences, from the Worker (packages/admin/src/admin.js).
 interface Props {
   // { data } or { failed: true } (src/lib/page-data.js)
   pageData: { data?: any; failed?: boolean };
