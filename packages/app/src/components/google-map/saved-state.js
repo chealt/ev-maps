@@ -71,7 +71,8 @@ const readFilters = async () => {
 const saveFilters = (filters) => write(FILTERS_KEY, filters);
 
 // The shown route's ends, as { label, placeId } (a Google place) or
-// { label, location }, so a reload shows it again; null once it's cleared.
+// { label, location }, and how far from it chargers are shown (corridorKm),
+// so a reload shows it again; null once it's cleared.
 const isEnd = (end) =>
   typeof end?.label === "string" && (typeof end.placeId === "string" || isLocation(end.location));
 

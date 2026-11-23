@@ -4,6 +4,8 @@
 // the account's only if it's newer, so devices can't undo each other's newer
 // changes.
 
+import { MAX_CORRIDOR_KM, MIN_CORRIDOR_KM } from "./route-chargers.js";
+
 const SETTINGS_PATH = "/api/settings";
 const MAX_BODY_BYTES = 32 * 1024;
 // Sections and what's allowed in them.
@@ -68,10 +70,17 @@ const isRouteFilters = (filters) =>
   filters !== null &&
   Object.entries(filters).every(([field, value]) => SECTIONS.filters[field]?.(value));
 
+// How far from the route its chargers were shown, in km, as POST
+// /api/chargers/route takes it; routes saved before it was chosen have none.
+const isCorridor = (corridorKm) =>
+  corridorKm === undefined ||
+  (Number.isFinite(corridorKm) && corridorKm >= MIN_CORRIDOR_KM && corridorKm <= MAX_CORRIDOR_KM);
+
 const isRoute = (route) =>
   isRouteEnd(route?.origin) &&
   isRouteEnd(route?.destination) &&
   isRouteFilters(route?.filters) &&
+  isCorridor(route?.corridorKm) &&
   Number.isFinite(route?.plannedAt);
 
 const isStringList = (value, max, maxLength = 40) =>

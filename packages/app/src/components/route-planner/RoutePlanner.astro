@@ -1,6 +1,6 @@
 ---
 import DistanceText from "../distance-text/DistanceText.astro";
-import { CORRIDOR_KM } from "../google-map/route.js";
+import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
 import { Heart, History, LocateFixed, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
@@ -40,7 +40,29 @@ const { page } = translations(Astro.currentLocale ?? "en");
         </Button>
       </PlaceInput>
       <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
-      <DistanceText class="hint" template={page.routeCorridor} meters={CORRIDOR_KM * 1000} />
+      <!-- How far from the route chargers are shown; the labels and the hint
+           are in the user's unit once the page runs (DistanceText.js). -->
+      <fieldset class="corridor">
+        <legend class="label">{page.routeCorridorLegend}</legend>
+        <div class="corridor-options">
+          {CORRIDOR_OPTIONS_KM.map((km) => (
+            <label class="corridor-option">
+              <input type="radio" name="corridor-km" value={km} checked={km === CORRIDOR_KM} />
+              <span class="distance-text" data-meters={km * 1000}>
+                {new Intl.NumberFormat(Astro.currentLocale ?? "en", {
+                  style: "unit",
+                  unit: "kilometer",
+                }).format(km)}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <DistanceText
+        class="hint corridor-hint"
+        template={page.routeCorridor}
+        meters={CORRIDOR_KM * 1000}
+      />
       <p class="error" role="alert"></p>
       <!-- The routes saved as favorites, then the others planned before,
            each with the filters on then; choosing one plans it again with

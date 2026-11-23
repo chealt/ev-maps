@@ -87,6 +87,19 @@ describe("routeHistory", () => {
     expect(without({ filters: { colour: "red" } })).toBe(false);
     expect(without({ plannedAt: "yesterday" })).toBe(false);
   });
+
+  test("takes how far from the route its chargers were shown, within the API's range", () => {
+    const withCorridor = (corridorKm) =>
+      validSection("routeHistory", { routes: [{ ...route, corridorKm }], updatedAt: 1 });
+    // Routes saved before it was chosen have none.
+    expect(validSection("routeHistory", { routes: [route], updatedAt: 1 })).toBe(true);
+    for (const corridorKm of [1, 2, 5, 10]) {
+      expect(withCorridor(corridorKm)).toBe(true);
+    }
+    for (const corridorKm of [0, 0.5, 11, "5", null]) {
+      expect(withCorridor(corridorKm)).toBe(false);
+    }
+  });
 });
 
 describe("mapsApp", () => {
