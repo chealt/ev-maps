@@ -174,7 +174,7 @@ test("says when sign-in failed at the provider", async ({ page }) => {
   await expect(page).toHaveURL("/en/");
 });
 
-test("signs out", async ({ page }) => {
+test("signs out", { tag: "@regression" }, async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
   await page.goto("/");
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();

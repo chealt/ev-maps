@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page);
 });
 
-test("loads chargers for the visible area", async ({ page }) => {
+test("loads chargers for the visible area", { tag: "@regression" }, async ({ page }) => {
   const requests = await fakeChargersApi(page);
   await page.goto("/");
 

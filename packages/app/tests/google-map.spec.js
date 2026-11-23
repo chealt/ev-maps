@@ -48,14 +48,14 @@ test("initializes the map with the configured center and map ID", async ({ page 
   expect(options.mapId).toBe("TEST_MAP_ID");
 });
 
-test("shows EV charger markers", { tag: "@performance" }, async ({ page }) => {
+test("shows EV charger markers", { tag: ["@performance", "@regression"] }, async ({ page }) => {
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button")).toHaveCount(2);
 });
 
 test(
   "shows charger details when a marker is clicked",
-  { tag: "@ui" },
+  { tag: ["@ui", "@regression"] },
   async ({ page }, testInfo) => {
     const map = page.getByRole("region", { name: "EV charging station map" });
     await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();

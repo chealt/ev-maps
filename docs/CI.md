@@ -87,3 +87,7 @@ locally with `bun run lint` and `bun run format:check`.
 
 The secrets and variables CI needs are listed in
 [Deployment](DEPLOYMENT.md#github-secrets-and-variables).
+
+On pull requests, the test shards run only the end-to-end tests related to
+what changed, and the `@regression` tests; see
+[Which Tests a Pull Request Runs](TESTING_GUIDELINES.md#which-tests-a-pull-request-runs).
