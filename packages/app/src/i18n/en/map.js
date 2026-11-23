@@ -51,7 +51,7 @@ const map = {
     useMyLocation: "Use my location",
     showRoute: "Show route",
     clearRoute: "Clear route",
-    routeCorridor: "Chargers within 5 km of the route are shown.",
+    routeCorridor: "Chargers within {distance} of the route are shown.",
     recentRoutes: "Recent routes",
     favoriteRoutes: "Favorite routes",
     signInForAvailability: "Sign in to see how many points are free right now.",
@@ -72,7 +72,7 @@ const map = {
       "Hides the chargers whose live availability says none of their points is free.",
     nearby: "Nearby",
     signInForNearby: "Sign in to find chargers with places next to them.",
-    nearbyFilterHint: "Within 150 m, from OpenStreetMap.",
+    nearbyFilterHint: "Within {distance}, from OpenStreetMap.",
     shortcuts: {
       title: "Keyboard shortcuts",
       help: "Show this help",

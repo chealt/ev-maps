@@ -31,6 +31,12 @@ const account = {
     language: "Nyelv",
     mapsApp: "Térképalkalmazás",
     mapsAppAsk: "Mindig kérdezzen",
+    distanceUnit: "Távolság mértékegysége",
+    distanceUnits: {
+      auto: "Automatikus",
+      metric: "Kilométer",
+      imperial: "Mérföld",
+    },
   },
   messages: {
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",

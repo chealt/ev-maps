@@ -132,3 +132,17 @@ describe("favoriteRoutes", () => {
     ).toBe(false);
   });
 });
+
+describe("distanceUnit", () => {
+  test("takes kilometres or miles, or null to follow the locale", () => {
+    for (const unit of ["metric", "imperial", null]) {
+      expect(validSection("distanceUnit", { unit, updatedAt: 1 })).toBe(true);
+    }
+  });
+
+  test("turns down other units and values", () => {
+    for (const unit of ["km", "miles", "", 1, undefined]) {
+      expect(validSection("distanceUnit", { unit, updatedAt: 1 })).toBe(false);
+    }
+  });
+});

@@ -29,6 +29,12 @@ const account = {
     language: "Language",
     mapsApp: "Maps app",
     mapsAppAsk: "Ask every time",
+    distanceUnit: "Distance unit",
+    distanceUnits: {
+      auto: "Automatic",
+      metric: "Kilometres",
+      imperial: "Miles",
+    },
   },
   messages: {
     signInFailed: "Sign-in failed. Please try again.",

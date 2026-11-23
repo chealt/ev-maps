@@ -5,6 +5,7 @@ import Icon from "@ev-maps/ui/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
 import MapsAppPicker from "../maps-app-picker/MapsAppPicker.astro";
+import DistanceUnitPicker from "../distance-unit-picker/DistanceUnitPicker.astro";
 import MotionSetting from "../motion-setting/MotionSetting.astro";
 import { fill, translations } from "../../i18n/index.js";
 import AppleLogo from "./apple-logo.svg";
@@ -137,6 +138,7 @@ const { page } = translations(lang);
     </div>
     <ThemePicker />
     <MapsAppPicker />
+    <DistanceUnitPicker />
     <MotionSetting />
     <LanguagePicker />
     <Button variant="danger" class="sign-out" hidden>

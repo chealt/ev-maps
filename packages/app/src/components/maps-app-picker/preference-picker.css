@@ -1,4 +1,6 @@
-.maps-app-picker {
+/* A setting chosen among a few options, in the account menu: the maps app,
+   the distance unit. */
+.preference-picker {
   border: none;
   display: flex;
   flex-direction: column;

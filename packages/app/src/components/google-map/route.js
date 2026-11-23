@@ -64,4 +64,4 @@ const fetchChargersAlongRoute = async (path) => {
   return response.json();
 };
 
-export { fetchChargersAlongRoute, pathBounds, toLatLng };
+export { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng };

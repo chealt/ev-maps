@@ -51,7 +51,7 @@ const map = {
     useMyLocation: "Użyj mojej lokalizacji",
     showRoute: "Pokaż trasę",
     clearRoute: "Wyczyść trasę",
-    routeCorridor: "Wyświetlane są stacje ładowania do 5 km od trasy.",
+    routeCorridor: "Wyświetlane są stacje ładowania do {distance} od trasy.",
     recentRoutes: "Ostatnie trasy",
     favoriteRoutes: "Ulubione trasy",
     signInForAvailability: "Zaloguj się, aby zobaczyć, ile punktów jest teraz wolnych.",
@@ -72,7 +72,7 @@ const map = {
       "Ukrywa stacje, których żaden punkt według aktualnego stanu nie jest wolny.",
     nearby: "W pobliżu",
     signInForNearby: "Zaloguj się, aby znaleźć stacje z miejscami w pobliżu.",
-    nearbyFilterHint: "Do 150 m, według OpenStreetMap.",
+    nearbyFilterHint: "Do {distance}, według OpenStreetMap.",
     shortcuts: {
       title: "Skróty klawiszowe",
       help: "Pokaż tę pomoc",
