@@ -37,6 +37,7 @@
       "tests": [
         "google-map",
         "charger-details",
+        "navigate",
         "chargers",
         "scrolling",
         "pin-availability",
@@ -60,7 +61,7 @@
         "packages/app/src/components/place-input/**",
         "packages/app/src/components/google-map/route.js"
       ],
-      "tests": ["route-planner"]
+      "tests": ["route-planner", "navigate"]
     },
     "shortcuts": {
       "paths": ["packages/app/src/components/shortcuts-dialog/**"],
