@@ -51,19 +51,3 @@
 }
 
 /* The overview's list of sections. */
-.admin-section {
-  h2 {
-    margin-bottom: var(--spacing-sm);
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-  }
-
-  ul {
-    padding-left: var(--spacing-lg);
-  }
-
-  .section-link {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-primary-light-text);
-  }
-}
