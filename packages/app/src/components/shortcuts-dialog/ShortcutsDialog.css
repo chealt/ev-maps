@@ -1,17 +1,32 @@
 /* The keyboard shortcuts dialog: a plain list of keys and what they do. */
 
+/* The keyboard icon and the title, apart. */
+.shortcuts-dialog .title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Two columns, the keys' as wide as the widest key (Esc), so every
+   description starts in the same place. */
 .shortcuts-dialog .shortcut-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: max-content 1fr;
   gap: var(--spacing-md);
 }
 
 .shortcuts-dialog .shortcut-list li {
-  display: flex;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: var(--spacing-md);
+}
+
+.shortcuts-dialog .shortcut-list kbd {
+  justify-self: start;
 }
 
 .shortcuts-dialog kbd {

@@ -123,3 +123,25 @@ test("the letter shortcuts belong to a field, not the map", async ({ page }) => 
   await page.keyboard.press("l");
   await expect(page.getByRole("dialog", { name: "Plan a route" })).toBeHidden();
 });
+
+test("lines up the shortcuts' descriptions, and spaces the title from its icon", async ({
+  page,
+}) => {
+  await page.keyboard.press("?");
+  const dialog = shortcuts(page);
+  await expect(dialog).toBeVisible();
+
+  // However wide its key (Esc), every description starts in the same place.
+  const starts = await dialog
+    .locator(".shortcut-list li > span")
+    .evaluateAll((spans) => spans.map((span) => Math.round(span.getBoundingClientRect().left)));
+  expect(new Set(starts).size).toBe(1);
+
+  const gap = await dialog.locator(".title").evaluate((title) => {
+    const icon = title.querySelector(".icon").getBoundingClientRect();
+    const text = document.createRange();
+    text.selectNodeContents(title.lastChild);
+    return text.getBoundingClientRect().left - icon.right;
+  });
+  expect(gap).toBeGreaterThan(4);
+});
