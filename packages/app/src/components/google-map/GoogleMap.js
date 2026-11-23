@@ -11,6 +11,7 @@ import { loadGoogleMaps } from "./loader.js";
 import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
+import { forgetRouteHistory, recordRoute } from "./route-history.js";
 import { fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import {
   readFilters,
@@ -313,7 +314,10 @@ class GoogleMapElement extends HTMLElement {
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
-    this.addEventListener("route-requested", (event) => this.showRoute(event.detail));
+    this.addEventListener("route-requested", (event) =>
+      this.showRoute({ ...event.detail, record: true })
+    );
+    this.addEventListener("route-from-history", (event) => this.showRouteFromHistory(event.detail));
     this.addEventListener("route-cleared", () => this.clearRoute());
     this.clearRouteButton?.addEventListener("click", () => this.clearRoute());
     // The status pill opens the list of chargers, or, too far out to load
@@ -368,6 +372,7 @@ class GoogleMapElement extends HTMLElement {
       } else {
         // Routes are for signed-in users; the next one starts afresh.
         saveRoute(null);
+        forgetRouteHistory();
       }
     });
     // Live availability needs a signed-in user; show it once there is one.
@@ -1026,7 +1031,9 @@ class GoogleMapElement extends HTMLElement {
 
   // Plans the route with Google's Routes library, draws it, and shows the
   // chargers along it (POST /api/chargers/route) instead of the map's.
-  async showRoute({ origin, destination }) {
+  // `record`: put it in the user's route history, with the filters on now
+  // (not for a route restored after a reload).
+  async showRoute({ origin, destination, record = false }) {
     await this.mapReady;
     // A newer route replaces this one; the map's own loads don't, but this
     // cancels theirs.
@@ -1063,6 +1070,15 @@ class GoogleMapElement extends HTMLElement {
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
       saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination) });
+      if (record) {
+        const { updatedAt: _, ...filters } = this.currentFilters();
+        recordRoute({
+          origin: savedEnd(origin),
+          destination: savedEnd(destination),
+          filters,
+          plannedAt: Date.now(),
+        }).catch((error) => console.error("Could not save the route history:", error));
+      }
       await this.showMatchingChargers();
     } catch (error) {
       console.error("Could not plan the route:", error);
@@ -1070,6 +1086,26 @@ class GoogleMapElement extends HTMLElement {
         this.setStatus(message(navigator.onLine ? "routeFailed" : "offlineChargers"), "error");
       }
     }
+  }
+
+  // A saved route's ends as the Routes library takes them: a Google place
+  // rebuilt from its ID, or a location.
+  async routeEnds({ origin, destination }) {
+    await this.mapReady;
+    const { Place } = await this.maps.importLibrary("places");
+    const toEnd = ({ label, placeId, location }) =>
+      placeId ? { label, place: new Place({ id: placeId }) } : { label, location };
+    return { origin: toEnd(origin), destination: toEnd(destination) };
+  }
+
+  // A route from the history: its filters back on, then the route planned
+  // again, and moved to the top of the history.
+  async showRouteFromHistory(route) {
+    this.applyFilters({ ...route.filters, updatedAt: Date.now() });
+    this.filtersChanged();
+    const { origin, destination } = await this.routeEnds(route);
+    this.routePlanner?.setPlaces(origin, destination);
+    await this.showRoute({ origin, destination, record: true });
   }
 
   // Shows the route saved before a reload again, once per page, and its
@@ -1084,11 +1120,7 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     await this.mapReady;
-    const { Place } = await this.maps.importLibrary("places");
-    const toEnd = ({ label, placeId, location }) =>
-      placeId ? { label, place: new Place({ id: placeId }) } : { label, location };
-    const origin = toEnd(saved.origin);
-    const destination = toEnd(saved.destination);
+    const { origin, destination } = await this.routeEnds(saved);
     this.routePlanner?.setPlaces(origin, destination);
     await this.showRoute({ origin, destination });
   }
