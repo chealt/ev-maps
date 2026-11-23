@@ -25,11 +25,8 @@
   align-items: center;
 }
 
-.shortcuts-dialog .shortcut-list kbd {
-  justify-self: start;
-}
-
 .shortcuts-dialog kbd {
+  justify-self: start;
   font-size: var(--font-size-xs);
   min-width: 2.5ch;
   text-align: center;
