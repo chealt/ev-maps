@@ -70,9 +70,9 @@ jobs:
           - name: Lint JavaScript
             package: app
             script: lint
-          - name: Test the app's scripts
+          - name: Unit test the app and its scripts
             package: app
-            script: test:scripts
+            script: test:unit
           - name: Lint CSS
             package: app
             script: lint:css

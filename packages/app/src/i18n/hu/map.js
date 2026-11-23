@@ -130,6 +130,7 @@ const map = {
     status: "Állapot: {value}",
     chargingPoints: "Töltőpontok: {count}",
     priciness: "Árszint: {scale} ({comparison})",
+    pricinessShort: "Árszint: {scale}",
     pricierThan: "drágább, mint az itt lévő töltők {percent}%-a",
     cheaperThan: "olcsóbb, mint az itt lévő töltők {percent}%-a",
     cheapestHere: "a legolcsóbb az itt lévő töltők közül",

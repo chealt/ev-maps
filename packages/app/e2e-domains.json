@@ -31,6 +31,7 @@
         "packages/app/src/lib/charger-name.js",
         "packages/app/src/lib/distance.js",
         "packages/app/src/lib/map-center.js",
+        "packages/app/src/lib/priciness.js",
         "packages/app/src/i18n/*/map.js",
         "packages/app/public/**"
       ],
