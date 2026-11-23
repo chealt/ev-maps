@@ -63,6 +63,10 @@
       ],
       "tests": ["route-planner", "navigate"]
     },
+    "motion": {
+      "paths": ["packages/app/src/lib/motion.js", "packages/app/src/components/motion-setting/**"],
+      "tests": ["motion"]
+    },
     "shortcuts": {
       "paths": ["packages/app/src/components/shortcuts-dialog/**"],
       "tests": ["shortcuts"]

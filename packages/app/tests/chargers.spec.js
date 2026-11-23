@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
@@ -130,7 +130,7 @@ test("asks to zoom in when the visible area is too large", async ({ page }) => {
 test(
   "zooms in to where chargers load from the zoom in warning",
   { tag: "@ui" },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     await fakeChargersApi(page);
     await page.goto("/");
     const markers = page
@@ -143,6 +143,7 @@ test(
     const zoomIn = page.getByRole("button", { name: "Zoom in to see EV chargers" });
     await expect(zoomIn).toBeEnabled();
     await expect(zoomIn).not.toHaveAttribute("aria-haspopup");
+    await captureUi(page, testInfo, "the zoom in warning");
     await zoomIn.click();
 
     // To the zoom where chargers load (appConfig's evChargers.minZoom).

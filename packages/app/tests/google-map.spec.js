@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi, requestCovers } from "./fixtures/chargers-api.js";
 
@@ -56,7 +56,7 @@ test("shows EV charger markers", { tag: ["@performance", "@regression"] }, async
 test(
   "shows charger details when a marker is clicked",
   { tag: ["@ui", "@regression"] },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     const map = page.getByRole("region", { name: "EV charging station map" });
     await map.getByRole("button", { name: downtownChargerLabel, exact: true }).click();
 
@@ -74,6 +74,7 @@ test(
     await expect(details.getByText("Status: Operational")).toBeVisible();
     await expect(details.getByText("Charging points: 8")).toBeVisible();
     await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
+    await captureUi(page, testInfo, "the charger's details");
 
     await details.getByRole("button", { name: "Close" }).click();
     await expect(page.getByRole("complementary")).toBeHidden();
