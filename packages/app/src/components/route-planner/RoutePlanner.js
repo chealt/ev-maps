@@ -2,6 +2,17 @@
 // the route (route-requested) and clears it (route-cleared).
 import { message } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
+import { readRouteHistory } from "../google-map/route-history.js";
+
+// How many filters a route was planned with, as the Filters badge counts
+// them (the operator filter once).
+const filterCount = (filters = {}) =>
+  (filters.powerRanges?.length ?? 0) +
+  (filters.connectorTypes?.length ?? 0) +
+  (filters.excludedOperators?.length ? 1 : 0) +
+  (filters.onlyFavorites ? 1 : 0) +
+  (filters.hideUnavailable ? 1 : 0) +
+  (filters.nearby?.length ?? 0);
 
 const GEOLOCATION_TIMEOUT_MS = 10000;
 // GeolocationPositionError codes.
@@ -44,7 +55,35 @@ class RoutePlannerElement extends HTMLElement {
 
   open() {
     this.errorEl.textContent = "";
+    this.showRecentRoutes();
     this.dialog.showModal();
+  }
+
+  // Lists the routes planned before, signed in; choosing one asks
+  // <ev-google-map> to plan it again with its filters (route-from-history).
+  async showRecentRoutes() {
+    const section = this.querySelector(".recent-routes");
+    const routes = isSignedIn() ? await readRouteHistory() : [];
+    section.hidden = routes.length === 0;
+    const template = this.querySelector(".recent-route-template");
+    this.querySelector(".recent-route-list").replaceChildren(
+      ...routes.map((route) => {
+        const item = template.content.firstElementChild.cloneNode(true);
+        item.querySelector(".route-ends").textContent = message("routeEnds", {
+          from: route.origin.label,
+          to: route.destination.label,
+        });
+        const count = filterCount(route.filters);
+        item.querySelector(".route-filters").textContent = count
+          ? message("activeFilters", { count })
+          : message("noFiltersOn");
+        item.querySelector(".recent-route").addEventListener("click", () => {
+          this.dialog.close();
+          this.emit("route-from-history", route);
+        });
+        return item;
+      })
+    );
   }
 
   // Called by <ev-google-map> when it restores a route after a reload.

@@ -1,5 +1,5 @@
 ---
-import { LocateFixed, X } from "lucide-static";
+import { History, LocateFixed, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -40,6 +40,23 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
       <p class="hint">{page.routeCorridor}</p>
       <p class="error" role="alert"></p>
+      <!-- The routes planned before, with the filters on then; choosing one
+           plans it again with them (route-history.js). -->
+      <section class="recent-routes" aria-labelledby="recent-routes-title" hidden>
+        <h3 class="subtitle" id="recent-routes-title">
+          <Icon icon={History} size="sm" />
+          {page.recentRoutes}
+        </h3>
+        <ol class="recent-route-list"></ol>
+      </section>
+      <template class="recent-route-template">
+        <li>
+          <button type="button" class="recent-route">
+            <span class="route-ends"></span>
+            <span class="route-filters"></span>
+          </button>
+        </li>
+      </template>
     </form>
     <div class="footer">
       <Button variant="secondary" size="large" class="clear-route" disabled>

@@ -2,6 +2,7 @@ import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "./fixtures/auth-api.js";
 import { fakeChargersApi, fakeRouteChargersApi } from "./fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "./fixtures/google.js";
+import { fakeSettingsApi } from "./fixtures/settings-api.js";
 
 // The fake route API places chargers along any route; these add a café to
 // the first only.
@@ -268,4 +269,61 @@ test("keeps the route after a reload, until it's cleared", async ({ page }) => {
 
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   await expect(page.getByRole("button", { name: "Clear route" })).toBeHidden();
+});
+
+test("keeps the routes planned, with their filters, to plan again", async ({ page }) => {
+  const saves = await fakeSettingsApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await expect(dialog.getByRole("region", { name: "Recent routes" })).toBeHidden();
+  await dialog.getByRole("button", { name: "Close route planner" }).click();
+  await expect(dialog).toBeHidden();
+
+  // Planned with a connector filter on.
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "CCS" }).click();
+  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).click();
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "1 of 2 EV chargers along the route match the filters"
+  );
+  await expect.poll(() => saves.length).toBeGreaterThanOrEqual(1);
+  expect(saves.at(-1).routeHistory.routes).toHaveLength(1);
+  expect(saves.at(-1).routeHistory.routes[0]).toMatchObject({
+    origin: { label: "Budapest, Hungary", placeId: "budapest" },
+    destination: { label: "Vienna, Austria", placeId: "vienna" },
+    filters: { connectorTypes: ["ccs"] },
+  });
+
+  // Clearing the route and planning another leaves the history at both,
+  // the latest first.
+  await page.getByRole("button", { name: "Clear route" }).click();
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "1 of 2 EV chargers along the route match the filters"
+  );
+  // The same route planned again moves up, with the filters of this time.
+  expect(saves.at(-1).routeHistory.routes).toHaveLength(1);
+
+  // After clearing, the history plans it again with its filters.
+  await page.getByRole("button", { name: "Clear route" }).click();
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  const recent = dialog.getByRole("region", { name: "Recent routes" });
+  await expect(
+    recent.getByRole("button", { name: /Budapest, Hungary → Vienna, Austria/ })
+  ).toHaveText(/.*1 filter on.*/);
+  await recent.getByRole("button", { name: /Budapest, Hungary → Vienna, Austria/ }).click();
+
+  await expect(page.getByRole("status")).toHaveText(
+    "1 of 2 EV chargers along the route match the filters"
+  );
+  await expect(
+    page.getByRole("button", { name: "Filters", exact: true })
+  ).toHaveAccessibleDescription("1 filter on");
 });
