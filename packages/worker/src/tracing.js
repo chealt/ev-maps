@@ -52,8 +52,14 @@ const startTrace = (request, env, random = Math.random) => {
     // recorded.
     route: null,
     spans: [],
+    // Production's own traffic, not a preview's (src/real-traffic.js).
+    realTraffic: isRealTraffic(request, env),
   };
 };
+
+// Whether the request being handled is real users' traffic: usage counts
+// and traces only count it. Outside a request (jobs), it is.
+const isRealRequest = () => currentTrace()?.realTraffic ?? true;
 
 const withTrace = (trace, run) => storage.run(trace, run);
 
@@ -197,7 +203,7 @@ const INSERT_SPAN = `INSERT INTO spans (trace_id, span_id, parent_span_id, name,
 // Adds the request's server span and writes the trace, if it's sampled, slow
 // or failed.
 const finishTrace = async (env, trace, { request, status }) => {
-  if (!trace.route || !env.ADMIN_DB || !isRealTraffic(request, env)) {
+  if (!trace.route || !env.ADMIN_DB || !trace.realTraffic) {
     return;
   }
   const duration = Date.now() - trace.start;
@@ -238,6 +244,7 @@ const finishTrace = async (env, trace, { request, status }) => {
 export {
   INSERT_SPAN,
   finishTrace,
+  isRealRequest,
   operationOf,
   parseTraceparent,
   setTraceRoute,

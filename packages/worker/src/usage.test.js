@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { countUsage, dayOf, deleteOldUsage, pageCounts, usageReportResponse } from "./usage.js";
+import { startTrace, withTrace } from "./tracing.js";
+import {
+  countEvent,
+  countUsage,
+  dayOf,
+  deleteOldUsage,
+  pageCounts,
+  usageReportResponse,
+} from "./usage.js";
 import { testD1 } from "./test-d1.js";
 
 // testD1 with D1's batch().
@@ -114,5 +122,31 @@ describe("deleteOldUsage", () => {
     await countUsage(env, [{ event: "sign_up" }], Date.UTC(2025, 11, 1));
     await deleteOldUsage(env, now);
     expect(rows(env.ADMIN_DB).map((row) => row.event)).toEqual(["sign_up"]);
+  });
+});
+
+describe("preview traffic", () => {
+  const env = () => ({ ADMIN_DB: adminDb(), PRODUCTION_HOSTS: "ev.chealt.com" });
+  const total = (db) =>
+    db.sqlite.query("SELECT COALESCE(SUM(count), 0) AS n FROM usage_daily").get().n;
+  const within = (url, environment, run) =>
+    withTrace(startTrace(new Request(url), environment), run);
+
+  test("counts production's requests, and a preview's not at all", async () => {
+    const environment = env();
+    await within("https://ev.chealt.com/api/favorites", environment, () =>
+      countEvent(environment, "favorite_added")
+    );
+    expect(total(environment.ADMIN_DB)).toBe(1);
+
+    await within("https://my-branch-ev-maps.chealt.workers.dev/api/favorites", environment, () =>
+      countEvent(environment, "favorite_added")
+    );
+    const preview = new Request("https://my-branch-ev-maps.chealt.workers.dev/api/usage", {
+      method: "POST",
+      body: JSON.stringify({ events: { page_view: { "en:home": 3 } } }),
+    });
+    await within(preview.url, environment, () => usageReportResponse(preview, environment));
+    expect(total(environment.ADMIN_DB)).toBe(1);
   });
 });
