@@ -19,6 +19,9 @@ export default defineConfig({
     // Requests made by a service worker bypass page.route(), so the external
     // APIs couldn't be faked; without it the app fetches directly.
     serviceWorkers: "block",
+    // English with kilometres: distances default to the browser's locale's
+    // unit (src/lib/distance-unit.js), and the default en-US's is miles.
+    locale: "en-IE",
     // No animations, so a test can act as soon as something shows, as a
     // user's next click would; tests/motion.spec.js turns them on to check
     // the animated path.

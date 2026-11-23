@@ -1,0 +1,28 @@
+---
+// A sentence with a distance in it, e.g. "Within {distance}, from
+// OpenStreetMap.": built in kilometres or metres, and shown in the user's
+// unit once the page runs (./DistanceText.js, src/lib/distance-unit.js).
+interface Props {
+  // The sentence, with {distance} where the distance goes.
+  template: string;
+  meters: number;
+  class?: string;
+}
+
+const { template, meters, class: className } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const [before, after = ""] = template.split("{distance}");
+const metric =
+  meters < 1000
+    ? new Intl.NumberFormat(lang, { style: "unit", unit: "meter" }).format(meters)
+    : new Intl.NumberFormat(lang, { style: "unit", unit: "kilometer" }).format(meters / 1000);
+---
+
+<p class={className}>
+  {before}
+  <span class="distance-text" data-meters={meters}>
+    {metric}
+  </span>
+  {after}
+</p>
+<script src="./DistanceText.js"></script>

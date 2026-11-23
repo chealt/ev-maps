@@ -51,7 +51,7 @@ const map = {
     useMyLocation: "Saját helyzetem használata",
     showRoute: "Útvonal mutatása",
     clearRoute: "Útvonal törlése",
-    routeCorridor: "Az útvonaltól legfeljebb 5 km-re lévő töltőállomások látszanak.",
+    routeCorridor: "Az útvonaltól legfeljebb {distance} távolságra lévő töltőállomások látszanak.",
     recentRoutes: "Legutóbbi útvonalak",
     signInForAvailability: "Jelentkezz be, hogy lásd, hány töltőpont szabad most.",
     signInForRoutes: "Jelentkezz be az útvonaltervezéshez és az útvonal menti töltőállomásokhoz.",
@@ -73,7 +73,7 @@ const map = {
     nearby: "A közelben",
     signInForNearby:
       "Jelentkezz be, hogy olyan töltőket keress, amelyek mellett ilyen helyek vannak.",
-    nearbyFilterHint: "150 méteren belül, az OpenStreetMap alapján.",
+    nearbyFilterHint: "Legfeljebb {distance} távolságban, az OpenStreetMap alapján.",
     shortcuts: {
       title: "Billentyűparancsok",
       help: "Súgó megjelenítése",

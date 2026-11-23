@@ -1,6 +1,6 @@
 ---
 import { translations } from "../../i18n/index.js";
-import "./MapsAppPicker.css";
+import "./preference-picker.css";
 
 const { page, values } = translations(Astro.currentLocale ?? "en");
 // "" is to ask every time (src/lib/maps-app.js's null).
@@ -15,7 +15,7 @@ const options = [
 <!-- The app a charger's "Open in maps" opens; asking every time by default.
      The details' dialog can remember one too (src/lib/maps-app.js). -->
 <ev-maps-app-picker>
-  <fieldset class="maps-app-picker">
+  <fieldset class="preference-picker">
     <legend class="legend">{page.mapsApp}</legend>
     {options.map(({ value, label }) => (
       <label class="option">
