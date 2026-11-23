@@ -4,11 +4,8 @@
 const admin = {
   page: {
     adminOverview: "Przegląd",
-    adminSections: "Sekcje",
-    adminErrorsDescription: "co poszło nie tak na stronach i na serwerze w ostatnich 30 dniach",
     adminErrors: "Błędy",
     adminUsage: "Użycie",
-    adminUsageDescription: "jak korzysta się z serwisu, liczone dziennie",
   },
   messages: {
     adminSignedInAs: "Zalogowano jako {email}",
