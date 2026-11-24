@@ -61,9 +61,7 @@ class RoutePlannerElement extends HTMLElement {
       });
     }
     for (const iconBtn of this.querySelectorAll(".icon-option")) {
-      iconBtn.addEventListener("click", () =>
-        this.selectSavePlaceIcon(iconBtn.dataset.iconValue)
-      );
+      iconBtn.addEventListener("click", () => this.selectSavePlaceIcon(iconBtn.dataset.iconValue));
     }
     this.querySelector(".cancel-save-place")?.addEventListener("click", () =>
       this.closeSavePlacePanel()

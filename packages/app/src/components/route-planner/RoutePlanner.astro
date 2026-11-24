@@ -166,7 +166,9 @@ const placePresets = [
           />
         </label>
         <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
-          <span class="label" id="save-place-icon-title">{page.savedPlaceIcon}</span>
+          <span class="label" id="save-place-icon-title">
+            {page.savedPlaceIcon}
+          </span>
           <div class="icon-options">
             {placeIcons.map(({ id: iconId, icon }, index) => (
               <Button
