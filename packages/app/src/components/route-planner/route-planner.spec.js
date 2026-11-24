@@ -105,9 +105,10 @@ test("lists the chargers in order along the route", { tag: "@ui" }, async ({ pag
   );
   // Halfway along the route, and a quarter in, with a bend in the road
   // carrying the +X km detour and the start/end distances under the nodes.
-  const pinLeft = (entry) => entry.locator(".route-visual-pin").evaluate((pin) => pin.style.left);
-  expect(await pinLeft(first)).toBe("33.3333%");
-  expect(await pinLeft(second)).toBe("66.6667%");
+  const bendProgress = (entry) =>
+    entry.evaluate((el) => el.style.getPropertyValue("--route-progress"));
+  expect(await bendProgress(first)).toBe("33.33333333333333%");
+  expect(await bendProgress(second)).toBe("66.66666666666666%");
   await expect(first.locator(".route-visual-bend .route-visual-detour")).toHaveText("+1 km");
   await expect(first.locator(".route-visual-distance.start")).toHaveText("50 km");
   await expect(first.locator(".route-visual-distance.end")).toHaveText("100 km");

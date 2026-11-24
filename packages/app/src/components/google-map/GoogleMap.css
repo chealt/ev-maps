@@ -539,14 +539,15 @@ ev-google-map {
 }
 
 /* Along a route, a charger's distances from the start, to the end and off
-   the route, in the list and in its details: a compact node graph of the
-   route with the start and end nodes, a bend in the road up to the
-   charger's node labelled with the +X km / m detour, and the start and end
-   distances underneath. */
+   the route, in the list and in its details: a road graph from the start
+   node to the end node with a smooth detour bend up to the charger pin and
+   the +X km / m detour nested inside the arch. */
 .route-distances {
-  --route-bend-width: 1.75rem;
-  --route-bend-height: 0.875rem;
-  --route-track-height: 1.875rem;
+  --route-bend-width: 7rem;
+  --route-bend-height: 2.25rem;
+  --route-road-weight: 0.25rem;
+  --route-node-size: 0.75rem;
+  --route-pin-size: 0.875rem;
 
   grid-column: 1 / -1;
   font-size: var(--font-size-xs);
@@ -558,9 +559,9 @@ ev-google-map {
   .route-visual {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-2xs);
+    gap: var(--spacing-xs);
     width: 100%;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
     border: var(--border-width) solid var(--color-border);
     border-radius: var(--border-radius-md);
     background: var(--color-surface-muted);
@@ -568,83 +569,123 @@ ev-google-map {
   }
 
   .route-visual-track {
-    position: relative;
     display: flex;
     align-items: flex-end;
-    height: var(--route-track-height);
-    padding-bottom: 0.25rem;
   }
 
   .route-visual-node {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
+    width: var(--route-node-size);
+    height: var(--route-node-size);
+    margin-bottom: -0.1875rem;
+    border-radius: var(--border-radius-full);
     flex-shrink: 0;
-    z-index: 1;
+    z-index: 2;
 
     &.start {
-      background: var(--color-route, var(--color-primary));
+      border: var(--border-width-marker) solid var(--color-primary);
+      background: var(--color-surface-muted);
     }
 
     &.end {
-      border: var(--border-width-thick) solid var(--color-border-strong);
-      background: var(--color-surface);
+      background: var(--color-primary);
     }
   }
 
-  .route-visual-line {
+  .route-visual-road {
+    position: relative;
     flex: 1;
-    height: 0.1875rem;
-    margin: 0 -0.125rem 0.15625rem;
-    border-radius: var(--border-radius-full);
-    background: linear-gradient(
-      to right,
-      var(--color-route, var(--color-primary)) var(--route-progress, 50%),
-      var(--color-border-strong) var(--route-progress, 50%)
-    );
+    height: var(--route-bend-height);
+    margin: 0 calc(-0.5 * var(--route-road-weight));
   }
 
-  /* A bend in the road branching off the main route line up to the charger
-     pin, with the +X km / m detour badge beside the bend. */
+  .route-visual-segment {
+    position: absolute;
+    bottom: 0.0625rem;
+    height: var(--route-road-weight);
+    background: var(--color-route, var(--color-primary));
+
+    &.before {
+      left: 0;
+      width: calc(
+        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
+      );
+    }
+
+    &.after {
+      right: 0;
+      width: calc(
+        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) *
+          (1 - var(--route-ratio, 0.5))
+      );
+    }
+  }
+
+  /* A smooth bend in the road rising above the dashed direct highway, with
+     the charger pin at its crest and the +X km / m detour nested inside. */
   .route-visual-bend {
     position: absolute;
-    bottom: 0.40625rem;
-    left: var(--route-progress, 50%);
-    z-index: 2;
+    bottom: 0;
+    left: calc(
+      var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
+    );
+    z-index: 1;
     width: var(--route-bend-width);
     height: var(--route-bend-height);
-    border: 0.1875rem solid var(--color-route, var(--color-primary));
-    border-bottom: none;
-    border-radius: 0.5rem 0.5rem 0 0;
-    background: var(--color-surface-muted);
     transform: translateX(-50%);
+  }
+
+  .route-visual-bend-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .route-visual-bypass {
+    stroke: var(--color-border-strong);
+    stroke-width: 1.25;
+    stroke-dasharray: 3.5 3.5;
+    stroke-linecap: round;
+  }
+
+  .route-visual-curve {
+    fill: none;
+    stroke: var(--color-route, var(--color-primary));
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .route-visual-pin {
     position: absolute;
-    bottom: calc(0.40625rem + var(--route-bend-height));
-    left: var(--route-progress, 50%);
+    top: 0.4375rem;
+    left: 50%;
     z-index: 3;
-    width: 0.875rem;
-    height: 0.875rem;
-    border: var(--border-width-thick) solid var(--color-surface);
-    border-radius: 50%;
-    background: var(--color-primary-dark);
-    box-shadow:
-      0 0 0 0.125rem var(--color-primary-light),
-      var(--shadow-sm);
-    transform: translate(-50%, 50%);
+    display: grid;
+    place-items: center;
+    width: var(--route-pin-size);
+    height: var(--route-pin-size);
+    border-radius: var(--border-radius-full);
+    background: var(--color-danger);
+    box-shadow: 0 0 0 0.1875rem var(--color-surface-muted);
+    transform: translate(-50%, -50%);
+
+    &::after {
+      content: "";
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: var(--border-radius-full);
+      background: var(--color-primary-contrast);
+    }
   }
 
   .route-visual-detour {
     position: absolute;
-    top: -0.375rem;
-    left: calc(100% + var(--spacing-xs));
-    padding: 0.0625rem var(--spacing-xs);
-    border-radius: var(--border-radius-full);
-    background: var(--color-primary-light);
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
     color: var(--color-primary-light-text);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
     line-height: var(--line-height-tight);
     white-space: nowrap;
   }

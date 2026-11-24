@@ -543,11 +543,22 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <span class="route-visual" role="img">
         <span class="route-visual-track" aria-hidden="true">
           <span class="route-visual-node start"></span>
-          <span class="route-visual-line"></span>
-          <span class="route-visual-bend">
-            <span class="route-visual-detour"></span>
+          <span class="route-visual-road">
+            <span class="route-visual-segment before"></span>
+            <span class="route-visual-bend">
+              <svg class="route-visual-bend-svg" viewBox="0 0 112 36" preserveAspectRatio="none">
+                <line class="route-visual-bypass" x1="14" y1="31" x2="98" y2="31" />
+                <line class="route-visual-bypass" x1="4" y1="35" x2="108" y2="35" />
+                <path
+                  class="route-visual-curve"
+                  d="M 0,33 C 16,33 18,7 34,7 L 78,7 C 94,7 96,33 112,33"
+                />
+              </svg>
+              <span class="route-visual-pin"></span>
+              <span class="route-visual-detour"></span>
+            </span>
+            <span class="route-visual-segment after"></span>
           </span>
-          <span class="route-visual-pin"></span>
           <span class="route-visual-node end"></span>
         </span>
         <span class="route-visual-legend" aria-hidden="true">

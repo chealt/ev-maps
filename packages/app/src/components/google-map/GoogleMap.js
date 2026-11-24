@@ -1035,12 +1035,13 @@ class GoogleMapElement extends HTMLElement {
     // Where the charger sits along the route, 0 to 1; without the end's
     // distance, in the middle.
     const position = route.distanceToEndMeters ? route.distanceFromStartMeters / along : 0.5;
-    const pct = `${Math.min(Math.max(position, 0), 1) * 100}%`;
+    const ratio = Math.min(Math.max(position, 0), 1);
+    const pct = `${ratio * 100}%`;
 
     const visual = this.cloneTemplate(".route-visual-template");
+    visual.style.setProperty("--route-ratio", String(ratio));
     visual.style.setProperty("--route-progress", pct);
-    visual.querySelector(".route-visual-pin").style.left = pct;
-    visual.querySelector(".route-visual-bend").style.left = pct;
+    visual.querySelector(".route-visual-bend").dataset.progress = pct;
     visual.querySelector(".route-visual-distance.start").textContent = fromStart;
     visual.querySelector(".route-visual-detour").textContent = `+${offRoute}`;
     const endEl = visual.querySelector(".route-visual-distance.end");
