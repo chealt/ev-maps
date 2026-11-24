@@ -53,7 +53,7 @@ jobs:
           fi
 
       - name: Open a pull request with the workflows
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.AI_ACTIONS_TOKEN }}
           add-paths: .github/workflows/ai-*.yml

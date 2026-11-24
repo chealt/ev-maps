@@ -25,8 +25,8 @@
     "@astrojs/compiler-rs": "^0.5.3",
     "@biomejs/biome": "^2.6.8",
     "concurrently": "^10.0.7",
-    "oxfmt": "^0.78.0",
-    "oxlint": "^1.93.0",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
     "rumdl": "^0.3.4"
   },
   "engines": {
