@@ -9,6 +9,7 @@ const ADMIN_SECTIONS = [
     label: "adminPerformance",
   },
   { id: "reports", path: "reports", label: "adminReports" },
+  { id: "suggestions", path: "suggestions", label: "adminSuggestions" },
   { id: "usage", path: "usage", label: "adminUsage" },
 ];
 

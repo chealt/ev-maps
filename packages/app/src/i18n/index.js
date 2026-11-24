@@ -40,6 +40,7 @@ const PAGE_SECTIONS = {
     "admin-errors",
     "admin-performance",
     "admin-reports",
+    "admin-suggestions",
     "admin-usage",
   ],
 };

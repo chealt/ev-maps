@@ -1,6 +1,7 @@
 ---
 import FavoritesDialog from "./favorites-dialog/FavoritesDialog.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
+import SuggestChargerDialog from "./suggest-charger-dialog/SuggestChargerDialog.astro";
 import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
 import { translations } from "../i18n/index.js";
@@ -34,4 +35,5 @@ const { googleMaps, evChargers } = appConfig;
     chargerBounds={chargerBounds}
   />
   <FavoritesDialog />
+  <SuggestChargerDialog />
 </main>

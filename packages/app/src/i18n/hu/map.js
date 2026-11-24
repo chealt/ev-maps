@@ -42,6 +42,7 @@ const map = {
       link: "az OpenStreetMap közreműködői",
       after: ", ODbL",
     },
+    communityCredit: "Az EV Maps közössége által javasolva",
     route: "Útvonal",
     search: "Keresés",
     showOnMap: "Megjelenítés a térképen",

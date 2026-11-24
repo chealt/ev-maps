@@ -42,6 +42,7 @@ const map = {
       link: "OpenStreetMap contributors",
       after: ", ODbL",
     },
+    communityCredit: "Suggested by the EV Maps community",
     route: "Route",
     search: "Search",
     showOnMap: "Show on map",

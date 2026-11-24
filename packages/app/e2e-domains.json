@@ -101,6 +101,13 @@
       ],
       "tests": ["favorites"]
     },
+    "suggestions": {
+      "paths": [
+        "packages/app/src/components/suggest-charger-dialog/**",
+        "packages/app/src/components/user-suggestions/**"
+      ],
+      "tests": ["suggest-charger"]
+    },
     "legal": {
       "paths": ["packages/app/src/components/legal-page/**", "packages/app/src/legal/**"],
       "tests": ["legal"]
@@ -140,7 +147,14 @@
         "packages/app/src/lib/day-count.js",
         "packages/app/src/i18n/*/admin*.js"
       ],
-      "tests": ["admin", "admin-errors", "admin-performance", "admin-reports", "admin-usage"]
+      "tests": [
+        "admin",
+        "admin-errors",
+        "admin-performance",
+        "admin-reports",
+        "admin-suggestions",
+        "admin-usage"
+      ]
     }
   }
 }
