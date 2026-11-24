@@ -634,9 +634,11 @@ test(
     await dialog.getByRole("button", { name: "Save place: From" }).click();
     const savePanel = dialog.getByRole("group", { name: "Save place" });
     await expect(savePanel).toBeVisible();
-    await savePanel.getByRole("button", { name: "Home" }).click();
+    const presetsGroup = savePanel.getByRole("group", { name: "Place presets" });
+    const iconGroup = savePanel.getByRole("group", { name: "Icon" });
+    await presetsGroup.getByRole("button", { name: "Home" }).click();
     await expect(savePanel.getByLabel("Label")).toHaveValue("Home");
-    await expect(savePanel.getByRole("radio", { name: "Home" })).toBeChecked();
+    await expect(iconGroup.getByRole("button", { name: "Home", pressed: true })).toBeVisible();
     await savePanel.getByRole("button", { name: "Save", exact: true }).click();
     await expect(savePanel).toBeHidden();
 
@@ -644,7 +646,9 @@ test(
     await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
     await dialog.getByRole("button", { name: "Save place: To" }).click();
     await savePanel.getByLabel("Label").fill("Opera");
-    await savePanel.getByRole("radio", { name: "Star" }).check();
+    await iconGroup.getByRole("button", { name: "Star" }).click();
+    await expect(iconGroup.getByRole("button", { name: "Star", pressed: true })).toBeVisible();
+    await savePanel.getByRole("button", { name: "Save", exact: true }).scrollIntoViewIfNeeded();
     await captureUi(page, testInfo, "saving a place with a custom label and icon");
     await savePanel.getByRole("button", { name: "Save", exact: true }).click();
 

@@ -57,13 +57,13 @@ class RoutePlannerElement extends HTMLElement {
     for (const preset of this.querySelectorAll(".save-place-preset")) {
       preset.addEventListener("click", () => {
         this.savePlaceName.value = preset.dataset.presetLabel;
-        const radio = this.querySelector(
-          `input[name="saved-place-icon"][value="${preset.dataset.presetIcon}"]`
-        );
-        if (radio) {
-          radio.checked = true;
-        }
+        this.selectSavePlaceIcon(preset.dataset.presetIcon);
       });
+    }
+    for (const iconBtn of this.querySelectorAll(".icon-option")) {
+      iconBtn.addEventListener("click", () =>
+        this.selectSavePlaceIcon(iconBtn.dataset.iconValue)
+      );
     }
     this.querySelector(".cancel-save-place")?.addEventListener("click", () =>
       this.closeSavePlacePanel()
@@ -141,10 +141,7 @@ class RoutePlannerElement extends HTMLElement {
     this.savingTarget = target;
     this.savePlacePanel.querySelector(".save-place-value").textContent = input.place.label;
     this.savePlaceName.value = "";
-    const firstIcon = this.querySelector('input[name="saved-place-icon"]');
-    if (firstIcon) {
-      firstIcon.checked = true;
-    }
+    this.selectSavePlaceIcon("home");
     this.savePlacePanel.hidden = false;
     for (const button of this.querySelectorAll(".save-place-toggle")) {
       button.setAttribute("aria-expanded", String(button.dataset.target === target));
@@ -162,13 +159,20 @@ class RoutePlannerElement extends HTMLElement {
     }
   }
 
+  selectSavePlaceIcon(iconId) {
+    for (const button of this.querySelectorAll(".icon-option")) {
+      button.setAttribute("aria-pressed", String(button.dataset.iconValue === iconId));
+    }
+  }
+
   async confirmSavePlace() {
     const input = this.targetInput(this.savingTarget);
     const name = this.savePlaceName?.value.trim();
     if (!input?.place || !name) {
       return;
     }
-    const icon = this.querySelector('input[name="saved-place-icon"]:checked')?.value ?? "home";
+    const icon =
+      this.querySelector('.icon-option[aria-pressed="true"]')?.dataset.iconValue ?? "home";
     const { label, place, location } = input.place;
     const saved = place?.id
       ? { name, icon, label, placeId: place.id }

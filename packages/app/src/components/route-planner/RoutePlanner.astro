@@ -37,9 +37,9 @@ const placeIcons = [
 ];
 
 const placePresets = [
-  { id: "home", label: page.savedPlaceHome, icon: "home" },
-  { id: "work", label: page.savedPlaceWork, icon: "work" },
-  { id: "school", label: page.savedPlaceSchool, icon: "school" },
+  { id: "home", label: page.savedPlaceHome, icon: "home", iconSvg: House },
+  { id: "work", label: page.savedPlaceWork, icon: "work", iconSvg: Briefcase },
+  { id: "school", label: page.savedPlaceSchool, icon: "school", iconSvg: GraduationCap },
 ];
 ---
 
@@ -143,7 +143,7 @@ const placePresets = [
           <span class="save-place-value"></span>
         </div>
         <div class="save-place-presets" role="group" aria-label={page.savedPlacePresets}>
-          {placePresets.map(({ label, icon }) => (
+          {placePresets.map(({ label, icon, iconSvg }) => (
             <Button
               variant="secondary"
               size="small"
@@ -151,6 +151,7 @@ const placePresets = [
               data-preset-label={label}
               data-preset-icon={icon}
             >
+              <Icon icon={iconSvg} size="sm" />
               {label}
             </Button>
           ))}
@@ -164,18 +165,23 @@ const placePresets = [
             placeholder={page.savedPlaceLabelPlaceholder}
           />
         </label>
-        <fieldset class="save-place-icons">
-          <legend class="label">{page.savedPlaceIcon}</legend>
+        <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
+          <span class="label" id="save-place-icon-title">{page.savedPlaceIcon}</span>
           <div class="icon-options">
             {placeIcons.map(({ id: iconId, icon }, index) => (
-              <label class="icon-option" aria-label={values.placeIcons[iconId]}>
-                <input type="radio" name="saved-place-icon" value={iconId} checked={index === 0} />
+              <Button
+                variant="secondary"
+                size="small"
+                class="icon-option"
+                data-icon-value={iconId}
+                aria-pressed={index === 0 ? "true" : "false"}
+              >
                 <Icon icon={icon} size="sm" />
-                <span class="visually-hidden">{values.placeIcons[iconId]}</span>
-              </label>
+                {values.placeIcons[iconId]}
+              </Button>
             ))}
           </div>
-        </fieldset>
+        </div>
         <div class="save-place-actions">
           <Button variant="secondary" size="small" class="cancel-save-place">
             {page.cancelSavePlace}

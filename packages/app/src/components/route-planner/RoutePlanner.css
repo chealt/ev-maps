@@ -85,7 +85,7 @@
   .saved-place-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-2xs);
+    gap: var(--spacing-xs);
 
     &[hidden] {
       display: none;
@@ -95,31 +95,39 @@
   .saved-place-item {
     display: inline-flex;
     align-items: center;
-    border: var(--border-width) solid var(--color-border);
+    padding: var(--spacing-2xs) var(--spacing-2xs) var(--spacing-2xs) var(--spacing-sm);
+    border: var(--border-width) solid var(--color-border-strong);
     border-radius: var(--border-radius-full);
     background: var(--color-surface);
+    transition: border-color var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
+
+    .remove-saved-place {
+      padding: var(--spacing-2xs);
+    }
   }
 
   .saved-place-chip {
     display: inline-flex;
     align-items: center;
-    gap: var(--spacing-2xs);
-    padding: var(--spacing-2xs) var(--spacing-xs) var(--spacing-2xs) var(--spacing-sm);
+    gap: var(--spacing-xs);
+    padding: var(--spacing-2xs) var(--spacing-xs) var(--spacing-2xs) 0;
     border: none;
-    border-radius: var(--border-radius-full);
     background: transparent;
     color: var(--color-text);
     font: inherit;
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
     cursor: pointer;
-
-    &:hover {
-      background: var(--color-surface-hover);
-    }
 
     .chip-icon {
       display: inline-flex;
+      align-items: center;
+      justify-content: center;
       color: var(--color-primary-light-text);
 
       &[hidden] {
@@ -134,8 +142,8 @@
     gap: var(--spacing-sm);
     padding: var(--spacing-md);
     border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
-    background: var(--color-surface);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-surface-muted);
 
     &[hidden] {
       display: none;
@@ -150,13 +158,14 @@
   .save-place-header {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: var(--spacing-xs);
   }
 
   .save-place-value {
     font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-muted);
   }
 
@@ -169,7 +178,7 @@
   .save-place-field {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-2xs);
+    gap: var(--spacing-xs);
 
     .field {
       width: 100%;
@@ -186,39 +195,12 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
-    border: none;
-    padding: 0;
   }
 
   .icon-options {
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-xs);
-  }
-
-  .icon-option {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-full);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--color-surface-hover);
-    }
-
-    &:has(input:checked) {
-      border-color: var(--color-primary);
-      background: var(--color-primary-light);
-      color: var(--color-primary-light-text);
-    }
-
-    input {
-      margin: 0;
-      accent-color: var(--color-primary);
-    }
   }
 
   .save-place-actions {
