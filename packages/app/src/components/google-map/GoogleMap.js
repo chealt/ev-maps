@@ -39,6 +39,26 @@ const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 const currentColorScheme = () =>
   COLOR_SCHEMES[document.documentElement.dataset.theme] ?? COLOR_SCHEMES.system;
 
+// Maps a connector type ID to its standard plug diagram in GoogleMap.astro.
+const connectorDiagram = (type) => {
+  if (type === "ccs1" || type === "ccs2") {
+    return "ccs";
+  }
+  if (type === "chademo" || type === "gbt-dc") {
+    return "chademo";
+  }
+  if (type?.startsWith("tesla") || type === "nacs") {
+    return "tesla";
+  }
+  if (type?.startsWith("type2")) {
+    return "type2";
+  }
+  if (type === "type1") {
+    return "type1";
+  }
+  return "household";
+};
+
 const formatConnector = ({ type, powerKw, quantity }) =>
   message(powerKw ? "connectorWithPower" : "connector", {
     type: valueLabel("connectors", type),
@@ -1674,18 +1694,38 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
-  // Renders each connector group as a column card with a row of point
-  // indicators (up to 12) that show free (green), occupied (yellow) or
-  // out-of-service (red) once live availability loads.
+  // Renders each connector group as a compact column card with its standard
+  // plug diagram, power and quantity, an `i` info button that reveals the
+  // connector name on hover/focus, and a row of point indicators (up to 12)
+  // that show free (green), occupied (yellow) or out-of-service (red) once
+  // live availability loads.
   renderConnectors(connectors) {
     const list = this.detailsPanel.querySelector(".connectors");
     const cardTemplate = this.detailsPanel.querySelector(".connector-card-template");
     const pointTemplate = this.detailsPanel.querySelector(".connector-point-template");
     list.classList.remove("has-free", "none-free", "all-occupied", "out-of-service");
     list.replaceChildren(
-      ...connectors.map((connector) => {
+      ...connectors.map((connector, index) => {
         const card = cardTemplate.content.firstElementChild.cloneNode(true);
-        card.querySelector(".connector-summary").textContent = formatConnector(connector);
+        const typeLabel = valueLabel("connectors", connector.type);
+        const summary = formatConnector(connector);
+        const tooltip = card.querySelector(".connector-tooltip");
+        const tooltipId = `connector-tooltip-${index}`;
+        tooltip.id = tooltipId;
+        tooltip.textContent = typeLabel;
+        const infoBtn = card.querySelector(".connector-info");
+        infoBtn.setAttribute("aria-label", summary);
+        infoBtn.setAttribute("aria-describedby", tooltipId);
+        const diagram = card.querySelector(
+          `.connector-diagram[data-diagram="${connectorDiagram(connector.type)}"]`
+        );
+        if (diagram) {
+          diagram.hidden = false;
+        }
+        card.querySelector(".connector-power").textContent = connector.powerKw
+          ? message("power", { power: connector.powerKw })
+          : "";
+        card.querySelector(".connector-qty").textContent = `${connector.quantity ?? 1}×`;
         const count = Math.min(Math.max(connector.quantity ?? 1, 1), 12);
         card
           .querySelector(".connector-points")

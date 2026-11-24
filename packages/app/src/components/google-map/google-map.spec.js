@@ -68,8 +68,8 @@ test(
     // The name heads the panel, with no label above it.
     await expect(details.getByText("EV charging", { exact: true })).toHaveCount(0);
     await expect(details.getByText("1 Main St, New York, NY, 10001")).toBeVisible();
-    await expect(details.getByText("CCS (Type 1): 4× · 150 kW")).toBeVisible();
-    await expect(details.getByText("NACS (Tesla): 4× · 250 kW")).toBeVisible();
+    await expect(details.getByRole("button", { name: "CCS (Type 1): 4× · 150 kW" })).toBeVisible();
+    await expect(details.getByRole("button", { name: "NACS (Tesla): 4× · 250 kW" })).toBeVisible();
     await expect(details.getByText("Operator: Tesla")).toBeVisible();
     await expect(details.getByText("Access: Public, membership required")).toBeVisible();
     await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();

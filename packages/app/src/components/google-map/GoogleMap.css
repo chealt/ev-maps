@@ -891,26 +891,31 @@ ev-google-map {
   }
 
   .connectors {
-    --connector-column-min-width: 8.5rem;
-    --connector-point-height: 0.375rem;
-    --connector-point-max-width: 1.5rem;
+    --connector-column-min-width: 4.5rem;
+    --connector-diagram-size: 2rem;
+    --connector-info-size: 1.25rem;
+    --connector-point-height: 0.3125rem;
+    --connector-point-max-width: 1.125rem;
 
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(var(--connector-column-min-width), 1fr));
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
 
     .connector-card {
+      position: relative;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: space-between;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-sm) var(--overlay-gap);
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xs);
       border-radius: var(--border-radius-md);
       border: var(--border-width) solid var(--color-border);
       border-top: var(--border-width-marker) solid var(--color-primary);
       background: var(--color-surface-muted);
       font-weight: var(--font-weight-medium);
+      text-align: center;
       transition:
         background-color var(--transition-fast),
         border-color var(--transition-fast);
@@ -935,13 +940,129 @@ ev-google-map {
       }
     }
 
-    .connector-summary {
+    .connector-info-wrapper {
+      position: absolute;
+      top: var(--spacing-2xs);
+      right: var(--spacing-2xs);
+      z-index: 2;
+
+      &:not(:hover, :focus-within) .connector-tooltip {
+        display: none;
+      }
+    }
+
+    .connector-info {
+      display: grid;
+      place-items: center;
+      width: var(--connector-info-size);
+      height: var(--connector-info-size);
+      padding: 0;
+      border: none;
+      border-radius: var(--border-radius-full);
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: help;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--color-text);
+        background: var(--color-surface-hover);
+      }
+
+      .icon {
+        width: 0.75rem;
+        height: 0.75rem;
+      }
+    }
+
+    .connector-tooltip {
+      position: absolute;
+      bottom: calc(100% + var(--spacing-2xs));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      width: max-content;
+      max-width: var(--tooltip-max-width);
+      padding: var(--spacing-2xs) var(--spacing-xs);
+      border-radius: var(--border-radius-sm);
+      background: var(--color-secondary);
+      color: var(--color-secondary-contrast);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+      pointer-events: none;
+    }
+
+    .connector-card:first-child .connector-tooltip {
+      left: auto;
+      right: -0.5rem;
+      transform: none;
+    }
+
+    .connector-card:last-child .connector-tooltip {
+      left: auto;
+      right: 0;
+      transform: none;
+    }
+
+    .connector-diagram {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--connector-diagram-size);
+      height: var(--connector-diagram-size);
+      color: var(--color-text);
+
+      &[hidden] {
+        display: none;
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .plug-shell {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.25;
+        stroke-linejoin: round;
+      }
+
+      .plug-pin {
+        fill: currentColor;
+      }
+    }
+
+    .connector-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.0625rem;
+      font-size: var(--font-size-xs);
       line-height: var(--line-height-tight);
+    }
+
+    .connector-power {
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text);
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    .connector-qty {
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-muted);
     }
 
     .connector-points {
       display: flex;
+      justify-content: center;
       flex-wrap: wrap;
+      width: 100%;
       gap: var(--spacing-2xs);
     }
 
