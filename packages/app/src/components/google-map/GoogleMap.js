@@ -307,6 +307,8 @@ class GoogleMapElement extends HTMLElement {
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
+    this.addEventListener("place-chosen", (event) => this.showPlace(event.detail));
+    this.addEventListener("place-navigate", (event) => this.routePlanner?.planTo(event.detail));
     this.addEventListener("route-requested", (event) =>
       this.showRoute({ ...event.detail, record: true })
     );
@@ -412,6 +414,7 @@ class GoogleMapElement extends HTMLElement {
         c: () => !this.querySelector(".map-controls .clear-filters")?.hidden && this.clearFilters(),
         l: () => this.querySelector("ev-locate-button button")?.click(),
         r: () => this.routePlanner?.open(),
+        s: () => this.querySelector("ev-place-search")?.open(),
         x: () => this.route && this.clearRoute(),
       };
       shortcuts[event.key.toLowerCase()]?.();
@@ -1891,6 +1894,14 @@ class GoogleMapElement extends HTMLElement {
     if (!mapsApp()) {
       button.setAttribute("aria-expanded", String(expanded));
     }
+  }
+
+  // Moves the map to a place found in the place search, at the located zoom.
+  async showPlace({ location }) {
+    await this.mapReady;
+    this.map.setCenter(location);
+    this.map.setZoom(this.locatedZoom);
+    await this.loadEvChargers();
   }
 
   hideChargerDetails() {

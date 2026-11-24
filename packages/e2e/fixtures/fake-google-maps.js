@@ -245,7 +245,11 @@
               text: { toString: () => `${place.main}, ${place.secondary}` },
               mainText: { toString: () => place.main },
               secondaryText: { toString: () => place.secondary },
-              toPlace: () => ({ id: place.id, location: place.location }),
+              toPlace: () => ({
+                id: place.id,
+                location: { ...place.location, toJSON: () => place.location },
+                fetchFields: async () => {},
+              }),
             },
           })
         ),

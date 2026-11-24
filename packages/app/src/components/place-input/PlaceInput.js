@@ -39,6 +39,7 @@ class PlaceInputElement extends HTMLElement {
     this.place = null;
     clearTimeout(this.suggestTimer);
     const text = this.input.value.trim();
+    this.emitChange();
     if (!text) {
       this.closeOptions();
       return;
@@ -128,6 +129,7 @@ class PlaceInputElement extends HTMLElement {
     this.place = { label: this.input.value, place: placePrediction.toPlace() };
     this.sessionToken = null;
     this.closeOptions();
+    this.emitChange();
   }
 
   // A place chosen elsewhere: a location (e.g. "My location"), or a Google
@@ -136,6 +138,12 @@ class PlaceInputElement extends HTMLElement {
     this.input.value = label;
     this.place = place ? { label, place } : { label, location };
     this.closeOptions();
+    this.emitChange();
+  }
+
+  // A place was chosen, or the field was emptied: `place` says which.
+  emitChange() {
+    this.dispatchEvent(new CustomEvent("place-changed", { bubbles: true, composed: true }));
   }
 }
 
