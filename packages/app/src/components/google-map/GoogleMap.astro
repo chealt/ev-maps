@@ -459,27 +459,25 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           {page.rememberMapsAppHint}
         </p>
       </div>
-      <section class="section availability" hidden>
-        <h3 class="title">
-          <Icon icon={Activity} size="sm" />
-          {page.availability}
-        </h3>
-        <p class="free"></p>
-        <p class="out-of-service"></p>
-        <p class="updated"></p>
-        <p class="sign-in-needed" hidden>
-          {page.signInForAvailability}
-        </p>
-        <Button variant="secondary" size="small" class="sign-in-button" hidden>
-          {page.signIn}
-        </Button>
-      </section>
-      <section class="section">
+      <section class="section connectors-section">
         <h3 class="title">
           <Icon icon={PlugZap} size="sm" />
           {page.connectors}
         </h3>
+        <!-- Each connector green when a point is free, red when none is
+             (live availability, below). -->
         <ul class="connectors"></ul>
+        <div class="availability-status" hidden>
+          <p class="free"></p>
+          <p class="out-of-service"></p>
+          <p class="updated"></p>
+          <p class="sign-in-needed" hidden>
+            {page.signInForAvailability}
+          </p>
+          <Button variant="secondary" size="small" class="sign-in-button" hidden>
+            {page.signIn}
+          </Button>
+        </div>
       </section>
       <section class="section">
         <h3 class="title">
