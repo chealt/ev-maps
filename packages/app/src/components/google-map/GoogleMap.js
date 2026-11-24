@@ -1018,24 +1018,39 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // Along a route, a listed charger's distances, each saying what it is:
-  // from the start, to the end and off the route.
+  // from the start, to the end and off the route, drawn as a node graph:
+  // the start node, a bend in the road branching off to the charger's pin
+  // with the +X km / m detour next to it, and the end node.
   fillRouteDistances(element, route) {
     element.hidden = false;
-    element.replaceChildren(
-      ...[
-        message("fromStart", { distance: formatDistance(route.distanceFromStartMeters) }),
-        // Not in answers from before the Worker gave it.
-        route.distanceToEndMeters != null &&
-          message("toEnd", { distance: formatDistance(route.distanceToEndMeters) }),
-        message("offRoute", { distance: formatDistance(route.distanceFromRouteMeters) }),
-      ]
-        .filter(Boolean)
-        .map((text) => {
-          const span = document.createElement("span");
-          span.textContent = text;
-          return span;
-        })
-    );
+    const fromStart = formatDistance(route.distanceFromStartMeters);
+    const toEnd =
+      route.distanceToEndMeters != null ? formatDistance(route.distanceToEndMeters) : null;
+    const offRoute = formatDistance(route.distanceFromRouteMeters);
+    const texts = [
+      message("fromStart", { distance: fromStart }),
+      toEnd && message("toEnd", { distance: toEnd }),
+      message("offRoute", { distance: offRoute }),
+    ].filter(Boolean);
+    const along = route.distanceFromStartMeters + (route.distanceToEndMeters ?? 0);
+    // Where the charger sits along the route, 0 to 1; without the end's
+    // distance, in the middle.
+    const position = route.distanceToEndMeters ? route.distanceFromStartMeters / along : 0.5;
+    const ratio = Math.min(Math.max(position, 0), 1);
+    const pct = `${ratio * 100}%`;
+
+    const visual = this.cloneTemplate(".route-visual-template");
+    visual.style.setProperty("--route-ratio", String(ratio));
+    visual.style.setProperty("--route-progress", pct);
+    visual.querySelector(".route-visual-bend").dataset.progress = pct;
+    visual.querySelector(".route-visual-distance.start").textContent = fromStart;
+    visual.querySelector(".route-visual-detour").textContent = `+${offRoute}`;
+    const endEl = visual.querySelector(".route-visual-distance.end");
+    endEl.textContent = toEnd ?? "";
+    endEl.hidden = !toEnd;
+    visual.setAttribute("aria-label", texts.join(", "));
+    visual.title = texts.join("\n");
+    element.replaceChildren(visual);
   }
 
   // Where a charger's price sits among the loaded chargers (the map's or the

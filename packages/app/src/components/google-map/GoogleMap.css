@@ -539,23 +539,173 @@ ev-google-map {
 }
 
 /* Along a route, a charger's distances from the start, to the end and off
-   the route, in the list and in its details: in a row, wrapping between
-   them, not within one. */
+   the route, in the list and in its details: a road graph from the start
+   node to the end node with a smooth detour bend up to the charger pin and
+   the +X km / m detour nested inside the arch. */
 .route-distances {
-  display: flex;
-  flex-wrap: wrap;
+  --route-bend-width: 7rem;
+  --route-bend-height: 2.25rem;
+  --route-road-weight: 0.25rem;
+  --route-node-size: 0.75rem;
+  --route-pin-size: 0.875rem;
+
   grid-column: 1 / -1;
-  gap: 0 var(--spacing-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-light-text);
+  font-size: var(--font-size-xs);
 
   &[hidden] {
     display: none;
   }
 
-  span {
+  .route-visual {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface-muted);
+    cursor: help;
+  }
+
+  .route-visual-track {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .route-visual-node {
+    width: var(--route-node-size);
+    height: var(--route-node-size);
+    margin-bottom: -0.1875rem;
+    border-radius: var(--border-radius-full);
+    flex-shrink: 0;
+    z-index: 2;
+
+    &.start {
+      border: var(--border-width-marker) solid var(--color-primary);
+      background: var(--color-surface-muted);
+    }
+
+    &.end {
+      background: var(--color-primary);
+    }
+  }
+
+  .route-visual-road {
+    position: relative;
+    flex: 1;
+    height: var(--route-bend-height);
+    margin: 0 calc(-0.5 * var(--route-road-weight));
+  }
+
+  .route-visual-segment {
+    position: absolute;
+    bottom: 0.0625rem;
+    height: var(--route-road-weight);
+    background: var(--color-route, var(--color-primary));
+
+    &.before {
+      left: 0;
+      width: calc(
+        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
+      );
+    }
+
+    &.after {
+      right: 0;
+      width: calc(
+        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) *
+          (1 - var(--route-ratio, 0.5))
+      );
+    }
+  }
+
+  /* A smooth bend in the road rising above the dashed direct highway, with
+     the charger pin at its crest and the +X km / m detour nested inside. */
+  .route-visual-bend {
+    position: absolute;
+    bottom: 0;
+    left: calc(
+      var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
+    );
+    z-index: 1;
+    width: var(--route-bend-width);
+    height: var(--route-bend-height);
+    transform: translateX(-50%);
+  }
+
+  .route-visual-bend-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .route-visual-bypass {
+    stroke: var(--color-border-strong);
+    stroke-width: 1.25;
+    stroke-dasharray: 3.5 3.5;
+    stroke-linecap: round;
+  }
+
+  .route-visual-curve {
+    fill: none;
+    stroke: var(--color-route, var(--color-primary));
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .route-visual-pin {
+    position: absolute;
+    top: 0.4375rem;
+    left: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: var(--route-pin-size);
+    height: var(--route-pin-size);
+    border-radius: var(--border-radius-full);
+    background: var(--color-danger);
+    box-shadow: 0 0 0 0.1875rem var(--color-surface-muted);
+    transform: translate(-50%, -50%);
+
+    &::after {
+      content: "";
+      width: 0.375rem;
+      height: 0.375rem;
+      border-radius: var(--border-radius-full);
+      background: var(--color-primary-contrast);
+    }
+  }
+
+  .route-visual-detour {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--color-primary-light-text);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
     white-space: nowrap;
+  }
+
+  .route-visual-legend {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+    line-height: var(--line-height-tight);
+  }
+
+  .route-visual-distance {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+
+    &[hidden] {
+      display: none;
+    }
   }
 }
 
