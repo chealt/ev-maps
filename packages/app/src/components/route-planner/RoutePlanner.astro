@@ -1,7 +1,7 @@
 ---
 import DistanceText from "../distance-text/DistanceText.astro";
 import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
-import { Heart, History, LocateFixed, X } from "lucide-static";
+import { Heart, History, LocateFixed, Share2, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -96,6 +96,9 @@ const { page } = translations(Astro.currentLocale ?? "en");
     <div class="footer">
       <Button variant="secondary" size="large" class="clear-route" disabled>
         {page.clearRoute}
+      </Button>
+      <Button variant="secondary" size="large" class="share-route" aria-label={page.shareRoute}>
+        <Icon icon={Share2} size="sm" />
       </Button>
       <Button variant="primary" size="large" type="submit" form="route-planner-form">
         {page.showRoute}

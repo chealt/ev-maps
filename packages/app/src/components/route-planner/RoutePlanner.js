@@ -11,6 +11,7 @@ import {
   toggleFavoriteRoute,
 } from "../google-map/route-history.js";
 import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
+import { routeUrl } from "../google-map/route-url.js";
 
 // How many filters a route was planned with, as the Filters badge counts
 // them (the operator filter once).
@@ -49,6 +50,7 @@ class RoutePlannerElement extends HTMLElement {
       this.dialog.close();
       this.emit("route-cleared");
     });
+    this.querySelector(".share-route").addEventListener("click", () => this.shareRoute());
     this.querySelector(".sign-in-button").addEventListener("click", () => {
       this.dialog.close();
       requestSignIn();
@@ -143,6 +145,38 @@ class RoutePlannerElement extends HTMLElement {
   // Called by <ev-google-map> when a route is shown or cleared.
   setRouteShown(shown) {
     this.clearButton.disabled = !shown;
+    this.querySelector(".share-route").disabled = !shown;
+    if (!shown) {
+      this.currentRoute = null;
+    }
+  }
+
+  // The route shown, for sharing it (a saved shape: placeId or location).
+  setRoute(route) {
+    this.currentRoute = route;
+  }
+
+  // Shares the route with the Web Share API; where that's not supported
+  // (e.g. desktop Chrome without a share target), copies the link instead.
+  async shareRoute() {
+    if (!this.currentRoute) {
+      return;
+    }
+    const url = routeUrl(this.currentRoute);
+    const ends = message("routeEnds", {
+      from: this.currentRoute.origin.label,
+      to: this.currentRoute.destination.label,
+    });
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: ends, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        this.errorEl.textContent = message("routeShared");
+      }
+    } catch {
+      // The user dismissed the share sheet: not an error.
+    }
   }
 
   requestRoute() {
