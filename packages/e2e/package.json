@@ -10,6 +10,7 @@
     "./fixtures/*": "./fixtures/*"
   },
   "scripts": {
+    "test": "bun test",
     "lint": "oxlint -c ../dev-config/oxlint.json .",
     "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
     "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."

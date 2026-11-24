@@ -356,6 +356,17 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             {page.chargerList}
           </h2>
           <p class="sort-basis"></p>
+          <!-- Along a route: sort the list by distance from the start, to
+               the end, or off the route. -->
+          <fieldset class="sort-options" hidden>
+            <legend class="visually-hidden">{page.sortBy}</legend>
+            {["start", "end", "route"].map((by, index) => (
+              <label class="sort-option">
+                <input type="radio" name="sort-by" value={by} checked={index === 0} />
+                {page.sortByOptions[by]}
+              </label>
+            ))}
+          </fieldset>
         </div>
         <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeList}>
           <Icon icon={X} />
@@ -420,7 +431,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <!-- Opens the charger in a maps app: the remembered one at once (its
              name then says which), else the list of them below. -->
         <Button
-          variant="ghost"
+          variant="secondary"
           class="open-in-maps"
           aria-expanded="false"
           aria-controls="charger-maps-apps"
