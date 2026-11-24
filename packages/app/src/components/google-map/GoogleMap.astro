@@ -547,7 +547,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </span>
           <!-- Standard EV connector plug diagrams; the matching one is unhidden. -->
           <span class="connector-diagram" data-diagram="ccs" hidden>
-            <svg viewBox="0 0 36 44" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 44" aria-hidden="true">
               <path
                 class="plug-shell"
                 d="M11 3 H25 A8 8 0 0 1 31 16 L28 24 H8 L5 16 A8 8 0 0 1 11 3 Z"
@@ -565,7 +565,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             </svg>
           </span>
           <span class="connector-diagram" data-diagram="type2" hidden>
-            <svg viewBox="0 0 36 36" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 36" aria-hidden="true">
               <path
                 class="plug-shell"
                 d="M10 4 H26 A12 12 0 0 1 32 22 L28 31 H8 L4 22 A12 12 0 0 1 10 4 Z"
@@ -580,7 +580,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             </svg>
           </span>
           <span class="connector-diagram" data-diagram="chademo" hidden>
-            <svg viewBox="0 0 36 36" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 36" aria-hidden="true">
               <circle class="plug-shell" cx="18" cy="18" r="14" />
               <circle class="plug-pin" cx="11" cy="18" r="3.2" />
               <circle class="plug-pin" cx="25" cy="18" r="3.2" />
@@ -589,7 +589,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             </svg>
           </span>
           <span class="connector-diagram" data-diagram="tesla" hidden>
-            <svg viewBox="0 0 36 36" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 36" aria-hidden="true">
               <path class="plug-shell" d="M8 14 A11 11 0 0 1 28 14 L26 28 A6 6 0 0 1 10 28 Z" />
               <circle class="plug-pin" cx="13.5" cy="15" r="2.7" />
               <circle class="plug-pin" cx="22.5" cy="15" r="2.7" />
@@ -599,7 +599,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             </svg>
           </span>
           <span class="connector-diagram" data-diagram="type1" hidden>
-            <svg viewBox="0 0 36 36" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 36" aria-hidden="true">
               <circle class="plug-shell" cx="18" cy="18" r="14" />
               <circle class="plug-pin" cx="13.5" cy="13" r="2.1" />
               <circle class="plug-pin" cx="22.5" cy="13" r="2.1" />
@@ -609,7 +609,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             </svg>
           </span>
           <span class="connector-diagram" data-diagram="household" hidden>
-            <svg viewBox="0 0 36 36" aria-hidden="true">
+            <svg class="plug-svg" viewBox="0 0 36 36" aria-hidden="true">
               <circle class="plug-shell" cx="18" cy="18" r="14" />
               <circle class="plug-pin" cx="13" cy="18" r="2.4" />
               <circle class="plug-pin" cx="23" cy="18" r="2.4" />

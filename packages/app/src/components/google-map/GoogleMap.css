@@ -945,10 +945,6 @@ ev-google-map {
       top: var(--spacing-2xs);
       right: var(--spacing-2xs);
       z-index: 2;
-
-      &:not(:hover, :focus-within) .connector-tooltip {
-        display: none;
-      }
     }
 
     .connector-info {
@@ -994,6 +990,10 @@ ev-google-map {
       pointer-events: none;
     }
 
+    .connector-info-wrapper:not(:hover, :focus-within) .connector-tooltip {
+      display: none;
+    }
+
     .connector-card:first-child .connector-tooltip {
       left: auto;
       right: -0.5rem;
@@ -1018,7 +1018,7 @@ ev-google-map {
         display: none;
       }
 
-      svg {
+      .plug-svg {
         width: 100%;
         height: 100%;
       }
