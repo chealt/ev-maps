@@ -5,6 +5,8 @@ import { message } from "../../lib/messages.js";
 import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import {
+  MAX_ROUTE_STOPS,
+  endKey,
   readFavoriteRoutes,
   readRouteHistory,
   sameRoute,
@@ -29,10 +31,14 @@ const GEOLOCATION_TIMEOUT_MS = 10000;
 const LOCATION_ERRORS = { 1: "locationDenied", 2: "locationUnavailable", 3: "locationTimeout" };
 
 class RoutePlannerElement extends HTMLElement {
+  stops = [];
+
   connectedCallback() {
     this.dialog = this.querySelector("dialog");
     this.from = this.querySelector("#route-from")?.closest("ev-place-input");
     this.to = this.querySelector("#route-to")?.closest("ev-place-input");
+    this.stopsGroup = this.querySelector(".route-stops");
+    this.stopList = this.querySelector(".stop-list");
     this.errorEl = this.querySelector(".error");
     this.clearButton = this.querySelector(".clear-route");
 
@@ -47,6 +53,7 @@ class RoutePlannerElement extends HTMLElement {
     animateEscape(this.dialog);
     this.querySelector(".use-my-location").addEventListener("click", () => this.useMyLocation());
     this.clearButton.addEventListener("click", () => {
+      this.setStops([]);
       this.dialog.close();
       this.emit("route-cleared");
     });
@@ -63,7 +70,9 @@ class RoutePlannerElement extends HTMLElement {
   // Signed out, the fields stay visible but disabled, with a sign-in button.
   showSignedIn(signedIn) {
     this.querySelector(".sign-in-needed").hidden = signedIn;
-    for (const control of this.querySelectorAll("input, .use-my-location, button[type='submit']")) {
+    for (const control of this.querySelectorAll(
+      "input, .use-my-location, .remove-stop, button[type='submit']"
+    )) {
       control.disabled = !signedIn;
     }
   }
@@ -102,10 +111,11 @@ class RoutePlannerElement extends HTMLElement {
       ...routes.map((route) => {
         const item = template.content.firstElementChild.cloneNode(true);
         item.route = route;
-        const ends = message("routeEnds", {
-          from: route.origin.label,
-          to: route.destination.label,
-        });
+        const ends = [
+          route.origin.label,
+          ...(route.stops ?? []).map((stop) => stop.label),
+          route.destination.label,
+        ].reduce((from, to) => message("routeEnds", { from, to }));
         item.querySelector(".route-ends").textContent = ends;
         const count = filterCount(route.filters);
         // With the filters and the distance it was planned with (routes
@@ -136,10 +146,59 @@ class RoutePlannerElement extends HTMLElement {
   }
 
   // Called by <ev-google-map> when it restores a route after a reload.
-  setPlaces(origin, destination, corridorKm = CORRIDOR_KM) {
+  setPlaces(origin, destination, corridorKm = CORRIDOR_KM, stops = []) {
     this.from?.setPlace(origin);
     this.to?.setPlace(destination);
     this.corridorKm = corridorKm;
+    this.setStops(stops);
+  }
+
+  setStops(stops) {
+    this.stops = [...stops];
+    this.renderStops();
+  }
+
+  hasStop(stop) {
+    return this.stops.some((entry) => endKey(entry) === endKey(stop));
+  }
+
+  // Adds or removes a charger as a stop along the route; plans right away
+  // when both ends are chosen, otherwise opens the planner to choose them.
+  toggleStop(stop) {
+    if (this.hasStop(stop)) {
+      this.stops = this.stops.filter((entry) => endKey(entry) !== endKey(stop));
+    } else if (this.stops.length < MAX_ROUTE_STOPS) {
+      this.stops = [...this.stops, stop];
+    }
+    this.renderStops();
+    if (isSignedIn() && this.from?.place && this.to?.place) {
+      this.requestRoute();
+    } else {
+      this.open();
+    }
+  }
+
+  renderStops() {
+    if (!this.stopsGroup || !this.stopList) {
+      return;
+    }
+    this.stopsGroup.hidden = this.stops.length === 0;
+    const template = this.querySelector(".stop-template");
+    const signedIn = isSignedIn();
+    this.stopList.replaceChildren(
+      ...this.stops.map((stop, index) => {
+        const item = template.content.firstElementChild.cloneNode(true);
+        item.querySelector(".stop-name").textContent = stop.label;
+        const remove = item.querySelector(".remove-stop");
+        remove.disabled = !signedIn;
+        remove.setAttribute("aria-label", message("removeRouteStop", { stop: stop.label }));
+        remove.addEventListener("click", () => {
+          this.stops.splice(index, 1);
+          this.renderStops();
+        });
+        return item;
+      })
+    );
   }
 
   // Called by <ev-google-map> when a route is shown or cleared.
@@ -148,6 +207,7 @@ class RoutePlannerElement extends HTMLElement {
     this.querySelector(".share-route").disabled = !shown;
     if (!shown) {
       this.currentRoute = null;
+      this.setStops([]);
     }
   }
 
@@ -188,7 +248,12 @@ class RoutePlannerElement extends HTMLElement {
     }
     this.errorEl.textContent = "";
     this.dialog.close();
-    this.emit("route-requested", { origin, destination, corridorKm: this.corridorKm });
+    this.emit("route-requested", {
+      origin,
+      destination,
+      stops: [...this.stops],
+      corridorKm: this.corridorKm,
+    });
   }
 
   // How far from the route chargers are shown, in km, as chosen.

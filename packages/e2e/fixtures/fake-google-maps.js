@@ -262,19 +262,30 @@
   const pointOf = (endpoint) =>
     endpoint.location ?? PLACES.find((place) => place.id === endpoint.id)?.location ?? endpoint;
 
-  // Drives along a straight line in 20 steps; the ocean has no route.
+  // Drives along straight lines through any intermediates, 20 steps per leg;
+  // the ocean has no route.
   const Route = {
     async computeRoutes(request) {
       window.__routeRequests.push(request);
       if (request.destination.id === "nowhere" || request.origin.id === "nowhere") {
         return { routes: [] };
       }
-      const from = pointOf(request.origin);
-      const to = pointOf(request.destination);
-      const path = Array.from({ length: 21 }, (_, index) => ({
-        lat: from.lat + ((to.lat - from.lat) * index) / 20,
-        lng: from.lng + ((to.lng - from.lng) * index) / 20,
-      }));
+      const waypoints = [
+        pointOf(request.origin),
+        ...(request.intermediates ?? []).map(pointOf),
+        pointOf(request.destination),
+      ];
+      const path = [waypoints[0]];
+      for (let leg = 0; leg < waypoints.length - 1; leg++) {
+        const from = waypoints[leg];
+        const to = waypoints[leg + 1];
+        for (let index = 1; index <= 20; index++) {
+          path.push({
+            lat: from.lat + ((to.lat - from.lat) * index) / 20,
+            lng: from.lng + ((to.lng - from.lng) * index) / 20,
+          });
+        }
+      }
       return { routes: [{ path }] };
     },
   };

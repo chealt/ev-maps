@@ -100,6 +100,17 @@ describe("routeHistory", () => {
       expect(withCorridor(corridorKm)).toBe(false);
     }
   });
+
+  test("takes up to 10 stops along the route", () => {
+    const stop = { label: "Downtown Supercharger", location: { lat: 47.7, lng: 18.2 } };
+    const withStops = (stops) =>
+      validSection("routeHistory", { routes: [{ ...route, stops }], updatedAt: 1 });
+    expect(withStops([stop])).toBe(true);
+    expect(withStops([])).toBe(true);
+    expect(withStops(Array.from({ length: 10 }, () => stop))).toBe(true);
+    expect(withStops(Array.from({ length: 11 }, () => stop))).toBe(false);
+    expect(withStops([{ label: "Nowhere" }])).toBe(false);
+  });
 });
 
 describe("mapsApp", () => {

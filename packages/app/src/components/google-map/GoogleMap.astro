@@ -14,6 +14,7 @@ import {
   List,
   ZoomIn,
   MapPin,
+  MapPinPlus,
   Navigation,
   PlugZap,
   RouteOff,
@@ -429,6 +430,17 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <Button variant="primary" class="navigate" aria-haspopup="dialog">
           <Icon icon={Navigation} size="sm" />
           {page.navigate}
+        </Button>
+        <!-- Adds or removes the charger as a stop along a route. -->
+        <Button
+          variant="secondary"
+          class="add-to-route"
+          aria-pressed="false"
+          data-add-label={page.addRouteStop}
+          data-remove-label={page.removeRouteStop}
+        >
+          <Icon icon={MapPinPlus} size="sm" />
+          <span class="label">{page.addRouteStop}</span>
         </Button>
         <!-- Opens the charger in a maps app: the remembered one at once (its
              name then says which), else the list of them below. -->

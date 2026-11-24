@@ -12,12 +12,17 @@ import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-set
 
 const MAX_ROUTES = 10;
 const MAX_FAVORITE_ROUTES = 20;
+const MAX_ROUTE_STOPS = 10;
 
-const endKey = ({ placeId, location }) =>
-  placeId ? `place:${placeId}` : `at:${location.lat},${location.lng}`;
+const endKey = ({ id, placeId, location }) =>
+  placeId ? `place:${placeId}` : id ? `charger:${id}` : `at:${location.lat},${location.lng}`;
+
+const stopsKey = (stops = []) => stops.map(endKey).join("|");
 
 const sameRoute = (a, b) =>
-  endKey(a.origin) === endKey(b.origin) && endKey(a.destination) === endKey(b.destination);
+  endKey(a.origin) === endKey(b.origin) &&
+  endKey(a.destination) === endKey(b.destination) &&
+  stopsKey(a.stops) === stopsKey(b.stops);
 
 let routes = null;
 let favorites = null;
@@ -67,6 +72,8 @@ const forgetRouteHistory = () => {
 };
 
 export {
+  MAX_ROUTE_STOPS,
+  endKey,
   forgetRouteHistory,
   isFavoriteRoute,
   readFavoriteRoutes,
