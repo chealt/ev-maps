@@ -86,5 +86,6 @@ test(
     await expect(
       page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
     ).toBeVisible();
+    await captureUi(page, testInfo, "admin viewing approved charger suggestions");
   }
 );

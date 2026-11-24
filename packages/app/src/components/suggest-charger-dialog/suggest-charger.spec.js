@@ -134,6 +134,8 @@ test(
     await page.goto("/");
     await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
     const menu = page.getByRole("dialog", { name: "Account" });
+    await expect(menu.getByRole("link", { name: "My suggested chargers" })).toBeVisible();
+    await captureUi(page, testInfo, "account menu with My suggested chargers");
     await menu.getByRole("link", { name: "My suggested chargers" }).click();
 
     await expect(page).toHaveURL("/en/suggestions/");
@@ -148,7 +150,7 @@ test(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
-    await captureUi(page, testInfo, "user viewing their suggested chargers");
+    await captureUi(page, testInfo, "user viewing their suggested chargers (All)");
 
     const statusSelect = page.getByRole("combobox", { name: "Status" });
     await statusSelect.selectOption({ label: "Pending" });
@@ -165,6 +167,7 @@ test(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })).toBeHidden();
+    await captureUi(page, testInfo, "user filtering suggested chargers by Approved");
 
     await statusSelect.selectOption({ label: "Rejected" });
     await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
