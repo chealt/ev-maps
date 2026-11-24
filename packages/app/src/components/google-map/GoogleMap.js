@@ -329,6 +329,9 @@ class GoogleMapElement extends HTMLElement {
       event.preventDefault();
       this.closeChargerList();
     });
+    this.chargerList?.querySelector(".sort-options")?.addEventListener("change", () => {
+      this.renderChargerList();
+    });
     this.chargerList?.querySelector(".items")?.addEventListener("click", (event) => {
       const entry = event.target.closest(".entry");
       if (entry) {
@@ -996,6 +999,23 @@ class GoogleMapElement extends HTMLElement {
     }
   }
 
+  // How the list is sorted along a route: "start", "end" or "route".
+  get sortBy() {
+    const checked = this.chargerList?.querySelector('input[name="sort-by"]:checked');
+    return checked?.value ?? "start";
+  }
+
+  set sortBy(by) {
+    const input = this.chargerList?.querySelector(`input[name="sort-by"][value="${by}"]`);
+    if (input) {
+      input.checked = true;
+    }
+  }
+
+  sortByLabel() {
+    return message(`sortBy_${this.sortBy}`);
+  }
+
   // Along a route, a listed charger's distances, each saying what it is:
   // from the start, to the end and off the route, drawn as a small graph:
   // a line from the route's start to its end with the charger on it, and
@@ -1043,21 +1063,26 @@ class GoogleMapElement extends HTMLElement {
   // user if they've been located, otherwise to the center of the map.
   renderChargerList() {
     const origin = this.userLocation ?? this.map.getCenter().toJSON();
+    const keyOf = (charger) =>
+      this.route
+        ? this.sortBy === "end"
+          ? charger.route.distanceToEndMeters
+          : this.sortBy === "route"
+            ? charger.route.distanceFromRouteMeters
+            : charger.route.distanceFromStartMeters
+        : distanceInMeters(origin, charger.location);
     this.sortedChargers = this.listedChargers
-      .map((charger) => ({
-        charger,
-        meters: this.route
-          ? charger.route.distanceFromStartMeters
-          : distanceInMeters(origin, charger.location),
-      }))
+      .map((charger) => ({ charger, meters: keyOf(charger) }))
       .sort((a, b) => a.meters - b.meters);
 
     const list = this.chargerList;
     const count = this.sortedChargers.length;
     list.querySelector(".title").textContent = message("chargerCount", { count });
-    list.querySelector(".sort-basis").textContent = message(
-      this.route ? "alongRoute" : this.userLocation ? "nearestToYou" : "nearestToCenter"
-    );
+    const sortOptions = list.querySelector(".sort-options");
+    sortOptions.hidden = !this.route;
+    list.querySelector(".sort-basis").textContent = this.route
+      ? message("sortedBy", { by: this.sortByLabel() })
+      : message(this.userLocation ? "nearestToYou" : "nearestToCenter");
 
     const template = list.querySelector(".item-template");
     list.querySelector(".items").replaceChildren(
@@ -1583,10 +1608,16 @@ class GoogleMapElement extends HTMLElement {
     }
 
     for (const [key, feature] of featuresByKey) {
-      // A charger's pin kept from before takes its newer copy.
+      // A charger's pin kept from before takes its newer copy, and its
+      // place: the same charger can be elsewhere in the next set, e.g. a
+      // route's with its distances.
       const kept = this.markersById.get(key);
       if (kept && feature.clusterId == null) {
-        this.chargersByMarker.set(kept, this.chargersById.get(feature.chargerId));
+        const charger = this.chargersById.get(feature.chargerId);
+        this.chargersByMarker.set(kept, charger);
+        if (charger && kept.position?.lat !== charger.location.lat) {
+          kept.position = charger.location;
+        }
       }
       if (!kept) {
         this.markersById.set(

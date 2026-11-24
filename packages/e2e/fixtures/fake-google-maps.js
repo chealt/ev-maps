@@ -25,6 +25,7 @@
     // Like Google Maps, "idle" fires after the map renders or stops moving.
     emitIdle() {
       this.drawLines();
+      this.placeMarkers();
       clearTimeout(this.idleTimer);
       this.idleTimer = setTimeout(() => {
         for (const { event, handler } of this.listeners) {
@@ -38,6 +39,13 @@
       const listener = { event, handler };
       this.listeners.push(listener);
       return { remove: () => this.listeners.splice(this.listeners.indexOf(listener), 1) };
+    }
+    addMarker(marker) {
+      (this.markers ??= new Set()).add(marker);
+      this.placeMarkers();
+    }
+    removeMarker(marker) {
+      this.markers?.delete(marker);
     }
     getCenter() {
       return new LatLng(this.center);
@@ -79,6 +87,16 @@
       }
       this.zoom = zoom;
       this.emitIdle();
+    }
+    // Puts each marker's element where its position is, once the map is
+    // created and after each move, as Google Maps does.
+    placeMarkers() {
+      for (const marker of this.markers ?? []) {
+        const { x, y } = this.pixelOf(marker.position ?? this.center);
+        marker.element.style.position = "absolute";
+        marker.element.style.left = `${x}px`;
+        marker.element.style.top = `${y}px`;
+      }
     }
     // A point's place on the map's element, as getBounds() sees the view.
     pixelOf({ lat, lng }) {
@@ -139,7 +157,7 @@
   }
 
   class AdvancedMarkerElement {
-    constructor({ map, title, content }) {
+    constructor({ map, position, title, content }) {
       this.element = document.createElement("button");
       this.label = document.createElement("span");
       this.element.append(this.label);
@@ -148,8 +166,16 @@
       if (content) {
         this.element.append(content);
       }
+      this.position = position;
       this.title = title;
       this.map = map;
+    }
+    set position(position) {
+      this._position = position;
+      this.map?.placeMarkers();
+    }
+    get position() {
+      return this._position;
     }
     set title(title) {
       this._title = title;
@@ -159,8 +185,12 @@
       return this._title;
     }
     set map(map) {
+      if (this._map) {
+        this._map.removeMarker(this);
+      }
       this._map = map;
       if (map) {
+        map.addMarker(this);
         map.element.append(this.element);
       } else {
         this.element.remove();

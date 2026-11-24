@@ -802,6 +802,47 @@ ev-google-map {
     color: var(--color-text-muted);
   }
 
+  /* Along a route: by distance from the start, to the end or off it. */
+  .sort-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2xs);
+    margin-top: var(--spacing-xs);
+    border: none;
+    padding: 0;
+
+    &[hidden] {
+      display: none;
+    }
+
+    .sort-option {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2xs);
+      padding: var(--spacing-2xs) var(--spacing-sm);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--border-radius-full);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+
+      &:hover {
+        background: var(--color-surface-hover);
+      }
+
+      &:has(input:checked) {
+        border-color: var(--color-primary);
+        background: var(--color-primary-light);
+        color: var(--color-primary-light-text);
+        font-weight: var(--font-weight-medium);
+      }
+
+      input {
+        margin: 0;
+        accent-color: var(--color-primary);
+      }
+    }
+  }
+
   .items {
     list-style: none;
   }
