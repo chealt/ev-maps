@@ -2,7 +2,7 @@
 // (legal); null for the admin area.
 const pageKind = (pathname) => {
   const parts = pathname.split("/").filter(Boolean);
-  if (parts[1] === "admin") {
+  if (parts[1] === "admin" || parts[1] === "suggestions") {
     return null;
   }
   if (parts.length <= 1) {

@@ -1,5 +1,14 @@
 ---
-import { Heart, KeyRound, LogOut, Mail, MapPinPlus, ShieldCheck, Zap } from "lucide-static";
+import {
+  ClipboardList,
+  Heart,
+  KeyRound,
+  LogOut,
+  Mail,
+  MapPinPlus,
+  ShieldCheck,
+  Zap,
+} from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
@@ -147,6 +156,10 @@ const { page } = translations(lang);
       <p class="hint" id="suggest-charger-sign-in-hint">
         {page.signInToSuggestCharger}
       </p>
+      <a class="my-suggestions-link" href={`/${lang}/suggestions/`} hidden>
+        <Icon icon={ClipboardList} size="sm" />
+        {page.mySuggestedChargers}
+      </a>
     </div>
     <ThemePicker />
     <MapsAppPicker />

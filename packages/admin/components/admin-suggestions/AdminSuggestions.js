@@ -70,7 +70,7 @@ class AdminSuggestionsElement extends HTMLElement {
             return item;
           })
         );
-        card.querySelector(".proof-photo").src = suggestion.photo;
+        card.querySelector(".proof-photo").src = suggestion.photoUrl ?? suggestion.photo;
         const actions = card.querySelector(".actions");
         actions.hidden = suggestion.status !== "pending";
         card

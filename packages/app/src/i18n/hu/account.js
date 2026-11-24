@@ -55,6 +55,14 @@ const account = {
     suggestChargerPhoto: "Igazoló fénykép",
     suggestChargerPhotoHint: "Tölts fel egy fényképet, amelyen látható a töltőállomás.",
     submitChargerSuggestion: "Javaslat beküldése",
+    mySuggestedChargers: "Javasolt töltőim",
+    mySuggestedChargersHint:
+      "A töltőjavaslataidat és az igazoló fényképeket csak te és az EV Maps adminisztrátorai láthatják.",
+    suggestionStatusFilter: "Állapot",
+    suggestionsAll: "Mind",
+    suggestionsPending: "Függőben",
+    suggestionsApproved: "Jóváhagyva",
+    suggestionsRejected: "Elutasítva",
   },
   messages: {
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
@@ -71,6 +79,16 @@ const account = {
     suggestChargerInvalid:
       "Add meg a nevet, a koordinátákat, legalább egy töltőt és egy igazoló fényképet.",
     suggestChargerFailed: "Nem sikerült elküldeni a javaslatot. Próbáld újra.",
+    signInForMySuggestions: "Jelentkezz be a javasolt töltőid megtekintéséhez.",
+    mySuggestionsNotLoaded: "Nem sikerült betölteni a javasolt töltőidet. Próbáld újra.",
+    noMySuggestions: "Még nem javasoltál töltőállomást.",
+    mySuggestionCount: {
+      one: "{count} javasolt töltő",
+      other: "{count} javasolt töltő",
+    },
+    suggestionPending: "Függőben",
+    suggestionApproved: "Jóváhagyva",
+    suggestionRejected: "Elutasítva",
   },
   values: {
     mapsApps: {

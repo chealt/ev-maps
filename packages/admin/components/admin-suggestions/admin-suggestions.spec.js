@@ -1,9 +1,12 @@
+import { Buffer } from "node:buffer";
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
-const PHOTO =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+const PHOTO_BUFFER = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+  "base64"
+);
 
 const fakeSuggestionsApi = async (page) => {
   const suggestions = [
@@ -18,13 +21,20 @@ const fakeSuggestionsApi = async (page) => {
         { type: "ccs2", powerKw: 350, quantity: 4 },
         { type: "type2", powerKw: 22, quantity: 2 },
       ],
-      photo: PHOTO,
+      photoUrl: "/api/charger-suggestions/1/photo",
       status: "pending",
       createdAt: Date.UTC(2026, 10, 24, 12),
     },
   ];
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: GRACE.email } })
+  );
+  await page.route("**/api/charger-suggestions/*/photo", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "image/png",
+      body: PHOTO_BUFFER,
+    })
   );
   await page.route("**/api/admin/charger-suggestions**", (route) => {
     const url = new URL(route.request().url());

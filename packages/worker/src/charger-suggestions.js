@@ -1,22 +1,28 @@
 // Charger suggestions submitted by signed-in users, with a proof photo
 // and one or more chargers (connector type, power in kW, quantity) at the
-// location, and the admin endpoints to review them and add approved ones to
-// the `chargers` database:
+// location, scoped strictly to the submitting user and admins:
 //
+// - GET /api/charger-suggestions: lists the signed-in user's own suggestions
+//   (filterable by ?status=pending|approved|rejected)
 // - POST /api/charger-suggestions: submits a suggestion (signed in)
-// - GET /api/admin/charger-suggestions: lists suggestions (admin)
+// - GET /api/charger-suggestions/{id}/photo: serves the proof photo only to
+//   the user who submitted it or to an admin (private, no-store)
+// - GET /api/admin/charger-suggestions: lists all suggestions (admin)
 // - POST /api/admin/charger-suggestions/{id}/approve: approves and upserts
 //   into `chargers` and `chargers_rtree` (admin)
 // - POST /api/admin/charger-suggestions/{id}/reject: rejects (admin)
 
+import { Buffer } from "node:buffer";
+import { isAdmin } from "./admin-area.js";
 import { upsertChargers } from "./db.js";
 
 const SUGGESTIONS_PATH = "/api/charger-suggestions";
+const SUGGESTION_PHOTO_PATH = /^\/api\/charger-suggestions\/(\d+)\/photo$/;
 const ADMIN_SUGGESTIONS_PATH = "/api/admin/charger-suggestions";
 const ADMIN_SUGGESTION_ACTION_PATH = /^\/api\/admin\/charger-suggestions\/(\d+)\/(approve|reject)$/;
 const MAX_BODY_BYTES = 1024 * 1024;
 const MAX_CONNECTORS = 20;
-const PHOTO_PATTERN = /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+const PHOTO_PATTERN = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/;
 const CONNECTOR_TYPES = [
   "ccs2",
   "ccs1",
@@ -33,7 +39,10 @@ const STATUSES = ["pending", "approved", "rejected"];
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "private, no-store",
+    },
   });
 
 const isText = (value, max, min = 0) =>
@@ -68,15 +77,15 @@ const validSuggestion = (payload) =>
   payload.photo.length <= 750 * 1024 &&
   PHOTO_PATTERN.test(payload.photo);
 
-const toClientSuggestion = (row) => ({
+const toClientSuggestion = (row, { includeUser = false } = {}) => ({
   id: row.id,
-  userEmail: row.user_email ?? null,
+  ...(includeUser ? { userEmail: row.user_email ?? null } : {}),
   name: row.name,
   address: row.address ?? "",
   operator: row.operator ?? "",
   location: { lat: row.lat, lng: row.lng },
   connectors: JSON.parse(row.connectors || "[]"),
-  photo: row.photo,
+  photoUrl: `/api/charger-suggestions/${row.id}/photo`,
   status: row.status,
   createdAt: row.created_at,
   reviewedAt: row.reviewed_at ?? null,
@@ -123,15 +132,67 @@ const submitSuggestion = async (request, env, userId, user) => {
   return json({ submitted: true }, 201);
 };
 
-const listSuggestions = async (db, url) => {
+// Lists only the signed-in user's own suggestions, without the photo payload.
+const listUserSuggestions = async (db, userId, url) => {
   const status = url.searchParams.get("status") || "";
+  const columns =
+    "id, name, address, operator, lat, lng, connectors, status, created_at, reviewed_at";
   const query = STATUSES.includes(status)
     ? db
-        .prepare("SELECT * FROM charger_suggestions WHERE status = ? ORDER BY created_at DESC")
-        .bind(status)
-    : db.prepare("SELECT * FROM charger_suggestions ORDER BY created_at DESC");
+        .prepare(
+          `SELECT ${columns} FROM charger_suggestions
+           WHERE user_id = ? AND status = ? ORDER BY created_at DESC`
+        )
+        .bind(userId, status)
+    : db
+        .prepare(
+          `SELECT ${columns} FROM charger_suggestions
+           WHERE user_id = ? ORDER BY created_at DESC`
+        )
+        .bind(userId);
   const { results } = await query.all();
-  return { suggestions: results.map(toClientSuggestion) };
+  return { suggestions: results.map((row) => toClientSuggestion(row)) };
+};
+
+// Serves a suggestion's proof photo only to its author or an admin.
+const photoResponse = async (db, env, id, userId, user) => {
+  const row = await db
+    .prepare("SELECT user_id, photo FROM charger_suggestions WHERE id = ?")
+    .bind(id)
+    .first();
+  if (!row || (row.user_id !== userId && !isAdmin(env, user))) {
+    return json({ error: "Not found" }, 404);
+  }
+  const match = row.photo?.match(PHOTO_PATTERN);
+  if (!match) {
+    return json({ error: "Not found" }, 404);
+  }
+  const [, contentType, base64] = match;
+  return new Response(Buffer.from(base64, "base64"), {
+    status: 200,
+    headers: {
+      "content-type": contentType,
+      "cache-control": "private, no-store",
+      "x-robots-tag": "noindex, nofollow, noimageindex",
+    },
+  });
+};
+
+const listAdminSuggestions = async (db, url) => {
+  const status = url.searchParams.get("status") || "";
+  const columns =
+    "id, user_email, name, address, operator, lat, lng, connectors, status, created_at, reviewed_at";
+  const query = STATUSES.includes(status)
+    ? db
+        .prepare(
+          `SELECT ${columns} FROM charger_suggestions WHERE status = ? ORDER BY created_at DESC`
+        )
+        .bind(status)
+    : db.prepare(`SELECT ${columns} FROM charger_suggestions ORDER BY created_at DESC`);
+  const { results } = await query.all();
+  return {
+    suggestions: results.map((row) => toClientSuggestion(row, { includeUser: true })),
+  };
 };
 
 const reviewSuggestion = async (db, id, action) => {
@@ -176,17 +237,26 @@ const reviewSuggestion = async (db, id, action) => {
   return json({ id, status: nextStatus });
 };
 
-const suggestionsResponse = async (request, env, userId, user) => {
-  if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, 405);
+const suggestionsResponse = async (request, env, userId, user, url = new URL(request.url)) => {
+  const photoMatch = url.pathname.match(SUGGESTION_PHOTO_PATH);
+  if (photoMatch) {
+    return request.method === "GET"
+      ? photoResponse(env.DB, env, Number(photoMatch[1]), userId, user)
+      : json({ error: "Method not allowed" }, 405);
   }
-  return submitSuggestion(request, env, userId, user);
+  if (request.method === "GET") {
+    return json(await listUserSuggestions(env.DB, userId, url));
+  }
+  if (request.method === "POST") {
+    return submitSuggestion(request, env, userId, user);
+  }
+  return json({ error: "Method not allowed" }, 405);
 };
 
-const adminSuggestionsResponse = async (request, env, url) => {
+const adminSuggestionsResponse = async (request, env, url = new URL(request.url)) => {
   if (url.pathname === ADMIN_SUGGESTIONS_PATH) {
     return request.method === "GET"
-      ? json(await listSuggestions(env.DB, url))
+      ? json(await listAdminSuggestions(env.DB, url))
       : json({ error: "Method not allowed" }, 405);
   }
   const match = url.pathname.match(ADMIN_SUGGESTION_ACTION_PATH);
@@ -201,8 +271,10 @@ const routes = [
     name: "charger-suggestions",
     limiter: "FAVORITES_LIMITER",
     signedIn: true,
-    matches: (request, url) => url.pathname === SUGGESTIONS_PATH,
-    handle: ({ request, env, userId, user }) => suggestionsResponse(request, env, userId, user),
+    matches: (request, url) =>
+      url.pathname === SUGGESTIONS_PATH || SUGGESTION_PHOTO_PATH.test(url.pathname),
+    handle: ({ request, env, url, userId, user }) =>
+      suggestionsResponse(request, env, userId, user, url),
   },
   {
     name: "admin-charger-suggestions",

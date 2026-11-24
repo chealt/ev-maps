@@ -278,6 +278,7 @@ class UserMenuElement extends HTMLElement {
     this.querySelector("#favorites-sign-in-hint").hidden = signedIn;
     this.querySelector(".suggest-charger-button").setAttribute("aria-disabled", String(!signedIn));
     this.querySelector("#suggest-charger-sign-in-hint").hidden = signedIn;
+    this.querySelector(".my-suggestions-link").hidden = !signedIn;
   }
 }
 

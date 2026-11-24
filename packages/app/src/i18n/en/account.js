@@ -53,6 +53,14 @@ const account = {
     suggestChargerPhoto: "Proof photo",
     suggestChargerPhotoHint: "Upload a photo showing the charger at this location.",
     submitChargerSuggestion: "Submit suggestion",
+    mySuggestedChargers: "My suggested chargers",
+    mySuggestedChargersHint:
+      "Your charger suggestions and proof photos are visible only to you and EV Maps admins.",
+    suggestionStatusFilter: "Status",
+    suggestionsAll: "All",
+    suggestionsPending: "Pending",
+    suggestionsApproved: "Approved",
+    suggestionsRejected: "Rejected",
   },
   messages: {
     signInFailed: "Sign-in failed. Please try again.",
@@ -68,6 +76,16 @@ const account = {
     suggestChargerInvalid:
       "Please fill in the name, coordinates, at least one charger and a proof photo.",
     suggestChargerFailed: "Could not submit your suggestion. Please try again.",
+    signInForMySuggestions: "Sign in to view your suggested chargers.",
+    mySuggestionsNotLoaded: "Your suggested chargers couldn't be loaded. Try again.",
+    noMySuggestions: "You haven't suggested any chargers yet.",
+    mySuggestionCount: {
+      one: "{count} suggested charger",
+      other: "{count} suggested chargers",
+    },
+    suggestionPending: "Pending",
+    suggestionApproved: "Approved",
+    suggestionRejected: "Rejected",
   },
   values: {
     mapsApps: {

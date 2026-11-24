@@ -1,0 +1,81 @@
+import { message, valueLabel } from "../../lib/messages.js";
+
+const SUGGESTIONS_URL = "/api/charger-suggestions";
+
+const STATUS_MESSAGES = {
+  pending: "suggestionPending",
+  approved: "suggestionApproved",
+  rejected: "suggestionRejected",
+};
+
+class UserSuggestionsElement extends HTMLElement {
+  connectedCallback() {
+    this.statusSelect = this.querySelector(".status-select");
+    this.summary = this.querySelector(".summary");
+    this.list = this.querySelector(".suggestion-list");
+
+    this.statusSelect.addEventListener("change", () => this.load());
+    this.load();
+  }
+
+  async load() {
+    const status = this.statusSelect.value;
+    const params = status ? `?status=${encodeURIComponent(status)}` : "";
+    let data;
+    try {
+      const response = await fetch(`${SUGGESTIONS_URL}${params}`);
+      if (response.status === 401) {
+        this.summary.textContent = message("signInForMySuggestions");
+        this.list.replaceChildren();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`${SUGGESTIONS_URL} failed: ${response.status}`);
+      }
+      data = await response.json();
+    } catch (error) {
+      console.error("Could not load user charger suggestions:", error);
+      this.summary.textContent = message("mySuggestionsNotLoaded");
+      this.list.replaceChildren();
+      return;
+    }
+    const suggestions = data.suggestions ?? [];
+    this.summary.textContent =
+      suggestions.length === 0
+        ? message("noMySuggestions")
+        : message("mySuggestionCount", { count: suggestions.length });
+    const template = this.querySelector(".suggestion-template");
+    const connectorTemplate = this.querySelector(".connector-item-template");
+    this.list.replaceChildren(
+      ...suggestions.map((suggestion) => {
+        const card = template.content.firstElementChild.cloneNode(true);
+        card.querySelector(".charger-name").textContent = suggestion.name;
+        card.querySelector(".charger-meta").textContent = [suggestion.operator, suggestion.address]
+          .filter(Boolean)
+          .join(" · ");
+        const badge = card.querySelector(".status-badge");
+        badge.dataset.status = suggestion.status;
+        badge.textContent = message(STATUS_MESSAGES[suggestion.status] ?? "suggestionPending");
+        card.querySelector(".coordinates").textContent =
+          `${suggestion.location.lat}, ${suggestion.location.lng}`;
+        card.querySelector(".connectors").replaceChildren(
+          ...(suggestion.connectors ?? []).map(({ type, powerKw, quantity }) => {
+            const item = connectorTemplate.content.firstElementChild.cloneNode(true);
+            item.textContent = message("connectorWithPower", {
+              type: valueLabel("connectors", type) ?? type,
+              quantity: quantity ?? 1,
+              power: powerKw,
+            });
+            return item;
+          })
+        );
+        card.querySelector(".proof-photo").src = suggestion.photoUrl;
+        return card;
+      })
+    );
+  }
+}
+
+customElements.define("ev-user-suggestions", UserSuggestionsElement);
+
+export { UserSuggestionsElement };

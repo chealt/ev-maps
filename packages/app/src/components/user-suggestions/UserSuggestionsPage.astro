@@ -1,0 +1,68 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Icon from "@ev-maps/ui/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./UserSuggestionsPage.css";
+
+const lang = Astro.currentLocale ?? "en";
+const { page } = translations(lang);
+---
+
+<!-- The signed-in user's own charger suggestions (GET /api/charger-suggestions),
+     filterable by status (All, Pending, Approved, Rejected), with their
+     proof photo served from /api/charger-suggestions/{id}/photo (accessible
+     only to the submitting user and admins). -->
+<ev-user-suggestions>
+  <main class="user-suggestions-page">
+    <nav class="links" aria-label={page.mySuggestedChargers}>
+      <a class="back" href={`/${lang}/`}>
+        <Icon icon={ArrowLeft} size="sm" />
+        {page.backToMap}
+      </a>
+    </nav>
+    <header class="header">
+      <h1 class="title">{page.mySuggestedChargers}</h1>
+      <p class="subtitle">{page.mySuggestedChargersHint}</p>
+    </header>
+    <section aria-labelledby="user-suggestions-filter-label">
+      <label class="status-filter" id="user-suggestions-filter-label">
+        {page.suggestionStatusFilter}
+        <select class="status-select">
+          <option value="" selected>
+            {page.suggestionsAll}
+          </option>
+          <option value="pending">{page.suggestionsPending}</option>
+          <option value="approved">{page.suggestionsApproved}</option>
+          <option value="rejected">{page.suggestionsRejected}</option>
+        </select>
+      </label>
+      <p class="summary" role="status"></p>
+      <div class="suggestion-list"></div>
+    </section>
+  </main>
+
+  <template class="suggestion-template">
+    <article class="suggestion-card">
+      <div class="card-header">
+        <div>
+          <h2 class="charger-name"></h2>
+          <p class="charger-meta"></p>
+        </div>
+        <span class="status-badge"></span>
+      </div>
+      <div class="card-body">
+        <div class="details">
+          <p class="coordinates"></p>
+          <ul class="connectors"></ul>
+        </div>
+        <div class="proof">
+          <img class="proof-photo" alt={page.suggestChargerPhoto} />
+        </div>
+      </div>
+    </article>
+  </template>
+  <template class="connector-item-template">
+    <li class="connector-item"></li>
+  </template>
+  <script src="./UserSuggestionsPage.js"></script>
+</ev-user-suggestions>

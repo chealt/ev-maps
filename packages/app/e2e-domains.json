@@ -101,7 +101,10 @@
       "tests": ["favorites"]
     },
     "suggestions": {
-      "paths": ["packages/app/src/components/suggest-charger-dialog/**"],
+      "paths": [
+        "packages/app/src/components/suggest-charger-dialog/**",
+        "packages/app/src/components/user-suggestions/**"
+      ],
       "tests": ["suggest-charger"]
     },
     "legal": {

@@ -77,6 +77,103 @@ test(
   }
 );
 
+test(
+  "signed-in user views their suggested chargers page from the account menu and filters by status",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const suggestions = [
+      {
+        id: 1,
+        name: "Harbor Charging Hub",
+        address: "10 Dock Rd",
+        operator: "Ionity",
+        location: { lat: 47.5, lng: 19.05 },
+        connectors: [{ type: "ccs2", powerKw: 350, quantity: 4 }],
+        photoUrl: "/api/charger-suggestions/1/photo",
+        status: "pending",
+      },
+      {
+        id: 2,
+        name: "Airport Fast Charger",
+        address: "1 Terminal Way",
+        operator: "Tesla",
+        location: { lat: 47.43, lng: 19.25 },
+        connectors: [{ type: "type2", powerKw: 22, quantity: 2 }],
+        photoUrl: "/api/charger-suggestions/2/photo",
+        status: "approved",
+      },
+      {
+        id: 3,
+        name: "Old Mall Charger",
+        address: "5 Market St",
+        operator: "GreenWay",
+        location: { lat: 47.49, lng: 19.08 },
+        connectors: [{ type: "chademo", powerKw: 50, quantity: 1 }],
+        photoUrl: "/api/charger-suggestions/3/photo",
+        status: "rejected",
+      },
+    ];
+    await page.route("**/api/charger-suggestions/*/photo", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: PHOTO_BUFFER,
+      })
+    );
+    await page.route("**/api/charger-suggestions**", (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.endsWith("/photo")) {
+        return route.fallback();
+      }
+      const status = url.searchParams.get("status");
+      const shown = status ? suggestions.filter((item) => item.status === status) : suggestions;
+      return route.fulfill({ json: { suggestions: shown } });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+    const menu = page.getByRole("dialog", { name: "Account" });
+    await menu.getByRole("link", { name: "My suggested chargers" }).click();
+
+    await expect(page).toHaveURL("/en/suggestions/");
+    await expect(
+      page.getByRole("heading", { level: 1, name: "My suggested chargers" })
+    ).toBeVisible();
+    await expect(page.getByText("3 suggested chargers")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
+    await captureUi(page, testInfo, "user viewing their suggested chargers");
+
+    const statusSelect = page.getByRole("combobox", { name: "Status" });
+    await statusSelect.selectOption({ label: "Pending" });
+    await expect(page.getByText("1 suggested charger")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
+    ).toBeHidden();
+
+    await statusSelect.selectOption({ label: "Approved" });
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })).toBeHidden();
+
+    await statusSelect.selectOption({ label: "Rejected" });
+    await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
+    ).toBeHidden();
+  }
+);
+
 test("signed-out users see that signing in is required to suggest a charger", async ({ page }) => {
   await fakeAuthApi(page);
   await page.goto("/");
@@ -88,4 +185,5 @@ test("signed-out users see that signing in is required to suggest a charger", as
     "true"
   );
   await expect(menu.getByText("Sign in to suggest a new charger location.")).toBeVisible();
+  await expect(menu.getByRole("link", { name: "My suggested chargers" })).toBeHidden();
 });

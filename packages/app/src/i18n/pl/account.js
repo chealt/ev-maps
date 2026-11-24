@@ -53,6 +53,14 @@ const account = {
     suggestChargerPhoto: "Zdjęcie potwierdzające",
     suggestChargerPhotoHint: "Dodaj zdjęcie pokazujące stację ładowania w tym miejscu.",
     submitChargerSuggestion: "Wyślij zgłoszenie",
+    mySuggestedChargers: "Moje zgłoszone stacje",
+    mySuggestedChargersHint:
+      "Twoje zgłoszenia stacji i zdjęcia potwierdzające są widoczne tylko dla Ciebie oraz administratorów EV Maps.",
+    suggestionStatusFilter: "Status",
+    suggestionsAll: "Wszystkie",
+    suggestionsPending: "Oczekujące",
+    suggestionsApproved: "Zatwierdzone",
+    suggestionsRejected: "Odrzucone",
   },
   messages: {
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
@@ -69,6 +77,18 @@ const account = {
     suggestChargerInvalid:
       "Podaj nazwę, współrzędne, co najmniej jedną ładowarkę oraz zdjęcie potwierdzające.",
     suggestChargerFailed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
+    signInForMySuggestions: "Zaloguj się, aby zobaczyć swoje zgłoszone stacje.",
+    mySuggestionsNotLoaded: "Nie udało się wczytać Twoich zgłoszonych stacji. Spróbuj ponownie.",
+    noMySuggestions: "Nie zgłosiłeś jeszcze żadnej stacji.",
+    mySuggestionCount: {
+      one: "{count} zgłoszona stacja",
+      few: "{count} zgłoszone stacje",
+      many: "{count} zgłoszonych stacji",
+      other: "Zgłoszone stacje: {count}",
+    },
+    suggestionPending: "Oczekujące",
+    suggestionApproved: "Zatwierdzone",
+    suggestionRejected: "Odrzucone",
   },
   values: {
     mapsApps: {
