@@ -43,7 +43,7 @@ test("lists the maps apps, each opening the charger in a new tab", async ({ page
   await page.goto("/");
   const details = await openDetails(page);
 
-  const button = details.getByRole("button", { name: "Open in maps" });
+  const button = details.getByRole("button", { name: "Open map" });
   await expect(button).toHaveAttribute("aria-expanded", "false");
   await button.click();
   await expect(button).toHaveAttribute("aria-expanded", "true");
@@ -58,7 +58,7 @@ test("lists the maps apps, each opening the charger in a new tab", async ({ page
   await details.getByRole("link", { name: "OpenStreetMap" }).click();
   expect((await tab).url()).toBe(OSM);
   await expect(details.getByRole("link", { name: "OpenStreetMap" })).toBeHidden();
-  await expect(details.getByRole("button", { name: "Open in maps" })).toBeVisible();
+  await expect(details.getByRole("button", { name: "Open map" })).toBeVisible();
 });
 
 test("remembers the app chosen, opens it at once, and forgets it in the account menu", async ({
@@ -67,7 +67,7 @@ test("remembers the app chosen, opens it at once, and forgets it in the account 
   await fakeAuthApi(page);
   await page.goto("/");
   let details = await openDetails(page);
-  await details.getByRole("button", { name: "Open in maps" }).click();
+  await details.getByRole("button", { name: "Open map" }).click();
   await details.getByRole("checkbox", { name: "Remember my choice" }).check();
   const first = page.context().waitForEvent("page");
   await details.getByRole("link", { name: "Apple Maps" }).click();
@@ -91,7 +91,7 @@ test("remembers the app chosen, opens it at once, and forgets it in the account 
   // Closed with its button (Escape would close the details too).
   await page.locator('[popovertarget="account-menu"]').click();
   details = await openDetails(page);
-  await expect(details.getByRole("button", { name: "Open in maps" })).toHaveAttribute(
+  await expect(details.getByRole("button", { name: "Open map" })).toHaveAttribute(
     "aria-expanded",
     "false"
   );

@@ -20,14 +20,18 @@ const SOURCES = {
 const REFRESH_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 // Scheduled runs may use up to 15 minutes; leave room to finish a step.
 const RUN_BUDGET_MS = 10 * 60 * 1000;
+// The places next to chargers are looked up first in each run, for up to
+// this share of it: picked by priority alone, after the chargers' own
+// imports, they were never reached, as some charger job is always due.
+const PLACES_SHARE = 0.25;
 // Overpass and Open Charge Map are shared services: pause between steps.
 const PAUSE_BETWEEN_STEPS_MS = 1000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Adds jobs for new areas (e.g. a country Open Charge Map started listing).
-const ensureJobs = async (env) => {
-  for (const source of Object.values(SOURCES)) {
+const ensureJobs = async (env, sources) => {
+  for (const source of Object.values(sources)) {
     const jobs = await source.listJobs(env);
     for (let index = 0; index < jobs.length; index += 50) {
       await env.DB.batch(
@@ -43,30 +47,46 @@ const ensureJobs = async (env) => {
   }
 };
 
-const nextJob = (env, now, skipped) =>
+// The next due job of the given sources, by priority.
+const nextJob = (env, now, skipped, sources) =>
   env.DB.prepare(
     `SELECT * FROM import_jobs
      WHERE (finished_at IS NULL OR finished_at < ?)
        AND (source || ':' || area) NOT IN (SELECT value FROM json_each(?))
+       AND source IN (SELECT value FROM json_each(?))
      ORDER BY cursor IS NULL, priority, finished_at IS NOT NULL, finished_at, source, area
      LIMIT 1`
   )
-    .bind(now - REFRESH_AFTER_MS, JSON.stringify([...skipped]))
+    .bind(now - REFRESH_AFTER_MS, JSON.stringify([...skipped]), JSON.stringify(sources))
     .first();
 
-const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
+// `sources` and `pauseMs` are for tests.
+const runImport = async (
+  env,
+  { budgetMs = RUN_BUDGET_MS, sources = SOURCES, pauseMs = PAUSE_BETWEEN_STEPS_MS } = {}
+) => {
   const deadline = Date.now() + budgetMs;
-  const skipped = new Set();
+  const run = { skipped: new Set(), sources, pauseMs };
   try {
-    await ensureJobs(env);
+    await ensureJobs(env, sources);
   } catch (error) {
     console.error("Import: listing jobs failed:", error);
     await recordWorkerError(env, error, { context: "import: listing jobs" });
   }
 
+  // The places' share first, then everything (the charger imports, and the
+  // places again if time is left): each phase stops when nothing is due.
+  const placesDeadline = Math.min(deadline, Date.now() + budgetMs * PLACES_SHARE);
+  await runJobs(env, run, placesDeadline, [amenities.SOURCE]);
+  await runJobs(env, run, deadline, Object.keys(sources));
+};
+
+// Runs due jobs of the given sources until the deadline or until none is
+// due.
+const runJobs = async (env, { skipped, sources: all, pauseMs }, deadline, sources) => {
   while (Date.now() < deadline) {
     const now = Date.now();
-    const job = await nextJob(env, now, skipped);
+    const job = await nextJob(env, now, skipped, sources);
     if (!job) {
       console.log("Import: nothing due");
       return;
@@ -75,7 +95,7 @@ const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
     // then are the ones its area no longer lists.
     const startedAt = job.cursor ? job.started_at : now;
     try {
-      const { done, cursor } = await SOURCES[job.source].runStep(env, {
+      const { done, cursor } = await all[job.source].runStep(env, {
         ...job,
         started_at: startedAt,
       });
@@ -103,7 +123,7 @@ const runImport = async (env, { budgetMs = RUN_BUDGET_MS } = {}) => {
         .bind(String(error.message).slice(0, 500), job.source, job.area)
         .run();
     }
-    await sleep(PAUSE_BETWEEN_STEPS_MS);
+    await sleep(pauseMs);
   }
 };
 
