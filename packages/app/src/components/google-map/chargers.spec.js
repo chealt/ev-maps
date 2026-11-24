@@ -251,10 +251,12 @@ test("shows how many points are free, where the source says", async ({ page }) =
   await map.getByRole("button", { name: "Downtown Supercharger" }).click();
 
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-  await expect(details.getByRole("heading", { name: "Availability" })).toBeVisible();
+  await expect(details.getByRole("heading", { name: "Connectors" })).toBeVisible();
   await expect(details.getByText("5 of 6 points free")).toBeVisible();
   await expect(details.getByText("Out of service: 1")).toBeVisible();
   await expect(details.getByText("Updated 3 minutes ago")).toBeVisible();
+  // With points free, the connectors wear the free colors.
+  await expect(details.locator(".connectors")).toHaveClass(/has-free/);
   await expect(details.getByRole("link", { name: "EIPA" })).toBeVisible();
   // Only the sources with live statuses are asked for.
   expect(statusRequests).toEqual([["eipa:95424"]]);
@@ -270,7 +272,7 @@ test("asks for no availability where no source has it", async ({ page }) => {
 
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
   await expect(details.getByText("Operator: Tesla")).toBeVisible();
-  await expect(details.getByRole("heading", { name: "Availability" })).toBeHidden();
+  await expect(details.getByText("5 of 6 points free")).toBeHidden();
   expect(statusRequests).toHaveLength(0);
 });
 

@@ -375,7 +375,7 @@ class GoogleMapElement extends HTMLElement {
       }
     });
     this.detailsPanel
-      ?.querySelector(".availability .sign-in-button")
+      ?.querySelector(".connectors-section .sign-in-button")
       ?.addEventListener("click", () => requestSignIn());
 
     this.detailsPanel
@@ -1629,6 +1629,8 @@ class GoogleMapElement extends HTMLElement {
       routeDistances.hidden = true;
     }
     this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
+    const connectorsList = panel.querySelector(".connectors");
+    connectorsList.classList.remove("has-free", "none-free");
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$
     // (pricier than 78% of the chargers here)"; only per-kWh and comparable.
@@ -1689,7 +1691,7 @@ class GoogleMapElement extends HTMLElement {
     return (await this.loadStatuses(ids)) ? this.cachedStatuses(ids) : null;
   }
 
-  // Signed out, the section asks to sign in instead of showing statuses.
+  // Signed out, the availability asks to sign in instead of showing statuses.
   showAvailabilitySignIn(section, signInNeeded) {
     for (const element of section.querySelectorAll(".free, .out-of-service, .updated")) {
       element.hidden = signInNeeded;
@@ -1699,18 +1701,22 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // How many of the charger's points are free right now, where a source
-  // publishes it; the section stays hidden otherwise. It needs a signed-in
-  // user (the Worker says 401 otherwise).
+  // publishes it; shown in the connectors section, and its chips colored
+  // green when a point is free, red when none is. It needs a signed-in user
+  // (the Worker says 401 otherwise).
   async showAvailability(charger) {
-    const section = this.detailsPanel.querySelector(".availability");
-    section.hidden = true;
+    const section = this.detailsPanel.querySelector(".connectors-section");
+    const availability = section.querySelector(".availability-status");
+    const connectorsList = section.querySelector(".connectors");
+    availability.hidden = true;
+    connectorsList.classList.remove("has-free", "none-free");
     const ids = liveStatusIds(charger);
     if (!ids.length) {
       return;
     }
     if (!isSignedIn()) {
       this.showAvailabilitySignIn(section, true);
-      section.hidden = false;
+      availability.hidden = false;
       return;
     }
     let statuses;
@@ -1725,7 +1731,7 @@ class GoogleMapElement extends HTMLElement {
     }
     if (!statuses) {
       this.showAvailabilitySignIn(section, true);
-      section.hidden = false;
+      availability.hidden = false;
       return;
     }
     if (!statuses.length) {
@@ -1733,9 +1739,10 @@ class GoogleMapElement extends HTMLElement {
     }
     this.showAvailabilitySignIn(section, false);
     const sum = (field) => statuses.reduce((total, status) => total + status[field], 0);
+    const available = sum("available");
     const outOfService = sum("outOfService");
     section.querySelector(".free").textContent = message("pointsFree", {
-      available: sum("available"),
+      available,
       count: sum("total"),
     });
     const outOfServiceEl = section.querySelector(".out-of-service");
@@ -1744,7 +1751,8 @@ class GoogleMapElement extends HTMLElement {
     section.querySelector(".updated").textContent = message("statusUpdated", {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
-    section.hidden = false;
+    availability.hidden = false;
+    connectorsList.classList.add(available > 0 ? "has-free" : "none-free");
   }
 
   // Closed by the user (the close button, Escape): it slides out. Other
