@@ -103,10 +103,14 @@ test("lists the chargers in order along the route", { tag: "@ui" }, async ({ pag
   await expect(second).toHaveAccessibleName(
     "100 km from the start, 50 km to the end, 1 km off the route"
   );
-  // Halfway along the route, and a quarter in.
+  // Halfway along the route, and a quarter in, with the distances and the
+  // detour under the nodes.
   const pinLeft = (entry) => entry.locator(".route-visual-pin").evaluate((pin) => pin.style.left);
   expect(await pinLeft(first)).toBe("33.3333%");
   expect(await pinLeft(second)).toBe("66.6667%");
+  await expect(first.locator(".route-visual-distance.start")).toHaveText("50 km");
+  await expect(first.locator(".route-visual-detour")).toHaveText("+1 km");
+  await expect(first.locator(".route-visual-distance.end")).toHaveText("100 km");
 });
 
 test("filters the chargers along the route by power", async ({ page }) => {

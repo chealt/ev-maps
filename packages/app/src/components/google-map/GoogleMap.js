@@ -1017,35 +1017,56 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // Along a route, a listed charger's distances, each saying what it is:
-  // from the start, to the end and off the route, drawn as a small graph:
-  // a line from the route's start to its end with the charger on it, and
-  // how far it sits off the route. The distances stay readable: as the
-  // graph's label.
+  // from the start, to the end and off the route, drawn as a node graph:
+  // the start node, the charger's node along the route, the end node, each
+  // with its distance, and a detour pill saying how far off the route it sits.
   fillRouteDistances(element, route) {
     element.hidden = false;
+    const fromStart = formatDistance(route.distanceFromStartMeters);
+    const toEnd =
+      route.distanceToEndMeters != null ? formatDistance(route.distanceToEndMeters) : null;
+    const offRoute = formatDistance(route.distanceFromRouteMeters);
     const texts = [
-      message("fromStart", { distance: formatDistance(route.distanceFromStartMeters) }),
-      // Not in answers from before the Worker gave it.
-      route.distanceToEndMeters != null &&
-        message("toEnd", { distance: formatDistance(route.distanceToEndMeters) }),
-      message("offRoute", { distance: formatDistance(route.distanceFromRouteMeters) }),
+      message("fromStart", { distance: fromStart }),
+      toEnd && message("toEnd", { distance: toEnd }),
+      message("offRoute", { distance: offRoute }),
     ].filter(Boolean);
     const along = route.distanceFromStartMeters + (route.distanceToEndMeters ?? 0);
     // Where the charger sits along the route, 0 to 1; without the end's
     // distance, in the middle.
     const position = route.distanceToEndMeters ? route.distanceFromStartMeters / along : 0.5;
-    const visual = document.createElement("span");
-    visual.className = "route-visual";
+    const pct = `${Math.min(Math.max(position, 0), 1) * 100}%`;
+
+    const node = (className) => Object.assign(document.createElement("span"), { className });
+    const label = (className, text) =>
+      Object.assign(document.createElement("span"), { className, textContent: text });
+
+    const track = node("route-visual-track");
+    track.setAttribute("aria-hidden", "true");
+    const line = node("route-visual-line");
+    line.style.setProperty("--route-progress", pct);
+    const pin = node("route-visual-pin");
+    pin.style.left = pct;
+    track.replaceChildren(
+      node("route-visual-node start"),
+      line,
+      pin,
+      node("route-visual-node end")
+    );
+
+    const legend = node("route-visual-legend");
+    legend.setAttribute("aria-hidden", "true");
+    legend.replaceChildren(
+      label("route-visual-distance start", fromStart),
+      label("route-visual-detour", `+${offRoute}`),
+      ...(toEnd ? [label("route-visual-distance end", toEnd)] : [])
+    );
+
+    const visual = node("route-visual");
     visual.setAttribute("role", "img");
     visual.setAttribute("aria-label", texts.join(", "));
     visual.title = texts.join("\n");
-    visual.replaceChildren(
-      Object.assign(document.createElement("span"), { className: "route-visual-line" }),
-      Object.assign(document.createElement("span"), {
-        className: "route-visual-pin",
-        style: `left: ${Math.min(Math.max(position, 0), 1) * 100}%`,
-      })
-    );
+    visual.replaceChildren(track, legend);
     element.replaceChildren(visual);
   }
 
