@@ -475,3 +475,28 @@ test("sorts the chargers along the route by distance from the start, the end or 
     0
   );
 });
+
+test("shares the route as a link that plans it again", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  const routeRequests = await fakeRouteChargersApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+  // No Web Share in the test browser: the link goes to the clipboard. The
+  // share button is in the planner's footer, so it opens first.
+  await page.getByRole("button", { name: "Route", exact: true }).click();
+  await dialog.getByRole("button", { name: "Share route" }).click();
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  expect(url).toContain("from=Budapest");
+  expect(url).toContain("to=Vienna");
+  expect(url).toContain("corridorKm=5");
+
+  // Opening the shared link plans the same route.
+  await page.goto(url);
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  expect(routeRequests.at(-1).corridorKm).toBe(5);
+});

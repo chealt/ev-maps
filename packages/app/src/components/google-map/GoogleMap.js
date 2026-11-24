@@ -15,6 +15,7 @@ import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
 import { forgetRouteHistory, recordRoute } from "./route-history.js";
 import { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
+import { routeFromUrl } from "./route-url.js";
 import {
   readFilters,
   readMapView,
@@ -1139,6 +1140,11 @@ class GoogleMapElement extends HTMLElement {
       };
       this.loaded = { chargers, truncated: full };
       this.setRouteShown(true);
+      this.routePlanner?.setRoute({
+        origin: savedEnd(origin),
+        destination: savedEnd(destination),
+        corridorKm,
+      });
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
       saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination), corridorKm });
@@ -1190,6 +1196,17 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     this.routeRestored = true;
+    // A shared link's route first: it wins over the one saved on this device,
+    // and the query is dropped, so a reload plans the saved route instead.
+    const shared = routeFromUrl();
+    if (shared) {
+      window.history.replaceState(null, "", window.location.pathname);
+      const { origin, destination } = await this.routeEnds(shared);
+      const corridorKm = shared.corridorKm ?? CORRIDOR_KM;
+      this.routePlanner?.setPlaces(origin, destination, corridorKm);
+      await this.showRoute({ origin, destination, corridorKm });
+      return;
+    }
     const saved = await readRoute();
     if (!saved || this.route) {
       return;
