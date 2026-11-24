@@ -997,24 +997,36 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // Along a route, a listed charger's distances, each saying what it is:
-  // from the start, to the end and off the route.
+  // from the start, to the end and off the route, drawn as a small graph:
+  // a line from the route's start to its end with the charger on it, and
+  // how far it sits off the route. The distances stay readable: as the
+  // graph's label.
   fillRouteDistances(element, route) {
     element.hidden = false;
-    element.replaceChildren(
-      ...[
-        message("fromStart", { distance: formatDistance(route.distanceFromStartMeters) }),
-        // Not in answers from before the Worker gave it.
-        route.distanceToEndMeters != null &&
-          message("toEnd", { distance: formatDistance(route.distanceToEndMeters) }),
-        message("offRoute", { distance: formatDistance(route.distanceFromRouteMeters) }),
-      ]
-        .filter(Boolean)
-        .map((text) => {
-          const span = document.createElement("span");
-          span.textContent = text;
-          return span;
-        })
+    const texts = [
+      message("fromStart", { distance: formatDistance(route.distanceFromStartMeters) }),
+      // Not in answers from before the Worker gave it.
+      route.distanceToEndMeters != null &&
+        message("toEnd", { distance: formatDistance(route.distanceToEndMeters) }),
+      message("offRoute", { distance: formatDistance(route.distanceFromRouteMeters) }),
+    ].filter(Boolean);
+    const along = route.distanceFromStartMeters + (route.distanceToEndMeters ?? 0);
+    // Where the charger sits along the route, 0 to 1; without the end's
+    // distance, in the middle.
+    const position = route.distanceToEndMeters ? route.distanceFromStartMeters / along : 0.5;
+    const visual = document.createElement("span");
+    visual.className = "route-visual";
+    visual.setAttribute("role", "img");
+    visual.setAttribute("aria-label", texts.join(", "));
+    visual.title = texts.join("\n");
+    visual.replaceChildren(
+      Object.assign(document.createElement("span"), { className: "route-visual-line" }),
+      Object.assign(document.createElement("span"), {
+        className: "route-visual-pin",
+        style: `left: ${Math.min(Math.max(position, 0), 1) * 100}%`,
+      })
     );
+    element.replaceChildren(visual);
   }
 
   // Where a charger's price sits among the loaded chargers (the map's or the

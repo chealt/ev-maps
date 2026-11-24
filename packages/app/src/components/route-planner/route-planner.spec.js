@@ -93,13 +93,20 @@ test("lists the chargers in order along the route", { tag: "@ui" }, async ({ pag
   await expect(list.getByText("In order along the route")).toBeVisible();
   const entries = list.getByRole("listitem");
   await expect(entries.nth(0)).toContainText("Downtown Supercharger");
-  // Each distance says what it is: from the start, to the end, off the route.
-  await expect(entries.nth(0)).toContainText(
-    "50 km from the start100 km to the end1 km off the route"
+  // Each charger shows where it sits along the route as a small graph,
+  // labelled with the distances from the start, to the end and off it.
+  const first = entries.nth(0).getByRole("img");
+  await expect(first).toHaveAccessibleName(
+    "50 km from the start, 100 km to the end, 1 km off the route"
   );
-  await expect(entries.nth(1)).toContainText(
-    "100 km from the start50 km to the end1 km off the route"
+  const second = entries.nth(1).getByRole("img");
+  await expect(second).toHaveAccessibleName(
+    "100 km from the start, 50 km to the end, 1 km off the route"
   );
+  // Halfway along the route, and a quarter in.
+  const pinLeft = (entry) => entry.locator(".route-visual-pin").evaluate((pin) => pin.style.left);
+  expect(await pinLeft(first)).toBe("33.3333%");
+  expect(await pinLeft(second)).toBe("66.6667%");
 });
 
 test("filters the chargers along the route by power", async ({ page }) => {
@@ -432,11 +439,11 @@ test(
     await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
 
     // The same charger's pin, kept from the map's load, opens the route's
-    // copy of it, with where it is along the route.
+    // copy of it, with where it is along the route as a small graph.
     await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-    await expect(details.getByText("50 km from the start")).toBeVisible();
-    await expect(details.getByText("100 km to the end")).toBeVisible();
-    await expect(details.getByText("1 km off the route")).toBeVisible();
+    await expect(details.getByRole("img")).toHaveAccessibleName(
+      "50 km from the start, 100 km to the end, 1 km off the route"
+    );
     await captureUi(page, testInfo, "a route's charger's details");
   }
 );
