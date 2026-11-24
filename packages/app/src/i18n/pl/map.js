@@ -43,6 +43,8 @@ const map = {
       after: ", ODbL",
     },
     route: "Trasa",
+    search: "Szukaj",
+    showOnMap: "Pokaż na mapie",
     routePlanner: "Zaplanuj trasę",
     closeRoutePlanner: "Zamknij planowanie trasy",
     routeFrom: "Skąd",

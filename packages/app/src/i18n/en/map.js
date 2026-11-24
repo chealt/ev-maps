@@ -43,6 +43,8 @@ const map = {
       after: ", ODbL",
     },
     route: "Route",
+    search: "Search",
+    showOnMap: "Show on map",
     routePlanner: "Plan a route",
     closeRoutePlanner: "Close route planner",
     routeFrom: "From",

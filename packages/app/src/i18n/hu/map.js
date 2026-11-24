@@ -43,6 +43,8 @@ const map = {
       after: ", ODbL",
     },
     route: "Útvonal",
+    search: "Keresés",
+    showOnMap: "Megjelenítés a térképen",
     routePlanner: "Útvonaltervezés",
     closeRoutePlanner: "Útvonaltervező bezárása",
     routeFrom: "Honnan",

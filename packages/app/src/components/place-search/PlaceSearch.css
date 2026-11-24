@@ -1,0 +1,18 @@
+/* The map's place search: its button among the controls, and its dialog. */
+ev-place-search {
+  display: contents;
+
+  .place-search-dialog {
+    .body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+  }
+}

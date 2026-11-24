@@ -23,6 +23,7 @@ import {
 import Icon from "@ev-maps/ui/Icon.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
+import PlaceSearch from "../place-search/PlaceSearch.astro";
 import RouteButton from "../route-button/RouteButton.astro";
 import RoutePlanner from "../route-planner/RoutePlanner.astro";
 import ShortcutsDialog from "../shortcuts-dialog/ShortcutsDialog.astro";
@@ -137,6 +138,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
 
     <div class="map-controls">
       <LocateButton autoLocate={autoLocate} />
+      <PlaceSearch />
       <RouteButton controls="route-planner" />
       <FilterButton controls="map-filter-panel" />
       <Button variant="secondary" class="clear-filters" aria-keyshortcuts="c" hidden>

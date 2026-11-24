@@ -70,10 +70,11 @@
         "packages/app/src/components/route-button/**",
         "packages/app/src/components/route-planner/**",
         "packages/app/src/components/place-input/**",
+        "packages/app/src/components/place-search/**",
         "packages/app/src/components/google-map/route.js",
         "packages/app/src/components/google-map/route-history.js"
       ],
-      "tests": ["route-planner", "favorite-routes", "navigate"]
+      "tests": ["route-planner", "favorite-routes", "navigate", "place-search"]
     },
     "motion": {
       "paths": ["packages/app/src/lib/motion.js", "packages/app/src/components/motion-setting/**"],
