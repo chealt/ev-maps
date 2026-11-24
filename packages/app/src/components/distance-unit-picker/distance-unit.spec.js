@@ -32,7 +32,9 @@ test("shows kilometres where the locale uses them", async ({ page }) => {
   await fakeSettingsApi(page);
   await page.goto("/");
   const charger = await planRoute(page);
-  await expect(charger).toContainText("50 km from the start100 km to the end1 km off the route");
+  await expect(charger.getByRole("img")).toHaveAccessibleName(
+    "50 km from the start, 100 km to the end, 1 km off the route"
+  );
 });
 
 test.describe("in a locale that uses miles", () => {
@@ -46,7 +48,9 @@ test.describe("in a locale that uses miles", () => {
     await page.getByRole("button", { name: "Close route planner" }).click();
 
     const charger = await planRoute(page);
-    await expect(charger).toContainText("31 mi from the start62 mi to the end0.6 mi off the route");
+    await expect(charger.getByRole("img")).toHaveAccessibleName(
+      "31 mi from the start, 62 mi to the end, 0.6 mi off the route"
+    );
   });
 });
 
@@ -70,14 +74,14 @@ test("the unit chosen in the account menu shows at once, and is kept in the acco
   await page.getByRole("button", { name: "Close filters" }).click();
 
   const charger = await planRoute(page);
-  await expect(charger).toContainText("31 mi from the start");
+  await expect(charger.getByRole("img")).toHaveAccessibleName(/31 mi from the start/);
 });
 
 test("takes the unit chosen on another device, from the account", async ({ page }) => {
   await fakeSettingsApi(page, { distanceUnit: { unit: "imperial", updatedAt: Date.now() } });
   await page.goto("/");
   const charger = await planRoute(page);
-  await expect(charger).toContainText("31 mi from the start");
+  await expect(charger.getByRole("img")).toHaveAccessibleName(/31 mi from the start/);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
   await expect(
