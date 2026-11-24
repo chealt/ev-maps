@@ -1,0 +1,141 @@
+---
+import { Plus, Trash2, X } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import { translations } from "../../i18n/index.js";
+import "./SuggestChargerDialog.css";
+
+const { page, values } = translations(Astro.currentLocale ?? "en");
+
+const connectorTypes = [
+  "ccs2",
+  "ccs1",
+  "chademo",
+  "type2",
+  "type1",
+  "tesla-supercharger",
+  "tesla-destination",
+  "nacs",
+  "schuko",
+];
+---
+
+<!-- Suggest a new charger location with a proof photo and one or more
+     chargers (connector type, power in kW, quantity); opened from the
+     account menu for signed-in users. -->
+<ev-suggest-charger-dialog>
+  <dialog class="fullscreen-dialog suggest-charger-dialog" aria-labelledby="suggest-charger-title">
+    <div class="header">
+      <h2 class="title" id="suggest-charger-title">
+        {page.suggestCharger}
+      </h2>
+      <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeSuggestCharger}>
+        <Icon icon={X} />
+      </Button>
+    </div>
+    <form class="body" id="suggest-charger-form" novalidate>
+      <p class="hint">{page.suggestChargerHint}</p>
+      <label class="field-group">
+        <span class="label">{page.suggestChargerName}</span>
+        <input type="text" class="field charger-name" name="name" required maxlength="200" />
+      </label>
+      <div class="field-row">
+        <label class="field-group">
+          <span class="label">{page.suggestChargerAddress}</span>
+          <input type="text" class="field charger-address" name="address" maxlength="300" />
+        </label>
+        <label class="field-group">
+          <span class="label">{page.suggestChargerOperator}</span>
+          <input type="text" class="field charger-operator" name="operator" maxlength="200" />
+        </label>
+      </div>
+      <div class="field-row">
+        <label class="field-group">
+          <span class="label">{page.suggestChargerLat}</span>
+          <input type="number" step="any" class="field charger-lat" name="lat" required />
+        </label>
+        <label class="field-group">
+          <span class="label">{page.suggestChargerLng}</span>
+          <input type="number" step="any" class="field charger-lng" name="lng" required />
+        </label>
+      </div>
+
+      <fieldset class="chargers-group">
+        <div class="group-header">
+          <legend class="label">{page.suggestChargerUnits}</legend>
+          <Button variant="secondary" size="small" class="add-connector">
+            <Icon icon={Plus} size="sm" />
+            {page.addChargerUnit}
+          </Button>
+        </div>
+        <div class="connector-list"></div>
+      </fieldset>
+
+      <label class="field-group">
+        <span class="label">{page.suggestChargerPhoto}</span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          class="field charger-photo"
+          required
+        />
+        <span class="hint">{page.suggestChargerPhotoHint}</span>
+      </label>
+      <img class="photo-preview" alt="" hidden />
+
+      <p class="status" role="status"></p>
+      <p class="error" role="alert"></p>
+    </form>
+    <div class="footer">
+      <Button variant="primary" size="large" type="submit" form="suggest-charger-form">
+        {page.submitChargerSuggestion}
+      </Button>
+    </div>
+
+    <template class="connector-row-template">
+      <div class="connector-row" role="group">
+        <label class="field-group">
+          <span class="label">{page.connectorType}</span>
+          <select class="field connector-type">
+            {connectorTypes.map((type) => (
+              <option value={type}>{values.connectors[type]}</option>
+            ))}
+          </select>
+        </label>
+        <label class="field-group">
+          <span class="label">{page.suggestChargerPowerKw}</span>
+          <input
+            type="number"
+            min="1"
+            max="1000"
+            step="any"
+            value="50"
+            class="field connector-power"
+            required
+          />
+        </label>
+        <label class="field-group">
+          <span class="label">{page.suggestChargerQuantity}</span>
+          <input
+            type="number"
+            min="1"
+            max="100"
+            step="1"
+            value="1"
+            class="field connector-quantity"
+            required
+          />
+        </label>
+        <Button
+          variant="ghost"
+          size="icon-only"
+          class="remove-connector"
+          aria-label={page.removeChargerUnit}
+        >
+          <Icon icon={Trash2} size="sm" />
+        </Button>
+      </div>
+    </template>
+  </dialog>
+  <script src="./SuggestChargerDialog.js"></script>
+</ev-suggest-charger-dialog>

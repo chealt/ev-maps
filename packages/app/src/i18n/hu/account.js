@@ -37,6 +37,24 @@ const account = {
       metric: "Kilométer",
       imperial: "Mérföld",
     },
+    suggestCharger: "Töltő javaslása",
+    signInToSuggestCharger: "Jelentkezz be új töltőállomás javaslásához.",
+    closeSuggestCharger: "Töltő javaslásának bezárása",
+    suggestChargerHint:
+      "Add meg a helyszín adatait, egy vagy több töltőt a csatlakozótípussal és teljesítménnyel, valamint egy igazoló fényképet.",
+    suggestChargerName: "Helyszín neve",
+    suggestChargerAddress: "Cím",
+    suggestChargerOperator: "Üzemeltető",
+    suggestChargerLat: "Szélesség",
+    suggestChargerLng: "Hosszúság",
+    suggestChargerUnits: "Töltők ezen a helyszínen",
+    addChargerUnit: "Töltő hozzáadása",
+    removeChargerUnit: "Töltő eltávolítása",
+    suggestChargerPowerKw: "Teljesítmény (kW)",
+    suggestChargerQuantity: "Darabszám",
+    suggestChargerPhoto: "Igazoló fénykép",
+    suggestChargerPhotoHint: "Tölts fel egy fényképet, amelyen látható a töltőállomás.",
+    submitChargerSuggestion: "Javaslat beküldése",
   },
   messages: {
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
@@ -48,6 +66,11 @@ const account = {
     passkeyAdded: "Jelkulcs hozzáadva. Legközelebb jelentkezz be vele.",
     passkeyNotAdded: "Nem sikerült hozzáadni a jelkulcsot. Próbáld újra.",
     accountOf: "Fiók: {name}",
+    chargerUnitNumber: "{number}. töltő",
+    suggestChargerSubmitted: "Köszönjük! A töltőjavaslatodat elküldtük ellenőrzésre.",
+    suggestChargerInvalid:
+      "Add meg a nevet, a koordinátákat, legalább egy töltőt és egy igazoló fényképet.",
+    suggestChargerFailed: "Nem sikerült elküldeni a javaslatot. Próbáld újra.",
   },
   values: {
     mapsApps: {

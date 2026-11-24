@@ -42,6 +42,7 @@ const map = {
       link: "współtwórcy OpenStreetMap",
       after: ", ODbL",
     },
+    communityCredit: "Zgłoszona przez społeczność EV Maps",
     route: "Trasa",
     routePlanner: "Zaplanuj trasę",
     closeRoutePlanner: "Zamknij planowanie trasy",

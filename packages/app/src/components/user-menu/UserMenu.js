@@ -3,6 +3,7 @@
 // reads on every load.
 import { message } from "../../lib/messages.js";
 import { requestFavorites } from "../../lib/favorites.js";
+import { requestSuggestCharger } from "../suggest-charger-dialog/SuggestChargerDialog.js";
 import { setSignedIn } from "../../lib/session.js";
 import { track } from "../../lib/usage.js";
 import {
@@ -59,6 +60,9 @@ class UserMenuElement extends HTMLElement {
     }
     this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
     this.querySelector(".favorites-button").addEventListener("click", () => this.showFavorites());
+    this.querySelector(".suggest-charger-button").addEventListener("click", () =>
+      this.showSuggestCharger()
+    );
     this.querySelector(".passkey").addEventListener("click", () => this.signInWithPasskey());
     this.querySelector(".email-sign-in").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -120,6 +124,14 @@ class UserMenuElement extends HTMLElement {
     }
     this.menu.hidePopover();
     requestFavorites();
+  }
+
+  showSuggestCharger() {
+    if (this.querySelector(".suggest-charger-button").getAttribute("aria-disabled") === "true") {
+      return;
+    }
+    this.menu.hidePopover();
+    requestSuggestCharger();
   }
 
   async signInWithPasskey() {
@@ -264,6 +276,8 @@ class UserMenuElement extends HTMLElement {
     this.querySelector(".sign-out").hidden = !signedIn;
     this.querySelector(".favorites-button").setAttribute("aria-disabled", String(!signedIn));
     this.querySelector("#favorites-sign-in-hint").hidden = signedIn;
+    this.querySelector(".suggest-charger-button").setAttribute("aria-disabled", String(!signedIn));
+    this.querySelector("#suggest-charger-sign-in-hint").hidden = signedIn;
   }
 }
 

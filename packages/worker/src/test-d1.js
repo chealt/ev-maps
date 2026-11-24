@@ -14,7 +14,17 @@ const testD1 = (...migrationPaths) => {
     first: async () => sqlite.query(sql).get(...values) ?? null,
     run: async () => sqlite.query(sql).run(...values),
   });
-  return { prepare: (sql) => statement(sql), sqlite };
+  return {
+    prepare: (sql) => statement(sql),
+    batch: async (statements) => {
+      const results = [];
+      for (const stmt of statements) {
+        results.push({ results: await stmt.run() });
+      }
+      return results;
+    },
+    sqlite,
+  };
 };
 
 export { testD1 };

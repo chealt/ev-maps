@@ -7,6 +7,7 @@ import { adminDashboard } from "./admin-dashboard.js";
 import { adminErrors } from "./admin-errors.js";
 import { adminPerformance } from "./admin-performance.js";
 import { adminReports } from "./admin-reports.js";
+import { adminSuggestions } from "./admin-suggestions.js";
 import { adminUsage } from "./admin-usage.js";
 import { common } from "./common.js";
 import { legal } from "./legal.js";
@@ -22,6 +23,7 @@ const sections = {
   "admin-errors": adminErrors,
   "admin-performance": adminPerformance,
   "admin-reports": adminReports,
+  "admin-suggestions": adminSuggestions,
   "admin-usage": adminUsage,
 };
 

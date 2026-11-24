@@ -35,6 +35,24 @@ const account = {
       metric: "Kilometres",
       imperial: "Miles",
     },
+    suggestCharger: "Suggest a charger",
+    signInToSuggestCharger: "Sign in to suggest a new charger location.",
+    closeSuggestCharger: "Close suggest a charger",
+    suggestChargerHint:
+      "Add the location details, one or more chargers with their connector type and speed, and a photo as proof.",
+    suggestChargerName: "Location name",
+    suggestChargerAddress: "Address",
+    suggestChargerOperator: "Operator",
+    suggestChargerLat: "Latitude",
+    suggestChargerLng: "Longitude",
+    suggestChargerUnits: "Chargers at this location",
+    addChargerUnit: "Add charger",
+    removeChargerUnit: "Remove charger",
+    suggestChargerPowerKw: "Power (kW)",
+    suggestChargerQuantity: "Quantity",
+    suggestChargerPhoto: "Proof photo",
+    suggestChargerPhotoHint: "Upload a photo showing the charger at this location.",
+    submitChargerSuggestion: "Submit suggestion",
   },
   messages: {
     signInFailed: "Sign-in failed. Please try again.",
@@ -45,6 +63,11 @@ const account = {
     passkeyAdded: "Passkey added. Next time, sign in with it.",
     passkeyNotAdded: "The passkey couldn't be added. Try again.",
     accountOf: "Account: {name}",
+    chargerUnitNumber: "Charger {number}",
+    suggestChargerSubmitted: "Thank you! Your charger suggestion has been submitted for review.",
+    suggestChargerInvalid:
+      "Please fill in the name, coordinates, at least one charger and a proof photo.",
+    suggestChargerFailed: "Could not submit your suggestion. Please try again.",
   },
   values: {
     mapsApps: {

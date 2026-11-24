@@ -1,0 +1,70 @@
+---
+import Button from "@ev-maps/ui/Button.astro";
+import "./AdminSuggestions.css";
+
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
+---
+
+<!-- Charger suggestions submitted by signed-in users
+     (GET /api/admin/charger-suggestions): admins review the location,
+     chargers and proof photo, and approve (adding to the database) or
+     reject each suggestion. -->
+<ev-admin-suggestions>
+  <section aria-labelledby="admin-suggestions-title">
+    <h2 class="section-title" id="admin-suggestions-title">
+      {page.adminSuggestions}
+    </h2>
+    <label class="status-filter">
+      {page.adminSuggestionStatusFilter}
+      <select class="status-select">
+        <option value="pending" selected>
+          {page.adminSuggestionsPending}
+        </option>
+        <option value="">{page.adminSuggestionsAll}</option>
+        <option value="approved">{page.adminSuggestionsApproved}</option>
+        <option value="rejected">{page.adminSuggestionsRejected}</option>
+      </select>
+    </label>
+    <p class="summary" role="status"></p>
+    <div class="suggestion-list"></div>
+  </section>
+
+  <template class="suggestion-template">
+    <article class="suggestion-card">
+      <div class="card-header">
+        <div>
+          <h3 class="charger-name"></h3>
+          <p class="charger-meta"></p>
+        </div>
+        <span class="status-badge"></span>
+      </div>
+      <div class="card-body">
+        <div class="details">
+          <p class="coordinates"></p>
+          <p class="submitted-by"></p>
+          <ul class="connectors"></ul>
+          <div class="actions">
+            <Button variant="primary" size="small" class="approve">
+              {page.adminApproveSuggestion}
+            </Button>
+            <Button variant="danger" size="small" class="reject">
+              {page.adminRejectSuggestion}
+            </Button>
+          </div>
+        </div>
+        <div class="proof">
+          <img class="proof-photo" alt={page.adminProofPhoto} />
+        </div>
+      </div>
+    </article>
+  </template>
+  <template class="connector-item-template">
+    <li class="connector-item"></li>
+  </template>
+  <script src="./AdminSuggestions.js"></script>
+</ev-admin-suggestions>

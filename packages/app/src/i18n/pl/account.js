@@ -35,6 +35,24 @@ const account = {
       metric: "Kilometry",
       imperial: "Mile",
     },
+    suggestCharger: "Zgłoś stację",
+    signInToSuggestCharger: "Zaloguj się, aby zgłosić nową stację ładowania.",
+    closeSuggestCharger: "Zamknij zgłaszanie stacji",
+    suggestChargerHint:
+      "Podaj dane lokalizacji, co najmniej jedną ładowarkę z typem złącza i mocą oraz zdjęcie potwierdzające.",
+    suggestChargerName: "Nazwa lokalizacji",
+    suggestChargerAddress: "Adres",
+    suggestChargerOperator: "Operator",
+    suggestChargerLat: "Szerokość geograficzna",
+    suggestChargerLng: "Długość geograficzna",
+    suggestChargerUnits: "Ładowarki w tej lokalizacji",
+    addChargerUnit: "Dodaj ładowarkę",
+    removeChargerUnit: "Usuń ładowarkę",
+    suggestChargerPowerKw: "Moc (kW)",
+    suggestChargerQuantity: "Liczba punktów",
+    suggestChargerPhoto: "Zdjęcie potwierdzające",
+    suggestChargerPhotoHint: "Dodaj zdjęcie pokazujące stację ładowania w tym miejscu.",
+    submitChargerSuggestion: "Wyślij zgłoszenie",
   },
   messages: {
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
@@ -46,6 +64,11 @@ const account = {
     passkeyAdded: "Dodano klucz dostępu. Następnym razem zaloguj się nim.",
     passkeyNotAdded: "Nie udało się dodać klucza dostępu. Spróbuj ponownie.",
     accountOf: "Konto: {name}",
+    chargerUnitNumber: "Ładowarka {number}",
+    suggestChargerSubmitted: "Dziękujemy! Twoje zgłoszenie stacji zostało wysłane do weryfikacji.",
+    suggestChargerInvalid:
+      "Podaj nazwę, współrzędne, co najmniej jedną ładowarkę oraz zdjęcie potwierdzające.",
+    suggestChargerFailed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
   },
   values: {
     mapsApps: {
