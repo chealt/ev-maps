@@ -537,6 +537,15 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <template class="item-template">
         <li></li>
       </template>
+      <template class="connector-card-template">
+        <li class="connector-card">
+          <span class="connector-summary"></span>
+          <span class="connector-points" aria-hidden="true"></span>
+        </li>
+      </template>
+      <template class="connector-point-template">
+        <span class="connector-point"></span>
+      </template>
     </aside>
 
     <template class="route-visual-template">

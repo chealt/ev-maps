@@ -222,45 +222,59 @@ test("credits every source of a charger merged from several", async ({ page }) =
   await expect(details.getByRole("link", { name: "OpenStreetMap contributors" })).toBeVisible();
 });
 
-test("shows how many points are free, where the source says", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  const [downtown] = fixtureChargers;
-  await fakeChargersApi(page, {
-    chargers: [
-      {
-        ...downtown,
-        id: "eipa:95424",
-        source: "eipa",
-        sources: ["eipa", "osm"],
-        ids: ["eipa:95424", "osm:way/1"],
+test(
+  "shows how many points are free, where the source says",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const [downtown] = fixtureChargers;
+    await fakeChargersApi(page, {
+      chargers: [
+        {
+          ...downtown,
+          id: "eipa:95424",
+          source: "eipa",
+          sources: ["eipa", "osm"],
+          ids: ["eipa:95424", "osm:way/1"],
+        },
+      ],
+    });
+    const statusRequests = await fakeStatusApi(page, {
+      "eipa:95424": {
+        available: 5,
+        occupied: 2,
+        outOfService: 1,
+        total: 8,
+        updatedAt: Date.now() - 3 * 60 * 1000,
       },
-    ],
-  });
-  const statusRequests = await fakeStatusApi(page, {
-    "eipa:95424": {
-      available: 5,
-      occupied: 0,
-      outOfService: 1,
-      total: 6,
-      updatedAt: Date.now() - 3 * 60 * 1000,
-    },
-  });
-  await page.goto("/");
-  const map = page.getByRole("region", { name: "EV charging station map" });
+    });
+    await page.goto("/");
+    const map = page.getByRole("region", { name: "EV charging station map" });
 
-  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
 
-  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-  await expect(details.getByRole("heading", { name: "Connectors" })).toBeVisible();
-  await expect(details.getByText("5 of 6 points free")).toBeVisible();
-  await expect(details.getByText("Out of service: 1")).toBeVisible();
-  await expect(details.getByText("Updated 3 minutes ago")).toBeVisible();
-  // With points free, the connectors wear the free colors.
-  await expect(details.locator(".connectors")).toHaveClass(/has-free/);
-  await expect(details.getByRole("link", { name: "EIPA" })).toBeVisible();
-  // Only the sources with live statuses are asked for.
-  expect(statusRequests).toEqual([["eipa:95424"]]);
-});
+    const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+    await expect(details.getByRole("heading", { name: "Connectors" })).toBeVisible();
+    await expect(details.getByText("5 of 8 points free")).toBeVisible();
+    await expect(details.getByText("Out of service: 1")).toBeVisible();
+    await expect(details.getByText("Updated 3 minutes ago")).toBeVisible();
+    // With points free, occupied and out of service, the connector columns
+    // and their point indicators wear green (free), yellow (occupied) and
+    // red (out-of-service).
+    await expect(details.locator(".connectors")).toHaveClass(/has-free/);
+    await expect(details.locator('.connector-point[data-state="free"]')).toHaveCount(5);
+    await expect(details.locator('.connector-point[data-state="occupied"]')).toHaveCount(2);
+    await expect(details.locator('.connector-point[data-state="out-of-service"]')).toHaveCount(1);
+    await expect(details.getByRole("link", { name: "EIPA" })).toBeVisible();
+    // Only the sources with live statuses are asked for.
+    expect(statusRequests).toEqual([["eipa:95424"]]);
+    await captureUi(
+      page,
+      testInfo,
+      "connector columns with free, occupied and out-of-service points"
+    );
+  }
+);
 
 test("asks for no availability where no source has it", async ({ page }) => {
   await fakeChargersApi(page);

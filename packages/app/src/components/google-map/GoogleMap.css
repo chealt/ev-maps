@@ -884,7 +884,6 @@ ev-google-map {
     }
   }
 
-  .connectors,
   .details {
     list-style: none;
     display: flex;
@@ -892,27 +891,80 @@ ev-google-map {
   }
 
   .connectors {
+    --connector-column-min-width: 8.5rem;
+    --connector-point-height: 0.375rem;
+    --connector-point-max-width: 1.5rem;
+
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--connector-column-min-width), 1fr));
     gap: var(--spacing-sm);
 
-    li {
+    .connector-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
       padding: var(--spacing-sm) var(--overlay-gap);
       border-radius: var(--border-radius-md);
-      border-left: var(--border-width-marker) solid var(--color-primary);
+      border: var(--border-width) solid var(--color-border);
+      border-top: var(--border-width-marker) solid var(--color-primary);
       background: var(--color-surface-muted);
       font-weight: var(--font-weight-medium);
       transition:
         background-color var(--transition-fast),
         border-color var(--transition-fast);
+
+      &[data-state="free"] {
+        border-top-color: var(--color-success, var(--color-primary));
+        background: color-mix(
+          in srgb,
+          var(--color-success, var(--color-primary)) 10%,
+          var(--color-surface-muted)
+        );
+      }
+
+      &[data-state="occupied"] {
+        border-top-color: var(--color-warning);
+        background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface-muted));
+      }
+
+      &[data-state="out-of-service"] {
+        border-top-color: var(--color-danger);
+        background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface-muted));
+      }
     }
 
-    & :where(.has-free) li {
-      border-left-color: var(--color-success, var(--color-primary));
-      background: color-mix(in srgb, var(--color-success, var(--color-primary)) 12%, transparent);
+    .connector-summary {
+      line-height: var(--line-height-tight);
     }
 
-    & :where(.none-free) li {
-      border-left-color: var(--color-danger);
-      background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    .connector-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-2xs);
+    }
+
+    .connector-point {
+      flex: 1;
+      min-width: var(--connector-point-height);
+      max-width: var(--connector-point-max-width);
+      height: var(--connector-point-height);
+      border-radius: var(--border-radius-full);
+      background: var(--color-border-strong);
+      transition: background-color var(--transition-fast);
+
+      &[data-state="free"] {
+        background: var(--color-success, var(--color-primary));
+      }
+
+      &[data-state="occupied"] {
+        background: var(--color-warning);
+      }
+
+      &[data-state="out-of-service"] {
+        background: var(--color-danger);
+      }
     }
   }
 
