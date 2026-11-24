@@ -2,7 +2,11 @@
 
 The Route button opens `<ev-route-planner>`, with From
 and To fields (`<ev-place-input>`) that suggest places with Google's Places
-API (New). Google's Routes library plans the route, and the Worker's
+API (New) and include an `×` clear button while filled. Signed in, a chosen
+place can be saved to the account (`savedPlaces` in `route-history.js`) with
+a preset (Home, Work, School) or a custom label and icon from the available
+icons, and chosen for From or To from the saved-place chips under each field.
+Google's Routes library plans the route, and the Worker's
 `POST /api/chargers/route` returns the chargers within 5 km of it, in order
 along the route: it splits the route into chunks of about 20 km, queries the
 R*Tree for each chunk's box in one D1 batch, and measures each charger's

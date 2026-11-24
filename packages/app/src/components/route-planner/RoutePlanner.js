@@ -9,7 +9,10 @@ import {
   endKey,
   readFavoriteRoutes,
   readRouteHistory,
+  readSavedPlaces,
+  removeSavedPlace,
   sameRoute,
+  savePlace,
   toggleFavoriteRoute,
 } from "../google-map/route-history.js";
 import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
@@ -39,11 +42,35 @@ class RoutePlannerElement extends HTMLElement {
     this.to = this.querySelector("#route-to")?.closest("ev-place-input");
     this.stopsGroup = this.querySelector(".route-stops");
     this.stopList = this.querySelector(".stop-list");
+    this.savePlacePanel = this.querySelector(".save-place-panel");
+    this.savePlaceName = this.querySelector(".save-place-name");
     this.errorEl = this.querySelector(".error");
     this.clearButton = this.querySelector(".clear-route");
 
     // The hint says how far the chosen distance is.
     this.querySelector(".corridor").addEventListener("change", () => this.showCorridor());
+    this.from?.addEventListener("place-change", () => this.updateSavePlaceButtons());
+    this.to?.addEventListener("place-change", () => this.updateSavePlaceButtons());
+    for (const button of this.querySelectorAll(".save-place-toggle")) {
+      button.addEventListener("click", () => this.toggleSavePlacePanel(button.dataset.target));
+    }
+    for (const preset of this.querySelectorAll(".save-place-preset")) {
+      preset.addEventListener("click", () => {
+        this.savePlaceName.value = preset.dataset.presetLabel;
+        const radio = this.querySelector(
+          `input[name="saved-place-icon"][value="${preset.dataset.presetIcon}"]`
+        );
+        if (radio) {
+          radio.checked = true;
+        }
+      });
+    }
+    this.querySelector(".cancel-save-place")?.addEventListener("click", () =>
+      this.closeSavePlacePanel()
+    );
+    this.querySelector(".confirm-save-place")?.addEventListener("click", () =>
+      this.confirmSavePlace()
+    );
 
     this.querySelector("form").addEventListener("submit", (event) => {
       event.preventDefault();
@@ -79,8 +106,120 @@ class RoutePlannerElement extends HTMLElement {
 
   open() {
     this.errorEl.textContent = "";
+    this.closeSavePlacePanel();
+    this.updateSavePlaceButtons();
+    this.showSavedPlaces();
     this.showRecentRoutes();
     openDialog(this.dialog);
+  }
+
+  targetInput(target) {
+    return target === "to" ? this.to : this.from;
+  }
+
+  updateSavePlaceButtons() {
+    const signedIn = isSignedIn();
+    for (const button of this.querySelectorAll(".save-place-toggle")) {
+      const input = this.targetInput(button.dataset.target);
+      const hasPlace = Boolean(signedIn && input?.place);
+      button.hidden = !hasPlace;
+      if (!hasPlace && this.savingTarget === button.dataset.target) {
+        this.closeSavePlacePanel();
+      }
+    }
+  }
+
+  toggleSavePlacePanel(target) {
+    if (this.savingTarget === target && !this.savePlacePanel.hidden) {
+      this.closeSavePlacePanel();
+      return;
+    }
+    const input = this.targetInput(target);
+    if (!input?.place) {
+      return;
+    }
+    this.savingTarget = target;
+    this.savePlacePanel.querySelector(".save-place-value").textContent = input.place.label;
+    this.savePlaceName.value = "";
+    const firstIcon = this.querySelector('input[name="saved-place-icon"]');
+    if (firstIcon) {
+      firstIcon.checked = true;
+    }
+    this.savePlacePanel.hidden = false;
+    for (const button of this.querySelectorAll(".save-place-toggle")) {
+      button.setAttribute("aria-expanded", String(button.dataset.target === target));
+    }
+    this.savePlaceName.focus();
+  }
+
+  closeSavePlacePanel() {
+    this.savingTarget = null;
+    if (this.savePlacePanel) {
+      this.savePlacePanel.hidden = true;
+    }
+    for (const button of this.querySelectorAll(".save-place-toggle")) {
+      button.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  async confirmSavePlace() {
+    const input = this.targetInput(this.savingTarget);
+    const name = this.savePlaceName?.value.trim();
+    if (!input?.place || !name) {
+      return;
+    }
+    const icon = this.querySelector('input[name="saved-place-icon"]:checked')?.value ?? "home";
+    const { label, place, location } = input.place;
+    const saved = place?.id
+      ? { name, icon, label, placeId: place.id }
+      : { name, icon, label, location };
+    this.closeSavePlacePanel();
+    await savePlace(saved);
+    await this.showSavedPlaces();
+  }
+
+  async showSavedPlaces() {
+    const places = isSignedIn() ? await readSavedPlaces() : [];
+    const template = this.querySelector(".saved-place-chip-template");
+    for (const container of this.querySelectorAll(".saved-place-chips")) {
+      const target = container.dataset.target;
+      container.hidden = places.length === 0;
+      container.replaceChildren(
+        ...places.map((saved) => {
+          const item = template.content.firstElementChild.cloneNode(true);
+          const chip = item.querySelector(".saved-place-chip");
+          const iconEl = item.querySelector(`.chip-icon[data-icon="${saved.icon}"]`);
+          if (iconEl) {
+            iconEl.hidden = false;
+          }
+          item.querySelector(".chip-name").textContent = saved.name;
+          chip.title = saved.label;
+          chip.addEventListener("click", async () => {
+            await this.applySavedPlace(target, saved);
+          });
+          const remove = item.querySelector(".remove-saved-place");
+          remove.setAttribute("aria-label", message("removeSavedPlace", { name: saved.name }));
+          remove.addEventListener("click", async () => {
+            await removeSavedPlace(saved);
+            await this.showSavedPlaces();
+          });
+          return item;
+        })
+      );
+    }
+  }
+
+  async applySavedPlace(target, saved) {
+    const input = this.targetInput(target);
+    if (!input) {
+      return;
+    }
+    if (saved.placeId) {
+      const { Place } = await input.placesLibrary();
+      input.setPlace({ label: saved.label, place: new Place({ id: saved.placeId }) });
+    } else {
+      input.setPlace({ label: saved.label, location: saved.location });
+    }
   }
 
   // Lists the favorite routes, then the others planned before, signed in;
