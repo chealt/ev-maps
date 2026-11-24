@@ -539,6 +539,24 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       </template>
     </aside>
 
+    <template class="route-visual-template">
+      <span class="route-visual" role="img">
+        <span class="route-visual-track" aria-hidden="true">
+          <span class="route-visual-node start"></span>
+          <span class="route-visual-line"></span>
+          <span class="route-visual-bend">
+            <span class="route-visual-detour"></span>
+          </span>
+          <span class="route-visual-pin"></span>
+          <span class="route-visual-node end"></span>
+        </span>
+        <span class="route-visual-legend" aria-hidden="true">
+          <span class="route-visual-distance start"></span>
+          <span class="route-visual-distance end"></span>
+        </span>
+      </span>
+    </template>
+
     <template class="charger-cluster-template">
       <div class="charger-cluster">
         <span class="count"></span>

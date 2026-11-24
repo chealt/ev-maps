@@ -1018,8 +1018,8 @@ class GoogleMapElement extends HTMLElement {
 
   // Along a route, a listed charger's distances, each saying what it is:
   // from the start, to the end and off the route, drawn as a node graph:
-  // the start node, the charger's node along the route, the end node, each
-  // with its distance, and a detour pill saying how far off the route it sits.
+  // the start node, a bend in the road branching off to the charger's pin
+  // with the +X km / m detour next to it, and the end node.
   fillRouteDistances(element, route) {
     element.hidden = false;
     const fromStart = formatDistance(route.distanceFromStartMeters);
@@ -1037,36 +1037,17 @@ class GoogleMapElement extends HTMLElement {
     const position = route.distanceToEndMeters ? route.distanceFromStartMeters / along : 0.5;
     const pct = `${Math.min(Math.max(position, 0), 1) * 100}%`;
 
-    const node = (className) => Object.assign(document.createElement("span"), { className });
-    const label = (className, text) =>
-      Object.assign(document.createElement("span"), { className, textContent: text });
-
-    const track = node("route-visual-track");
-    track.setAttribute("aria-hidden", "true");
-    const line = node("route-visual-line");
-    line.style.setProperty("--route-progress", pct);
-    const pin = node("route-visual-pin");
-    pin.style.left = pct;
-    track.replaceChildren(
-      node("route-visual-node start"),
-      line,
-      pin,
-      node("route-visual-node end")
-    );
-
-    const legend = node("route-visual-legend");
-    legend.setAttribute("aria-hidden", "true");
-    legend.replaceChildren(
-      label("route-visual-distance start", fromStart),
-      label("route-visual-detour", `+${offRoute}`),
-      ...(toEnd ? [label("route-visual-distance end", toEnd)] : [])
-    );
-
-    const visual = node("route-visual");
-    visual.setAttribute("role", "img");
+    const visual = this.cloneTemplate(".route-visual-template");
+    visual.style.setProperty("--route-progress", pct);
+    visual.querySelector(".route-visual-pin").style.left = pct;
+    visual.querySelector(".route-visual-bend").style.left = pct;
+    visual.querySelector(".route-visual-distance.start").textContent = fromStart;
+    visual.querySelector(".route-visual-detour").textContent = `+${offRoute}`;
+    const endEl = visual.querySelector(".route-visual-distance.end");
+    endEl.textContent = toEnd ?? "";
+    endEl.hidden = !toEnd;
     visual.setAttribute("aria-label", texts.join(", "));
     visual.title = texts.join("\n");
-    visual.replaceChildren(track, legend);
     element.replaceChildren(visual);
   }
 
