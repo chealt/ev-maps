@@ -1571,10 +1571,16 @@ class GoogleMapElement extends HTMLElement {
     }
 
     for (const [key, feature] of featuresByKey) {
-      // A charger's pin kept from before takes its newer copy.
+      // A charger's pin kept from before takes its newer copy, and its
+      // place: the same charger can be elsewhere in the next set, e.g. a
+      // route's with its distances.
       const kept = this.markersById.get(key);
       if (kept && feature.clusterId == null) {
-        this.chargersByMarker.set(kept, this.chargersById.get(feature.chargerId));
+        const charger = this.chargersById.get(feature.chargerId);
+        this.chargersByMarker.set(kept, charger);
+        if (charger && kept.position?.lat !== charger.location.lat) {
+          kept.position = charger.location;
+        }
       }
       if (!kept) {
         this.markersById.set(
