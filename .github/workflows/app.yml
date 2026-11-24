@@ -221,7 +221,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -266,9 +266,9 @@ jobs:
           GREP: ${{ steps.select.outputs.grep }}
         run: |
           if [ -n "$GREP" ]; then
-            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --grep "$GREP" --pass-with-no-tests
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4 --grep "$GREP" --pass-with-no-tests
           else
-            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4
           fi
 
       - name: Upload blob report
