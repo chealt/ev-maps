@@ -500,3 +500,85 @@ test("shares the route as a link that plans it again", async ({ page, context })
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
   expect(routeRequests.at(-1).corridorKm).toBe(5);
 });
+
+test(
+  "adds a charger as a stop along a route and removes it",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+    // Open a charger on the map and add it as a stop: the route re-plans
+    // through it right away.
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+    const addStop = details.getByRole("button", { name: "Add stop" });
+    await expect(addStop).toHaveAttribute("aria-pressed", "false");
+    await captureUi(page, testInfo, "charger details with Add stop");
+    await addStop.click();
+
+    await expect(details).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.__routeRequests.length)).toBe(2);
+    const requestWithStop = await page.evaluate(() => window.__routeRequests.at(-1));
+    expect(requestWithStop).toMatchObject({
+      origin: { id: "budapest" },
+      destination: { id: "vienna" },
+      intermediates: [{ lat: 47.7465, lng: 18.10696 }],
+    });
+    expect(await page.evaluate(() => window.__fakeRouteLine.path.length)).toBe(41);
+
+    // Re-opening the charger shows it's already a stop; the planner lists it
+    // between From and To, and shows it in the recent routes.
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    await expect(details.getByRole("button", { name: "Remove stop", pressed: true })).toBeVisible();
+    await details.getByRole("button", { name: "Close" }).click();
+
+    await page.getByRole("button", { name: "Route", exact: true }).click();
+    const stops = dialog.getByRole("group", { name: "Stops" });
+    await expect(stops).toBeVisible();
+    await expect(stops.getByText("Downtown Supercharger")).toBeVisible();
+    await expect(
+      dialog.getByRole("region", { name: "Recent routes" }).getByRole("button", {
+        name: /^Budapest, Hungary → Downtown Supercharger → Vienna, Austria/,
+      })
+    ).toBeVisible();
+    await captureUi(page, testInfo, "route planner with a stop");
+
+    // Removing the stop in the planner and showing the route plans without it.
+    await stops.getByRole("button", { name: "Remove Downtown Supercharger from stops" }).click();
+    await expect(stops).toBeHidden();
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await expect.poll(() => page.evaluate(() => window.__routeRequests.length)).toBe(3);
+    expect(await page.evaluate(() => window.__routeRequests.at(-1).intermediates)).toBeUndefined();
+  }
+);
+
+test("adding a charger as a stop before planning opens the route planner with it", async ({
+  page,
+}) => {
+  await fakeRouteChargersApi(page);
+  const map = page.getByRole("region", { name: "EV charging station map" });
+  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+
+  await details.getByRole("button", { name: "Add stop" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await expect(dialog).toBeVisible();
+  const stops = dialog.getByRole("group", { name: "Stops" });
+  await expect(stops.getByText("Downtown Supercharger")).toBeVisible();
+
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
+  expect(routeRequest.intermediates).toEqual([{ lat: 40.71, lng: -74 }]);
+});

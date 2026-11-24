@@ -77,9 +77,11 @@ const saveFilters = (filters) => write(FILTERS_KEY, filters);
 const isEnd = (end) =>
   typeof end?.label === "string" && (typeof end.placeId === "string" || isLocation(end.location));
 
+const isStops = (stops) => stops === undefined || (Array.isArray(stops) && stops.every(isEnd));
+
 const readRoute = async () => {
   const route = await read(ROUTE_KEY);
-  return isEnd(route?.origin) && isEnd(route?.destination) ? route : null;
+  return isEnd(route?.origin) && isEnd(route?.destination) && isStops(route?.stops) ? route : null;
 };
 
 const saveRoute = (route) => write(ROUTE_KEY, route);

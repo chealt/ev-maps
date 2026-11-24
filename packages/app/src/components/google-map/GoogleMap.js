@@ -102,9 +102,10 @@ const ROUTE_CASING = { strokeOpacity: 1, strokeWeight: 9, zIndex: 1 };
 // A chosen place, as the Routes library takes it: a Google Place, or a location.
 const routeEndpoint = ({ place, location }) => place ?? location;
 
-// A chosen place as it's saved: a Google place by its ID, or a location.
-const savedEnd = ({ label, place, location }) =>
-  place?.id ? { label, placeId: place.id } : { label, location };
+// A chosen place as it's saved: a Google place by its ID, or a location
+// (keeping any charger ID so a stop matches the charger on the map).
+const savedEnd = ({ id, label, place, location }) =>
+  place?.id ? { label, placeId: place.id } : { ...(id ? { id } : {}), label, location };
 
 const LIST_ZOOM = 15;
 
@@ -424,6 +425,18 @@ class GoogleMapElement extends HTMLElement {
       const charger = this.activeCharger;
       if (charger) {
         this.routePlanner?.planTo({ label: chargerName(charger), location: charger.location });
+      }
+    });
+    // Add to route: adds or removes the open charger as a stop along a route.
+    this.detailsPanel?.querySelector(".add-to-route")?.addEventListener("click", () => {
+      const charger = this.activeCharger;
+      if (charger) {
+        this.routePlanner?.toggleStop({
+          id: charger.id,
+          label: chargerName(charger),
+          location: charger.location,
+        });
+        this.showRouteStopState(charger);
       }
     });
     this.setupOpenInMaps();
@@ -1104,7 +1117,7 @@ class GoogleMapElement extends HTMLElement {
   // `record`: put it in the user's route history, with the filters on now
   // (not for a route restored after a reload).
   // `corridorKm`: how far from the route chargers are shown.
-  async showRoute({ origin, destination, corridorKm = CORRIDOR_KM, record = false }) {
+  async showRoute({ origin, destination, stops = [], corridorKm = CORRIDOR_KM, record = false }) {
     await this.mapReady;
     // A newer route replaces this one; the map's own loads don't, but this
     // cancels theirs.
@@ -1116,6 +1129,7 @@ class GoogleMapElement extends HTMLElement {
       const { routes } = await Route.computeRoutes({
         origin: routeEndpoint(origin),
         destination: routeEndpoint(destination),
+        ...(stops.length ? { intermediates: stops.map(routeEndpoint) } : {}),
         travelMode: "DRIVING",
         fields: ["path"],
         language: document.documentElement.lang,
@@ -1147,12 +1161,19 @@ class GoogleMapElement extends HTMLElement {
       });
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
-      saveRoute({ origin: savedEnd(origin), destination: savedEnd(destination), corridorKm });
+      const savedStops = stops.map(savedEnd);
+      saveRoute({
+        origin: savedEnd(origin),
+        destination: savedEnd(destination),
+        ...(savedStops.length ? { stops: savedStops } : {}),
+        corridorKm,
+      });
       if (record) {
         const { updatedAt: _, ...filters } = this.currentFilters();
         recordRoute({
           origin: savedEnd(origin),
           destination: savedEnd(destination),
+          ...(savedStops.length ? { stops: savedStops } : {}),
           filters,
           corridorKm,
           plannedAt: Date.now(),
@@ -1169,12 +1190,18 @@ class GoogleMapElement extends HTMLElement {
 
   // A saved route's ends as the Routes library takes them: a Google place
   // rebuilt from its ID, or a location.
-  async routeEnds({ origin, destination }) {
+  async routeEnds({ origin, destination, stops = [] }) {
     await this.mapReady;
     const { Place } = await this.maps.importLibrary("places");
-    const toEnd = ({ label, placeId, location }) =>
-      placeId ? { label, place: new Place({ id: placeId }) } : { label, location };
-    return { origin: toEnd(origin), destination: toEnd(destination) };
+    const toEnd = ({ id, label, placeId, location }) =>
+      placeId
+        ? { label, place: new Place({ id: placeId }) }
+        : { ...(id ? { id } : {}), label, location };
+    return {
+      origin: toEnd(origin),
+      destination: toEnd(destination),
+      stops: stops.map(toEnd),
+    };
   }
 
   // A route from the history: its filters back on, then the route planned
@@ -1182,11 +1209,11 @@ class GoogleMapElement extends HTMLElement {
   async showRouteFromHistory(route) {
     this.applyFilters({ ...route.filters, updatedAt: Date.now() });
     this.filtersChanged();
-    const { origin, destination } = await this.routeEnds(route);
+    const { origin, destination, stops } = await this.routeEnds(route);
     // Routes saved before the distance could be chosen have none: the default.
     const corridorKm = route.corridorKm ?? CORRIDOR_KM;
-    this.routePlanner?.setPlaces(origin, destination, corridorKm);
-    await this.showRoute({ origin, destination, corridorKm, record: true });
+    this.routePlanner?.setPlaces(origin, destination, corridorKm, stops);
+    await this.showRoute({ origin, destination, stops, corridorKm, record: true });
   }
 
   // Shows the route saved before a reload again, once per page, and its
@@ -1212,10 +1239,10 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     await this.mapReady;
-    const { origin, destination } = await this.routeEnds(saved);
+    const { origin, destination, stops } = await this.routeEnds(saved);
     const corridorKm = saved.corridorKm ?? CORRIDOR_KM;
-    this.routePlanner?.setPlaces(origin, destination, corridorKm);
-    await this.showRoute({ origin, destination, corridorKm });
+    this.routePlanner?.setPlaces(origin, destination, corridorKm, stops);
+    await this.showRoute({ origin, destination, stops, corridorKm });
   }
 
   clearRoute() {
@@ -1702,7 +1729,28 @@ class GoogleMapElement extends HTMLElement {
     }
     panel.hidden = false;
     this.showFavoriteState();
+    this.showRouteStopState(charger);
     this.showAvailability(charger);
+  }
+
+  // Whether the open charger is one of the route's stops.
+  showRouteStopState(charger) {
+    const button = this.detailsPanel?.querySelector(".add-to-route");
+    if (!button) {
+      return;
+    }
+    const added = Boolean(
+      charger &&
+      this.routePlanner?.hasStop({
+        id: charger.id,
+        label: chargerName(charger),
+        location: charger.location,
+      })
+    );
+    button.setAttribute("aria-pressed", String(added));
+    button.querySelector(".label").textContent = added
+      ? button.dataset.removeLabel
+      : button.dataset.addLabel;
   }
 
   // Loads the live statuses of the IDs that aren't in memory or are older

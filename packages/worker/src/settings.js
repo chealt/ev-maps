@@ -53,6 +53,7 @@ const MAPS_APPS = ["google", "osm", "apple"];
 
 const MAX_ROUTES = 10;
 const MAX_FAVORITE_ROUTES = 20;
+const MAX_ROUTE_STOPS = 10;
 
 const isLocation = (location) =>
   Number.isFinite(location?.lat) &&
@@ -60,10 +61,12 @@ const isLocation = (location) =>
   Math.abs(location.lat) <= 90 &&
   Math.abs(location.lng) <= 180;
 
-// A route's end: a Google place by its ID, or a location, with its label.
+// A route's end: a Google place by its ID, or a location, with its label
+// (and optional charger ID for a stop).
 const isRouteEnd = (end) =>
   typeof end?.label === "string" &&
   end.label.length <= 200 &&
+  (end.id === undefined || (typeof end.id === "string" && end.id.length <= 120)) &&
   ((typeof end.placeId === "string" && end.placeId.length <= 300) || isLocation(end.location));
 
 // The filters on when it was planned: as the filters section, without its
@@ -79,9 +82,14 @@ const isCorridor = (corridorKm) =>
   corridorKm === undefined ||
   (Number.isFinite(corridorKm) && corridorKm >= MIN_CORRIDOR_KM && corridorKm <= MAX_CORRIDOR_KM);
 
+const isStops = (stops) =>
+  stops === undefined ||
+  (Array.isArray(stops) && stops.length <= MAX_ROUTE_STOPS && stops.every(isRouteEnd));
+
 const isRoute = (route) =>
   isRouteEnd(route?.origin) &&
   isRouteEnd(route?.destination) &&
+  isStops(route?.stops) &&
   isRouteFilters(route?.filters) &&
   isCorridor(route?.corridorKm) &&
   Number.isFinite(route?.plannedAt);
