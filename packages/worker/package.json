@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*",
-    "wrangler": "4.162.0"
+    "wrangler": "4.164.0"
   },
   "engines": {
     "bun": ">=1.4.4",
