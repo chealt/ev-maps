@@ -15,7 +15,7 @@ const map = {
     closeList: "Close list",
     close: "Close",
     navigate: "Navigate",
-    openInMaps: "Open in maps",
+    openInMaps: "Open map",
     rememberMapsApp: "Remember my choice",
     rememberMapsAppHint: "You can change it in the account menu.",
     connectors: "Connectors",
