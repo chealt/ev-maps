@@ -35,6 +35,14 @@ class SuggestChargerDialogElement extends HTMLElement {
 
     document.addEventListener(SHOW_SUGGEST_CHARGER, () => this.open());
     this.querySelector(".close").addEventListener("click", () => closeDialog(this.dialog));
+    // Esc cancels choosing photos (the focus is on the dropzone's file input,
+    // e.g. right after its picker closes); it must not close the dialog too.
+    this.dialog.addEventListener("cancel", (event) => {
+      if (this.photoInput.matches(":focus")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    });
     animateEscape(this.dialog);
     this.querySelector(".add-connector").addEventListener("click", () => this.addConnectorRow());
     this.operatorSelect.addEventListener("change", () => this.handleOperatorChange());
