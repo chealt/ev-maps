@@ -45,6 +45,16 @@ availability; the map is [Google Maps](https://developers.google.com/maps).
 | [Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md) | Components, CSS, code quality, commit messages         |
 | [Testing Guidelines](docs/TESTING_GUIDELINES.md)         | How to write Playwright tests                          |
 
+## Important: No End-to-End Tests for Looks
+
+**Don't write end-to-end tests that check how the UI looks**: alignment,
+sizes, spacing, colors, what lines up with what. No `boundingBox()`,
+`getComputedStyle()` or the like. Tag the tests that exercise a control
+`@ui` and capture it with `captureUi()`: CI attaches those screenshots and
+videos to each pull request, and that evidence is the visual check. End-to-end
+tests are for behavior. See
+[No Visual Checks](docs/TESTING_GUIDELINES.md#no-visual-checks).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

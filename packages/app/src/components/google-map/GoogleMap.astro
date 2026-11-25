@@ -143,50 +143,53 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </Button>
       </div>
       <div class="body">
-        <div class="group" role="group" aria-labelledby="favorites-filter-title">
-          <h3 class="subtitle" id="favorites-filter-title">
-            {page.favorites}
-          </h3>
-          <div class="options">
-            <Button
-              variant="secondary"
-              size="large"
-              class="favorites-filter"
-              aria-pressed="false"
-              aria-disabled="true"
-              aria-describedby="favorites-filter-hint"
-            >
-              <Icon icon={Heart} size="sm" />
-              {page.onlyFavorites}
-            </Button>
+        <!-- Two short, single-button groups share one row where there's room. -->
+        <div class="group-row">
+          <div class="group" role="group" aria-labelledby="favorites-filter-title">
+            <h3 class="subtitle" id="favorites-filter-title">
+              {page.favorites}
+            </h3>
+            <div class="options">
+              <Button
+                variant="secondary"
+                size="large"
+                class="favorites-filter"
+                aria-pressed="false"
+                aria-disabled="true"
+                aria-describedby="favorites-filter-hint"
+              >
+                <Icon icon={Heart} size="sm" />
+                {page.onlyFavorites}
+              </Button>
+            </div>
+            <p class="hint" id="favorites-filter-hint">
+              {page.signInForFavorites}
+            </p>
           </div>
-          <p class="hint" id="favorites-filter-hint">
-            {page.signInForFavorites}
-          </p>
-        </div>
-        <div class="group" role="group" aria-labelledby="availability-filter-title">
-          <h3 class="subtitle" id="availability-filter-title">
-            {page.availability}
-          </h3>
-          <div class="options">
-            <Button
-              variant="secondary"
-              size="large"
-              class="availability-filter"
-              aria-pressed="false"
-              aria-disabled="true"
-              aria-describedby="availability-filter-hint availability-filter-about"
-            >
-              <Icon icon={Activity} size="sm" />
-              {page.hideUnavailable}
-            </Button>
+          <div class="group" role="group" aria-labelledby="availability-filter-title">
+            <h3 class="subtitle" id="availability-filter-title">
+              {page.availability}
+            </h3>
+            <div class="options">
+              <Button
+                variant="secondary"
+                size="large"
+                class="availability-filter"
+                aria-pressed="false"
+                aria-disabled="true"
+                aria-describedby="availability-filter-hint availability-filter-about"
+              >
+                <Icon icon={Activity} size="sm" />
+                {page.hideUnavailable}
+              </Button>
+            </div>
+            <p class="hint" id="availability-filter-hint">
+              {page.signInForAvailability}
+            </p>
+            <p class="hint" id="availability-filter-about">
+              {page.hideUnavailableHint}
+            </p>
           </div>
-          <p class="hint" id="availability-filter-hint">
-            {page.signInForAvailability}
-          </p>
-          <p class="hint" id="availability-filter-about">
-            {page.hideUnavailableHint}
-          </p>
         </div>
         <div class="group" role="group" aria-labelledby="nearby-filter-title">
           <h3 class="subtitle" id="nearby-filter-title">
