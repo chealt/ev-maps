@@ -1281,10 +1281,23 @@ ev-google-map {
     top: var(--spacing-md);
     left: var(--spacing-md);
     translate: none;
-    max-width: calc(100% - 13rem);
-    padding: var(--spacing-2xs) var(--spacing-sm) var(--spacing-2xs) var(--spacing-xs);
-    white-space: normal;
+    max-width: calc(100% - 12rem);
+    min-height: var(--status-min-height);
+    padding: var(--spacing-2xs) var(--spacing-sm) var(--spacing-2xs) var(--spacing-sm);
+    /* Same shape as the account menu's box next to it. */
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    font-size: var(--font-size-xs);
     text-align: start;
+
+    /* Long texts wrap, but at most to two lines. */
+    white-space: normal;
+
+    .text {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
   }
 
   .map-controls {
