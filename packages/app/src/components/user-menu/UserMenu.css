@@ -47,8 +47,11 @@
       height: var(--top-bar-height);
     }
 
-    .brand {
+    /* With the name hidden, the logo alone: the same room on both sides.
+       (.bar: the base .brand rule comes later in the file.) */
+    .bar .brand {
       padding-block: 0;
+      padding-inline-end: var(--spacing-sm);
     }
 
     /* No room for the name next to the pill: the logo shows the app, the
