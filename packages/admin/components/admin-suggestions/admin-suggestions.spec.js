@@ -79,7 +79,7 @@ test(
     await expect(page.getByText("Ionity · 10 Dock Rd")).toBeVisible();
     await expect(page.getByText("CCS (Type 2): 4× · 350 kW")).toBeVisible();
     await expect(page.getByText("Type 2: 2× · 22 kW")).toBeVisible();
-    await expect(page.locator(".proof-photo")).toHaveCount(2);
+    await expect(page.getByRole("img", { name: "Charger proof photo" })).toHaveCount(2);
     await captureUi(page, testInfo, "admin reviewing a charger suggestion");
 
     await page.getByRole("button", { name: "Approve & add" }).click();
