@@ -239,13 +239,17 @@ const occurrenceFacts = (occurrence: any) => [
                 <th scope="col" aria-sort={sort === "last_seen" ? "descending" : "none"}>
                   <a class="sort" href={sortUrl("last_seen")}>
                     {page.adminLastSeenColumn}
-                    {sort === "last_seen" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                    {sort === "last_seen" && (
+                      <Icon icon={ChevronDown} size="sm" class="sort-arrow" />
+                    )}
                   </a>
                 </th>
                 <th scope="col" aria-sort={sort === "first_seen" ? "descending" : "none"}>
                   <a class="sort" href={sortUrl("first_seen")}>
                     {page.adminFirstSeenColumn}
-                    {sort === "first_seen" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                    {sort === "first_seen" && (
+                      <Icon icon={ChevronDown} size="sm" class="sort-arrow" />
+                    )}
                   </a>
                 </th>
               </tr>
