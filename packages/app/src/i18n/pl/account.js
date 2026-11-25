@@ -29,6 +29,11 @@ const account = {
     language: "Język",
     mapsApp: "Aplikacja map",
     mapsAppAsk: "Pytaj za każdym razem",
+    carConnectors: "Złącza mojego auta",
+    carAutoFilter: "Filtruj stacje automatycznie",
+    carAutoFilterHint:
+      "Pokazuj tylko stacje, z których może korzystać Twoje auto, na mapie i na trasie.",
+    myCarChargers: "Moje auto",
     distanceUnit: "Jednostka odległości",
     distanceUnits: {
       auto: "Automatycznie",

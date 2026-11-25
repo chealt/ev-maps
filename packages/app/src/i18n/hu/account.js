@@ -31,6 +31,11 @@ const account = {
     language: "Nyelv",
     mapsApp: "Térképalkalmazás",
     mapsAppAsk: "Mindig kérdezzen",
+    carConnectors: "Az autóm csatlakozói",
+    carAutoFilter: "Töltők automatikus szűrése",
+    carAutoFilterHint:
+      "Csak az autód által használható töltők látszanak a térképen és az útvonalon.",
+    myCarChargers: "Az autóm",
     distanceUnit: "Távolság mértékegysége",
     distanceUnits: {
       auto: "Automatikus",

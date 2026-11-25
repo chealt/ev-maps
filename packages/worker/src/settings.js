@@ -52,6 +52,12 @@ const SECTIONS = {
   distanceUnit: {
     unit: (value) => value === null || DISTANCE_UNITS.includes(value),
   },
+  // The user's car: the connector groups it charges with, and whether
+  // chargers are filtered by them automatically (the app's src/lib/car.js).
+  car: {
+    connectors: (value) => isStringList(value, 10),
+    autoFilter: (value) => typeof value === "boolean",
+  },
 };
 
 const DISTANCE_UNITS = ["metric", "imperial"];

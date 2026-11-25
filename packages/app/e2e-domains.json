@@ -54,7 +54,10 @@
       "paths": [
         "packages/app/src/components/filter-button/**",
         "packages/app/src/components/google-map/saved-state.js",
-        "packages/app/src/lib/account-settings.js"
+        "packages/app/src/lib/account-settings.js",
+        "packages/app/src/lib/car.js",
+        "packages/app/src/lib/connector-groups.js",
+        "packages/app/src/components/car-picker/**"
       ],
       "tests": [
         "power-filter",
@@ -62,7 +65,8 @@
         "operator-filter",
         "price-filter",
         "nearby",
-        "filter-labels"
+        "filter-labels",
+        "car-filter"
       ]
     },
     "routes": {

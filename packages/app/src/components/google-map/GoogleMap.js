@@ -7,6 +7,7 @@ import { setMapCenter } from "../../lib/map-center.js";
 import { track } from "../../lib/usage.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
+import { chosenCar, onCarChange } from "../../lib/car.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
 import { mapsApp, mapsAppUrl, onMapsAppChange, setMapsApp } from "../../lib/maps-app.js";
@@ -370,9 +371,12 @@ class GoogleMapElement extends HTMLElement {
     this.systemScheme.addEventListener("change", this.handleSystemSchemeChange);
     this.showFilterSyncSignedIn(isSignedIn());
     // The session may have loaded before the map did.
-    if (isSignedIn()) {
-      this.syncAccountFilters();
-    }
+    const accountFiltersSynced = isSignedIn() ? this.syncAccountFilters() : Promise.resolve();
+    // The car's automatic filter wins over the saved filters' connectors,
+    // once both the device's and the account's are in.
+    Promise.all([this.filtersRestored, accountFiltersSynced]).then(() => this.applyCarFilter());
+    onCarChange(() => this.carChanged());
+    this.updateCarFilterButton();
     // Signed in, pins turn red while none of their charger's points is free.
     this.pinStatusTimer = setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -627,6 +631,10 @@ class GoogleMapElement extends HTMLElement {
       requestSignIn();
       return;
     }
+    if (event.target.closest(".car-filter")) {
+      this.selectCarConnectors();
+      return;
+    }
     if (event.target.closest(".show-all-operators")) {
       this.excludedOperators.clear();
       this.showOperatorChoices();
@@ -740,6 +748,7 @@ class GoogleMapElement extends HTMLElement {
     saveFilters(this.currentFilters());
     this.scheduleAccountSave();
     this.updateClearFiltersButtons();
+    this.updateCarFilterButton();
     this.showMatchingChargers();
   }
 
@@ -842,6 +851,60 @@ class GoogleMapElement extends HTMLElement {
   // The filters saved on this device (IndexedDB).
   async restoreFilters() {
     this.applyFilters(await readFilters());
+  }
+
+  // "My car" in the filter dialog: selects exactly the car's connector
+  // groups.
+  selectCarConnectors() {
+    const { connectors } = chosenCar();
+    for (const button of this.querySelectorAll(".connector-filter")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(connectors.includes(button.dataset.connectorGroup))
+      );
+    }
+    this.filtersChanged();
+  }
+
+  // The car's automatic filter (the account menu's car setting): with it
+  // on, only chargers the car can use show, on the map and on routes.
+  applyCarFilter() {
+    const { connectors, autoFilter } = chosenCar();
+    if (!autoFilter || !connectors.length) {
+      return;
+    }
+    for (const button of this.querySelectorAll(".connector-filter")) {
+      button.setAttribute(
+        "aria-pressed",
+        String(connectors.includes(button.dataset.connectorGroup))
+      );
+    }
+    this.filtersChanged();
+  }
+
+  carChanged() {
+    this.updateCarFilterButton();
+    this.applyCarFilter();
+  }
+
+  // "My car" shows once the car has connectors; it looks pressed while
+  // exactly its connectors are selected.
+  updateCarFilterButton() {
+    const button = this.querySelector(".car-filter");
+    if (!button) {
+      return;
+    }
+    const { connectors } = chosenCar();
+    button.hidden = connectors.length === 0;
+    const active = this.activeConnectorGroups().sort();
+    button.setAttribute(
+      "aria-pressed",
+      String(
+        connectors.length > 0 &&
+          active.length === connectors.length &&
+          active.every((group, index) => group === [...connectors].sort()[index])
+      )
+    );
   }
 
   // Signed in, the newer of this device's and the account's filters wins:

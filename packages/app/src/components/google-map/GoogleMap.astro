@@ -27,6 +27,7 @@ import RoutePlanner from "../route-planner/RoutePlanner.astro";
 import ShortcutsDialog from "../shortcuts-dialog/ShortcutsDialog.astro";
 import DistanceText from "../distance-text/DistanceText.astro";
 import { translations } from "../../i18n/index.js";
+import { connectorGroups as connectorGroupsFor } from "../../lib/connector-groups.js";
 import "./GoogleMap.css";
 
 interface Props {
@@ -77,24 +78,8 @@ const amenities = [
   { id: "playground", icon: Baby },
 ];
 
-// Connector types users choose between, and the connector IDs each covers
-// (packages/worker/src/charger-values.js).
-const connectorGroups = [
-  { value: "ccs", label: "CCS", types: ["ccs2", "ccs1"] },
-  { value: "chademo", label: "CHAdeMO", types: ["chademo"] },
-  {
-    value: "type2",
-    label: page.connectorType2,
-    types: ["type2", "type2-socket", "type2-tethered"],
-  },
-  { value: "type1", label: page.connectorType1, types: ["type1"] },
-  {
-    value: "tesla",
-    label: "Tesla / NACS",
-    types: ["nacs", "tesla-supercharger", "tesla-destination", "tesla-model-sx"],
-  },
-  { value: "household", label: page.connectorHousehold, types: ["schuko", "cee-7-5", "europlug"] },
-];
+// Connector types users choose between (src/lib/connector-groups.js).
+const connectorGroups = connectorGroupsFor(page);
 
 // JSON inside <script>: escape "<" so the data can't close the element.
 const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u003c");
@@ -245,6 +230,11 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
                 {label}
               </Button>
             ))}
+            <!-- Selects exactly the car's connector groups (the account
+                 menu's car setting); shown only once the car has some. -->
+            <Button variant="secondary" size="large" class="car-filter" aria-pressed="false" hidden>
+              {page.myCarChargers}
+            </Button>
           </div>
         </div>
         <div class="group" role="group" aria-labelledby="power-filter-title">
