@@ -51,13 +51,17 @@
     overflow-wrap: anywhere;
   }
 
+  /* In the middle of the row, level with the heart, not on the name's line. */
   .distance {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     font-weight: var(--font-weight-semibold);
     color: var(--color-primary-light-text);
   }
 
   .meta {
-    grid-column: 1 / -1;
+    grid-column: 1;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
   }

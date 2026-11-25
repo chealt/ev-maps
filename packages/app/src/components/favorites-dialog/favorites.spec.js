@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeFavoritesApi } from "@ev-maps/e2e/fixtures/favorites-api.js";
@@ -128,6 +128,25 @@ test("lists the favorites nearest to the map's center first", async ({ page }) =
     "Budapest charger",
   ]);
   await expect(dialog.locator(".distance").last()).toHaveText(/km$/);
+});
+
+test("puts the distance in the middle of the row, level with the heart", async ({
+  page,
+}, testInfo) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeFavoritesApi(page, [{ charger: far, addedAt: 1 }]);
+  await page.goto("/");
+  const dialog = await openFavorites(page);
+  const item = dialog.getByRole("listitem");
+  await expect(item.locator(".distance")).toHaveText(/km$/);
+
+  const middle = async (locator) => {
+    const box = await locator.boundingBox();
+    return box.y + box.height / 2;
+  };
+  const heart = await middle(item.getByRole("button", { name: /Remove/ }));
+  expect(Math.abs((await middle(item.locator(".distance"))) - heart)).toBeLessThan(2);
+  await captureUi(page, testInfo, "a favorite's distance, level with the heart");
 });
 
 test("shows a favorite on the map from the list, wherever it is", async ({ page }) => {
