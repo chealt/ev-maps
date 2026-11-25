@@ -16,17 +16,59 @@
     inset-inline-end: calc(100% + var(--spacing-sm));
     top: 50%;
     translate: 0 -50%;
+
+    /* A card like the account menu's box and the status pill, not a flat
+       button: as tall as the box, square, with the same surface. */
+    .locate-button {
+      width: calc(var(--brand-mark-size) + 2 * var(--spacing-sm) + 2 * var(--border-width));
+      height: calc(var(--brand-mark-size) + 2 * var(--spacing-sm) + 2 * var(--border-width));
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--border-radius-lg);
+      background: var(--color-surface-glass);
+      backdrop-filter: var(--blur-glass);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-md);
+
+      &:hover:not(:disabled) {
+        background: var(--color-surface-translucent);
+      }
+    }
   }
 
+  /* A compact box on narrow screens, the status pill's height, with the
+     same icon size, so the two read as one row. */
   @media (width < 40em) {
+    --brand-mark-size: 1.75rem;
+    --avatar-size: 1.75rem;
+    --overlay-gap: var(--spacing-sm);
+
     .bar {
       width: var(--top-bar-menu-width);
+      height: var(--top-bar-height);
+    }
+
+    .brand {
+      padding-block: 0;
+    }
+
+    .app-name {
+      font-size: var(--font-size-base);
+    }
+
+    .mark svg {
+      width: var(--top-bar-icon-size);
+      height: var(--top-bar-icon-size);
     }
 
     ev-locate-button {
       inset-inline-end: 0;
       top: calc(100% + var(--spacing-sm));
       translate: none;
+
+      .locate-button {
+        width: var(--top-bar-height);
+        height: var(--top-bar-height);
+      }
     }
   }
 
@@ -55,14 +97,11 @@
     display: flex;
     align-items: center;
     gap: var(--overlay-gap);
-    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm)
-      var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
 
     /* Room for the avatar (or its placeholder) next to the name. */
     .bar:has(.avatar:not([hidden]), .loading:not([hidden])) & {
-      padding-right: calc(
-        var(--spacing-sm) + var(--overlay-gap) + var(--avatar-size)
-      );
+      padding-right: calc(var(--spacing-sm) + var(--overlay-gap) + var(--avatar-size));
     }
   }
 
@@ -109,8 +148,7 @@
     height: var(--avatar-size);
     border-radius: var(--border-radius-full);
     background: var(--color-border-strong);
-    animation: session-loading var(--session-loading-duration, 1.2s) ease-in-out
-      infinite alternate;
+    animation: session-loading var(--session-loading-duration, 1.2s) ease-in-out infinite alternate;
 
     &[hidden] {
       display: none;
@@ -149,17 +187,14 @@
   /* Popovers render in the top layer, so this is positioned against the viewport. */
   .account-menu {
     inset: auto;
-    top: calc(
-      var(--spacing-md) + var(--brand-mark-size) + var(--spacing-md) +
-        var(--spacing-sm)
-    );
+    top: calc(var(--spacing-md) + var(--brand-mark-size) + var(--spacing-md) + var(--spacing-sm));
     right: var(--spacing-md);
     width: var(--account-menu-width);
     max-width: calc(100vw - 2 * var(--spacing-md));
     /* Taller than the screen (a short window, many settings), it scrolls. */
     max-height: calc(
-      100dvh - var(--spacing-md) - var(--brand-mark-size) - var(--spacing-md) -
-        var(--spacing-sm) - var(--spacing-md)
+      100dvh - var(--spacing-md) - var(--brand-mark-size) - var(--spacing-md) - var(--spacing-sm) -
+        var(--spacing-md)
     );
     overflow-y: auto;
     margin: 0;

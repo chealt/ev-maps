@@ -75,8 +75,7 @@ ev-google-map {
   align-items: center;
   gap: var(--spacing-sm);
   max-width: calc(100% - 2 * var(--spacing-md));
-  padding: var(--spacing-xs) var(--spacing-md) var(--spacing-xs)
-    var(--overlay-gap);
+  padding: var(--spacing-xs) var(--spacing-md) var(--spacing-xs) var(--overlay-gap);
   border-radius: var(--border-radius-full);
   box-shadow: var(--shadow-md);
   font-family: var(--font-family);
@@ -327,10 +326,7 @@ ev-google-map {
   .operator-options {
     list-style: none;
     display: grid;
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(var(--operator-option-min-width), 1fr)
-    );
+    grid-template-columns: repeat(auto-fill, minmax(var(--operator-option-min-width), 1fr));
     gap: var(--spacing-2xs) var(--spacing-md);
   }
 
@@ -370,10 +366,7 @@ ev-google-map {
 
   .options {
     display: grid;
-    grid-template-columns: repeat(
-      auto-fill,
-      minmax(var(--filter-option-min-width), 1fr)
-    );
+    grid-template-columns: repeat(auto-fill, minmax(var(--filter-option-min-width), 1fr));
     gap: var(--spacing-sm);
 
     /* A label longer than its cell (a language's, a wider font, a larger
@@ -411,15 +404,14 @@ ev-google-map {
   background: var(--gradient-brand);
   color: var(--color-primary-contrast);
   box-shadow: var(--shadow-md);
-  transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset)))
-    rotate(-45deg);
+  transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset))) rotate(-45deg);
   transform-origin: center;
   transition: transform var(--transition-base);
   cursor: pointer;
 
   &:hover {
-    transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset)))
-      rotate(-45deg) scale(var(--marker-active-scale));
+    transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset))) rotate(-45deg)
+      scale(var(--marker-active-scale));
   }
 
   .marker-icon {
@@ -448,8 +440,8 @@ ev-google-map {
   &.active {
     background: var(--color-secondary);
     color: var(--color-secondary-contrast);
-    transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset)))
-      rotate(-45deg) scale(var(--marker-active-scale));
+    transform: translateY(calc(var(--marker-size) * var(--marker-tip-offset))) rotate(-45deg)
+      scale(var(--marker-active-scale));
   }
 
   .icon {
@@ -621,9 +613,7 @@ ev-google-map {
 
     &.after {
       right: 0;
-      width: calc(
-        (100% - var(--route-bend-width)) * (1 - var(--route-ratio, 0.5))
-      );
+      width: calc((100% - var(--route-bend-width)) * (1 - var(--route-ratio, 0.5)));
     }
   }
 
@@ -633,8 +623,7 @@ ev-google-map {
     position: absolute;
     bottom: 0;
     left: calc(
-      var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) *
-        var(--route-ratio, 0.5)
+      var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
     );
     z-index: 1;
     width: var(--route-bend-width);
@@ -908,10 +897,7 @@ ev-google-map {
 
     list-style: none;
     display: grid;
-    grid-template-columns: repeat(
-      auto-fit,
-      minmax(var(--connector-column-min-width), 1fr)
-    );
+    grid-template-columns: repeat(auto-fit, minmax(var(--connector-column-min-width), 1fr));
     gap: var(--spacing-xs);
 
     .connector-card {
@@ -943,20 +929,12 @@ ev-google-map {
 
       &[data-state="occupied"] {
         border-top-color: var(--color-warning);
-        background: color-mix(
-          in srgb,
-          var(--color-warning) 10%,
-          var(--color-surface-muted)
-        );
+        background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface-muted));
       }
 
       &[data-state="out-of-service"] {
         border-top-color: var(--color-danger);
-        background: color-mix(
-          in srgb,
-          var(--color-danger) 10%,
-          var(--color-surface-muted)
-        );
+        background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface-muted));
       }
     }
 
@@ -1261,8 +1239,7 @@ ev-google-map {
   .map-status {
     min-height: var(--status-min-height);
     gap: var(--spacing-sm);
-    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm)
-      var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-base);
   }
 }
@@ -1304,17 +1281,20 @@ ev-google-map {
     top: var(--spacing-md);
     left: var(--spacing-md);
     translate: none;
-    max-width: calc(
-      100% - 2 * var(--spacing-md) - var(--top-bar-menu-width) -
-        var(--spacing-sm)
-    );
+    max-width: calc(100% - 2 * var(--spacing-md) - var(--top-bar-menu-width) - var(--spacing-sm));
     /* One line, as tall as the account menu's box next to it: the two read
        as one top row. Long texts end in an ellipsis. */
-    min-height: var(--status-min-height);
-    padding: var(--spacing-2xs) var(--spacing-sm);
+    height: var(--top-bar-height);
+    padding: 0 var(--spacing-sm);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
+
+    .list-icon,
+    .zoom-icon {
+      width: var(--top-bar-icon-size);
+      height: var(--top-bar-icon-size);
+    }
   }
 
   .map-controls {
