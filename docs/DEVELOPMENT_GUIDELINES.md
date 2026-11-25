@@ -17,6 +17,14 @@ project.
 
 **❌ NEVER use shadow DOM in Web Components (unless explicitly approved).**
 
+**✅ DO build every control from the design system: `@ev-maps/ui`
+components, the design tokens, and the styles of the controls already
+shipped (e.g. the place input's fields, the corridor's chips).**
+
+**❌ NEVER ship raw, default-styled browser controls** (bare `<select>`,
+`<input>` or `<button>` with only a border), and never leave controls in a
+row misaligned: give them one height and align them at the bottom.
+
 ### Architecture Pattern
 
 **Create Web Components ONLY for specific custom functionality,
@@ -387,6 +395,27 @@ const {
   }
 }
 ```
+
+### Controls: Use the Design System
+
+Every interactive control — button, input, select, chip — must look like the
+rest of the app, on every page including the admin area:
+
+- Use the `@ev-maps/ui` components (`Button`, `Icon`) where one fits; don't
+  hand-roll a styled `<button>`.
+- Style inputs and selects like the app's fields: soft muted background
+  (`--color-surface-muted`), `--border-radius-md`, the primary focus ring,
+  no hard borders. Replace the native select arrow with a Lucide chevron
+  (`appearance: none` plus an absolutely positioned `Icon`), so it doesn't
+  look like a 2005 form.
+- Use the design tokens (`--color-*`, `--spacing-*`, `--font-size-*`,
+  `--transition-fast`) — never raw colors, pixel font sizes or magic
+  paddings.
+- Controls side by side in a row share one height and align at the bottom
+  (`align-items: flex-end`), buttons and links included.
+- Verify visually before opening a pull request: screenshot the control in
+  both themes (or look at the `@ui` evidence) and check alignment, spacing
+  and hover/focus states.
 
 ### Icons
 
