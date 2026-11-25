@@ -1274,6 +1274,19 @@ ev-google-map {
 
 /* Mobile */
 @media (width < 40em) {
+  /* The status pill joins the top bar's row (next to the logo and the
+     account menu) instead of floating below it over the map, so more of the
+     map stays in view; long texts wrap inside the space the bar leaves. */
+  .map-status {
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    translate: none;
+    max-width: calc(100% - 13rem);
+    padding: var(--spacing-2xs) var(--spacing-sm) var(--spacing-2xs) var(--spacing-xs);
+    white-space: normal;
+    text-align: start;
+  }
+
   .map-controls {
     left: var(--spacing-md);
     right: var(--spacing-md);

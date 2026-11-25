@@ -241,6 +241,21 @@ test(
   }
 );
 
+test("on mobile, the status pill sits in the top bar's row, not over the map", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  const status = await page.locator(".map-status").boundingBox();
+  const bar = await page.locator(".user-menu .bar").boundingBox();
+  // The same row as the logo and the account menu, on its left.
+  expect(Math.abs(status.y - bar.y)).toBeLessThan(20);
+  expect(status.x + status.width).toBeLessThanOrEqual(bar.x + 1);
+  await captureUi(page, testInfo, "the status pill in the top bar's row on mobile");
+});
+
 test("shows the app's name, as on Google's sign-in consent screen", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeVisible();
   await expect(page).toHaveTitle(/^EV Maps/);
