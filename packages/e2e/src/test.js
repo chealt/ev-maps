@@ -84,7 +84,7 @@ const compareWithMain = async (page, testInfo, caption) => {
   }
 };
 
-// Colors in the middle of a fade-in aren't what anyone reads; nor a page
+// Colors in the middle of a fade-in (or a theme's transition) aren't what anyone reads; nor a page
 // still scrolling: this waits until no scrolled area (a dialog, the
 // charger's panel) has moved for a few frames, so a focus or a hover that
 // scrolls it has, every run, by the time of the screenshot.
@@ -108,14 +108,36 @@ const settle = (page) =>
     }
   });
 
-// Attaches a screenshot of the page now as UI evidence, with a caption.
+// The page as it is, and in the other color scheme too (#308): "ui: {caption}"
+// and "ui: {caption} (dark)" (or "(light)"), each in its scheme, and each
+// compared with main's (compareWithMain). Not the other scheme when the page
+// has a theme of its own (the theme picker's data-theme), which the system's
+// scheme doesn't change.
 const captureUi = async (page, testInfo, caption) => {
-  await settle(page);
-  await testInfo.attach(caption ? `ui: ${caption}` : "ui", {
-    contentType: "image/png",
-    body: await page.screenshot(),
-  });
-  await compareWithMain(page, testInfo, caption);
+  const capture = async (name) => {
+    await settle(page);
+    await testInfo.attach(name ? `ui: ${name}` : "ui", {
+      contentType: "image/png",
+      body: await page.screenshot(),
+    });
+    await compareWithMain(page, testInfo, name);
+  };
+  await capture(caption);
+  const { dark, themed } = await page.evaluate(() => ({
+    dark: matchMedia("(prefers-color-scheme: dark)").matches,
+    themed: Boolean(document.documentElement.dataset.theme),
+  }));
+  if (themed) {
+    return;
+  }
+  const other = dark ? "light" : "dark";
+  await page.emulateMedia({ colorScheme: other });
+  try {
+    await capture(caption ? `${caption} (${other})` : other);
+  } finally {
+    await page.emulateMedia({ colorScheme: dark ? "dark" : "light" });
+    await settle(page);
+  }
 };
 
 const isUiEvidence = ({ name }) => name === "ui" || name.startsWith("ui: ");
@@ -142,10 +164,7 @@ const test = base.extend({
     if (testInfo.tags.includes(UI_TAG) && !testInfo.attachments.some(isUiEvidence)) {
       await captureUi(page, testInfo);
     }
-    // Colors in the middle of a fade-in aren't what anyone reads.
-    await page.evaluate(() =>
-      Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})))
-    );
+    await settle(page);
     const results = await new AxeBuilder({ page }).withTags(WCAG).analyze();
     await testInfo.attach("axe", {
       contentType: "application/json",
