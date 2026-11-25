@@ -600,8 +600,9 @@ test(
     const stops = dialog.getByRole("group", { name: "Stops" });
     await expect(stops).toBeVisible();
     await expect(stops.getByText("Downtown Supercharger")).toBeVisible();
-    // The planned route's distance into the stop is shown next to it.
-    await expect(stops.getByText(/from the previous point/)).toBeVisible();
+    // The planned route's legs are shown between the points they join: into
+    // the stop, and from it into To.
+    await expect(stops.getByText(/from the previous point/)).toHaveCount(2);
     await expect(
       dialog.getByRole("region", { name: "Recent routes" }).getByRole("button", {
         name: /^Budapest, Hungary → Downtown Supercharger → Vienna, Austria/,

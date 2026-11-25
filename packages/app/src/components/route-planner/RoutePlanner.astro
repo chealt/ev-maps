@@ -96,16 +96,19 @@ const placePresets = [
         <span class="label" id="route-stops-title">
           {page.routeStops}
         </span>
+        <!-- Each leg's distance sits between the points it joins: before each
+             stop (from the previous point), and after the last (to To). -->
         <ol class="stop-list"></ol>
+        <p class="stop-leg final-leg" hidden></p>
         <template class="stop-template">
           <li class="stop-item">
-            <span class="stop-text">
+            <p class="stop-leg" hidden></p>
+            <span class="stop-chip">
               <span class="stop-name"></span>
-              <span class="stop-distance" hidden></span>
+              <Button variant="ghost" size="icon-only" class="remove-stop">
+                <Icon icon={X} size="sm" />
+              </Button>
             </span>
-            <Button variant="ghost" size="icon-only" class="remove-stop">
-              <Icon icon={X} size="sm" />
-            </Button>
           </li>
         </template>
       </div>
