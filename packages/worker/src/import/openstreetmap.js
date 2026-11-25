@@ -2,23 +2,14 @@
 // 1°×1° grid cell per job, across Eastern Europe. OpenStreetMap data is
 // © OpenStreetMap contributors, licensed under the ODbL.
 
+import { fetchOverpass } from "./overpass.js";
 import { iso1A2Code } from "@rapideditor/country-coder";
 import { deleteUnseen, upsertChargers } from "../db.js";
 
 const SOURCE = "osm";
 const LICENSE = "ODbL 1.0, © OpenStreetMap contributors";
-// Public Overpass instances are often overloaded; try them in turn.
-const OVERPASS_URLS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.private.coffee/api/interpreter",
-  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-];
 // Eastern Europe: from the Adriatic and the Baltic to Ukraine.
 const REGION = { south: 39, north: 60, west: 12, east: 41 };
-// Overpass queries time out on the server (60 s for chargers, 120 s for the
-// places next to them: a big city's cell took 40 s); an overloaded instance
-// may never answer, which would block the whole import run.
-const REQUEST_TIMEOUT_MS = 150 * 1000;
 
 const CONNECTOR_NAMES = {
   type1: "Type 1 (J1772)",
@@ -94,27 +85,6 @@ const query = ({ south, west, north, east }) =>
 
 // The elements an Overpass query returns, from the first instance that
 // answers.
-const fetchOverpass = async (overpassQuery) => {
-  const errors = [];
-  for (const url of OVERPASS_URLS) {
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        body: new URLSearchParams({ data: overpassQuery }),
-        headers: { "user-agent": "ev-maps importer (https://ev.chealt.com)" },
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      });
-      if (response.ok) {
-        return (await response.json()).elements ?? [];
-      }
-      errors.push(`${new URL(url).host}: ${response.status}`);
-    } catch (error) {
-      errors.push(`${new URL(url).host}: ${error.message}`);
-    }
-  }
-  throw new Error(`Overpass failed: ${errors.join("; ")}`);
-};
-
 const fetchElements = (bounds) => fetchOverpass(query(bounds));
 
 const hasLocation = (charger) => Number.isFinite(charger.lat) && Number.isFinite(charger.lng);
