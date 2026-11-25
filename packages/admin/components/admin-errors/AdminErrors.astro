@@ -1,5 +1,6 @@
 ---
-import { ArrowLeft } from "lucide-static";
+import { ArrowLeft, ChevronDown } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminErrors.css";
@@ -131,47 +132,59 @@ const occurrenceFacts = (occurrence: any) => [
         <form class="filters" method="get" aria-label={page.adminErrorFilters}>
           <label class="filter">
             <span class="filter-label">{page.adminSourceColumn}</span>
-            <select name="source">
-              <option value="">{page.adminFilterAll}</option>
-              {facets.sources.map((source: string) => (
-                <option value={source} selected={filters.source === source}>
-                  {page.adminErrorSources[source] ?? source}
-                </option>
-              ))}
-            </select>
+            <span class="select-wrap">
+              <select name="source">
+                <option value="">{page.adminFilterAll}</option>
+                {facets.sources.map((source: string) => (
+                  <option value={source} selected={filters.source === source}>
+                    {page.adminErrorSources[source] ?? source}
+                  </option>
+                ))}
+              </select>
+              <Icon icon={ChevronDown} size="sm" class="chevron" />
+            </span>
           </label>
           <label class="filter">
             <span class="filter-label">{page.adminBrowserColumn}</span>
-            <select name="browser">
-              <option value="">{page.adminFilterAll}</option>
-              {facets.browsers.map((browser: string) => (
-                <option value={browser} selected={filters.browser === browser}>
-                  {browser}
-                </option>
-              ))}
-            </select>
+            <span class="select-wrap">
+              <select name="browser">
+                <option value="">{page.adminFilterAll}</option>
+                {facets.browsers.map((browser: string) => (
+                  <option value={browser} selected={filters.browser === browser}>
+                    {browser}
+                  </option>
+                ))}
+              </select>
+              <Icon icon={ChevronDown} size="sm" class="chevron" />
+            </span>
           </label>
           <label class="filter">
             <span class="filter-label">{page.adminOsColumn}</span>
-            <select name="os">
-              <option value="">{page.adminFilterAll}</option>
-              {facets.oss.map((os: string) => (
-                <option value={os} selected={filters.os === os}>
-                  {os}
-                </option>
-              ))}
-            </select>
+            <span class="select-wrap">
+              <select name="os">
+                <option value="">{page.adminFilterAll}</option>
+                {facets.oss.map((os: string) => (
+                  <option value={os} selected={filters.os === os}>
+                    {os}
+                  </option>
+                ))}
+              </select>
+              <Icon icon={ChevronDown} size="sm" class="chevron" />
+            </span>
           </label>
           <label class="filter">
             <span class="filter-label">{page.adminCountryLabel}</span>
-            <select name="country">
-              <option value="">{page.adminFilterAll}</option>
-              {facets.countries.map((country: string) => (
-                <option value={country} selected={filters.country === country}>
-                  {country}
-                </option>
-              ))}
-            </select>
+            <span class="select-wrap">
+              <select name="country">
+                <option value="">{page.adminFilterAll}</option>
+                {facets.countries.map((country: string) => (
+                  <option value={country} selected={filters.country === country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+              <Icon icon={ChevronDown} size="sm" class="chevron" />
+            </span>
           </label>
           <label class="filter search">
             <span class="filter-label">{page.adminFilterSearch}</span>
@@ -179,21 +192,24 @@ const occurrenceFacts = (occurrence: any) => [
           </label>
           <label class="filter">
             <span class="filter-label">{page.adminFilterSort}</span>
-            <select name="sort">
-              <option value="last_seen" selected={(data.sort ?? "last_seen") === "last_seen"}>
-                {page.adminSortLastSeen}
-              </option>
-              <option value="first_seen" selected={data.sort === "first_seen"}>
-                {page.adminSortFirstSeen}
-              </option>
-              <option value="count" selected={data.sort === "count"}>
-                {page.adminSortCount}
-              </option>
-            </select>
+            <span class="select-wrap">
+              <select name="sort">
+                <option value="last_seen" selected={(data.sort ?? "last_seen") === "last_seen"}>
+                  {page.adminSortLastSeen}
+                </option>
+                <option value="first_seen" selected={data.sort === "first_seen"}>
+                  {page.adminSortFirstSeen}
+                </option>
+                <option value="count" selected={data.sort === "count"}>
+                  {page.adminSortCount}
+                </option>
+              </select>
+              <Icon icon={ChevronDown} size="sm" class="chevron" />
+            </span>
           </label>
-          <button class="apply" type="submit">
+          <Button variant="secondary" size="small" type="submit" class="apply">
             {page.adminFilterApply}
-          </button>
+          </Button>
           {filtering && (
             <a class="clear" href={Astro.url.pathname}>
               {page.adminFilterClear}

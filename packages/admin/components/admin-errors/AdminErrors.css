@@ -14,8 +14,11 @@
   }
 
   /* The filter and order choices; a plain GET form, working without
-     JavaScript, resetting the pager like a new question would. */
+     JavaScript, resetting the pager like a new question would. One
+     height, aligned at the bottom, styled like the app's fields. */
   .filters {
+    --admin-filter-height: 2.375rem;
+
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -40,27 +43,60 @@
     color: var(--color-text-muted);
   }
 
-  .filters select,
-  .filters input,
-  .apply {
-    padding: var(--spacing-2xs) var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-sm);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
+  .select-wrap {
+    position: relative;
+    display: flex;
   }
 
-  .apply {
-    background: var(--color-primary-light);
-    color: var(--color-primary-light-text);
-    font-weight: var(--font-weight-semibold);
+  .filters select,
+  .filters input {
+    height: var(--admin-filter-height);
+    padding: 0 var(--spacing-sm);
+    border: var(--border-width) solid transparent;
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+    font: inherit;
     cursor: pointer;
+    transition:
+      background-color var(--transition-fast),
+      border-color var(--transition-fast);
+
+    &:hover {
+      background-color: var(--color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: var(--border-width-thick) solid var(--color-primary);
+      outline-offset: var(--border-width);
+    }
+  }
+
+  .filters select {
+    appearance: none;
+    padding-right: 2rem;
+  }
+
+  .chevron {
+    position: absolute;
+    right: var(--spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    pointer-events: none;
+  }
+
+  .apply,
+  .clear {
+    align-self: flex-end;
+    height: var(--admin-filter-height);
   }
 
   .clear {
-    align-self: center;
+    display: inline-flex;
+    align-items: center;
     font-size: var(--font-size-sm);
+    white-space: nowrap;
   }
 
   .table-wrapper {
