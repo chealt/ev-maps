@@ -142,4 +142,4 @@ const runStep = async (env, job) => {
   return split ? { done: next + 1 === QUADRANTS, cursor: next + 1 } : { done: true };
 };
 
-export { listJobs, runStep, SOURCE };
+export { listJobs, QUADRANTS, quadrantOf, runStep, SOURCE };
