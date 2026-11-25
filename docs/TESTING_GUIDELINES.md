@@ -20,6 +20,8 @@ they give you.
 
 **❌ NEVER check layout or visual appearance in end-to-end tests.**
 
+**❌ NEVER write a Playwright spec for what a `@ui` spec's UI evidence already shows.**
+
 ## Finding Elements
 
 Users (and screen readers) find elements by their role and accessible name,
@@ -154,6 +156,15 @@ before closing what they opened; without one, the page as the test left
 it), next to the video CI records of every test. Both are in the Playwright
 report the CI publishes, linked from its commit status, so the review sees
 the control as Playwright actually exercised it.
+
+That evidence is the visual check: if a `@ui` spec already captures the
+control, don't add a Playwright spec that re-measures or re-asserts it
+(e.g. two fields' sizes being equal, an element lining up, a color being
+applied). Such specs repeat what the screenshot and video already show, and
+break on sub-pixel rounding, fonts and browser versions. Test behavior
+(what the user finds, reads and does); let the `@ui` evidence show how it
+looks. If the behavior isn't covered yet, add the spec to the spec that
+already captures the control's `@ui` moment rather than a new one.
 
 ## External Services
 
