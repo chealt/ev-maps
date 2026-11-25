@@ -127,6 +127,31 @@ the element is probably not accessible either. For example:
 - Use semantic elements (`<button>`, `<nav>`, `<aside>`, headings) instead of
   generic `<div>`s.
 
+## What Gets an End-to-End Test
+
+End-to-end tests are slow: each starts a browser and the app. Keep them for
+the critical paths a user takes, and the wiring between the page's parts
+(the dialog's choices reach the map, a reload restores them, the account
+gets them). Test the rules underneath with unit tests (`*.test.js`, run by
+`bun test`), which run in milliseconds:
+
+- **Logic is a unit test.** Which chargers a filter matches, how prices
+  compare, how a distance is formatted, when a cache expires: test the
+  function, with every case and boundary, not through the map. If the logic
+  is inside a component, move it into a module first (e.g. `ChargerIndex`
+  in `charger-index.js`, tested in `charger-index.test.js`).
+- **One flow, not one test per step.** Testing a feature end to end means
+  one test that walks through it (turn a filter on, see the map change,
+  reload, clear it), not a test per step with the same setup each time.
+  Separate tests only for separate starting points (signed out or in, a
+  failing API).
+- **No variants of the same path.** Four sign-in providers take the same
+  code path: test one end to end, the rest in a unit test if at all.
+- **No looks.** See [No Visual Checks](#no-visual-checks).
+
+When you add an end-to-end test, say in a comment what the unit tests cover
+instead, as the filter specs do.
+
 ## No Visual Checks
 
 End-to-end tests must not check how the page looks or where things are.
