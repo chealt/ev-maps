@@ -103,7 +103,11 @@ const createAuth = async (env, baseURL) => {
     },
     // The session, signed, in a cookie for 5 minutes: checking who's signed
     // in (e.g. for every status request) doesn't need the database then.
-    session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },
+    // freshAge 0: no "fresh session" requirement for sensitive calls (e.g.
+    // adding a passkey): a valid session is enough — signing in here is the
+    // email link or a passkey, so an age limit only locked out users whose
+    // session was over a day old.
+    session: { freshAge: 0, cookieCache: { enabled: true, maxAge: 5 * 60 } },
   });
   // Passkeys always; email where it can be sent (or locally, where the link
   // is logged).
@@ -178,4 +182,4 @@ const routes = [
   },
 ];
 
-export { handleAuth, isAuthPath, routes, userOf };
+export { createAuth, handleAuth, isAuthPath, routes, userOf };
