@@ -1,6 +1,6 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
-import { Route, RouteOff } from "lucide-static";
+import { Route, X } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./RouteButton.css";
@@ -36,7 +36,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
       aria-keyshortcuts="x"
       hidden
     >
-      <Icon icon={RouteOff} />
+      <Icon icon={X} />
     </Button>
   </span>
   <script src="./RouteButton.js"></script>

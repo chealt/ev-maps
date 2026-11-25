@@ -1,6 +1,6 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
-import { FilterX, SlidersHorizontal } from "lucide-static";
+import { SlidersHorizontal, X } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./FilterButton.css";
@@ -41,7 +41,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
       aria-keyshortcuts="c"
       hidden
     >
-      <Icon icon={FilterX} />
+      <Icon icon={X} />
     </Button>
   </span>
   <span class="visually-hidden" id="active-filter-count"></span>
