@@ -46,16 +46,26 @@
     --overlay-gap: var(--spacing-sm);
 
     .bar {
-      width: var(--top-bar-menu-width);
+      max-width: var(--top-bar-menu-width);
       height: var(--top-bar-height);
     }
 
-    .brand {
+    /* With the name hidden, the logo alone: the same room on both sides.
+       (.bar: the base .brand rule comes later in the file.) */
+    .bar .brand {
       padding-block: 0;
+      padding-inline-end: var(--spacing-sm);
     }
 
+    /* No room for the name next to the pill: the logo shows the app, the
+       name stays for screen readers (as .visually-hidden). */
     .app-name {
-      font-size: var(--font-size-base);
+      position: absolute;
+      width: var(--border-width);
+      height: var(--border-width);
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     .mark svg {
@@ -111,6 +121,7 @@
   }
 
   .app-name {
+    white-space: nowrap;
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-tight);
