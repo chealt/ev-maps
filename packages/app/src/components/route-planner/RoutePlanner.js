@@ -284,6 +284,7 @@ class RoutePlannerElement extends HTMLElement {
         return item;
       })
     );
+    this.renderLeg(this.querySelector(".first-leg"), this.stopDistances?.[0]);
     // The last leg, from the last stop into To.
     this.renderLeg(
       this.querySelector(".final-leg"),
@@ -356,8 +357,12 @@ class RoutePlannerElement extends HTMLElement {
       ...this.stops.map((stop, index) => {
         const item = template.content.firstElementChild.cloneNode(true);
         item.querySelector(".stop-name").textContent = stop.label;
-        // The leg into this stop along the planned route, once one exists.
-        this.renderLeg(item.querySelector(".stop-leg"), this.stopDistances?.[index]);
+        // The leg into this stop along the planned route, once one exists;
+        // the first stop's is above the stops' label, after From.
+        this.renderLeg(
+          item.querySelector(".stop-leg"),
+          index === 0 ? null : this.stopDistances?.[index]
+        );
         const remove = item.querySelector(".remove-stop");
         remove.disabled = !signedIn;
         remove.setAttribute("aria-label", message("removeRouteStop", { stop: stop.label }));

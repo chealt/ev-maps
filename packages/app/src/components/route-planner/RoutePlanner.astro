@@ -93,6 +93,9 @@ const placePresets = [
       </PlaceInput>
       <!-- Chargers added as stops along the route; each can be removed. -->
       <div class="route-stops" role="group" aria-labelledby="route-stops-title" hidden>
+        <!-- The leg from From into the first stop: above the stops' label,
+             between the two inputs. -->
+        <p class="stop-leg first-leg" hidden></p>
         <span class="label" id="route-stops-title">
           {page.routeStops}
         </span>

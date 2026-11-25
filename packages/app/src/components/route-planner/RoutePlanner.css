@@ -1,8 +1,12 @@
 .route-planner {
+  /* Between the form's parts (From, the stops, To), and around each leg
+     between them. */
+  --route-form-gap: var(--spacing-lg);
+
   .body {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: var(--route-form-gap);
   }
 
   .sign-in-needed {
@@ -44,13 +48,16 @@
   .route-stops {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    /* The form's gap, so each leg sits midway between its two points. */
+    gap: var(--route-form-gap);
 
     &[hidden] {
       display: none;
     }
 
+    /* Snug above the first stop, like an input's label. */
     .label {
+      margin-bottom: calc(var(--spacing-xs) - var(--route-form-gap));
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-sm);
     }
@@ -58,7 +65,7 @@
     .stop-list {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-2xs);
+      gap: var(--route-form-gap);
       margin: 0;
       padding: 0;
       list-style: none;
@@ -67,7 +74,7 @@
     .stop-item {
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-2xs);
+      gap: var(--route-form-gap);
     }
 
     .stop-chip {
@@ -89,12 +96,23 @@
 
     /* A leg between two points: a dashed line down from the one above, with
        its distance. */
+    /* A leg between two points, centered between them: its distance on a
+       dashed line running from the one above to the one below. */
     .stop-leg {
-      margin-inline-start: var(--spacing-md);
-      padding: var(--spacing-2xs) 0 var(--spacing-2xs) var(--spacing-sm);
-      border-inline-start: var(--border-width-thick) dashed var(--color-border-strong);
-      font-size: var(--font-size-xs);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-2xs);
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
       color: var(--color-text-muted);
+
+      &::before,
+      &::after {
+        content: "";
+        height: var(--spacing-sm);
+        border-inline-start: var(--border-width-thick) dashed var(--color-border-strong);
+      }
 
       &[hidden] {
         display: none;
