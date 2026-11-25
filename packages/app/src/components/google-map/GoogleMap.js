@@ -1188,6 +1188,8 @@ class GoogleMapElement extends HTMLElement {
     list.querySelector(".title").textContent = message("chargerCount", { count });
     const sortOptions = list.querySelector(".sort-options");
     sortOptions.hidden = !this.route;
+    // Along a route, the sort toggle says how the list is sorted.
+    list.querySelector(".sort-basis").hidden = Boolean(this.route);
     list.querySelector(".sort-basis").textContent = this.route
       ? message("sortedBy", { by: this.sortByLabel() })
       : message(this.userLocation ? "nearestToYou" : "nearestToCenter");
@@ -1204,14 +1206,20 @@ class GoogleMapElement extends HTMLElement {
           item.querySelector(".distance").textContent = formatDistance(meters);
         }
         const price = describePriciness(this.pricinessOf(charger));
-        item.querySelector(".meta").textContent = [
+        const facts = [
           charger.maxPowerKw ? message("power", { power: charger.maxPowerKw }) : null,
           // Compared with the loaded chargers, e.g. the route's.
           price && message("pricinessShort", { scale: price.scale }),
-          charger.address,
-        ]
-          .filter(Boolean)
-          .join(" · ");
+        ].filter(Boolean);
+        item.querySelector(".facts").replaceChildren(
+          ...facts.map((fact) => {
+            const chip = document.createElement("span");
+            chip.className = "fact";
+            chip.textContent = fact;
+            return chip;
+          })
+        );
+        item.querySelector(".address").textContent = charger.address ?? "";
         return item;
       })
     );

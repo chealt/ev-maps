@@ -344,13 +344,23 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <!-- Along a route: sort the list by distance from the start, to
                the end, or off the route. -->
           <fieldset class="sort-options" hidden>
-            <legend class="visually-hidden">{page.sortBy}</legend>
-            {["start", "end", "route"].map((by, index) => (
-              <label class="sort-option">
-                <input type="radio" name="sort-by" value={by} checked={index === 0} />
-                {page.sortByOptions[by]}
-              </label>
-            ))}
+            <legend class="sort-legend">{page.sortByDistance}</legend>
+            <!-- A segmented toggle: the radios are only for keyboards and
+                 screen readers; the labels are the segments. -->
+            <span class="segments">
+              {["start", "end", "route"].map((by, index) => (
+                <label class="sort-option">
+                  <input
+                    type="radio"
+                    class="visually-hidden"
+                    name="sort-by"
+                    value={by}
+                    checked={index === 0}
+                  />
+                  {page.sortByOptions[by]}
+                </label>
+              ))}
+            </span>
           </fieldset>
         </div>
         <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeList}>
@@ -367,7 +377,9 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             <span class="distance"></span>
             <!-- Along a route: from the start, to the end, off the route. -->
             <span class="route-distances" hidden></span>
-            <span class="meta"></span>
+            <!-- Power and priciness as chips, then the address. -->
+            <span class="facts"></span>
+            <span class="address"></span>
           </button>
         </li>
       </template>

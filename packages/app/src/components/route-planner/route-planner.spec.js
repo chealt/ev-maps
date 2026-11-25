@@ -155,7 +155,9 @@ test("lists the chargers in order along the route", { tag: "@ui" }, async ({ pag
   await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
 
   const list = page.getByRole("dialog", { name: "2 EV chargers" });
-  await expect(list.getByText("Sorted by: distance from start")).toBeVisible();
+  await expect(
+    list.getByRole("group", { name: "Distance" }).getByRole("radio", { name: "From start" })
+  ).toBeChecked();
   const entries = list.getByRole("listitem");
   await expect(entries.nth(0)).toContainText("Downtown Supercharger");
   // Each charger shows where it sits along the route as a small graph,
@@ -532,17 +534,18 @@ test("sorts the chargers along the route by distance from the start, the end or 
   const list = page.getByRole("dialog", { name: "2 EV chargers" });
   const names = () =>
     list.locator(".recent-route, .item .name").evaluateAll((els) => els.map((e) => e.textContent));
-  const sortBy = (label) => list.getByRole("radio", { name: label }).check();
+  const sorting = list.getByRole("group", { name: "Distance" });
+  const sortBy = (label) => sorting.getByText(label, { exact: true }).click();
 
-  await expect(list.getByText("Sorted by: distance from start")).toBeVisible();
+  await expect(sorting.getByRole("radio", { name: "From start" })).toBeChecked();
   expect(await names()).toEqual(["Café charger", "Bare charger"]);
 
-  await sortBy("Distance to end");
-  await expect(list.getByText("Sorted by: distance to end")).toBeVisible();
+  await sortBy("To end");
+  await expect(sorting.getByRole("radio", { name: "To end" })).toBeChecked();
   expect(await names()).toEqual(["Bare charger", "Café charger"]);
 
-  await sortBy("Distance off the route");
-  await expect(list.getByText("Sorted by: distance off the route")).toBeVisible();
+  await sortBy("Off route");
+  await expect(sorting.getByRole("radio", { name: "Off route" })).toBeChecked();
 
   // Not along a route: no sorting to choose.
   await page.keyboard.press("Escape");

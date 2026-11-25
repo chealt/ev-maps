@@ -1173,17 +1173,28 @@ ev-google-map {
 
 /* Charger list */
 .charger-list {
+  /* The close button in the top corner, however tall the header grows. */
+  .header {
+    align-items: flex-start;
+  }
+
   .sort-basis {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
+
+    &[hidden] {
+      display: none;
+    }
   }
 
-  /* Along a route: by distance from the start, to the end or off it. */
+  /* Along a route: by distance from the start, to the end or off it, as one
+     segmented toggle on one row. */
   .sort-options {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-2xs);
-    margin-top: var(--spacing-xs);
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-sm);
+    margin-top: var(--spacing-sm);
     border: none;
     padding: 0;
 
@@ -1191,35 +1202,54 @@ ev-google-map {
       display: none;
     }
 
+    .sort-legend {
+      float: inline-start;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .segments {
+      display: inline-flex;
+      padding: var(--spacing-2xs);
+      border-radius: var(--border-radius-full);
+      background: var(--color-surface-muted);
+      box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
+    }
+
     .sort-option {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-2xs);
-      padding: var(--spacing-2xs) var(--spacing-sm);
-      border: var(--border-width) solid var(--color-border);
+      padding: var(--spacing-xs) var(--spacing-md);
       border-radius: var(--border-radius-full);
       font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-muted);
+      white-space: nowrap;
       cursor: pointer;
+      transition:
+        background var(--transition-fast),
+        color var(--transition-fast);
 
       &:hover {
-        background: var(--color-surface-hover);
+        color: var(--color-text);
       }
 
       &:has(input:checked) {
-        border-color: var(--color-primary);
-        background: var(--color-primary-light);
+        background: var(--color-surface);
         color: var(--color-primary-light-text);
-        font-weight: var(--font-weight-medium);
+        box-shadow: var(--shadow-sm);
       }
 
-      input {
-        margin: 0;
-        accent-color: var(--color-primary);
+      &:has(input:focus-visible) {
+        outline: var(--border-width-thick) solid var(--color-primary);
+        outline-offset: var(--border-width-thick);
       }
     }
   }
 
+  /* The chargers as cards. */
   .items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
     list-style: none;
   }
 
@@ -1227,42 +1257,84 @@ ev-google-map {
   .item {
     content-visibility: auto;
     contain-intrinsic-size: auto var(--list-item-height);
-    border-bottom: var(--border-width) solid var(--color-border);
   }
 
   .entry {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: var(--spacing-2xs) var(--spacing-md);
+    gap: var(--spacing-xs) var(--spacing-md);
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-xs);
-    border: none;
-    border-radius: var(--border-radius-sm);
-    background: none;
+    padding: var(--spacing-md);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
     color: inherit;
     font: inherit;
     text-align: start;
     cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      box-shadow var(--transition-fast);
 
     &:hover {
-      background: var(--color-surface-hover);
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-md);
+    }
+
+    &:focus-visible {
+      outline: var(--border-width-thick) solid var(--color-primary);
+      outline-offset: var(--border-width-thick);
     }
   }
 
   .name {
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     overflow-wrap: anywhere;
   }
 
   .distance {
-    font-weight: var(--font-weight-semibold);
+    align-self: start;
+    padding: var(--spacing-2xs) var(--spacing-sm);
+    border-radius: var(--border-radius-full);
+    background: var(--color-primary-light);
     color: var(--color-primary-light-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+
+    &:empty {
+      display: none;
+    }
   }
 
-  .meta {
+  .facts {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .fact {
+    padding: var(--spacing-2xs) var(--spacing-sm);
+    border-radius: var(--border-radius-full);
+    background: var(--color-surface-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .address {
     grid-column: 1 / -1;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
+
+    &:empty {
+      display: none;
+    }
   }
 }
 
