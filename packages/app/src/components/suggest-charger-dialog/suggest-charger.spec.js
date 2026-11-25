@@ -193,6 +193,31 @@ test(
   }
 );
 
+test("Esc while choosing photos keeps the dialog open, and closes it otherwise", async ({
+  page,
+}) => {
+  await fakeAuthApi(page, { signedIn: true });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  await page
+    .getByRole("dialog", { name: "Account" })
+    .getByRole("button", {
+      name: "Suggest a charger",
+    })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Suggest a charger" });
+  await expect(dialog).toBeVisible();
+
+  // The focus is on the dropzone's file input right after its picker closes.
+  await dialog.locator(".charger-photo").focus();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeVisible();
+
+  await dialog.getByLabel("Location name").focus();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
 test("signed-out users see that signing in is required to suggest a charger", async ({ page }) => {
   await fakeAuthApi(page);
   await page.goto("/");
