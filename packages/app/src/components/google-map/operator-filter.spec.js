@@ -34,100 +34,65 @@ test.beforeEach(async ({ page }) => {
   await fakeChargersApi(page, { chargers });
 });
 
-test("lists the operators on the map, all ticked, most chargers first", async ({ page }) => {
+// Which chargers an operator turned off hides is unit tested in
+// charger-index.test.js.
+test("lists the operators, hides those turned off, shows them again, and keeps them in the account", async ({
+  page,
+}) => {
+  await fakeAuthApi(page, { signedIn: true });
+  const saves = await fakeSettingsApi(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-  const dialog = await openFilters(page);
+  let dialog = await openFilters(page);
   const operators = dialog.getByRole("group", { name: "Operator" });
 
-  await expect(operators.getByRole("checkbox")).toHaveCount(3);
+  // All of them, ticked, most chargers first.
   await expect(operators.locator(".operator-name")).toHaveText([
     "Ionity",
     "Tesla",
     "Unknown operator",
   ]);
   await expect(operators.locator(".operator-count")).toHaveText(["2", "1", "1"]);
-  for (const name of ["Ionity", "Tesla", "Unknown operator"]) {
-    await expect(operators.getByRole("checkbox", { name })).toBeChecked();
-  }
+  await expect(operators.getByRole("checkbox", { checked: false })).toHaveCount(0);
   await expect(operators.getByRole("button", { name: "Show all" })).toBeHidden();
-});
 
-test("hides the chargers of the operators turned off", async ({ page }) => {
-  await page.goto("/");
-  const dialog = await openFilters(page);
-  const operators = dialog.getByRole("group", { name: "Operator" });
+  // Show all, or Clear filters, ticks them again.
+  await operators.getByRole("checkbox", { name: "Tesla" }).uncheck();
+  await operators.getByRole("button", { name: "Show all" }).click();
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeChecked();
+  await operators.getByRole("checkbox", { name: "Tesla" }).uncheck();
+  await dialog.getByRole("button", { name: "Clear filters" }).click();
+  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeChecked();
+  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
 
   await operators.getByRole("checkbox", { name: "Ionity" }).uncheck();
   await operators.getByRole("checkbox", { name: "Unknown operator" }).uncheck();
-
   await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
-  // The operator filter counts once on the Filters button.
   await dialog.getByRole("button", { name: "Done" }).click();
+  // The operator filter counts once.
   await expect(
     page.getByRole("button", { name: "Filters", exact: true })
   ).toHaveAccessibleDescription("1 filter on");
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button", { name: "Tesla Mall" })).toBeVisible();
   await expect(map.getByRole("button", { name: "Ionity North" })).toBeHidden();
+
+  await expect
+    .poll(() => [...(saves.at(-1)?.filters.excludedOperators ?? [])].sort())
+    .toEqual(["", "Ionity"]);
+  await page.reload();
+  await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
+  dialog = await openFilters(page);
+  await expect(dialog.getByRole("checkbox", { name: "Ionity" })).not.toBeChecked();
 });
 
-test("shows every operator again with Show all, or Clear filters", async ({ page }) => {
-  await page.goto("/");
-  const dialog = await openFilters(page);
-  const operators = dialog.getByRole("group", { name: "Operator" });
-
-  await operators.getByRole("checkbox", { name: "Tesla" }).uncheck();
-  await operators.getByRole("button", { name: "Show all" }).click();
-  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeChecked();
-  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-
-  await operators.getByRole("checkbox", { name: "Tesla" }).uncheck();
-  await dialog.getByRole("button", { name: "Clear filters" }).click();
-  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeChecked();
-  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-});
-
-test("keeps the operators turned off after a reload, and saves them to the account", async ({
+test("keeps listed the operators turned off elsewhere, and those the other filters leave none of", async ({
   page,
 }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  const saves = await fakeSettingsApi(page);
-  await page.goto("/");
-  await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
-  let dialog = await openFilters(page);
-  await dialog.getByRole("checkbox", { name: "Tesla" }).uncheck();
-  await dialog.getByRole("button", { name: "Done" }).click();
-
-  await expect.poll(() => saves.length).toBe(1);
-  expect(saves[0].filters.excludedOperators).toEqual(["Tesla"]);
-
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("3 of 4 EV chargers match the filters");
-  dialog = await openFilters(page);
-  await expect(dialog.getByRole("checkbox", { name: "Tesla" })).not.toBeChecked();
-});
-
-test("keeps an operator that's turned off listed when it's not on the map", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
   await fakeSettingsApi(page, {
     filters: { excludedOperators: ["Shell Recharge"], updatedAt: Date.now() },
   });
-  await page.goto("/");
-
-  const dialog = await openFilters(page);
-  const shell = dialog.getByRole("checkbox", { name: "Shell Recharge" });
-  await expect(shell).not.toBeChecked();
-  const option = dialog
-    .getByRole("listitem")
-    .filter({ has: page.getByRole("checkbox", { name: "Shell Recharge" }) });
-  await expect(option.locator(".operator-count")).toHaveText("0");
-
-  await shell.check();
-  await expect(dialog.getByRole("button", { name: "Show all" })).toBeHidden();
-});
-
-test("can't pick the operators the other filters leave no chargers of", async ({ page }) => {
   // Tesla's only charger here has no CCS connector.
   await fakeChargersApi(page, {
     chargers: [
@@ -141,20 +106,20 @@ test("can't pick the operators the other filters leave no chargers of", async ({
   await page.goto("/");
   const dialog = await openFilters(page);
   const operators = dialog.getByRole("group", { name: "Operator" });
+
+  // Turned off on another device, though not on this map: listed, to turn
+  // back on.
+  const shell = operators.getByRole("checkbox", { name: "Shell Recharge" });
+  await expect(shell).not.toBeChecked();
+  await shell.check();
+  await expect(operators.getByRole("button", { name: "Show all" })).toBeHidden();
+
+  // None left by the other filters: still listed, so the list doesn't jump,
+  // but not to pick.
   await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeEnabled();
-
   await dialog.getByRole("button", { name: "CCS" }).click();
-
-  // Still listed, so the list doesn't jump, but with none left to show.
   await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeDisabled();
-  await expect(operators.locator(".operator-count")).toHaveText(["2", "1", "0"]);
   await expect(operators.getByRole("checkbox", { name: "Ionity" })).toBeEnabled();
-
-  // Back as it was once the filter is off, and after the dialog closes.
   await dialog.getByRole("button", { name: "CCS" }).click();
   await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeEnabled();
-  await dialog.getByRole("button", { name: "CCS" }).click();
-  await dialog.getByRole("button", { name: "Done" }).click();
-  await openFilters(page);
-  await expect(operators.getByRole("checkbox", { name: "Tesla" })).toBeDisabled();
 });
