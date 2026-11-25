@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { ERRORS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
@@ -12,6 +12,9 @@ const group = (index) => ({
   message: `Error number ${index}`,
   url: "https://ev.chealt.com/en/",
   context: null,
+  browser: index % 2 ? null : "Chrome",
+  os: index % 2 ? null : "Windows",
+  country: index % 2 ? "PL" : "HU",
   count: index + 1,
   users: 1,
   first_seen: minutesAgo(600),
@@ -67,11 +70,36 @@ const fakeErrorsData = async (page, groupCount) => {
         ],
       };
     }
+    // The Worker filters and orders like packages/admin/src/admin.js.
+    const sort = url.searchParams.get("sort") ?? "last_seen";
+    const matching = groups.filter((entry) =>
+      ["source", "country", "browser", "os"].every(
+        (key) => !url.searchParams.get(key) || entry[key] === url.searchParams.get(key)
+      )
+    );
+    const orders = {
+      last_seen: (a, b) => b.last_seen - a.last_seen,
+      first_seen: (a, b) => b.first_seen - a.first_seen,
+      count: (a, b) => b.count - a.count,
+    };
+    const ordered = matching.toSorted(orders[sort] ?? orders.last_seen);
     return {
-      groups: groups.slice((pageNumber - 1) * 25, pageNumber * 25),
+      groups: ordered.slice((pageNumber - 1) * 25, pageNumber * 25),
       page: pageNumber,
-      pages: Math.max(1, Math.ceil(groupCount / 25)),
-      total: groupCount,
+      pages: Math.max(1, Math.ceil(matching.length / 25)),
+      total: matching.length,
+      sort,
+      filters: Object.fromEntries(
+        ["source", "country", "browser", "os", "q"]
+          .map((key) => [key, url.searchParams.get(key)])
+          .filter(([, value]) => value)
+      ),
+      facets: {
+        sources: ["worker", "page"],
+        countries: ["HU", "PL"],
+        browsers: ["Chrome", "Firefox"],
+        oss: ["Windows"],
+      },
     };
   };
   await fakePageData(page, ERRORS_PAGE, (url) => ({ data: dataFor(url) }));
@@ -110,6 +138,34 @@ test("pages through many errors", async ({ page }) => {
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(6);
   await page.goBack();
   await expect(pager.getByText("Page 1 of 2")).toBeVisible();
+});
+
+test("filters the errors and orders them", { tag: "@ui" }, async ({ page }, testInfo) => {
+  await fakeErrorsData(page, 4);
+  await page.goto("/en/admin/errors/");
+
+  const filters = page.getByRole("form", { name: "Filter the errors" });
+  await filters.getByLabel("Where").selectOption("worker");
+  await filters.getByRole("button", { name: "Apply" }).click();
+
+  await expect(page).toHaveURL(/source=worker/);
+  const rows = page.getByRole("table").getByRole("row");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.nth(1)).toContainText("Server");
+  await expect(rows.nth(2)).toContainText("Server");
+  await expect(filters.getByLabel("Where")).toHaveValue("worker");
+
+  // Ordered by how often they happened: Error number 3 (4 times) first.
+  await filters.getByLabel("Sort by").selectOption("count");
+  await filters.getByRole("button", { name: "Apply" }).click();
+  await expect(page).toHaveURL(/sort=count/);
+  await expect(rows.nth(1)).toContainText("Error number 3");
+  await captureUi(page, testInfo, "the errors filtered to the server, most often first");
+
+  // Clearing goes back to everything.
+  await page.getByRole("link", { name: "Clear filters" }).click();
+  await expect(page).toHaveURL("/en/admin/errors/");
+  await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
 });
 
 test("renders the errors on the server, with no script", async ({ browser }) => {

@@ -58,28 +58,135 @@ const usageStats = async (db, days, now = Date.now()) => {
   return { days: dayList, events };
 };
 
-// Errors grouped by fingerprint, the most recently seen first, with the
-// details of the last one recorded.
-const errorGroups = async (db, page) => {
+// In SQL: the browser and the system in a user agent, best effort, e.g. for
+// the groups' columns and the filters.
+const BROWSER_SQL = `CASE
+  WHEN user_agent LIKE '%Firefox/%' THEN 'Firefox'
+  WHEN user_agent LIKE '%Edg/%' THEN 'Edge'
+  WHEN user_agent LIKE '%OPR/%' THEN 'Opera'
+  WHEN user_agent LIKE '%Chrome/%' THEN 'Chrome'
+  WHEN user_agent LIKE '%Safari/%' THEN 'Safari'
+  WHEN user_agent IS NOT NULL THEN 'Other'
+END`;
+const OS_SQL = `CASE
+  WHEN user_agent LIKE '%Android%' THEN 'Android'
+  WHEN user_agent LIKE '%iPhone%' OR user_agent LIKE '%iPad%' THEN 'iOS'
+  WHEN user_agent LIKE '%Windows%' THEN 'Windows'
+  WHEN user_agent LIKE '%Mac OS%' OR user_agent LIKE '%Macintosh%' THEN 'macOS'
+  WHEN user_agent LIKE '%Linux%' THEN 'Linux'
+  WHEN user_agent IS NOT NULL THEN 'Other'
+END`;
+
+// How the error groups can be ordered: ?sort= to the ORDER BY.
+const ERROR_SORTS = {
+  last_seen: "groups.last_seen DESC, groups.last_id DESC",
+  first_seen: "groups.first_seen DESC, groups.last_id DESC",
+  count: "groups.count DESC, groups.last_seen DESC",
+};
+
+// The error filters and order from a page's or the API's URL: ?source=
+// (worker or page), ?country=, ?browser=, ?os=, ?q= (in the message, URL or
+// job) and ?sort= (last_seen, first_seen or count).
+const errorFilters = (url) => {
+  const param = (name) => {
+    const value = url.searchParams.get(name)?.trim();
+    return value && value.length <= 100 ? value : null;
+  };
+  const source = param("source");
+  const country = param("country");
+  const sort = param("sort");
+  return {
+    sort: sort && sort in ERROR_SORTS ? sort : "last_seen",
+    source: ["worker", "page"].includes(source) ? source : null,
+    country: /^[A-Za-z]{2}$/.test(country ?? "") ? country.toUpperCase() : null,
+    browser: param("browser"),
+    os: param("os"),
+    q: param("q"),
+  };
+};
+
+const errorWhere = ({ source, country, browser, os, q }) => {
+  const clauses = [];
+  const params = [];
+  if (source) {
+    clauses.push("source = ?");
+    params.push(source);
+  }
+  if (country) {
+    clauses.push("country = ?");
+    params.push(country);
+  }
+  if (browser) {
+    clauses.push(`${BROWSER_SQL} = ?`);
+    params.push(browser);
+  }
+  if (os) {
+    clauses.push(`${OS_SQL} = ?`);
+    params.push(os);
+  }
+  if (q) {
+    clauses.push("(message LIKE ? OR url LIKE ? OR context LIKE ?)");
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+  }
+  return { where: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "", params };
+};
+
+// The values the filters offer, from all the errors kept.
+const errorFacets = async (db) => {
+  const values = async (select) =>
+    (await db.prepare(select).all()).results.map(({ value }) => value);
+  return {
+    sources: ["worker", "page"],
+    countries: await values(
+      "SELECT DISTINCT country AS value FROM errors WHERE country IS NOT NULL ORDER BY value"
+    ),
+    browsers: await values(
+      `SELECT DISTINCT ${BROWSER_SQL} AS value FROM errors WHERE user_agent IS NOT NULL ORDER BY value`
+    ),
+    oss: await values(
+      `SELECT DISTINCT ${OS_SQL} AS value FROM errors WHERE user_agent IS NOT NULL ORDER BY value`
+    ),
+  };
+};
+
+// Errors grouped by fingerprint, ordered by `filters.sort` (the most
+// recently seen first by default), with the details of the last matching one
+// recorded. `filters` are errorFilters()'s; only the occurrences matching
+// them count.
+const errorGroups = async (db, page, filters = {}) => {
+  const { where, params } = errorWhere(filters);
+  const order = ERROR_SORTS[filters.sort] ?? ERROR_SORTS.last_seen;
   const { total } = await db
-    .prepare("SELECT COUNT(DISTINCT fingerprint) AS total FROM errors")
+    .prepare(
+      `SELECT COUNT(*) AS total FROM (SELECT fingerprint FROM errors ${where} GROUP BY fingerprint)`
+    )
+    .bind(...params)
     .first();
   const { results } = await db
     .prepare(
       `SELECT errors.fingerprint, errors.source, errors.name, errors.message, errors.url,
-         errors.context, groups.count, groups.users, groups.first_seen, groups.last_seen
+         errors.context, errors.country, ${BROWSER_SQL} AS browser, ${OS_SQL} AS os,
+         groups.count, groups.users, groups.first_seen, groups.last_seen
        FROM (
          SELECT fingerprint, COUNT(*) AS count, COUNT(DISTINCT user_id) AS users,
            MIN(created_at) AS first_seen, MAX(created_at) AS last_seen, MAX(id) AS last_id
-         FROM errors GROUP BY fingerprint
+         FROM errors ${where} GROUP BY fingerprint
        ) AS groups
        JOIN errors ON errors.id = groups.last_id
-       ORDER BY groups.last_seen DESC, groups.last_id DESC
+       ORDER BY ${order}
        LIMIT ? OFFSET ?`
     )
-    .bind(ERRORS_PAGE_SIZE, (page - 1) * ERRORS_PAGE_SIZE)
+    .bind(...params, ERRORS_PAGE_SIZE, (page - 1) * ERRORS_PAGE_SIZE)
     .all();
-  return { groups: results, page, pages: Math.max(1, Math.ceil(total / ERRORS_PAGE_SIZE)), total };
+  return {
+    groups: results,
+    page,
+    pages: Math.max(1, Math.ceil(total / ERRORS_PAGE_SIZE)),
+    total,
+    sort: filters.sort ?? "last_seen",
+    filters,
+    facets: await errorFacets(db),
+  };
 };
 
 // One error's occurrences, newest first.
@@ -158,7 +265,7 @@ const createAdminArea = ({
       return json({ admin: true, email: user.email });
     }
     if (url.pathname === `${apiPrefix}errors`) {
-      return json(await errorGroups(db(env), pageOf(url)));
+      return json(await errorGroups(db(env), pageOf(url), errorFilters(url)));
     }
     if (url.pathname === `${apiPrefix}usage`) {
       const days = Number(url.searchParams.get("days"));
@@ -247,4 +354,4 @@ const createAdminArea = ({
   };
 };
 
-export { createAdminArea, errorGroups, errorOccurrences, usageStats };
+export { createAdminArea, errorFilters, errorGroups, errorOccurrences, usageStats };

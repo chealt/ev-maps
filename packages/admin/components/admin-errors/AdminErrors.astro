@@ -41,9 +41,26 @@ const timeAgo = (timestamp: number) => {
 const title = (error: { name?: string; message: string }) =>
   `${error.name ? `${error.name}: ` : ""}${error.message}`;
 
-// A link to a view of this page: ?error=, and ?page= after the first.
-const viewUrl = ({ error, page: number }: { error?: string; page: number }) => {
+// The active filters and order, so every view of this page keeps them.
+const filters: Record<string, any> = data?.filters ?? {};
+const filterParams = () => {
   const params = new URLSearchParams();
+  if (filters.sort && filters.sort !== "last_seen") {
+    params.set("sort", filters.sort);
+  }
+  for (const key of ["source", "country", "browser", "os", "q"]) {
+    if (filters[key]) {
+      params.set(key, filters[key]);
+    }
+  }
+  return params;
+};
+const filtering = [...filterParams()].length > 0;
+
+// A link to a view of this page: the filters and order, ?error=, and ?page=
+// after the first.
+const viewUrl = ({ error, page: number }: { error?: string; page: number }) => {
+  const params = filterParams();
   if (error) {
     params.set("error", error);
   }
@@ -53,6 +70,8 @@ const viewUrl = ({ error, page: number }: { error?: string; page: number }) => {
   const query = params.toString();
   return query ? `?${query}` : Astro.url.pathname;
 };
+
+const facets = data?.facets ?? { sources: [], countries: [], browsers: [], oss: [] };
 
 const isGroup = Boolean(data?.fingerprint);
 const none = page.adminNone;
@@ -108,6 +127,80 @@ const occurrenceFacts = (occurrence: any) => [
       <h2 class="section-title" id="admin-errors-title">
         {page.adminErrors}
       </h2>
+      {data && (
+        <form class="filters" method="get" aria-label={page.adminErrorFilters}>
+          <label class="filter">
+            <span class="filter-label">{page.adminSourceColumn}</span>
+            <select name="source">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.sources.map((source: string) => (
+                <option value={source} selected={filters.source === source}>
+                  {page.adminErrorSources[source] ?? source}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label class="filter">
+            <span class="filter-label">{page.adminBrowserColumn}</span>
+            <select name="browser">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.browsers.map((browser: string) => (
+                <option value={browser} selected={filters.browser === browser}>
+                  {browser}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label class="filter">
+            <span class="filter-label">{page.adminOsColumn}</span>
+            <select name="os">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.oss.map((os: string) => (
+                <option value={os} selected={filters.os === os}>
+                  {os}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label class="filter">
+            <span class="filter-label">{page.adminCountryLabel}</span>
+            <select name="country">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.countries.map((country: string) => (
+                <option value={country} selected={filters.country === country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label class="filter search">
+            <span class="filter-label">{page.adminFilterSearch}</span>
+            <input type="search" name="q" value={filters.q ?? ""} />
+          </label>
+          <label class="filter">
+            <span class="filter-label">{page.adminFilterSort}</span>
+            <select name="sort">
+              <option value="last_seen" selected={(data.sort ?? "last_seen") === "last_seen"}>
+                {page.adminSortLastSeen}
+              </option>
+              <option value="first_seen" selected={data.sort === "first_seen"}>
+                {page.adminSortFirstSeen}
+              </option>
+              <option value="count" selected={data.sort === "count"}>
+                {page.adminSortCount}
+              </option>
+            </select>
+          </label>
+          <button class="apply" type="submit">
+            {page.adminFilterApply}
+          </button>
+          {filtering && (
+            <a class="clear" href={Astro.url.pathname}>
+              {page.adminFilterClear}
+            </a>
+          )}
+        </form>
+      )}
       <p class={failed ? "summary failed" : "summary"} role={failed ? "alert" : undefined}>
         {summary}
       </p>
@@ -118,6 +211,9 @@ const occurrenceFacts = (occurrence: any) => [
               <tr>
                 <th scope="col">{page.adminErrorColumn}</th>
                 <th scope="col">{page.adminSourceColumn}</th>
+                <th scope="col">{page.adminBrowserColumn}</th>
+                <th scope="col">{page.adminOsColumn}</th>
+                <th scope="col">{page.adminCountryLabel}</th>
                 <th scope="col" class="number">
                   {page.adminCountColumn}
                 </th>
@@ -138,6 +234,9 @@ const occurrenceFacts = (occurrence: any) => [
                     <span class="where">{group.context ?? group.url ?? ""}</span>
                   </td>
                   <td class="source">{page.adminErrorSources[group.source] ?? group.source}</td>
+                  <td class="browser">{group.browser ?? none}</td>
+                  <td class="os">{group.os ?? none}</td>
+                  <td class="country">{group.country ?? none}</td>
                   <td class="count number">{group.count}</td>
                   <td class="users number">{group.users}</td>
                   <td class="last-seen" title={formatTime(group.last_seen)}>

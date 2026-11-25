@@ -13,6 +13,56 @@
     color: var(--color-text-muted);
   }
 
+  /* The filter and order choices; a plain GET form, working without
+     JavaScript, resetting the pager like a new question would. */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .filter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+
+    &.search {
+      flex: 1;
+      min-width: 10rem;
+    }
+  }
+
+  .filter-label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+  }
+
+  .filters select,
+  .filters input,
+  .apply {
+    padding: var(--spacing-2xs) var(--spacing-sm);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--border-radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .apply {
+    background: var(--color-primary-light);
+    color: var(--color-primary-light-text);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+  }
+
+  .clear {
+    align-self: center;
+    font-size: var(--font-size-sm);
+  }
+
   .table-wrapper {
     overflow-x: auto;
   }
