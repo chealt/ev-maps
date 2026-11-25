@@ -22,6 +22,10 @@ const fakeSuggestionsApi = async (page) => {
         { type: "type2", powerKw: 22, quantity: 2 },
       ],
       photoUrl: "/api/charger-suggestions/1/photo",
+      photoUrls: [
+        "/api/charger-suggestions/1/photo?index=0",
+        "/api/charger-suggestions/1/photo?index=1",
+      ],
       status: "pending",
       createdAt: Date.UTC(2026, 10, 24, 12),
     },
@@ -75,7 +79,7 @@ test(
     await expect(page.getByText("Ionity · 10 Dock Rd")).toBeVisible();
     await expect(page.getByText("CCS (Type 2): 4× · 350 kW")).toBeVisible();
     await expect(page.getByText("Type 2: 2× · 22 kW")).toBeVisible();
-    await expect(page.getByRole("img", { name: "Charger proof photo" })).toBeVisible();
+    await expect(page.locator(".proof-photo")).toHaveCount(2);
     await captureUi(page, testInfo, "admin reviewing a charger suggestion");
 
     await page.getByRole("button", { name: "Approve & add" }).click();

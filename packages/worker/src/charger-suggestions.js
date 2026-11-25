@@ -20,7 +20,9 @@ const SUGGESTIONS_PATH = "/api/charger-suggestions";
 const SUGGESTION_PHOTO_PATH = /^\/api\/charger-suggestions\/(\d+)\/photo$/;
 const ADMIN_SUGGESTIONS_PATH = "/api/admin/charger-suggestions";
 const ADMIN_SUGGESTION_ACTION_PATH = /^\/api\/admin\/charger-suggestions\/(\d+)\/(approve|reject)$/;
-const MAX_BODY_BYTES = 1024 * 1024;
+const MAX_BODY_BYTES = 12 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+const MAX_PHOTOS = 5;
 const MAX_CONNECTORS = 20;
 const PHOTO_PATTERN = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/;
 const CONNECTOR_TYPES = [
@@ -62,34 +64,71 @@ const validConnector = (connector) =>
   connector.quantity >= 1 &&
   connector.quantity <= 100;
 
-const validSuggestion = (payload) =>
-  typeof payload === "object" &&
-  payload !== null &&
-  isText(payload.name, 200, 1) &&
-  (payload.address === undefined || payload.address === null || isText(payload.address, 300)) &&
-  (payload.operator === undefined || payload.operator === null || isText(payload.operator, 200)) &&
-  isLocation(payload.location?.lat, payload.location?.lng) &&
-  Array.isArray(payload.connectors) &&
-  payload.connectors.length >= 1 &&
-  payload.connectors.length <= MAX_CONNECTORS &&
-  payload.connectors.every(validConnector) &&
-  typeof payload.photo === "string" &&
-  payload.photo.length <= 750 * 1024 &&
-  PHOTO_PATTERN.test(payload.photo);
+const isValidPhotoDataUrl = (value) => {
+  if (typeof value !== "string") {
+    return false;
+  }
+  const match = value.match(PHOTO_PATTERN);
+  if (!match) {
+    return false;
+  }
+  const base64 = match[2];
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  const decodedBytes = Math.floor((base64.length * 3) / 4) - padding;
+  return decodedBytes > 0 && decodedBytes <= MAX_PHOTO_BYTES;
+};
 
-const toClientSuggestion = (row, { includeUser = false } = {}) => ({
-  id: row.id,
-  ...(includeUser ? { userEmail: row.user_email ?? null } : {}),
-  name: row.name,
-  address: row.address ?? "",
-  operator: row.operator ?? "",
-  location: { lat: row.lat, lng: row.lng },
-  connectors: JSON.parse(row.connectors || "[]"),
-  photoUrl: `/api/charger-suggestions/${row.id}/photo`,
-  status: row.status,
-  createdAt: row.created_at,
-  reviewedAt: row.reviewed_at ?? null,
-});
+const photosOf = (payload) => {
+  if (Array.isArray(payload?.photos)) {
+    return payload.photos;
+  }
+  if (typeof payload?.photo === "string") {
+    return [payload.photo];
+  }
+  return [];
+};
+
+const validSuggestion = (payload) => {
+  const photos = photosOf(payload);
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    isText(payload.name, 200, 1) &&
+    (payload.address === undefined || payload.address === null || isText(payload.address, 300)) &&
+    (payload.operator === undefined ||
+      payload.operator === null ||
+      isText(payload.operator, 200)) &&
+    isLocation(payload.location?.lat, payload.location?.lng) &&
+    Array.isArray(payload.connectors) &&
+    payload.connectors.length >= 1 &&
+    payload.connectors.length <= MAX_CONNECTORS &&
+    payload.connectors.every(validConnector) &&
+    photos.length >= 1 &&
+    photos.length <= MAX_PHOTOS &&
+    photos.every(isValidPhotoDataUrl)
+  );
+};
+
+const toClientSuggestion = (row, { includeUser = false } = {}) => {
+  const photos = row.photos ? JSON.parse(row.photos) : row.photo ? [row.photo] : [];
+  const photoUrls = photos.map(
+    (_, index) => `/api/charger-suggestions/${row.id}/photo?index=${index}`
+  );
+  return {
+    id: row.id,
+    ...(includeUser ? { userEmail: row.user_email ?? null } : {}),
+    name: row.name,
+    address: row.address ?? "",
+    operator: row.operator ?? "",
+    location: { lat: row.lat, lng: row.lng },
+    connectors: JSON.parse(row.connectors || "[]"),
+    photoUrl: photoUrls[0] ?? `/api/charger-suggestions/${row.id}/photo`,
+    photoUrls,
+    status: row.status,
+    createdAt: row.created_at,
+    reviewedAt: row.reviewed_at ?? null,
+  };
+};
 
 const submitSuggestion = async (request, env, userId, user) => {
   const body = await request.text();
@@ -110,11 +149,12 @@ const submitSuggestion = async (request, env, userId, user) => {
     powerKw,
     quantity,
   }));
+  const photos = photosOf(payload);
   const createdAt = Date.now();
   await env.DB.prepare(
     `INSERT INTO charger_suggestions
-       (user_id, user_email, name, address, operator, lat, lng, connectors, photo, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
+       (user_id, user_email, name, address, operator, lat, lng, connectors, photo, photos, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
   )
     .bind(
       userId,
@@ -125,7 +165,8 @@ const submitSuggestion = async (request, env, userId, user) => {
       payload.location.lat,
       payload.location.lng,
       JSON.stringify(connectors),
-      payload.photo,
+      photos[0],
+      JSON.stringify(photos),
       createdAt
     )
     .run();
@@ -136,7 +177,7 @@ const submitSuggestion = async (request, env, userId, user) => {
 const listUserSuggestions = async (db, userId, url) => {
   const status = url.searchParams.get("status") || "";
   const columns =
-    "id, name, address, operator, lat, lng, connectors, status, created_at, reviewed_at";
+    "id, name, address, operator, lat, lng, connectors, photos, status, created_at, reviewed_at";
   const query = STATUSES.includes(status)
     ? db
         .prepare(
@@ -155,15 +196,17 @@ const listUserSuggestions = async (db, userId, url) => {
 };
 
 // Serves a suggestion's proof photo only to its author or an admin.
-const photoResponse = async (db, env, id, userId, user) => {
+const photoResponse = async (db, env, id, url, userId, user) => {
   const row = await db
-    .prepare("SELECT user_id, photo FROM charger_suggestions WHERE id = ?")
+    .prepare("SELECT user_id, photo, photos FROM charger_suggestions WHERE id = ?")
     .bind(id)
     .first();
   if (!row || (row.user_id !== userId && !isAdmin(env, user))) {
     return json({ error: "Not found" }, 404);
   }
-  const match = row.photo?.match(PHOTO_PATTERN);
+  const photos = row.photos ? JSON.parse(row.photos) : row.photo ? [row.photo] : [];
+  const index = Math.max(0, Number.parseInt(url.searchParams.get("index") ?? "0", 10) || 0);
+  const match = photos[index]?.match(PHOTO_PATTERN);
   if (!match) {
     return json({ error: "Not found" }, 404);
   }
@@ -181,7 +224,7 @@ const photoResponse = async (db, env, id, userId, user) => {
 const listAdminSuggestions = async (db, url) => {
   const status = url.searchParams.get("status") || "";
   const columns =
-    "id, user_email, name, address, operator, lat, lng, connectors, status, created_at, reviewed_at";
+    "id, user_email, name, address, operator, lat, lng, connectors, photos, status, created_at, reviewed_at";
   const query = STATUSES.includes(status)
     ? db
         .prepare(
@@ -241,7 +284,7 @@ const suggestionsResponse = async (request, env, userId, user, url = new URL(req
   const photoMatch = url.pathname.match(SUGGESTION_PHOTO_PATH);
   if (photoMatch) {
     return request.method === "GET"
-      ? photoResponse(env.DB, env, Number(photoMatch[1]), userId, user)
+      ? photoResponse(env.DB, env, Number(photoMatch[1]), url, userId, user)
       : json({ error: "Method not allowed" }, 405);
   }
   if (request.method === "GET") {

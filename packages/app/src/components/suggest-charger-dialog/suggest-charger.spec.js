@@ -33,10 +33,9 @@ test(
     const dialog = page.getByRole("dialog", { name: "Suggest a charger" });
     await expect(dialog).toBeVisible();
     await dialog.getByLabel("Location name").fill("Harbor Charging Hub");
-    await dialog.getByLabel("Address").fill("10 Dock Rd");
-    await dialog.getByLabel("Operator").fill("Ionity");
-    await dialog.getByLabel("Latitude").fill("47.5");
-    await dialog.getByLabel("Longitude").fill("19.05");
+    await dialog.getByRole("combobox", { name: "Address / Place lookup" }).fill("Buda");
+    await dialog.getByRole("option", { name: "Budapest, Hungary" }).click();
+    await dialog.getByLabel("Operator").selectOption("Ionity");
 
     // Add a second charger unit with a different speed.
     await dialog.getByRole("button", { name: "Add charger" }).click();
@@ -50,8 +49,17 @@ test(
     await unit2.getByLabel("Power (kW)").fill("22");
     await unit2.getByLabel("Quantity").fill("2");
 
-    await dialog.getByLabel("Proof photo").setInputFiles({
-      name: "proof.png",
+    await dialog.locator(".charger-photo").setInputFiles([
+      { name: "proof.png", mimeType: "image/png", buffer: PHOTO_BUFFER },
+      { name: "proof-2.png", mimeType: "image/png", buffer: PHOTO_BUFFER },
+    ]);
+    await expect(dialog.locator(".photo-item")).toHaveCount(2);
+
+    // Removing a photo updates the previews.
+    await dialog.getByRole("button", { name: "Remove photo" }).last().click();
+    await expect(dialog.locator(".photo-item")).toHaveCount(1);
+    await dialog.locator(".charger-photo").setInputFiles({
+      name: "proof-2.png",
       mimeType: "image/png",
       buffer: PHOTO_BUFFER,
     });
@@ -65,15 +73,17 @@ test(
     expect(submitted).toHaveLength(1);
     expect(submitted[0]).toMatchObject({
       name: "Harbor Charging Hub",
-      address: "10 Dock Rd",
+      address: "Budapest, Hungary",
       operator: "Ionity",
-      location: { lat: 47.5, lng: 19.05 },
+      location: { lat: 47.4979, lng: 19.0402 },
       connectors: [
         { type: "ccs2", powerKw: 350, quantity: 4 },
         { type: "type2", powerKw: 22, quantity: 2 },
       ],
     });
     expect(submitted[0].photo).toMatch(/^data:image\/png;base64,/);
+    expect(submitted[0].photos).toHaveLength(2);
+    expect(submitted[0].photos[0]).toBe(submitted[0].photo);
   }
 );
 
@@ -91,6 +101,10 @@ test(
         location: { lat: 47.5, lng: 19.05 },
         connectors: [{ type: "ccs2", powerKw: 350, quantity: 4 }],
         photoUrl: "/api/charger-suggestions/1/photo",
+        photoUrls: [
+          "/api/charger-suggestions/1/photo?index=0",
+          "/api/charger-suggestions/1/photo?index=1",
+        ],
         status: "pending",
       },
       {
@@ -150,6 +164,8 @@ test(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
+    const harborCard = page.getByRole("article").filter({ hasText: "Harbor Charging Hub" });
+    await expect(harborCard.locator(".proof-photo")).toHaveCount(2);
     await captureUi(page, testInfo, "user viewing their suggested chargers (All)");
 
     const statusSelect = page.getByRole("combobox", { name: "Status" });

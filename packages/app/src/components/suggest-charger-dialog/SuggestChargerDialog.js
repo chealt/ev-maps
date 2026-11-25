@@ -5,6 +5,8 @@ import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 const SHOW_SUGGEST_CHARGER = "show-suggest-charger";
 const SUGGESTIONS_URL = "/api/charger-suggestions";
 const MAX_CONNECTORS = 20;
+const MAX_PHOTOS = 5;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 
 const readAsDataUrl = (file) =>
   new Promise((resolve, reject) => {
@@ -17,14 +19,17 @@ const readAsDataUrl = (file) =>
 const requestSuggestCharger = () => document.dispatchEvent(new CustomEvent(SHOW_SUGGEST_CHARGER));
 
 class SuggestChargerDialogElement extends HTMLElement {
-  photoDataUrl = null;
+  photosDataUrls = [];
 
   connectedCallback() {
     this.dialog = this.querySelector("dialog");
     this.form = this.querySelector("form");
+    this.addressInput = this.querySelector("#suggest-charger-address")?.closest("ev-place-input");
+    this.operatorSelect = this.querySelector(".charger-operator-select");
+    this.operatorCustom = this.querySelector(".charger-operator-custom");
     this.connectorList = this.querySelector(".connector-list");
     this.photoInput = this.querySelector(".charger-photo");
-    this.photoPreview = this.querySelector(".photo-preview");
+    this.photoGrid = this.querySelector(".photo-grid");
     this.statusEl = this.querySelector(".status");
     this.errorEl = this.querySelector(".error");
 
@@ -32,6 +37,7 @@ class SuggestChargerDialogElement extends HTMLElement {
     this.querySelector(".close").addEventListener("click", () => closeDialog(this.dialog));
     animateEscape(this.dialog);
     this.querySelector(".add-connector").addEventListener("click", () => this.addConnectorRow());
+    this.operatorSelect.addEventListener("change", () => this.handleOperatorChange());
     this.photoInput.addEventListener("change", () => this.handlePhotoChange());
     this.form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -39,17 +45,25 @@ class SuggestChargerDialogElement extends HTMLElement {
     });
   }
 
+  handleOperatorChange() {
+    const isOther = this.operatorSelect.value === "__other__";
+    this.operatorCustom.hidden = !isOther;
+    if (isOther) {
+      this.operatorCustom.focus();
+    }
+  }
+
   open() {
     this.form.reset();
-    this.photoDataUrl = null;
-    this.photoPreview.hidden = true;
-    this.photoPreview.removeAttribute("src");
+    this.operatorCustom.hidden = true;
+    this.photosDataUrls = [];
+    this.renderPhotos();
     this.statusEl.textContent = "";
     this.errorEl.textContent = "";
+
     const center = getMapCenter();
     if (center) {
-      this.querySelector(".charger-lat").value = center.lat.toFixed(5);
-      this.querySelector(".charger-lng").value = center.lng.toFixed(5);
+      this.centerLocation = center;
     }
     this.connectorList.replaceChildren();
     this.addConnectorRow();
@@ -82,31 +96,81 @@ class SuggestChargerDialogElement extends HTMLElement {
 
   async handlePhotoChange() {
     this.errorEl.textContent = "";
-    const [file] = this.photoInput.files ?? [];
-    if (!file) {
-      this.photoDataUrl = null;
-      this.photoPreview.hidden = true;
+    const files = [...(this.photoInput.files ?? [])];
+    if (!files.length) {
       return;
     }
-    try {
-      this.photoDataUrl = await readAsDataUrl(file);
-      this.photoPreview.src = this.photoDataUrl;
-      this.photoPreview.hidden = false;
-    } catch {
-      this.photoDataUrl = null;
-      this.photoPreview.hidden = true;
-      this.errorEl.textContent = message("suggestChargerInvalid");
+    for (const file of files) {
+      if (this.photosDataUrls.length >= MAX_PHOTOS) {
+        this.errorEl.textContent = message("suggestChargerPhotoLimit");
+        break;
+      }
+      if (file.size > MAX_PHOTO_BYTES) {
+        this.errorEl.textContent = message("suggestChargerPhotoTooLarge");
+        continue;
+      }
+      try {
+        const dataUrl = await readAsDataUrl(file);
+        this.photosDataUrls.push(dataUrl);
+      } catch {
+        this.errorEl.textContent = message("suggestChargerInvalid");
+      }
     }
+    this.photoInput.value = "";
+    this.renderPhotos();
+  }
+
+  renderPhotos() {
+    this.photoGrid.hidden = this.photosDataUrls.length === 0;
+    const template = this.querySelector(".photo-item-template");
+    this.photoGrid.replaceChildren(
+      ...this.photosDataUrls.map((url, index) => {
+        const item = template.content.firstElementChild.cloneNode(true);
+        item.querySelector(".photo-thumb").src = url;
+        item.querySelector(".remove-photo").addEventListener("click", () => {
+          this.photosDataUrls.splice(index, 1);
+          this.renderPhotos();
+        });
+        return item;
+      })
+    );
+  }
+
+  async resolveLocation() {
+    const placeObj = this.addressInput?.place;
+    if (placeObj?.place) {
+      await placeObj.place.fetchFields({ fields: ["location", "displayName", "formattedAddress"] });
+      const loc = placeObj.place.location;
+      const location = typeof loc?.toJSON === "function" ? loc.toJSON() : loc;
+      return {
+        address: placeObj.label || placeObj.place.formattedAddress || "",
+        location,
+      };
+    }
+    if (placeObj?.location) {
+      return { address: placeObj.label || "", location: placeObj.location };
+    }
+    const address = this.addressInput?.querySelector(".field")?.value.trim() || "";
+    if (this.centerLocation) {
+      return { address, location: this.centerLocation };
+    }
+    return null;
   }
 
   async submit() {
     this.statusEl.textContent = "";
     this.errorEl.textContent = "";
     const name = this.querySelector(".charger-name").value.trim();
-    const address = this.querySelector(".charger-address").value.trim();
-    const operator = this.querySelector(".charger-operator").value.trim();
-    const lat = Number.parseFloat(this.querySelector(".charger-lat").value);
-    const lng = Number.parseFloat(this.querySelector(".charger-lng").value);
+    const opSelectVal = this.operatorSelect.value;
+    const operator = (opSelectVal === "__other__" ? this.operatorCustom.value : opSelectVal).trim();
+
+    const resolved = await this.resolveLocation();
+    if (!resolved) {
+      this.errorEl.textContent = message("suggestChargerInvalid");
+      return;
+    }
+    const { address, location } = resolved;
+
     const connectors = [...this.connectorList.children].map((row) => ({
       type: row.querySelector(".connector-type").value,
       powerKw: Number.parseFloat(row.querySelector(".connector-power").value),
@@ -115,10 +179,11 @@ class SuggestChargerDialogElement extends HTMLElement {
 
     if (
       !name ||
-      !Number.isFinite(lat) ||
-      !Number.isFinite(lng) ||
-      Math.abs(lat) > 90 ||
-      Math.abs(lng) > 180 ||
+      !location ||
+      !Number.isFinite(location.lat) ||
+      !Number.isFinite(location.lng) ||
+      Math.abs(location.lat) > 90 ||
+      Math.abs(location.lng) > 180 ||
       !connectors.length ||
       connectors.some(
         (item) =>
@@ -127,7 +192,7 @@ class SuggestChargerDialogElement extends HTMLElement {
           !Number.isInteger(item.quantity) ||
           item.quantity < 1
       ) ||
-      !this.photoDataUrl
+      !this.photosDataUrls.length
     ) {
       this.errorEl.textContent = message("suggestChargerInvalid");
       return;
@@ -141,9 +206,10 @@ class SuggestChargerDialogElement extends HTMLElement {
           name,
           address: address || undefined,
           operator: operator || undefined,
-          location: { lat, lng },
+          location,
           connectors,
-          photo: this.photoDataUrl,
+          photo: this.photosDataUrls[0],
+          photos: this.photosDataUrls,
         }),
       });
       if (!response.ok) {

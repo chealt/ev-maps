@@ -23,11 +23,24 @@ const SUGGESTION = {
 };
 
 const createDb = () =>
-  testD1("../migrations/0001_chargers.sql", "../migrations/0008_charger_suggestions.sql");
+  testD1(
+    "../migrations/0001_chargers.sql",
+    "../migrations/0008_charger_suggestions.sql",
+    "../migrations/0009_charger_suggestions_photos.sql"
+  );
 
 describe("validSuggestion", () => {
   test("accepts a location with multiple chargers of different speeds and a proof photo", () => {
     expect(validSuggestion(SUGGESTION)).toBe(true);
+  });
+
+  test("accepts multiple photos up to 2 MB each and rejects oversized photos", () => {
+    expect(validSuggestion({ ...SUGGESTION, photos: [PHOTO, PHOTO] })).toBe(true);
+    expect(
+      validSuggestion({ ...SUGGESTION, photos: [PHOTO, PHOTO, PHOTO, PHOTO, PHOTO, PHOTO] })
+    ).toBe(false);
+    const over2Mb = `data:image/png;base64,${"A".repeat(2 * 1024 * 1024 * 2)}`;
+    expect(validSuggestion({ ...SUGGESTION, photos: [over2Mb] })).toBe(false);
   });
 
   test("turns down missing name, location, connectors or proof photo", () => {
@@ -71,7 +84,8 @@ describe("charger suggestions flow", () => {
       name: "Harbor Charging Hub",
       operator: "Ionity",
       status: "pending",
-      photoUrl: "/api/charger-suggestions/1/photo",
+      photoUrl: "/api/charger-suggestions/1/photo?index=0",
+      photoUrls: ["/api/charger-suggestions/1/photo?index=0"],
       connectors: SUGGESTION.connectors,
     });
     expect(listed.suggestions[0].photo).toBeUndefined();
@@ -125,7 +139,8 @@ describe("charger suggestions flow", () => {
       id: 1,
       name: "Harbor Charging Hub",
       status: "pending",
-      photoUrl: "/api/charger-suggestions/1/photo",
+      photoUrl: "/api/charger-suggestions/1/photo?index=0",
+      photoUrls: ["/api/charger-suggestions/1/photo?index=0"],
     });
 
     // Another signed-in user does not see user-1's suggestion.
