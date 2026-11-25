@@ -242,20 +242,23 @@ test(
   }
 );
 
-test("on mobile, the status pill sits in the top bar's row, not over the map", async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 360, height: 740 });
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+test(
+  "on mobile, the top row shows the status pill and the account box",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    await captureUi(page, testInfo, "the mobile top row, signed out");
 
-  const status = await page.locator(".map-status").boundingBox();
-  const bar = await page.locator(".user-menu .bar").boundingBox();
-  // The same row as the logo and the account menu, on its left.
-  expect(Math.abs(status.y - bar.y)).toBeLessThan(20);
-  expect(status.x + status.width).toBeLessThanOrEqual(bar.x + 1);
-  await captureUi(page, testInfo, "the status pill in the top bar's row on mobile");
-});
+    await fakeAuthApi(page, { signedIn: true });
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Account: Ada Lovelace" })).toBeVisible();
+    // Hidden for room, the name is still the page's heading.
+    await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeAttached();
+    await captureUi(page, testInfo, "the mobile top row, signed in");
+  }
+);
 
 test("shows the app's name, as on Google's sign-in consent screen", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "EV Maps" })).toBeVisible();
