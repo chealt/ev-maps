@@ -184,6 +184,41 @@ ev-google-map {
     background: transparent;
     border-color: transparent;
   }
+
+  /* An active filter or route: the button and its compact clear half
+     share one tinted capsule, split by a thin divider, so the clear
+     reads as part of what it clears rather than a separate button. */
+  .split:has(.clear-filters:not([hidden]), .clear-route:not([hidden])) {
+    border-radius: var(--border-radius-full);
+    background: var(--color-primary-light);
+    /* The darker green keeps the text readable on the hover tint too. */
+    color: light-dark(var(--color-primary-darker), var(--color-primary-light-text));
+
+    .button.secondary {
+      border-color: transparent;
+      background: transparent;
+      color: inherit;
+
+      &:hover:not(:disabled) {
+        background: color-mix(in srgb, currentColor 12%, transparent);
+      }
+    }
+
+    :is(.clear-filters, .clear-route) {
+      position: relative;
+      flex: none;
+      padding-inline: var(--spacing-sm);
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block: 25%;
+        inset-inline-start: 0;
+        border-inline-start: var(--border-width) solid currentColor;
+        opacity: var(--opacity-disabled);
+      }
+    }
+  }
 }
 
 /* Filters */
@@ -1320,6 +1355,10 @@ ev-google-map {
       padding: var(--spacing-sm) var(--spacing-xs);
       border-radius: var(--border-radius-lg);
       font-size: var(--font-size-2xs);
+    }
+
+    .split:has(.clear-filters:not([hidden]), .clear-route:not([hidden])) {
+      border-radius: var(--border-radius-lg);
     }
 
     > * {

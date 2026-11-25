@@ -92,6 +92,26 @@ test(
 );
 
 test(
+  "shows the route and filter buttons with their clear halves",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await page.getByRole("button", { name: "CCS" }).click();
+    await page.getByRole("button", { name: "Done" }).click();
+
+    await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clear filters" })).toBeVisible();
+    await captureUi(page, testInfo, "the route and filter buttons with their clear halves");
+  }
+);
+
+test(
   "shows the chargers along a route",
   { tag: ["@regression", "@ui"] },
   async ({ page }, testInfo) => {
