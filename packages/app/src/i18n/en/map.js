@@ -69,6 +69,7 @@ const map = {
     useMyLocation: "Use my location",
     showRoute: "Show route",
     clearRoute: "Clear route",
+    zoomToRoute: "Zoom to route",
     shareRoute: "Share route",
     routeCorridor: "Chargers within {distance} of the route are shown.",
     routeCorridorLegend: "Distance from the route",

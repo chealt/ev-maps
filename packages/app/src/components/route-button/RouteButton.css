@@ -3,11 +3,16 @@ ev-route-button {
     display: inline-flex;
   }
 
-  /* With the clear half shown, the two buttons join into one pill. */
+  /* With the zoom/clear halves shown, the buttons join into one pill. */
   .split:has(.clear-route:not([hidden])) {
     .route-button {
       border-start-end-radius: 0;
       border-end-end-radius: 0;
+    }
+
+    .zoom-route {
+      margin-inline-start: calc(-1 * var(--border-width));
+      border-radius: 0;
     }
 
     .clear-route {

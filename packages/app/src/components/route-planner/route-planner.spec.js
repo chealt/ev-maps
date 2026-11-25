@@ -46,6 +46,39 @@ const choosePlace = async (dialog, field, text, option) => {
   await dialog.getByRole("option", { name: option }).click();
 };
 
+test("zooms back out to the whole route", async ({ page }) => {
+  await fakeRouteChargersApi(page);
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await dialog.getByRole("button", { name: "Show route" }).click();
+
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+  // Panning away (e.g. to look at a charger) is undone by the button.
+  await page.evaluate(() => window.__fakeMap.panBy(300, 300));
+  const panned = await page.evaluate(() => ({ ...window.__fakeMap.center }));
+
+  await page.getByRole("button", { name: "Zoom to route" }).click();
+  const after = await page.evaluate(() => ({
+    bounds: window.__fakeMap.fittedBounds,
+    center: window.__fakeMap.center,
+  }));
+  expect(after.center).not.toEqual(panned);
+  expect(after.bounds).toMatchObject({
+    north: expect.any(Number),
+    south: expect.any(Number),
+    east: expect.any(Number),
+    west: expect.any(Number),
+  });
+  // The fit centers the route's bounds, not where the map was panned.
+  expect(after.center).toEqual({
+    lat: (after.bounds.north + after.bounds.south) / 2,
+    lng: (after.bounds.east + after.bounds.west) / 2,
+  });
+});
+
 test(
   "shows the chargers along a route",
   { tag: ["@regression", "@ui"] },
