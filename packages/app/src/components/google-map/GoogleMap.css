@@ -1281,23 +1281,14 @@ ev-google-map {
     top: var(--spacing-md);
     left: var(--spacing-md);
     translate: none;
-    max-width: calc(100% - 12rem);
+    max-width: calc(100% - 11rem);
+    /* One line, as tall as the account menu's box next to it: the two read
+       as one top row. Long texts end in an ellipsis. */
     min-height: var(--status-min-height);
-    padding: var(--spacing-2xs) var(--spacing-sm) var(--spacing-2xs) var(--spacing-sm);
-    /* Same shape as the account menu's box next to it. */
+    padding: var(--spacing-2xs) var(--spacing-sm);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     font-size: var(--font-size-xs);
-    text-align: start;
-
-    /* Long texts wrap, but at most to two lines. */
-    white-space: normal;
-
-    .text {
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-    }
   }
 
   .map-controls {
