@@ -286,7 +286,15 @@
           });
         }
       }
-      return { routes: [{ path }] };
+      // Each leg's distanceMeters (equirectangular, close enough here), as
+      // the real Routes API's legs carry them.
+      const legs = waypoints.slice(1).map((to, index) => {
+        const from = waypoints[index];
+        const dLat = (to.lat - from.lat) * 111320;
+        const dLng = (to.lng - from.lng) * 111320 * Math.cos((from.lat * Math.PI) / 180);
+        return { distanceMeters: Math.hypot(dLat, dLng) };
+      });
+      return { routes: [{ path, legs }] };
     },
   };
 

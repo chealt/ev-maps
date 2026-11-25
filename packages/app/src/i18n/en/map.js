@@ -183,6 +183,7 @@ const map = {
     noRoute: "No route found between these places",
     routeEnds: "{from} → {to}",
     removeRouteStop: "Remove {stop} from stops",
+    routeStopDistance: "{distance} from the previous point",
     removeSavedPlace: "Remove {name} from saved places",
     saveFavoriteRoute: "Save {route} as a favorite",
     removeFavoriteRoute: "Remove {route} from favorites",
