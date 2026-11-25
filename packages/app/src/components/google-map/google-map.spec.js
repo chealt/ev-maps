@@ -241,6 +241,27 @@ test(
   }
 );
 
+test("the filters' buttons keep their labels on one line, with favorites and availability in one row", async ({
+  page,
+}, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Filters" });
+  // Measured once the dialog has finished opening.
+  await expect(async () => {
+    const favorites = await dialog.getByRole("group", { name: "Favorites" }).boundingBox();
+    const availability = await dialog.getByRole("group", { name: "Availability" }).boundingBox();
+    expect(availability.y).toBe(favorites.y);
+  }).toPass();
+
+  const buttons = dialog.locator(".options .button");
+  const heights = await buttons.evaluateAll((all) =>
+    all.filter((button) => button.checkVisibility()).map((button) => button.offsetHeight)
+  );
+  expect(new Set(heights).size).toBe(1);
+  await captureUi(page, testInfo, "the filters as inline, single-line buttons");
+});
+
 test("on mobile, the status pill sits in the top bar's row, not over the map", async ({
   page,
 }, testInfo) => {
