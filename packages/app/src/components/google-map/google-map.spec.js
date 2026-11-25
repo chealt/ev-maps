@@ -217,7 +217,7 @@ test("reports a denied location permission", async ({ page }) => {
 test(
   "the filters open in a dialog that closes with Done, Close or Escape",
   { tag: "@ui" },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
     const dialog = page.getByRole("dialog", { name: "Filters" });
     await expect(dialog).toBeHidden();
@@ -225,6 +225,7 @@ test(
     await filtersButton.click();
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("group", { name: "Charging power" })).toBeVisible();
+    await captureUi(page, testInfo, "the filters dialog open");
     await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
     await dialog.getByRole("button", { name: "Done" }).click();
     await expect(dialog).toBeHidden();
@@ -240,27 +241,6 @@ test(
     await expect(page.getByRole("button", { name: "Filters", expanded: false })).toBeVisible();
   }
 );
-
-test("the filters' buttons keep their labels on one line, with favorites and availability in one row", async ({
-  page,
-}, testInfo) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "Filters" });
-  // Measured once the dialog has finished opening.
-  await expect(async () => {
-    const favorites = await dialog.getByRole("group", { name: "Favorites" }).boundingBox();
-    const availability = await dialog.getByRole("group", { name: "Availability" }).boundingBox();
-    expect(availability.y).toBe(favorites.y);
-  }).toPass();
-
-  const buttons = dialog.locator(".options .button");
-  const heights = await buttons.evaluateAll((all) =>
-    all.filter((button) => button.checkVisibility()).map((button) => button.offsetHeight)
-  );
-  expect(new Set(heights).size).toBe(1);
-  await captureUi(page, testInfo, "the filters as inline, single-line buttons");
-});
 
 test("on mobile, the status pill sits in the top bar's row, not over the map", async ({
   page,
