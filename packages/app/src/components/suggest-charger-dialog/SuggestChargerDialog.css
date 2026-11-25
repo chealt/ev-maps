@@ -65,6 +65,26 @@
     }
   }
 
+  .pin-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .pinned {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
   .chargers-group {
     border: var(--border-width) solid var(--color-border);
     padding: var(--spacing-md);

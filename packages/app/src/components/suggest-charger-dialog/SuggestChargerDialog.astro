@@ -1,5 +1,5 @@
 ---
-import { ImagePlus, Plus, Trash2, X } from "lucide-static";
+import { ImagePlus, MapPin, Plus, Trash2, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -102,6 +102,20 @@ const knownOperators = [
           label={page.suggestChargerAddress}
           placeholder={page.placeSearch}
         />
+        <!-- Where exactly the charger is: a pin dropped on the map, from the
+             address's spot (or the map's), wins over the address's location. -->
+        <div class="pin-row">
+          <Button variant="secondary" size="small" class="drop-pin">
+            <Icon icon={MapPin} size="sm" />
+            {page.dropPin}
+          </Button>
+          <span class="pinned" hidden>
+            <span class="pinned-text"></span>
+            <Button variant="ghost" size="small" class="remove-pin">
+              {page.removePin}
+            </Button>
+          </span>
+        </div>
       </div>
 
       <fieldset class="form-section chargers-group">

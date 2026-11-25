@@ -89,6 +89,67 @@ test(
 );
 
 test(
+  "drops a pin on the map for the charger's exact spot, from the address",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    const submitted = [];
+    await page.route("**/api/charger-suggestions", async (route) => {
+      submitted.push(route.request().postDataJSON());
+      await route.fulfill({ status: 201, json: { submitted: true } });
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+    await page
+      .getByRole("dialog", { name: "Account" })
+      .getByRole("button", { name: "Suggest a charger" })
+      .click();
+    const dialog = page.getByRole("dialog", { name: "Suggest a charger" });
+    await dialog.getByLabel("Location name").fill("Harbor Charging Hub");
+    await dialog.getByRole("combobox", { name: "Address / Place lookup" }).fill("Buda");
+    await dialog.getByRole("option", { name: "Budapest, Hungary" }).click();
+
+    // Escape cancels: the dialog is back as it was, without a pin.
+    await dialog.getByRole("button", { name: "Drop a pin on the map" }).click();
+    const picker = page.getByRole("region", { name: "Move the map to put the pin on the charger" });
+    await expect(picker).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(/Pinned on the map/)).toBeHidden();
+
+    // The map starts at the address; moved a little, its middle is the spot.
+    await dialog.getByRole("button", { name: "Drop a pin on the map" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(picker).toBeVisible();
+    expect(await page.evaluate(() => window.__fakeMap.center)).toEqual({
+      lat: 47.4979,
+      lng: 19.0402,
+    });
+    await page.evaluate(() => window.__fakeMap.panBy(40, -30));
+    const spot = await page.evaluate(() => ({ ...window.__fakeMap.center }));
+    await captureUi(page, testInfo, "dropping a pin for a suggested charger");
+    await picker.getByRole("button", { name: "Use this spot" }).click();
+
+    // Back in the dialog, with what was filled in, and the pin.
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Location name")).toHaveValue("Harbor Charging Hub");
+    await expect(dialog.getByText(/Pinned on the map at/)).toBeVisible();
+    await captureUi(page, testInfo, "the suggestion with a dropped pin");
+
+    await dialog.getByRole("group", { name: "Charger 1" }).getByLabel("Power (kW)").fill("150");
+    await dialog
+      .locator(".charger-photo")
+      .setInputFiles({ name: "proof.png", mimeType: "image/png", buffer: PHOTO_BUFFER });
+    await dialog.getByRole("button", { name: "Submit suggestion" }).click();
+
+    await expect(dialog.getByRole("status")).toHaveText(
+      "Thank you! Your charger suggestion has been submitted for review."
+    );
+    expect(submitted[0]).toMatchObject({ address: "Budapest, Hungary", location: spot });
+  }
+);
+
+test(
   "signed-in user views their suggested chargers page from the account menu and filters by status",
   { tag: "@ui" },
   async ({ page }, testInfo) => {
