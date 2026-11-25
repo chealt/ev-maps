@@ -67,7 +67,7 @@ test("opens the details of a country page charger", async ({ page }) => {
 
   const details = page.getByRole("complementary", { name: "Budapest Hub" });
   await expect(details.getByText("Deák Ferenc tér, Budapest")).toBeVisible();
-  await expect(details.getByText("CCS (Type 2): 2× · 150 kW")).toBeVisible();
+  await expect(details.getByRole("button", { name: "CCS (Type 2): 2× · 150 kW" })).toBeVisible();
 });
 
 test("keeps the saved view instead of the country", async ({ page }) => {

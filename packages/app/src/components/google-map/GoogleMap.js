@@ -39,6 +39,26 @@ const COLOR_SCHEMES = { system: "FOLLOW_SYSTEM", light: "LIGHT", dark: "DARK" };
 const currentColorScheme = () =>
   COLOR_SCHEMES[document.documentElement.dataset.theme] ?? COLOR_SCHEMES.system;
 
+// Maps a connector type ID to its standard plug diagram in GoogleMap.astro.
+const connectorDiagram = (type) => {
+  if (type === "ccs1" || type === "ccs2") {
+    return "ccs";
+  }
+  if (type === "chademo" || type === "gbt-dc") {
+    return "chademo";
+  }
+  if (type?.startsWith("tesla") || type === "nacs") {
+    return "tesla";
+  }
+  if (type?.startsWith("type2")) {
+    return "type2";
+  }
+  if (type === "type1") {
+    return "type1";
+  }
+  return "household";
+};
+
 const formatConnector = ({ type, powerKw, quantity }) =>
   message(powerKw ? "connectorWithPower" : "connector", {
     type: valueLabel("connectors", type),
@@ -1701,6 +1721,106 @@ class GoogleMapElement extends HTMLElement {
     );
   }
 
+  // Renders each connector group as a compact column card with its standard
+  // plug diagram, power and quantity, an `i` info button that reveals the
+  // connector name on hover/focus, and a row of point indicators (up to 12)
+  // that show free (green), occupied (yellow) or out-of-service (red) once
+  // live availability loads.
+  renderConnectors(connectors) {
+    const list = this.detailsPanel.querySelector(".connectors");
+    const cardTemplate = this.detailsPanel.querySelector(".connector-card-template");
+    const pointTemplate = this.detailsPanel.querySelector(".connector-point-template");
+    list.classList.remove("has-free", "none-free", "all-occupied", "out-of-service");
+    list.replaceChildren(
+      ...connectors.map((connector, index) => {
+        const card = cardTemplate.content.firstElementChild.cloneNode(true);
+        const typeLabel = valueLabel("connectors", connector.type);
+        const summary = formatConnector(connector);
+        const tooltip = card.querySelector(".connector-tooltip");
+        const tooltipId = `connector-tooltip-${index}`;
+        tooltip.id = tooltipId;
+        tooltip.textContent = typeLabel;
+        const infoBtn = card.querySelector(".connector-info");
+        infoBtn.setAttribute("aria-label", summary);
+        infoBtn.setAttribute("aria-describedby", tooltipId);
+        const diagram = card.querySelector(
+          `.connector-diagram[data-diagram="${connectorDiagram(connector.type)}"]`
+        );
+        if (diagram) {
+          diagram.hidden = false;
+        }
+        card.querySelector(".connector-power").textContent = connector.powerKw
+          ? message("power", { power: connector.powerKw })
+          : "";
+        card.querySelector(".connector-qty").textContent = `${connector.quantity ?? 1}×`;
+        // Says why the points stay grey until (or unless) live availability
+        // colors them: the caption shows only while the card has no live state.
+        card.querySelector(".connector-no-status").textContent = message("noLiveStatus");
+        const count = Math.min(Math.max(connector.quantity ?? 1, 1), 12);
+        card
+          .querySelector(".connector-points")
+          .replaceChildren(
+            ...Array.from({ length: count }, () =>
+              pointTemplate.content.firstElementChild.cloneNode(true)
+            )
+          );
+        return card;
+      })
+    );
+  }
+
+  // Colors the connector cards and their individual point pills according to
+  // the live availability counts: green (`free`), yellow (`occupied`), or
+  // red (`out-of-service`).
+  colorConnectors(connectorsList, { available, occupied, outOfService, total }) {
+    const cards = [...connectorsList.querySelectorAll(".connector-card")];
+    const points = [...connectorsList.querySelectorAll(".connector-point")];
+    const state =
+      available > 0 ? "free" : outOfService > 0 && occupied === 0 ? "out-of-service" : "occupied";
+    connectorsList.classList.add(
+      available > 0 ? "has-free" : "none-free",
+      ...(state === "out-of-service"
+        ? ["out-of-service"]
+        : state === "occupied"
+          ? ["all-occupied"]
+          : [])
+    );
+    if (!points.length || total <= 0) {
+      for (const card of cards) {
+        // Without counts the points stay grey: unknown, not occupied.
+        card.dataset.state = "unknown";
+      }
+      return;
+    }
+    const freeDots =
+      available > 0
+        ? Math.min(points.length, Math.max(1, Math.round((available / total) * points.length)))
+        : 0;
+    const outDots =
+      outOfService > 0
+        ? Math.min(
+            points.length - freeDots,
+            Math.max(1, Math.round((outOfService / total) * points.length))
+          )
+        : 0;
+    for (const [index, point] of points.entries()) {
+      point.dataset.state =
+        index < freeDots
+          ? "free"
+          : index >= points.length - outDots
+            ? "out-of-service"
+            : "occupied";
+    }
+    for (const card of cards) {
+      const cardPoints = [...card.querySelectorAll(".connector-point")];
+      card.dataset.state = cardPoints.some((p) => p.dataset.state === "free")
+        ? "free"
+        : cardPoints.every((p) => p.dataset.state === "out-of-service")
+          ? "out-of-service"
+          : "occupied";
+    }
+  }
+
   displayChargerDetails(charger) {
     const panel = this.detailsPanel;
     if (!panel) {
@@ -1721,9 +1841,7 @@ class GoogleMapElement extends HTMLElement {
     } else {
       routeDistances.hidden = true;
     }
-    this.fillList(panel.querySelector(".connectors"), charger.connectors.map(formatConnector));
-    const connectorsList = panel.querySelector(".connectors");
-    connectorsList.classList.remove("has-free", "none-free");
+    this.renderConnectors(charger.connectors);
     const details = formatDetails(charger);
     // Where the price sits among the loaded chargers, e.g. "Priciness: $$
     // (pricier than 78% of the chargers here)"; only per-kWh and comparable.
@@ -1823,7 +1941,10 @@ class GoogleMapElement extends HTMLElement {
     const availability = section.querySelector(".availability-status");
     const connectorsList = section.querySelector(".connectors");
     availability.hidden = true;
-    connectorsList.classList.remove("has-free", "none-free");
+    connectorsList.classList.remove("has-free", "none-free", "all-occupied", "out-of-service");
+    for (const el of connectorsList.querySelectorAll(".connector-card, .connector-point")) {
+      delete el.dataset.state;
+    }
     const ids = liveStatusIds(charger);
     if (!ids.length) {
       return;
@@ -1854,10 +1975,12 @@ class GoogleMapElement extends HTMLElement {
     this.showAvailabilitySignIn(section, false);
     const sum = (field) => statuses.reduce((total, status) => total + status[field], 0);
     const available = sum("available");
+    const occupied = sum("occupied");
     const outOfService = sum("outOfService");
+    const total = sum("total");
     section.querySelector(".free").textContent = message("pointsFree", {
       available,
-      count: sum("total"),
+      count: total,
     });
     const outOfServiceEl = section.querySelector(".out-of-service");
     outOfServiceEl.textContent = message("pointsOutOfService", { count: outOfService });
@@ -1866,7 +1989,7 @@ class GoogleMapElement extends HTMLElement {
       time: minutesAgo(Math.min(...statuses.map((status) => status.updatedAt))),
     });
     availability.hidden = false;
-    connectorsList.classList.add(available > 0 ? "has-free" : "none-free");
+    this.colorConnectors(connectorsList, { available, occupied, outOfService, total });
   }
 
   // Closed by the user (the close button, Escape): it slides out. Other

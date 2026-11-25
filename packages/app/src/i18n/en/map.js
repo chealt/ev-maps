@@ -192,6 +192,7 @@ const map = {
       other: "{available} of {count} points free",
     },
     pointsOutOfService: "Out of service: {count}",
+    noLiveStatus: "No live status",
     statusUpdated: "Updated {time}",
     unknownOperator: "Unknown operator",
     filtersNotSaved:
