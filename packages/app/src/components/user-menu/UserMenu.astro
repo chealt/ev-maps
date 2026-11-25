@@ -6,6 +6,7 @@ import {
   LogOut,
   Mail,
   MapPinPlus,
+  Scan,
   ShieldCheck,
   Zap,
 } from "lucide-static";
@@ -51,9 +52,21 @@ const { page } = translations(lang);
        whose click area covers the whole box. The name is visible because
        Google's OAuth verification checks that the home page shows the same
        name as the consent screen. -->
-  <!-- Locate Me: icon-only, in the top bar next to the account menu, so it
-       doesn't take map space in the map controls. -->
-  <LocateButton autoLocate={autoLocate} />
+  <!-- The map's own actions, icon-only, in the top bar next to the account
+       menu so they don't take map space in the map controls: Locate Me, and
+       with a route shown, zooming back out to the whole route. -->
+  <div class="map-actions">
+    <Button
+      variant="secondary"
+      size="icon-only"
+      class="zoom-route"
+      aria-label={page.zoomToRoute}
+      hidden
+    >
+      <Icon icon={Scan} />
+    </Button>
+    <LocateButton autoLocate={autoLocate} />
+  </div>
   <div class="bar">
     <hgroup class="brand">
       <span class="mark">
