@@ -23,7 +23,10 @@ const RUN_BUDGET_MS = 10 * 60 * 1000;
 // The places next to chargers are looked up first in each run, for up to
 // this share of it: picked by priority alone, after the chargers' own
 // imports, they were never reached, as some charger job is always due.
-const PLACES_SHARE = 0.25;
+// Most of the run, until the backlog clears (#270): at a quarter, the
+// thousands of queued cells would take months, and the chargers' own
+// imports (weekly refreshes) easily fit in the rest.
+const PLACES_SHARE = 0.6;
 // Overpass and Open Charge Map are shared services: pause between steps.
 const PAUSE_BETWEEN_STEPS_MS = 1000;
 
