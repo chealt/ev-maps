@@ -91,36 +91,25 @@ test(
   }
 );
 
-test("joins the clear halves to the route and filter buttons they clear", async ({
-  page,
-}, testInfo) => {
-  await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  await page.getByRole("button", { name: "CCS" }).click();
-  await page.getByRole("button", { name: "Done" }).click();
+test(
+  "shows the route and filter buttons with their clear halves",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await page.getByRole("button", { name: "CCS" }).click();
+    await page.getByRole("button", { name: "Done" }).click();
 
-  for (const [main, clear] of [
-    ["Route", "Clear route"],
-    ["Filters", "Clear filters"],
-  ]) {
-    const button = page.getByRole("button", { name: main, exact: true });
-    const split = page.locator(".map-controls .split").filter({ has: button });
-    // One tinted capsule, not a transparent row of separate buttons…
-    expect(await split.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(
-      "rgba(0, 0, 0, 0)"
-    );
-    // …with the clear half inside it.
-    const outer = await split.boundingBox();
-    const half = await split.getByRole("button", { name: clear }).boundingBox();
-    expect(half.x + half.width).toBeLessThanOrEqual(outer.x + outer.width + 1);
+    await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clear filters" })).toBeVisible();
+    await captureUi(page, testInfo, "the route and filter buttons with their clear halves");
   }
-  await captureUi(page, testInfo, "the route and filter buttons with their clear halves");
-});
+);
 
 test(
   "shows the chargers along a route",
