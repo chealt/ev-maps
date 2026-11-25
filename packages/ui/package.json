@@ -10,7 +10,10 @@
     "./BarChart.astro": "./bar-chart/BarChart.astro",
     "./bar-chart.js": "./bar-chart/bar-chart.js",
     "./messages.js": "./messages/messages.js",
-    "./format.js": "./format/format.js"
+    "./format.js": "./format/format.js",
+    "./Badge.astro": "./badge/Badge.astro",
+    "./Card.astro": "./card/Card.astro",
+    "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",

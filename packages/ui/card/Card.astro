@@ -1,0 +1,17 @@
+---
+// A surface for one item of a list or a group of content: padded, rounded,
+// with a soft border. `as` is its element (article, section, li, div).
+import "./Card.css";
+
+interface Props {
+  as?: "article" | "section" | "li" | "div";
+  class?: string;
+  [attribute: string]: unknown;
+}
+
+const { as: Element = "div", class: className, ...attrs } = Astro.props;
+---
+
+<Element class:list={["card", className]} {...attrs}>
+  <slot />
+</Element>

@@ -86,7 +86,10 @@ test(
 
     await expect(page.getByText("No charger suggestions found.")).toBeVisible();
 
-    await page.getByRole("combobox", { name: "Status" }).selectOption({ label: "Approved" });
+    await page
+      .getByRole("group", { name: "Status" })
+      .getByText("Approved", { exact: true })
+      .click();
     await expect(
       page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
     ).toBeVisible();
