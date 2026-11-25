@@ -19,6 +19,10 @@
   }
 
   @media (width < 40em) {
+    .bar {
+      width: var(--top-bar-menu-width);
+    }
+
     ev-locate-button {
       inset-inline-end: 0;
       top: calc(100% + var(--spacing-sm));
@@ -51,11 +55,14 @@
     display: flex;
     align-items: center;
     gap: var(--overlay-gap);
-    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm) var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-sm)
+      var(--spacing-sm);
 
     /* Room for the avatar (or its placeholder) next to the name. */
     .bar:has(.avatar:not([hidden]), .loading:not([hidden])) & {
-      padding-right: calc(var(--spacing-sm) + var(--overlay-gap) + var(--avatar-size));
+      padding-right: calc(
+        var(--spacing-sm) + var(--overlay-gap) + var(--avatar-size)
+      );
     }
   }
 
@@ -102,7 +109,8 @@
     height: var(--avatar-size);
     border-radius: var(--border-radius-full);
     background: var(--color-border-strong);
-    animation: session-loading var(--session-loading-duration, 1.2s) ease-in-out infinite alternate;
+    animation: session-loading var(--session-loading-duration, 1.2s) ease-in-out
+      infinite alternate;
 
     &[hidden] {
       display: none;
@@ -141,14 +149,17 @@
   /* Popovers render in the top layer, so this is positioned against the viewport. */
   .account-menu {
     inset: auto;
-    top: calc(var(--spacing-md) + var(--brand-mark-size) + var(--spacing-md) + var(--spacing-sm));
+    top: calc(
+      var(--spacing-md) + var(--brand-mark-size) + var(--spacing-md) +
+        var(--spacing-sm)
+    );
     right: var(--spacing-md);
     width: var(--account-menu-width);
     max-width: calc(100vw - 2 * var(--spacing-md));
     /* Taller than the screen (a short window, many settings), it scrolls. */
     max-height: calc(
-      100dvh - var(--spacing-md) - var(--brand-mark-size) - var(--spacing-md) - var(--spacing-sm) -
-        var(--spacing-md)
+      100dvh - var(--spacing-md) - var(--brand-mark-size) - var(--spacing-md) -
+        var(--spacing-sm) - var(--spacing-md)
     );
     overflow-y: auto;
     margin: 0;
