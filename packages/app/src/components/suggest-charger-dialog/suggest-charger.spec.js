@@ -199,9 +199,12 @@ test("Esc while choosing photos keeps the dialog open, and closes it otherwise",
   await fakeAuthApi(page, { signedIn: true });
   await page.goto("/");
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
-  await page.getByRole("dialog", { name: "Account" }).getByRole("button", {
-    name: "Suggest a charger",
-  }).click();
+  await page
+    .getByRole("dialog", { name: "Account" })
+    .getByRole("button", {
+      name: "Suggest a charger",
+    })
+    .click();
   const dialog = page.getByRole("dialog", { name: "Suggest a charger" });
   await expect(dialog).toBeVisible();
 
