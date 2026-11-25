@@ -16,6 +16,7 @@ import LocateButton from "../locate-button/LocateButton.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
 import MapsAppPicker from "../maps-app-picker/MapsAppPicker.astro";
 import DistanceUnitPicker from "../distance-unit-picker/DistanceUnitPicker.astro";
+import CarPicker from "../car-picker/CarPicker.astro";
 import MotionSetting from "../motion-setting/MotionSetting.astro";
 import { fill, translations } from "../../i18n/index.js";
 import AppleLogo from "./apple-logo.svg";
@@ -170,6 +171,7 @@ const { page } = translations(lang);
     <ThemePicker />
     <MapsAppPicker />
     <DistanceUnitPicker />
+    <CarPicker />
     <MotionSetting />
     <LanguagePicker />
     <Button variant="danger" class="sign-out" hidden>

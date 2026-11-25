@@ -39,4 +39,19 @@
       accent-color: var(--color-primary);
     }
   }
+
+  /* The car picker's toggle, apart from its connector list. */
+  .auto-filter {
+    margin-top: var(--spacing-xs);
+    border-top: var(--border-width) solid var(--color-border);
+    border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+    padding-top: var(--spacing-sm);
+  }
+
+  .hint {
+    margin: 0;
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
 }

@@ -1,0 +1,27 @@
+---
+import { translations } from "../../i18n/index.js";
+import { connectorGroups } from "../../lib/connector-groups.js";
+import "../maps-app-picker/preference-picker.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<!-- The user's car: the connector groups it charges with, and whether
+     chargers are filtered by them automatically (src/lib/car.js). -->
+<ev-car-picker>
+  <fieldset class="preference-picker">
+    <legend class="legend">{page.carConnectors}</legend>
+    {connectorGroups(page).map(({ value, label }) => (
+      <label class="option">
+        <input type="checkbox" name="car-connector" value={value} />
+        {label}
+      </label>
+    ))}
+    <label class="option auto-filter">
+      <input type="checkbox" name="car-auto-filter" />
+      {page.carAutoFilter}
+    </label>
+    <p class="hint">{page.carAutoFilterHint}</p>
+  </fieldset>
+  <script src="./CarPicker.js"></script>
+</ev-car-picker>

@@ -171,6 +171,22 @@ describe("distanceUnit", () => {
   });
 });
 
+describe("car", () => {
+  test("takes connector groups and the auto-filter toggle", () => {
+    expect(
+      validSection("car", { connectors: ["ccs", "type2"], autoFilter: true, updatedAt: 1 })
+    ).toBe(true);
+    expect(validSection("car", { connectors: [], autoFilter: false, updatedAt: 1 })).toBe(true);
+  });
+
+  test("turns down non-lists and non-booleans", () => {
+    expect(validSection("car", { connectors: "ccs", autoFilter: true, updatedAt: 1 })).toBe(false);
+    expect(validSection("car", { connectors: ["ccs"], autoFilter: "yes", updatedAt: 1 })).toBe(
+      false
+    );
+  });
+});
+
 describe("filters' price levels", () => {
   test("takes the levels on, 1 to 3", () => {
     expect(validSection("filters", { priceLevels: ["1", "3"], updatedAt: 1 })).toBe(true);
