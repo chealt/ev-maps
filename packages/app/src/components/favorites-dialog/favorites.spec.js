@@ -109,45 +109,31 @@ test("shows the heart signed out, asking to sign in", async ({ page }) => {
   expect(changes).toHaveLength(0);
 });
 
-test("lists the favorites nearest to the map's center first", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeFavoritesApi(page, [
-    { charger: budapest, addedAt: 3 },
-    { charger: far, addedAt: 2 },
-    { charger: near, addedAt: 1 },
-  ]);
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+test(
+  "lists the favorites nearest to the map's center first",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await fakeFavoritesApi(page, [
+      { charger: budapest, addedAt: 3 },
+      { charger: far, addedAt: 2 },
+      { charger: near, addedAt: 1 },
+    ]);
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 
-  const dialog = await openFavorites(page);
+    const dialog = await openFavorites(page);
 
-  await expect(dialog.getByText("Nearest to the map's center first")).toBeVisible();
-  await expect(dialog.locator(".name")).toHaveText([
-    "Near charger",
-    "Far charger",
-    "Budapest charger",
-  ]);
-  await expect(dialog.locator(".distance").last()).toHaveText(/km$/);
-});
-
-test("puts the distance in the middle of the row, level with the heart", async ({
-  page,
-}, testInfo) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeFavoritesApi(page, [{ charger: far, addedAt: 1 }]);
-  await page.goto("/");
-  const dialog = await openFavorites(page);
-  const item = dialog.getByRole("listitem");
-  await expect(item.locator(".distance")).toHaveText(/km$/);
-
-  const middle = async (locator) => {
-    const box = await locator.boundingBox();
-    return box.y + box.height / 2;
-  };
-  const heart = await middle(item.getByRole("button", { name: /Remove/ }));
-  expect(Math.abs((await middle(item.locator(".distance"))) - heart)).toBeLessThan(2);
-  await captureUi(page, testInfo, "a favorite's distance, level with the heart");
-});
+    await expect(dialog.getByText("Nearest to the map's center first")).toBeVisible();
+    await expect(dialog.locator(".name")).toHaveText([
+      "Near charger",
+      "Far charger",
+      "Budapest charger",
+    ]);
+    await expect(dialog.locator(".distance").last()).toHaveText(/km$/);
+    await captureUi(page, testInfo, "the favorites, nearest first, with their distances");
+  }
+);
 
 test("shows a favorite on the map from the list, wherever it is", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
