@@ -70,9 +70,9 @@
       justify-content: space-between;
       gap: var(--spacing-sm);
       padding: var(--spacing-2xs) var(--spacing-xs) var(--spacing-2xs) var(--spacing-md);
-      border: var(--border-width) solid var(--color-border);
+      border: none;
       border-radius: var(--border-radius-md);
-      background: var(--color-surface);
+      background: var(--color-surface-muted);
       font-size: var(--font-size-sm);
     }
 
@@ -248,23 +248,20 @@
   list-style: none;
 }
 
+/* One soft, borderless surface per route; the heart sits inside it (#253). */
 .recent-route {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2xs);
   width: 100%;
-  padding: var(--spacing-sm);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--border-radius-sm);
-  background: var(--color-surface);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: inherit;
+  background: none;
   color: var(--color-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
-
-  &:hover {
-    background: var(--color-surface-hover);
-  }
 
   .route-ends {
     font-weight: var(--font-weight-medium);
@@ -280,11 +277,22 @@
 .route-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2xs);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface-muted);
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
 
   .recent-route {
     flex: 1;
     min-width: 0;
+  }
+
+  .favorite-route {
+    flex-shrink: 0;
+    margin-right: var(--spacing-xs);
   }
 
   /* Saved as a favorite: a filled heart, as on a charger's details, also
