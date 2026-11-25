@@ -364,19 +364,28 @@ ev-google-map {
     }
   }
 
+  /* Inline buttons, each as wide as its label, wrapping to the next line
+     as a whole rather than breaking the label onto two lines. */
   .options {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--filter-option-min-width), 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
 
-    /* A label longer than its cell (a language's, a wider font, a larger
-       text size) wraps inside the button instead of running past it. */
     .button {
-      min-width: 0;
       padding-inline: var(--spacing-md);
-      white-space: normal;
-      text-wrap: balance;
-      text-align: center;
+      white-space: nowrap;
+    }
+  }
+
+  .group-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg) var(--spacing-xl);
+
+    /* The availability's hint can be long: it wraps within a readable
+       width instead of widening its group. */
+    .hint {
+      max-width: 22rem;
     }
   }
 

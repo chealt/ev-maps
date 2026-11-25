@@ -217,7 +217,7 @@ test("reports a denied location permission", async ({ page }) => {
 test(
   "the filters open in a dialog that closes with Done, Close or Escape",
   { tag: "@ui" },
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     const filtersButton = page.getByRole("button", { name: "Filters", exact: true });
     const dialog = page.getByRole("dialog", { name: "Filters" });
     await expect(dialog).toBeHidden();
@@ -225,6 +225,7 @@ test(
     await filtersButton.click();
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("group", { name: "Charging power" })).toBeVisible();
+    await captureUi(page, testInfo, "the filters dialog open");
     await expect(page.getByRole("button", { name: "Filters", expanded: true })).toBeVisible();
     await dialog.getByRole("button", { name: "Done" }).click();
     await expect(dialog).toBeHidden();
