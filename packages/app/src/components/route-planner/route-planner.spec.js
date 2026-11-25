@@ -46,7 +46,9 @@ const choosePlace = async (dialog, field, text, option) => {
   await dialog.getByRole("option", { name: option }).click();
 };
 
-test("zooms back out to the whole route", async ({ page }) => {
+test("zooms back out to the whole route, from the top bar, clear of the header and footer", async ({
+  page,
+}, testInfo) => {
   await fakeRouteChargersApi(page);
   await page.getByRole("button", { name: "Route" }).click();
   const dialog = page.getByRole("dialog", { name: "Plan a route" });
@@ -60,11 +62,28 @@ test("zooms back out to the whole route", async ({ page }) => {
   await page.evaluate(() => window.__fakeMap.panBy(300, 300));
   const panned = await page.evaluate(() => ({ ...window.__fakeMap.center }));
 
-  await page.getByRole("button", { name: "Zoom to route" }).click();
+  // In the top bar, next to Locate Me, not in the map controls.
+  const zoom = page.getByRole("button", { name: "Zoom to route" });
+  const locate = await page.getByRole("button", { name: "Locate Me", exact: true }).boundingBox();
+  const zoomBox = await zoom.boundingBox();
+  expect(Math.abs(zoomBox.y - locate.y)).toBeLessThan(2);
+  await expect(
+    page.locator(".map-controls").getByRole("button", { name: "Zoom to route" })
+  ).toHaveCount(0);
+  await captureUi(page, testInfo, "Zoom to route, next to Locate Me");
+
+  await zoom.click();
   const after = await page.evaluate(() => ({
     bounds: window.__fakeMap.fittedBounds,
     center: window.__fakeMap.center,
+    padding: window.__fakeMap.fittedPadding,
   }));
+  // The fit keeps the route out from under the top bar and the map controls.
+  const map = await page.locator(".google-map").boundingBox();
+  const bar = await page.locator(".user-menu .bar").boundingBox();
+  const controls = await page.locator(".map-controls").boundingBox();
+  expect(after.padding.top).toBeGreaterThan(bar.y + bar.height - map.y);
+  expect(after.padding.bottom).toBeGreaterThan(map.y + map.height - controls.y);
   expect(after.center).not.toEqual(panned);
   expect(after.bounds).toMatchObject({
     north: expect.any(Number),

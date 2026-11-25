@@ -8,18 +8,21 @@
   right: var(--spacing-md);
   z-index: var(--z-sticky);
 
-  /* Locate Me, icon-only: on wide screens in the top bar next to the
-     account menu; on narrow ones below it, so the status pill, the menu
-     and it don't crowd one row. */
-  ev-locate-button {
+  /* The map's actions (Locate Me, Zoom to route), icon-only: on wide
+     screens in the top bar next to the account menu; on narrow ones in a
+     column below it, so the status pill, the menu and they don't crowd one
+     row. */
+  .map-actions {
     position: absolute;
     inset-inline-end: calc(100% + var(--spacing-sm));
     top: 50%;
     translate: 0 -50%;
+    display: flex;
+    gap: var(--spacing-sm);
 
-    /* A card like the account menu's box and the status pill, not a flat
-       button: as tall as the box, square, with the same surface. */
-    .locate-button {
+    /* Cards like the account menu's box and the status pill, not flat
+       buttons: as tall as the box, square, with the same surface. */
+    :is(.locate-button, .zoom-route) {
       width: calc(var(--brand-mark-size) + 2 * var(--spacing-sm) + 2 * var(--border-width));
       height: calc(var(--brand-mark-size) + 2 * var(--spacing-sm) + 2 * var(--border-width));
       border: var(--border-width) solid var(--color-border);
@@ -60,12 +63,14 @@
       height: var(--top-bar-icon-size);
     }
 
-    ev-locate-button {
+    /* Locate Me right below the menu, Zoom to route below it. */
+    .map-actions {
       inset-inline-end: 0;
       top: calc(100% + var(--spacing-sm));
       translate: none;
+      flex-direction: column-reverse;
 
-      .locate-button {
+      :is(.locate-button, .zoom-route) {
         width: var(--top-bar-height);
         height: var(--top-bar-height);
       }

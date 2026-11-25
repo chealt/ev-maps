@@ -251,7 +251,8 @@ class GoogleMapElement extends HTMLElement {
     this.pageChargers = this.readPageChargers();
     this.routePlanner = this.querySelector("ev-route-planner");
     this.clearRouteButton = this.querySelector(".map-controls .clear-route");
-    this.zoomRouteButton = this.querySelector(".map-controls .zoom-route");
+    // In the top bar, next to Locate Me, outside this element.
+    this.zoomRouteButton = document.querySelector(".map-actions .zoom-route");
 
     this.setupEventListeners();
     this.filtersRestored = this.restoreFilters();
@@ -1274,7 +1275,7 @@ class GoogleMapElement extends HTMLElement {
         stopDistances
       );
       this.hideChargerDetails();
-      this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
+      this.map.fitBounds(pathBounds(path), this.routePadding());
       saveRoute({
         origin: savedEnd(origin),
         destination: savedEnd(destination),
@@ -1397,11 +1398,35 @@ class GoogleMapElement extends HTMLElement {
     this.routePlanner?.setRouteShown(shown);
   }
 
+  // The route's padding in the map: past what floats over the map's top (the
+  // account menu, the status pill) and bottom (the map controls), so they
+  // don't cover the route's ends.
+  routePadding() {
+    const map = this.mapEl?.getBoundingClientRect();
+    if (!map?.height) {
+      return ROUTE_PADDING;
+    }
+    const shown = (selector) =>
+      [...document.querySelectorAll(selector)]
+        .map((element) => element.getBoundingClientRect())
+        .filter((box) => box.width && box.height);
+    const header = shown(".user-menu .bar, .map-status");
+    const footer = shown(".map-controls");
+    const top = Math.max(map.top, ...header.map((box) => box.bottom)) - map.top;
+    const bottom = map.bottom - Math.min(map.bottom, ...footer.map((box) => box.top));
+    return {
+      top: top + ROUTE_PADDING,
+      bottom: bottom + ROUTE_PADDING,
+      left: ROUTE_PADDING,
+      right: ROUTE_PADDING,
+    };
+  }
+
   // Zooms out (or in) so the whole shown route is in view again, e.g. after
   // panning away to a charger along it.
   zoomToRoute() {
     if (this.route?.path) {
-      this.map?.fitBounds(pathBounds(this.route.path), ROUTE_PADDING);
+      this.map?.fitBounds(pathBounds(this.route.path), this.routePadding());
     }
   }
 

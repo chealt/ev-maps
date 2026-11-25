@@ -70,15 +70,21 @@
     getZoom() {
       return this.zoom;
     }
-    // Centers the bounds at the largest zoom that fits them.
-    fitBounds({ north, south, east, west }) {
+    // Centers the bounds at the largest zoom that fits them inside the
+    // padding (a number for every side, or one per side), as Google's does.
+    fitBounds({ north, south, east, west }, padding = 0) {
       this.fittedBounds = { north, south, east, west };
+      const sides =
+        typeof padding === "number"
+          ? { top: padding, right: padding, bottom: padding, left: padding }
+          : { top: 0, right: 0, bottom: 0, left: 0, ...padding };
+      this.fittedPadding = sides;
       this.center = { lat: (north + south) / 2, lng: (east + west) / 2 };
       const fits = (zoom) => {
         const degreesPerPixel = 360 / (TILE_SIZE * 2 ** zoom);
         return (
-          (east - west) / degreesPerPixel <= this.element.clientWidth &&
-          (north - south) / degreesPerPixel <= this.element.clientHeight
+          (east - west) / degreesPerPixel <= this.element.clientWidth - sides.left - sides.right &&
+          (north - south) / degreesPerPixel <= this.element.clientHeight - sides.top - sides.bottom
         );
       };
       let zoom = 0;
