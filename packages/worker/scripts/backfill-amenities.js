@@ -15,17 +15,7 @@ if (!cells.length) {
 
 const d1 = async (command) => {
   const { stdout } = Bun.spawnSync(
-    [
-      "bunx",
-      "wrangler",
-      "d1",
-      "execute",
-      "ev-maps",
-      "--remote",
-      "--json",
-      "--command",
-      command,
-    ],
+    ["bunx", "wrangler", "d1", "execute", "ev-maps", "--remote", "--json", "--command", command],
     { cwd: new URL("..", import.meta.url).pathname }
   );
   const output = stdout.toString();
@@ -87,5 +77,7 @@ for (const area of cells) {
   if (statements.length > 1) {
     await executeSql(statements);
   }
-  console.log(`${area}: ${places.length} places, ${changed.length} of ${chargers.length} chargers updated`);
+  console.log(
+    `${area}: ${places.length} places, ${changed.length} of ${chargers.length} chargers updated`
+  );
 }
