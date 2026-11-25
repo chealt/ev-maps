@@ -126,6 +126,27 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <FilterButton controls="map-filter-panel" />
     </div>
 
+    <!-- Dropping a pin for a suggested charger: the map moves under a pin
+         fixed in its middle, until the user takes the spot or cancels. -->
+    <div class="pick-location" hidden>
+      <span class="pick-pin" aria-hidden="true">
+        <Icon icon={MapPin} />
+      </span>
+      <div class="pick-bar" role="region" aria-labelledby="pick-location-hint">
+        <p class="pick-hint" id="pick-location-hint">
+          {page.pickLocationHint}
+        </p>
+        <div class="pick-actions">
+          <Button variant="secondary" class="pick-cancel">
+            {page.cancelPin}
+          </Button>
+          <Button variant="primary" class="pick-confirm">
+            {page.usePinnedLocation}
+          </Button>
+        </div>
+      </div>
+    </div>
+
     <RoutePlanner id="route-planner" />
     <ShortcutsDialog />
 

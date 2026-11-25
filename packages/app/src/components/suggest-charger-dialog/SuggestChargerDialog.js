@@ -1,8 +1,12 @@
 import { getMapCenter } from "../../lib/map-center.js";
-import { message } from "../../lib/messages.js";
+import { formatNumber, message } from "../../lib/messages.js";
 import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 
 const SHOW_SUGGEST_CHARGER = "show-suggest-charger";
+// Asks the map to let the user drop a pin ({ near }: where to start), and
+// its answer ({ location }, null when cancelled).
+const PICK_MAP_LOCATION = "pick-map-location";
+const MAP_LOCATION_PICKED = "map-location-picked";
 const SUGGESTIONS_URL = "/api/charger-suggestions";
 const MAX_CONNECTORS = 20;
 const MAX_PHOTOS = 5;
@@ -47,6 +51,10 @@ class SuggestChargerDialogElement extends HTMLElement {
     this.querySelector(".add-connector").addEventListener("click", () => this.addConnectorRow());
     this.operatorSelect.addEventListener("change", () => this.handleOperatorChange());
     this.photoInput.addEventListener("change", () => this.handlePhotoChange());
+    this.pinned = this.querySelector(".pinned");
+    this.querySelector(".drop-pin").addEventListener("click", () => this.dropPin());
+    this.querySelector(".remove-pin").addEventListener("click", () => this.setPin(null));
+    document.addEventListener(MAP_LOCATION_PICKED, ({ detail }) => this.pinPicked(detail));
     this.form.addEventListener("submit", (event) => {
       event.preventDefault();
       this.submit();
@@ -61,8 +69,47 @@ class SuggestChargerDialogElement extends HTMLElement {
     }
   }
 
+  // The dialog steps aside, keeping what's filled in, while the user moves
+  // the map under a pin; it starts at the address's spot when there's one.
+  async dropPin() {
+    let near = null;
+    try {
+      near = (await this.addressLocation())?.location ?? null;
+    } catch {
+      // The address's place couldn't be loaded: start where the map is.
+    }
+    this.picking = true;
+    await closeDialog(this.dialog);
+    document.dispatchEvent(new CustomEvent(PICK_MAP_LOCATION, { detail: { near } }));
+  }
+
+  pinPicked(detail) {
+    if (!this.picking) {
+      return;
+    }
+    this.picking = false;
+    if (detail?.location) {
+      this.setPin(detail.location);
+    }
+    openDialog(this.dialog);
+    this.querySelector(".drop-pin").focus();
+  }
+
+  setPin(location) {
+    this.pinnedLocation = location;
+    this.pinned.hidden = !location;
+    if (location) {
+      const coordinate = (value) => formatNumber(value, { maximumFractionDigits: 5 });
+      this.querySelector(".pinned-text").textContent = message("pinnedAt", {
+        lat: coordinate(location.lat),
+        lng: coordinate(location.lng),
+      });
+    }
+  }
+
   open() {
     this.form.reset();
+    this.setPin(null);
     this.operatorCustom.hidden = true;
     this.photosDataUrls = [];
     this.renderPhotos();
@@ -144,7 +191,21 @@ class SuggestChargerDialogElement extends HTMLElement {
     );
   }
 
+  // The charger's address, and its location: the pin dropped on the map, if
+  // any, else the address's.
   async resolveLocation() {
+    const resolved = await this.addressLocation();
+    if (this.pinnedLocation) {
+      return {
+        address:
+          resolved?.address ?? this.addressInput?.querySelector(".field")?.value.trim() ?? "",
+        location: this.pinnedLocation,
+      };
+    }
+    return resolved;
+  }
+
+  async addressLocation() {
     const placeObj = this.addressInput?.place;
     if (placeObj?.place) {
       await placeObj.place.fetchFields({ fields: ["location", "displayName", "formattedAddress"] });

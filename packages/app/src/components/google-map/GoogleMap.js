@@ -116,6 +116,8 @@ const minutesAgo = (timestamp) =>
 
 // Space around a route when the map fits it, in pixels.
 const ROUTE_PADDING = 48;
+// Dropping a pin starts this close to the address: a street, its buildings.
+const PICK_ZOOM = 18;
 // The route: a line over a wider casing in the opposite lightness, both
 // opaque, so it stands out on any part of either theme's map.
 const ROUTE_LINE = { strokeOpacity: 1, strokeWeight: 5, zIndex: 2 };
@@ -322,6 +324,12 @@ class GoogleMapElement extends HTMLElement {
   }
 
   setupEventListeners() {
+    // The suggest-a-charger dialog asks for a pin dropped on the map.
+    document.addEventListener("pick-map-location", ({ detail }) => this.pickLocation(detail));
+    this.querySelector(".pick-confirm")?.addEventListener("click", () =>
+      this.finishPicking(this.map.getCenter().toJSON())
+    );
+    this.querySelector(".pick-cancel")?.addEventListener("click", () => this.finishPicking(null));
     // The locate button is in the top bar (the account menu's), outside this
     // element, so its events are heard on the document.
     document.addEventListener("locate-start", () => {
@@ -1465,6 +1473,41 @@ class GoogleMapElement extends HTMLElement {
       this.zoomRouteButton.hidden = !shown;
     }
     this.routePlanner?.setRouteShown(shown);
+  }
+
+  // Lets the user drop a pin: the map, from `near` (zoomed in) or where it
+  // is, moves under a pin fixed in its middle. Escape cancels.
+  async pickLocation({ near } = {}) {
+    await this.mapReady;
+    if (near) {
+      this.map.setCenter(near);
+      this.map.setZoom(PICK_ZOOM);
+    }
+    this.picker = this.querySelector(".pick-location");
+    this.picker.hidden = false;
+    this.classList.add("picking");
+    this.pickEscape = (event) => {
+      if (event.key === "Escape") {
+        // Its default would close the dialog this hands the answer back to.
+        event.preventDefault();
+        this.finishPicking(null);
+      }
+    };
+    document.addEventListener("keydown", this.pickEscape);
+    this.querySelector(".pick-confirm").focus();
+  }
+
+  // Hands the spot (or null, cancelled) back to whoever asked for it.
+  finishPicking(location) {
+    if (!this.picker || this.picker.hidden) {
+      return;
+    }
+    this.picker.hidden = true;
+    this.classList.remove("picking");
+    document.removeEventListener("keydown", this.pickEscape);
+    document.dispatchEvent(
+      new CustomEvent("map-location-picked", { detail: location ? { location } : null })
+    );
   }
 
   // The route's padding in the map: past what floats over the map's top (the

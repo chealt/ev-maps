@@ -7,6 +7,7 @@ ev-google-map {
   /* Status */
   --status-dot-size: 0.5rem;
   --status-min-height: 2.75rem;
+  --pick-pin-size: 2.5rem;
   --status-pulse-scale: 0.6;
   --status-pulse-animation: 1.6s ease-in-out infinite;
 
@@ -1392,5 +1393,60 @@ ev-google-map {
   .filter-dialog .footer > .button {
     flex: 1;
     min-width: 0;
+  }
+}
+
+/* Dropping a pin: a pin fixed in the map's middle, its tip on the spot, and
+   a bar to take the spot or cancel. The other controls step aside. */
+ev-google-map.picking :is(.map-controls, .map-status) {
+  display: none;
+}
+
+.pick-location {
+  &[hidden] {
+    display: none;
+  }
+
+  .pick-pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: var(--z-dropdown);
+    display: grid;
+    translate: -50% -100%;
+    color: var(--color-danger);
+    pointer-events: none;
+    /* The pin icon's size. */
+    --icon-size-md: var(--pick-pin-size);
+  }
+
+  .pick-bar {
+    position: absolute;
+    bottom: var(--toolbar-offset);
+    left: 50%;
+    translate: -50% 0;
+    z-index: var(--z-dropdown);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm) var(--spacing-md);
+    width: max-content;
+    max-width: calc(100% - 2 * var(--spacing-md));
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-lg);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--border-radius-xl);
+    background: var(--color-surface-glass);
+    backdrop-filter: var(--blur-glass);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .pick-hint {
+    font-weight: var(--font-weight-medium);
+  }
+
+  .pick-actions {
+    display: flex;
+    gap: var(--spacing-sm);
   }
 }
