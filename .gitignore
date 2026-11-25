@@ -41,6 +41,8 @@ playwright-results.json
 a11y-report/
 performance-report/
 blob-report/
+ui-evidence/
+visual-compare/
 
 # Cloudflare
 .wrangler/

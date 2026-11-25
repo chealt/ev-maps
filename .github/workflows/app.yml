@@ -296,6 +296,8 @@ jobs:
       performance-summary: ${{ steps.publish.outputs.performance-summary }}
       ui-evidence: ${{ steps.publish.outputs.ui-evidence }}
       ui-files: ${{ steps.publish.outputs.ui-files }}
+      visual-changes: ${{ steps.visual.outputs.visual-changes }}
+      visual-report-url: ${{ steps.visual.outputs.visual-report-url }}
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
@@ -362,6 +364,25 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SITE_URL: https://ev.chealt.com
         run: bun scripts/publish-test-report.js
+
+      # Visual regression of the @ui tests' screenshots (scripts/visual-compare.js):
+      # on main they become the baseline; on a pull request they're compared
+      # with main's, and the "Visual review" status waits for the Visual
+      # approval job while anything changed.
+      - name: Compare the screenshots with main's
+        id: visual
+        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          REPORT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          SITE_URL: https://ev.chealt.com
+        run: bun scripts/visual-compare.js
 
       - name: Check the shards passed
         if: needs.changes.outputs.app == 'true' && needs.test-shard.result != 'success'
@@ -509,6 +530,31 @@ jobs:
           DEPLOY_URL: ${{ needs.deploy.outputs.url || 'https://ev.chealt.com' }}
           REPORT_URL: ${{ needs.test.outputs.report-url }}
         run: bun scripts/pr-ui-evidence-comment.js
+
+  # A pull request whose UI screenshots changed (the Test job's visual
+  # comparison) waits here for a person to look at the changes and approve
+  # them: the visual-review environment requires a reviewer. Approved, the
+  # "Visual review" status turns green, which merging requires.
+  visual-approval:
+    name: Visual approval
+    needs: test
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.test.outputs.visual-changes != '' && needs.test.outputs.visual-changes != '0' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: visual-review
+      url: ${{ needs.test.outputs.visual-report-url }}
+    steps:
+      - name: Approve the visual changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHANGES: ${{ needs.test.outputs.visual-changes }}
+          REPORT_URL: ${{ needs.test.outputs.visual-report-url }}
+        run: |
+          approver=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals" \
+            --jq '[.[] | select(.state == "approved")][-1].user.login // "a reviewer"')
+          gh api "repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
+            -f state=success -f context="Visual review" -f target_url="$REPORT_URL" \
+            -f description="$CHANGES visual changes approved by $approver"
 
   # Each production deploy gets a GitHub release, tagged with the date and
   # time it went out, with notes listing the pull requests merged since the

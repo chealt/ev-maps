@@ -74,6 +74,29 @@ is uploaded as the `playwright-report` artifact, and published for the admin
 area with a commit status linking to it; see
 [Test reports](features/test-reports.md).
 
+### Visual review
+
+The screenshots the `@ui` tests capture (`captureUi`) are compared with
+`main`'s (`scripts/visual-compare.js`, after the report is published):
+
+- On `main`, a run whose tests all passed makes its screenshots the
+  baseline: `reports/ui-baseline/main.json` in the reports bucket names that
+  report.
+- On a pull request, each screenshot is compared with the baseline's of the
+  same name, with Playwright's `toMatchSnapshot` (`scripts/visual/`). The
+  comparison's HTML report, with expected, actual and diff images, is
+  published in the report's `visual/` folder, and the **Visual review**
+  commit status links to it: green when nothing changed, pending when a
+  screenshot changed or is new.
+- While it's pending, the **Visual approval** job waits on the
+  `visual-review` environment, which requires a reviewer. Look at the
+  report, then approve the job (**Review deployments** on the run): the
+  status turns green, naming who approved.
+
+**Visual review** is a required check, so a pull request whose screenshots
+changed can't be merged until a person has approved the changes. A new push
+compares again, so an approval covers only the screenshots it was given for.
+
 When nothing the app depends on changed (e.g. a docs-only pull request), the
 checks still run so they report, but skip their steps and pass in seconds, and
 nothing is deployed. If change detection fails, the checks fail instead of

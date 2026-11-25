@@ -15,9 +15,8 @@
 // (scripts/performance-report.js) in performance/, each with its own commit
 // status.
 
-import { appendFile, readFile, readdir } from "node:fs/promises";
-import { join, relative } from "node:path";
-import { S3Client, file as bunFile } from "bun";
+import { appendFile, readFile } from "node:fs/promises";
+import { env, postCommitStatus, uploadFolder } from "./report-storage.js";
 import { REPORT_DIR as A11Y_REPORT_DIR, writeA11yReport } from "./a11y-report.js";
 import {
   REPORT_DIR as PERFORMANCE_REPORT_DIR,
@@ -31,21 +30,11 @@ import {
 
 const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
-const BUCKET = "ev-maps-test-reports";
 const ADMIN_DATABASE = "ev-maps-admin";
 const WRANGLER_TOML = new URL("../../worker/wrangler.toml", import.meta.url);
-const CONCURRENCY = 16;
 const STATUS_CONTEXT = "Playwright report";
 const A11Y_STATUS_CONTEXT = "Accessibility report";
 const PERFORMANCE_STATUS_CONTEXT = "Performance report";
-
-const env = (name, { optional = false } = {}) => {
-  const value = process.env[name];
-  if (!value && !optional) {
-    throw new Error(`${name} isn't set`);
-  }
-  return value || null;
-};
 
 const cloudflare = async (path, init) => {
   const response = await fetch(
@@ -59,34 +48,6 @@ const cloudflare = async (path, init) => {
     throw new Error(`Cloudflare ${path}: ${response.status} ${await response.text()}`);
   }
   return response;
-};
-
-const filesIn = async (directory) =>
-  (await readdir(directory, { recursive: true, withFileTypes: true }))
-    .filter((entry) => entry.isFile())
-    .map((entry) => join(entry.parentPath, entry.name));
-
-// Every file of a folder under reports/{prefix}, CONCURRENCY at a time,
-// with R2's S3 API: a bucket-scoped R2 token can't use Cloudflare's REST API.
-const uploadFolder = async (directory, prefix) => {
-  const bucket = new S3Client({
-    accessKeyId: env("R2_ACCESS_KEY_ID"),
-    secretAccessKey: env("R2_SECRET_ACCESS_KEY"),
-    bucket: BUCKET,
-    endpoint: `https://${env("CLOUDFLARE_ACCOUNT_ID")}.r2.cloudflarestorage.com`,
-  });
-  const files = await filesIn(directory);
-  let next = 0;
-  const worker = async () => {
-    while (next < files.length) {
-      const file = files[next++];
-      const key = `reports/${prefix}${relative(directory, file).split("\\").join("/")}`;
-      // Bun.file gives each its content type, e.g. text/html.
-      await bucket.write(key, bunFile(file));
-    }
-  };
-  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
-  return files.length;
 };
 
 // The admin database's ID, from the Worker's configuration.
@@ -125,25 +86,6 @@ const recordReport = async (report) => {
       ],
     }),
   });
-};
-
-// A commit status: { state, description, context, url }.
-const postCommitStatus = async (commitSha, { state, description, context, url }) => {
-  const response = await fetch(
-    `https://api.github.com/repos/${env("GITHUB_REPOSITORY")}/statuses/${commitSha}`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${env("GITHUB_TOKEN")}`,
-        accept: "application/vnd.github+json",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ state, target_url: url, description, context }),
-    }
-  );
-  if (!response.ok) {
-    throw new Error(`GitHub status: ${response.status} ${await response.text()}`);
-  }
 };
 
 // The run's numbers, from Playwright's JSON reporter.
