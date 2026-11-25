@@ -21,8 +21,11 @@ test.beforeEach(async ({ page }) => {
   await fakeChargersApi(page);
 });
 
-test("counts page views and what's used, and sends them together", async ({ page }) => {
+test("counts page views, what's used and sign-in attempts, and sends them together", async ({
+  page,
+}) => {
   const batches = await fakeUsageApi(page);
+  await fakeAuthApi(page, { signInStatus: 500 });
   await page.goto("/hu/");
   await expect(page.getByRole("status")).toHaveText("2 töltőállomás található");
   const map = page.getByRole("region", { name: "Töltőállomások térképe" });
@@ -32,6 +35,9 @@ test("counts page views and what's used, and sends them together", async ({ page
   const filters = page.getByRole("dialog", { name: "Szűrők" });
   await filters.getByRole("button", { name: "CCS" }).click();
   await filters.getByRole("button", { name: "< 50 kW" }).click();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Bejelentkezés" }).click();
+  await page.getByRole("button", { name: "Bejelentkezés Google-fiókkal" }).click();
   await leavePage(page);
 
   await expect.poll(() => batches.length).toBe(1);
@@ -41,6 +47,7 @@ test("counts page views and what's used, and sends them together", async ({ page
       page_path: { "/hu/": 1 },
       charger_opened: { ocm: 1 },
       filter_used: { connector: 1, power: 1 },
+      sign_in_started: { google: 1 },
     },
   });
 
@@ -63,18 +70,6 @@ test("counts the kind of page and the page, but not the admin area", async ({ pa
   await leavePage(page);
   await page.waitForTimeout(300);
   expect(batches).toHaveLength(1);
-});
-
-test("counts sign-in attempts by method", async ({ page }) => {
-  const batches = await fakeUsageApi(page);
-  await fakeAuthApi(page, { signInStatus: 500 });
-  await page.goto("/");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.getByRole("button", { name: "Sign in with Google" }).click();
-  await leavePage(page);
-
-  await expect.poll(() => batches.length).toBe(1);
-  expect(batches[0].events.sign_in_started).toEqual({ google: 1 });
 });
 
 test.describe("with the service worker", () => {
