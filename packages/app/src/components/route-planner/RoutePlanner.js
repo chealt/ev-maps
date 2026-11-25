@@ -284,6 +284,31 @@ class RoutePlannerElement extends HTMLElement {
         return item;
       })
     );
+    this.renderLeg(this.querySelector(".first-leg"), this.stopDistances?.[0]);
+    // The last leg, from the last stop into To.
+    this.renderLeg(
+      this.querySelector(".final-leg"),
+      this.stops.length ? this.stopDistances?.[this.stops.length] : null
+    );
+  }
+
+  // A leg's distance between two points: the number to see, the whole
+  // sentence ("… from the previous point") for screen readers.
+  renderLeg(leg, distance) {
+    if (!leg) {
+      return;
+    }
+    leg.hidden = distance == null;
+    if (distance == null) {
+      return;
+    }
+    const shown = document.createElement("span");
+    shown.setAttribute("aria-hidden", "true");
+    shown.textContent = formatDistance(distance);
+    const spoken = document.createElement("span");
+    spoken.className = "visually-hidden";
+    spoken.textContent = message("routeStopDistance", { distance: formatDistance(distance) });
+    leg.replaceChildren(shown, spoken);
   }
 
   // Called by <ev-google-map> when it restores a route after a reload.
@@ -332,15 +357,12 @@ class RoutePlannerElement extends HTMLElement {
       ...this.stops.map((stop, index) => {
         const item = template.content.firstElementChild.cloneNode(true);
         item.querySelector(".stop-name").textContent = stop.label;
-        // The leg into this stop along the planned route, once one exists.
-        const distance = this.stopDistances?.[index];
-        const distanceEl = item.querySelector(".stop-distance");
-        distanceEl.hidden = distance == null;
-        if (distance != null) {
-          distanceEl.textContent = message("routeStopDistance", {
-            distance: formatDistance(distance),
-          });
-        }
+        // The leg into this stop along the planned route, once one exists;
+        // the first stop's is above the stops' label, after From.
+        this.renderLeg(
+          item.querySelector(".stop-leg"),
+          index === 0 ? null : this.stopDistances?.[index]
+        );
         const remove = item.querySelector(".remove-stop");
         remove.disabled = !signedIn;
         remove.setAttribute("aria-label", message("removeRouteStop", { stop: stop.label }));
@@ -364,8 +386,8 @@ class RoutePlannerElement extends HTMLElement {
   }
 
   // The route shown, for sharing it (a saved shape: placeId or location).
-  // `stopDistances` are the legs into its stops along it, in meters: shown
-  // next to each stop.
+  // `stopDistances` are its legs, in meters: into each stop, then into To;
+  // shown between the points they join.
   setRoute(route, stopDistances = null) {
     this.currentRoute = route;
     this.stopDistances = stopDistances;
