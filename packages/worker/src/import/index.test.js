@@ -66,9 +66,11 @@ describe("runImport", () => {
 
     await runImport(env, { budgetMs: 400, sources: { chargers, amenities }, pauseMs: 0 });
 
-    // About a quarter of 400 ms of 20 ms steps: 5, give or take one.
-    expect(amenities.worked.length).toBeGreaterThanOrEqual(4);
-    expect(amenities.worked.length).toBeLessThanOrEqual(6);
-    expect(chargers.worked.length).toBeGreaterThan(amenities.worked.length);
+    // About 60% of 400 ms of 20 ms steps: 12, give or take one; the
+    // chargers' import gets the rest.
+    expect(amenities.worked.length).toBeGreaterThanOrEqual(11);
+    expect(amenities.worked.length).toBeLessThanOrEqual(13);
+    expect(chargers.worked.length).toBeLessThan(amenities.worked.length);
+    expect(chargers.worked.length).toBeGreaterThan(0);
   });
 });
