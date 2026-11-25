@@ -1,7 +1,19 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import { testD1 } from "../test-d1.js";
 import { upsertChargers } from "../db.js";
-import { listJobs, SOURCE } from "./amenities.js";
+
+// The Overpass answers, and the queries asked: a runStep's fetchOverpass is
+// replaced with this.
+const overpassQueries = [];
+let overpassElements = [];
+mock.module("./openstreetmap.js", () => ({
+  fetchOverpass: async (query) => {
+    overpassQueries.push(query);
+    return overpassElements;
+  },
+}));
+
+const { listJobs, runStep, SOURCE } = await import("./amenities.js");
 
 const db = () => {
   const database = testD1(
@@ -35,16 +47,21 @@ describe("amenities listJobs", () => {
           charger(`busy-${index}`, 47 + (index % 10) / 100, 19 + Math.floor(index / 10) / 100)
         ),
         // A sparse cell around Ulaanbaatar.
-        charger("sparse-1", 47.9, 106.9),
-        charger("sparse-2", 47.8, 106.8),
+        ...Array.from({ length: 10 }, (_, index) =>
+          charger(`sparse-${index}`, 47.9 - index / 100, 106.9)
+        ),
+        // A quiet cell in the Gobi: a single charger.
+        charger("quiet-1", 43.5, 100.5),
       ],
       Date.now()
     );
 
     const jobs = await listJobs(env);
-    expect(jobs).toEqual([
-      { source: SOURCE, area: "47,19", priority: 3 },
+    // The cells come in whatever order the grouping answers.
+    expect(jobs.toSorted((a, b) => a.area.localeCompare(b.area))).toEqual([
+      { source: SOURCE, area: "43,100", priority: 5 },
       { source: SOURCE, area: "47,106", priority: 4 },
+      { source: SOURCE, area: "47,19", priority: 3 },
     ]);
 
     // The runner queues the listed jobs (import/index.js ensureJobs).
@@ -71,8 +88,82 @@ describe("amenities listJobs", () => {
       .bind(SOURCE)
       .all();
     expect(priorities.results).toEqual([
+      { area: "43,100", priority: 5, cursor: null },
       { area: "47,106", priority: 4, cursor: null },
       { area: "47,19", priority: 3, cursor: "underway" },
     ]);
+  });
+});
+
+describe("amenities runStep", () => {
+  // The query's elements for a toilet at the given place, in the toilets'
+  // (the second kind's) section.
+  const toiletAt = (lat, lon) => [
+    { type: "count" },
+    { type: "node", lat, lon },
+    { type: "count" },
+    { type: "count" },
+    { type: "count" },
+  ];
+
+  test("looks up a sparse cell in one step, and writes only changed masks", async () => {
+    const env = { DB: db() };
+    await upsertChargers(env.DB, [charger("1", 47.1, 19.1), charger("2", 47.2, 19.2)], Date.now());
+    overpassQueries.length = 0;
+    overpassElements = toiletAt(47.1001, 19.1001);
+
+    const result = await runStep(env, { source: SOURCE, area: "47,19", cursor: null });
+
+    expect(result).toEqual({ done: true });
+    expect(overpassQueries).toHaveLength(1);
+    const masks = await env.DB.prepare(
+      "SELECT source_id, amenities FROM chargers ORDER BY source_id"
+    ).all();
+    expect(masks.results).toEqual([
+      { source_id: "1", amenities: 2 },
+      { source_id: "2", amenities: 0 },
+    ]);
+  });
+
+  test("looks up a busy cell a quadrant at a time, by the job's cursor", async () => {
+    const env = { DB: db() };
+    await upsertChargers(
+      env.DB,
+      [
+        ...Array.from({ length: 100 }, (_, index) =>
+          charger(`busy-${index}`, 47 + (index % 10) / 100, 19 + Math.floor(index / 10) / 100)
+        ),
+        // In the cell's north-east quadrant.
+        charger("far", 47.9, 19.9),
+      ],
+      Date.now()
+    );
+    overpassQueries.length = 0;
+    overpassElements = [];
+
+    const steps = [];
+    let cursor = null;
+    do {
+      const result = await runStep(env, { source: SOURCE, area: "47,19", cursor });
+      steps.push(result);
+      cursor = result.cursor;
+    } while (!steps.at(-1).done);
+
+    expect(steps).toEqual([
+      { done: false, cursor: 1 },
+      { done: false, cursor: 2 },
+      { done: false, cursor: 3 },
+      { done: true, cursor: 4 },
+    ]);
+    // Four queries, one per quadrant of the cell.
+    expect(overpassQueries).toHaveLength(4);
+    for (const query of overpassQueries) {
+      expect(query).not.toContain("47.00000,19.00000,48.00000,20.00000");
+    }
+    // Every charger was looked at: none is left with no mask.
+    const unchecked = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM chargers WHERE amenities IS NULL"
+    ).first();
+    expect(unchecked.count).toBe(0);
   });
 });
