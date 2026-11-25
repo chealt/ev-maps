@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeFavoritesApi } from "@ev-maps/e2e/fixtures/favorites-api.js";
@@ -109,26 +109,31 @@ test("shows the heart signed out, asking to sign in", async ({ page }) => {
   expect(changes).toHaveLength(0);
 });
 
-test("lists the favorites nearest to the map's center first", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeFavoritesApi(page, [
-    { charger: budapest, addedAt: 3 },
-    { charger: far, addedAt: 2 },
-    { charger: near, addedAt: 1 },
-  ]);
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+test(
+  "lists the favorites nearest to the map's center first",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await fakeFavoritesApi(page, [
+      { charger: budapest, addedAt: 3 },
+      { charger: far, addedAt: 2 },
+      { charger: near, addedAt: 1 },
+    ]);
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 
-  const dialog = await openFavorites(page);
+    const dialog = await openFavorites(page);
 
-  await expect(dialog.getByText("Nearest to the map's center first")).toBeVisible();
-  await expect(dialog.locator(".name")).toHaveText([
-    "Near charger",
-    "Far charger",
-    "Budapest charger",
-  ]);
-  await expect(dialog.locator(".distance").last()).toHaveText(/km$/);
-});
+    await expect(dialog.getByText("Nearest to the map's center first")).toBeVisible();
+    await expect(dialog.locator(".name")).toHaveText([
+      "Near charger",
+      "Far charger",
+      "Budapest charger",
+    ]);
+    await expect(dialog.locator(".distance").last()).toHaveText(/km$/);
+    await captureUi(page, testInfo, "the favorites, nearest first, with their distances");
+  }
+);
 
 test("shows a favorite on the map from the list, wherever it is", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
