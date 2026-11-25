@@ -5,6 +5,13 @@ const adminErrors = {
   page: {
     adminErrorColumn: "Error",
     adminSourceColumn: "Where",
+    adminBrowserColumn: "Browser",
+    adminOsColumn: "System",
+    adminErrorFilters: "Filter the errors",
+    adminFilterAll: "All",
+    adminFilterSearch: "Search",
+    adminFilterApply: "Apply",
+    adminFilterClear: "Clear filters",
     adminCountColumn: "Times",
     adminUsersColumn: "Users",
     adminLastSeenColumn: "Last seen",
