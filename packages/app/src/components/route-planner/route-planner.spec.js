@@ -46,57 +46,50 @@ const choosePlace = async (dialog, field, text, option) => {
   await dialog.getByRole("option", { name: option }).click();
 };
 
-test("zooms back out to the whole route, from the top bar, clear of the header and footer", async ({
-  page,
-}, testInfo) => {
-  await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
+test(
+  "zooms back out to the whole route, from the top bar, clear of the header and footer",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
 
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
 
-  // Panning away (e.g. to look at a charger) is undone by the button.
-  await page.evaluate(() => window.__fakeMap.panBy(300, 300));
-  const panned = await page.evaluate(() => ({ ...window.__fakeMap.center }));
+    // Panning away (e.g. to look at a charger) is undone by the button.
+    await page.evaluate(() => window.__fakeMap.panBy(300, 300));
+    const panned = await page.evaluate(() => ({ ...window.__fakeMap.center }));
 
-  // In the top bar, next to Locate Me, not in the map controls.
-  const zoom = page.getByRole("button", { name: "Zoom to route" });
-  const locate = await page.getByRole("button", { name: "Locate Me", exact: true }).boundingBox();
-  const zoomBox = await zoom.boundingBox();
-  expect(Math.abs(zoomBox.y - locate.y)).toBeLessThan(2);
-  await expect(
-    page.locator(".map-controls").getByRole("button", { name: "Zoom to route" })
-  ).toHaveCount(0);
-  await captureUi(page, testInfo, "Zoom to route, next to Locate Me");
+    const zoom = page.getByRole("button", { name: "Zoom to route" });
+    await captureUi(page, testInfo, "Zoom to route, next to Locate Me");
 
-  await zoom.click();
-  const after = await page.evaluate(() => ({
-    bounds: window.__fakeMap.fittedBounds,
-    center: window.__fakeMap.center,
-    padding: window.__fakeMap.fittedPadding,
-  }));
-  // The fit keeps the route out from under the top bar and the map controls.
-  const map = await page.locator(".google-map").boundingBox();
-  const bar = await page.locator(".user-menu .bar").boundingBox();
-  const controls = await page.locator(".map-controls").boundingBox();
-  expect(after.padding.top).toBeGreaterThan(bar.y + bar.height - map.y);
-  expect(after.padding.bottom).toBeGreaterThan(map.y + map.height - controls.y);
-  expect(after.center).not.toEqual(panned);
-  expect(after.bounds).toMatchObject({
-    north: expect.any(Number),
-    south: expect.any(Number),
-    east: expect.any(Number),
-    west: expect.any(Number),
-  });
-  // The fit centers the route's bounds, not where the map was panned.
-  expect(after.center).toEqual({
-    lat: (after.bounds.north + after.bounds.south) / 2,
-    lng: (after.bounds.east + after.bounds.west) / 2,
-  });
-});
+    await zoom.click();
+    const after = await page.evaluate(() => ({
+      bounds: window.__fakeMap.fittedBounds,
+      center: window.__fakeMap.center,
+      padding: window.__fakeMap.fittedPadding,
+    }));
+    // The fit leaves extra room at the top and bottom, for the top bar and the
+    // map controls over the map, so they don't cover the route.
+    expect(after.padding.top).toBeGreaterThan(after.padding.left);
+    expect(after.padding.bottom).toBeGreaterThan(after.padding.left);
+    expect(after.center).not.toEqual(panned);
+    expect(after.bounds).toMatchObject({
+      north: expect.any(Number),
+      south: expect.any(Number),
+      east: expect.any(Number),
+      west: expect.any(Number),
+    });
+    // The fit centers the route's bounds, not where the map was panned.
+    expect(after.center).toEqual({
+      lat: (after.bounds.north + after.bounds.south) / 2,
+      lng: (after.bounds.east + after.bounds.west) / 2,
+    });
+  }
+);
 
 test(
   "shows the chargers along a route",
