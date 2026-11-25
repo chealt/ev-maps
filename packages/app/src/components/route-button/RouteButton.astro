@@ -1,8 +1,9 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
-import { Route } from "lucide-static";
+import { Route, RouteOff } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
+import "./RouteButton.css";
 
 interface Props {
   controls?: string;
@@ -12,16 +13,31 @@ const { controls } = Astro.props;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
+<!-- The clear is part of what it clears: with a route shown, a compact clear
+     half appears attached to the route button, instead of a separate button
+     taking map space. -->
 <ev-route-button>
-  <Button
-    variant="secondary"
-    class="route-button"
-    aria-haspopup="dialog"
-    aria-controls={controls}
-    aria-keyshortcuts="r"
-  >
-    <Icon icon={Route} />
-    <span class="label">{page.route}</span>
-  </Button>
+  <span class="split">
+    <Button
+      variant="secondary"
+      class="route-button"
+      aria-haspopup="dialog"
+      aria-controls={controls}
+      aria-keyshortcuts="r"
+    >
+      <Icon icon={Route} />
+      <span class="label">{page.route}</span>
+    </Button>
+    <Button
+      variant="secondary"
+      size="icon-only"
+      class="clear-route"
+      aria-label={page.clearRoute}
+      aria-keyshortcuts="x"
+      hidden
+    >
+      <Icon icon={RouteOff} />
+    </Button>
+  </span>
   <script src="./RouteButton.js"></script>
 </ev-route-button>

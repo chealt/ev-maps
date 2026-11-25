@@ -8,7 +8,6 @@ import {
   Toilet,
   Utensils,
   MapPinned,
-  FilterX,
   Heart,
   Info,
   List,
@@ -17,12 +16,10 @@ import {
   MapPinPlus,
   Navigation,
   PlugZap,
-  RouteOff,
   X,
   Zap,
 } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
-import LocateButton from "../locate-button/LocateButton.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
 import PlaceSearch from "../place-search/PlaceSearch.astro";
 import RouteButton from "../route-button/RouteButton.astro";
@@ -39,7 +36,6 @@ interface Props {
   centerLng?: number;
   zoom?: number;
   locatedZoom?: number;
-  autoLocate?: boolean;
   minChargerZoom?: number;
   // A country page's chargers, shown without loading them from the API.
   chargers?: object[];
@@ -62,7 +58,6 @@ const {
   centerLng = 0,
   zoom = 12,
   locatedZoom = 14,
-  autoLocate = true,
   minChargerZoom = 9,
   chargers,
   chargersTruncated = false,
@@ -137,19 +132,13 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <Icon icon={ZoomIn} size="sm" class="zoom-icon" />
     </button>
 
+    <!-- No separate clear or locate buttons here: clearing is part of the
+         filter and route buttons (compact halves that appear when active),
+         and Locate Me is in the top bar, next to the account menu. -->
     <div class="map-controls">
-      <LocateButton autoLocate={autoLocate} />
       <PlaceSearch />
       <RouteButton controls="route-planner" />
       <FilterButton controls="map-filter-panel" />
-      <Button variant="secondary" class="clear-filters" aria-keyshortcuts="c" hidden>
-        <Icon icon={FilterX} />
-        <span class="label">{page.clearFilters}</span>
-      </Button>
-      <Button variant="secondary" class="clear-route" aria-keyshortcuts="x" hidden>
-        <Icon icon={RouteOff} />
-        <span class="label">{page.clearRoute}</span>
-      </Button>
     </div>
 
     <RoutePlanner id="route-planner" />

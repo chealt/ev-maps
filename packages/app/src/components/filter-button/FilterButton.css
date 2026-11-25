@@ -1,4 +1,22 @@
 ev-filter-button {
+  .split {
+    display: inline-flex;
+  }
+
+  /* With the clear half shown, the two buttons join into one pill. */
+  .split:has(.clear-filters:not([hidden])) {
+    .filter-button {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+
+    .clear-filters {
+      margin-inline-start: calc(-1 * var(--border-width));
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+  }
+
   .icon-wrapper {
     position: relative;
     display: inline-flex;

@@ -12,10 +12,17 @@ const { autoLocate = false } = Astro.props;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
+<!-- Icon only: it sits in the top bar, next to the account menu, where text
+     would take map space. -->
 <ev-locate-button data-auto-locate={autoLocate ? "" : undefined}>
-  <Button variant="primary" class="locate-button" aria-keyshortcuts="l">
+  <Button
+    variant="primary"
+    size="icon-only"
+    class="locate-button"
+    aria-label={page.locate}
+    aria-keyshortcuts="l"
+  >
     <Icon icon={LocateFixed} />
-    <span class="label">{page.locate}</span>
   </Button>
   <script src="./LocateButton.js"></script>
 </ev-locate-button>
