@@ -12,12 +12,17 @@ class PlaceInputElement extends HTMLElement {
 
   connectedCallback() {
     this.input = this.querySelector(".field");
+    this.clearButton = this.querySelector(".clear-place");
     this.list = this.querySelector(".options");
     this.template = this.querySelector(".option-template");
 
     this.input.addEventListener("input", () => this.handleInput());
     this.input.addEventListener("keydown", (event) => this.handleKeydown(event));
     this.input.addEventListener("blur", () => this.closeOptions());
+    this.clearButton?.addEventListener("click", () => {
+      this.clear();
+      this.input.focus();
+    });
     // Choosing on mousedown keeps the focus in the field.
     this.list.addEventListener("mousedown", (event) => {
       const option = event.target.closest(".option");
@@ -26,6 +31,25 @@ class PlaceInputElement extends HTMLElement {
         this.choose(Number(option.dataset.index));
       }
     });
+  }
+
+  updateClearButton() {
+    if (this.clearButton) {
+      this.clearButton.hidden = this.input.value.length === 0;
+    }
+  }
+
+  emitPlaceChange() {
+    this.dispatchEvent(new CustomEvent("place-change", { detail: this.place, bubbles: true }));
+  }
+
+  clear() {
+    clearTimeout(this.suggestTimer);
+    this.input.value = "";
+    this.place = null;
+    this.updateClearButton();
+    this.closeOptions();
+    this.emitPlaceChange();
   }
 
   // The Places library, loaded with the map's key the first time it's needed.
@@ -37,6 +61,8 @@ class PlaceInputElement extends HTMLElement {
 
   handleInput() {
     this.place = null;
+    this.updateClearButton();
+    this.emitPlaceChange();
     clearTimeout(this.suggestTimer);
     const text = this.input.value.trim();
     this.emitChange();
@@ -128,8 +154,10 @@ class PlaceInputElement extends HTMLElement {
     this.input.value = placePrediction.text.toString();
     this.place = { label: this.input.value, place: placePrediction.toPlace() };
     this.sessionToken = null;
+    this.updateClearButton();
     this.closeOptions();
     this.emitChange();
+    this.emitPlaceChange();
   }
 
   // A place chosen elsewhere: a location (e.g. "My location"), or a Google
@@ -137,8 +165,10 @@ class PlaceInputElement extends HTMLElement {
   setPlace({ label, location, place }) {
     this.input.value = label;
     this.place = place ? { label, place } : { label, location };
+    this.updateClearButton();
     this.closeOptions();
     this.emitChange();
+    this.emitPlaceChange();
   }
 
   // A place was chosen, or the field was emptied: `place` says which.

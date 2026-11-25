@@ -1,4 +1,7 @@
 .place-input {
+  --clear-button-inset: 0.25rem;
+  --field-clear-padding: 2.5rem;
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -11,8 +14,20 @@
     gap: var(--spacing-sm);
   }
 
+  .label-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+  }
+
   .label {
     font-weight: var(--font-weight-semibold);
+  }
+
+  .field-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
   .field {
@@ -24,10 +39,19 @@
     color: var(--color-text);
     font: inherit;
 
+    &:has(+ .clear-place:not([hidden])) {
+      padding-inline-end: var(--field-clear-padding);
+    }
+
     &:focus-visible {
       outline: var(--border-width-thick) solid var(--color-primary);
       outline-offset: var(--border-width);
     }
+  }
+
+  .clear-place {
+    position: absolute;
+    inset-inline-end: var(--clear-button-inset);
   }
 
   .options {

@@ -1,13 +1,17 @@
 ---
+import { X } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
 import "./PlaceInput.css";
 
 interface Props {
   id: string;
   label: string;
   placeholder: string;
+  clearLabel?: string;
 }
 
-const { id, label, placeholder } = Astro.props;
+const { id, label, placeholder, clearLabel } = Astro.props;
 const listId = `${id}-options`;
 ---
 
@@ -16,19 +20,29 @@ const listId = `${id}-options`;
     <label class="label" for={id}>
       {label}
     </label>
-    <slot />
+    <div class="label-actions">
+      <slot />
+    </div>
   </div>
-  <input
-    id={id}
-    class="field"
-    type="text"
-    role="combobox"
-    autocomplete="off"
-    aria-autocomplete="list"
-    aria-expanded="false"
-    aria-controls={listId}
-    placeholder={placeholder}
-  />
+  <div class="field-wrapper">
+    <input
+      id={id}
+      class="field"
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls={listId}
+      placeholder={placeholder}
+    />
+    {clearLabel && (
+      <Button variant="ghost" size="icon-only" class="clear-place" aria-label={clearLabel} hidden>
+        <Icon icon={X} size="sm" />
+      </Button>
+    )}
+  </div>
+  <slot name="after" />
   <ul class="options" id={listId} role="listbox" aria-label={label} hidden></ul>
   <template class="option-template">
     <li class="option" role="option" aria-selected="false">

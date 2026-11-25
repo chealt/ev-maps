@@ -35,6 +35,13 @@ const SECTIONS = {
     routes: (value) =>
       Array.isArray(value) && value.length <= MAX_FAVORITE_ROUTES && value.every(isRoute),
   },
+  // The places the user saved (Home, Work, School or a custom label and
+  // icon) for choosing in the route planner
+  // (the app's src/components/google-map/route-history.js).
+  savedPlaces: {
+    places: (value) =>
+      Array.isArray(value) && value.length <= MAX_SAVED_PLACES && value.every(isSavedPlace),
+  },
   // The app "Open in maps" opens a charger in, remembered when the user
   // asked; null asks every time (the app's src/lib/maps-app.js).
   mapsApp: {
@@ -54,6 +61,8 @@ const MAPS_APPS = ["google", "osm", "apple"];
 const MAX_ROUTES = 10;
 const MAX_FAVORITE_ROUTES = 20;
 const MAX_ROUTE_STOPS = 10;
+const MAX_SAVED_PLACES = 20;
+const SAVED_PLACE_ICONS = ["home", "work", "school", "star", "heart", "pin"];
 
 const isLocation = (location) =>
   Number.isFinite(location?.lat) &&
@@ -68,6 +77,14 @@ const isRouteEnd = (end) =>
   end.label.length <= 200 &&
   (end.id === undefined || (typeof end.id === "string" && end.id.length <= 120)) &&
   ((typeof end.placeId === "string" && end.placeId.length <= 300) || isLocation(end.location));
+
+// A saved place: a route end with a short name (e.g. "Home") and an icon.
+const isSavedPlace = (place) =>
+  isRouteEnd(place) &&
+  typeof place.name === "string" &&
+  place.name.trim().length > 0 &&
+  place.name.length <= 60 &&
+  SAVED_PLACE_ICONS.includes(place.icon);
 
 // The filters on when it was planned: as the filters section, without its
 // updatedAt.

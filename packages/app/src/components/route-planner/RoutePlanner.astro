@@ -1,7 +1,19 @@
 ---
 import DistanceText from "../distance-text/DistanceText.astro";
 import { CORRIDOR_KM, CORRIDOR_OPTIONS_KM } from "../google-map/route.js";
-import { Heart, History, LocateFixed, Share2, X } from "lucide-static";
+import {
+  Bookmark,
+  Briefcase,
+  GraduationCap,
+  Heart,
+  History,
+  House,
+  LocateFixed,
+  MapPin,
+  Share2,
+  Star,
+  X,
+} from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -13,7 +25,22 @@ interface Props {
 }
 
 const { id } = Astro.props;
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, values } = translations(Astro.currentLocale ?? "en");
+
+const placeIcons = [
+  { id: "home", icon: House },
+  { id: "work", icon: Briefcase },
+  { id: "school", icon: GraduationCap },
+  { id: "star", icon: Star },
+  { id: "heart", icon: Heart },
+  { id: "pin", icon: MapPin },
+];
+
+const placePresets = [
+  { id: "home", label: page.savedPlaceHome, icon: "home", iconSvg: House },
+  { id: "work", label: page.savedPlaceWork, icon: "work", iconSvg: Briefcase },
+  { id: "school", label: page.savedPlaceSchool, icon: "school", iconSvg: GraduationCap },
+];
 ---
 
 <ev-route-planner>
@@ -33,11 +60,36 @@ const { page } = translations(Astro.currentLocale ?? "en");
           {page.signIn}
         </Button>
       </div>
-      <PlaceInput id="route-from" label={page.routeFrom} placeholder={page.placeSearch}>
+      <PlaceInput
+        id="route-from"
+        label={page.routeFrom}
+        placeholder={page.placeSearch}
+        clearLabel={`${page.clearPlace}: ${page.routeFrom}`}
+      >
         <Button variant="ghost" size="small" class="use-my-location">
           <Icon icon={LocateFixed} size="sm" />
           {page.useMyLocation}
         </Button>
+        <Button
+          variant="ghost"
+          size="small"
+          class="save-place-toggle"
+          data-target="from"
+          aria-expanded="false"
+          aria-label={`${page.savePlace}: ${page.routeFrom}`}
+          hidden
+        >
+          <Icon icon={Bookmark} size="sm" />
+          {page.savePlace}
+        </Button>
+        <div
+          slot="after"
+          class="saved-place-chips"
+          data-target="from"
+          role="group"
+          aria-label={`${page.savedPlaces}: ${page.routeFrom}`}
+          hidden
+        ></div>
       </PlaceInput>
       <!-- Chargers added as stops along the route; each can be removed. -->
       <div class="route-stops" role="group" aria-labelledby="route-stops-title" hidden>
@@ -54,7 +106,108 @@ const { page } = translations(Astro.currentLocale ?? "en");
           </li>
         </template>
       </div>
-      <PlaceInput id="route-to" label={page.routeTo} placeholder={page.placeSearch} />
+      <PlaceInput
+        id="route-to"
+        label={page.routeTo}
+        placeholder={page.placeSearch}
+        clearLabel={`${page.clearPlace}: ${page.routeTo}`}
+      >
+        <Button
+          variant="ghost"
+          size="small"
+          class="save-place-toggle"
+          data-target="to"
+          aria-expanded="false"
+          aria-label={`${page.savePlace}: ${page.routeTo}`}
+          hidden
+        >
+          <Icon icon={Bookmark} size="sm" />
+          {page.savePlace}
+        </Button>
+        <div
+          slot="after"
+          class="saved-place-chips"
+          data-target="to"
+          role="group"
+          aria-label={`${page.savedPlaces}: ${page.routeTo}`}
+          hidden
+        ></div>
+      </PlaceInput>
+      <!-- Save a chosen place as Home, Work, School or a custom label with
+           an icon from the available selection. -->
+      <div class="save-place-panel" role="group" aria-labelledby="save-place-title" hidden>
+        <div class="save-place-header">
+          <span class="label" id="save-place-title">
+            {page.savePlace}
+          </span>
+          <span class="save-place-value"></span>
+        </div>
+        <div class="save-place-presets" role="group" aria-label={page.savedPlacePresets}>
+          {placePresets.map(({ label, icon, iconSvg }) => (
+            <Button
+              variant="secondary"
+              size="small"
+              class="save-place-preset"
+              data-preset-label={label}
+              data-preset-icon={icon}
+            >
+              <Icon icon={iconSvg} size="sm" />
+              {label}
+            </Button>
+          ))}
+        </div>
+        <label class="save-place-field">
+          <span class="label">{page.savedPlaceLabel}</span>
+          <input
+            type="text"
+            class="field save-place-name"
+            maxlength="60"
+            placeholder={page.savedPlaceLabelPlaceholder}
+          />
+        </label>
+        <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
+          <span class="label" id="save-place-icon-title">
+            {page.savedPlaceIcon}
+          </span>
+          <div class="icon-options">
+            {placeIcons.map(({ id: iconId, icon }, index) => (
+              <Button
+                variant="secondary"
+                size="small"
+                class="icon-option"
+                data-icon-value={iconId}
+                aria-pressed={index === 0 ? "true" : "false"}
+              >
+                <Icon icon={icon} size="sm" />
+                {values.placeIcons[iconId]}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div class="save-place-actions">
+          <Button variant="secondary" size="small" class="cancel-save-place">
+            {page.cancelSavePlace}
+          </Button>
+          <Button variant="primary" size="small" class="confirm-save-place">
+            {page.confirmSavePlace}
+          </Button>
+        </div>
+      </div>
+      <template class="saved-place-chip-template">
+        <span class="saved-place-item">
+          <button type="button" class="saved-place-chip">
+            {placeIcons.map(({ id: iconId, icon }) => (
+              <span class="chip-icon" data-icon={iconId} hidden>
+                <Icon icon={icon} size="sm" />
+              </span>
+            ))}
+            <span class="chip-name"></span>
+          </button>
+          <Button variant="ghost" size="icon-only" class="remove-saved-place">
+            <Icon icon={X} size="sm" />
+          </Button>
+        </span>
+      </template>
       <!-- How far from the route chargers are shown; the labels and the hint
            are in the user's unit once the page runs (DistanceText.js). -->
       <fieldset class="corridor">

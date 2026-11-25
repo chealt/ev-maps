@@ -179,7 +179,36 @@ describe("filters' price levels", () => {
 
   test("turns down other levels", () => {
     for (const priceLevels of [["4"], [1], ["cheap"], ["1", "2", "3", "1"]]) {
-      expect(validSection("filters", { priceLevels, updatedAt: 1 })).toBe(false);
+      expect(validSection("filters", { priceLevels: priceLevels, updatedAt: 1 })).toBe(false);
     }
+  });
+});
+
+describe("savedPlaces", () => {
+  const place = {
+    name: "Home",
+    icon: "home",
+    label: "Budapest, Hungary",
+    placeId: "budapest",
+  };
+
+  test("takes up to 20 saved places with name, icon and place", () => {
+    expect(validSection("savedPlaces", { places: [place], updatedAt: 1 })).toBe(true);
+    expect(validSection("savedPlaces", { places: [], updatedAt: 1 })).toBe(true);
+    expect(
+      validSection("savedPlaces", {
+        places: Array.from({ length: 21 }, () => place),
+        updatedAt: 1,
+      })
+    ).toBe(false);
+  });
+
+  test("turns down saved places without a name, with an unknown icon or without a place", () => {
+    const withChanges = (changes) =>
+      validSection("savedPlaces", { places: [{ ...place, ...changes }], updatedAt: 1 });
+    expect(withChanges({ name: "" })).toBe(false);
+    expect(withChanges({ name: "   " })).toBe(false);
+    expect(withChanges({ icon: "rocket" })).toBe(false);
+    expect(withChanges({ placeId: undefined })).toBe(false);
   });
 });

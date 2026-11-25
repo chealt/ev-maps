@@ -594,3 +594,88 @@ test("adding a charger as a stop before planning opens the route planner with it
   const [routeRequest] = await page.evaluate(() => window.__routeRequests);
   expect(routeRequest.intermediates).toEqual([{ lat: 40.71, lng: -74 }]);
 });
+
+test("clears the From and To inputs with their clear buttons", async ({ page }) => {
+  await page.getByRole("button", { name: "Route" }).click();
+  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  const from = dialog.getByRole("combobox", { name: "From" });
+  const to = dialog.getByRole("combobox", { name: "To" });
+  const clearFrom = dialog.getByRole("button", { name: "Clear place: From" });
+  const clearTo = dialog.getByRole("button", { name: "Clear place: To" });
+
+  await expect(clearFrom).toBeHidden();
+  await expect(clearTo).toBeHidden();
+
+  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await expect(clearFrom).toBeVisible();
+  await expect(clearTo).toBeVisible();
+
+  await clearFrom.click();
+  await expect(from).toHaveValue("");
+  await expect(clearFrom).toBeHidden();
+
+  await clearTo.click();
+  await expect(to).toHaveValue("");
+  await expect(clearTo).toBeHidden();
+});
+
+test(
+  "saves places with presets or a custom label and icon, and chooses them for the route",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    const saves = await fakeSettingsApi(page);
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+
+    // Choose From and save it as Home using the preset.
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await dialog.getByRole("button", { name: "Save place: From" }).click();
+    const savePanel = dialog.getByRole("group", { name: "Save place" });
+    await expect(savePanel).toBeVisible();
+    const presetsGroup = savePanel.getByRole("group", { name: "Place presets" });
+    const iconGroup = savePanel.getByRole("group", { name: "Icon" });
+    await presetsGroup.getByRole("button", { name: "Home" }).click();
+    await expect(savePanel.getByLabel("Label")).toHaveValue("Home");
+    await expect(iconGroup.getByRole("button", { name: "Home", pressed: true })).toBeVisible();
+    await savePanel.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(savePanel).toBeHidden();
+
+    // Choose To and save it with a custom label and Star icon.
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Save place: To" }).click();
+    await savePanel.getByLabel("Label").fill("Opera");
+    await iconGroup.getByRole("button", { name: "Star" }).click();
+    await expect(iconGroup.getByRole("button", { name: "Star", pressed: true })).toBeVisible();
+    await savePanel.getByRole("button", { name: "Save", exact: true }).scrollIntoViewIfNeeded();
+    await captureUi(page, testInfo, "saving a place with a custom label and icon");
+    await savePanel.getByRole("button", { name: "Save", exact: true }).click();
+
+    await expect.poll(() => saves.at(-1)?.savedPlaces?.places.length).toBe(2);
+    expect(saves.at(-1).savedPlaces.places).toEqual([
+      { name: "Opera", icon: "star", label: "Vienna, Austria", placeId: "vienna" },
+      { name: "Home", icon: "home", label: "Budapest, Hungary", placeId: "budapest" },
+    ]);
+
+    // Clear both fields and pick the saved places from the chips.
+    await dialog.getByRole("button", { name: "Clear place: From" }).click();
+    await dialog.getByRole("button", { name: "Clear place: To" }).click();
+    const fromSaved = dialog.getByRole("group", { name: "Saved places: From" });
+    const toSaved = dialog.getByRole("group", { name: "Saved places: To" });
+    await fromSaved.getByRole("button", { name: "Home", exact: true }).click();
+    await toSaved.getByRole("button", { name: "Opera", exact: true }).click();
+    await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("Budapest, Hungary");
+    await expect(dialog.getByRole("combobox", { name: "To" })).toHaveValue("Vienna, Austria");
+    await captureUi(page, testInfo, "route planner with saved places");
+
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+    // Removing a saved place removes it from the chips and the account.
+    await page.getByRole("button", { name: "Route", exact: true }).click();
+    await fromSaved.getByRole("button", { name: "Remove Opera from saved places" }).click();
+    await expect(fromSaved.getByRole("button", { name: "Opera", exact: true })).toBeHidden();
+    expect(saves.at(-1).savedPlaces.places).toHaveLength(1);
+  }
+);

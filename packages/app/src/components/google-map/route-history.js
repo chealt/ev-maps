@@ -13,6 +13,8 @@ import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-set
 const MAX_ROUTES = 10;
 const MAX_FAVORITE_ROUTES = 20;
 const MAX_ROUTE_STOPS = 10;
+const MAX_SAVED_PLACES = 20;
+const SAVED_PLACE_ICONS = ["home", "work", "school", "star", "heart", "pin"];
 
 const endKey = ({ id, placeId, location }) =>
   placeId ? `place:${placeId}` : id ? `charger:${id}` : `at:${location.lat},${location.lng}`;
@@ -26,6 +28,7 @@ const sameRoute = (a, b) =>
 
 let routes = null;
 let favorites = null;
+let savedPlaces = null;
 // One request for the account's settings, for both lists.
 let settings = null;
 const accountSettings = () => (settings ??= fetchAccountSettings());
@@ -64,21 +67,53 @@ const toggleFavoriteRoute = async (route) => {
   return favorites;
 };
 
+// The places saved (Home, Work, School or a custom label and icon), from
+// the account (once per page, then kept here).
+const readSavedPlaces = async () => {
+  savedPlaces ??= (await accountSettings())?.savedPlaces?.places ?? [];
+  return savedPlaces;
+};
+
+// Saves a place ({ name, icon, label, placeId } or { name, icon, label,
+// location }); replaces one with the same name or the same place.
+const savePlace = async (place) => {
+  const current = await readSavedPlaces();
+  const normalizedName = place.name.trim().toLowerCase();
+  const rest = current.filter(
+    (entry) => entry.name.trim().toLowerCase() !== normalizedName && endKey(entry) !== endKey(place)
+  );
+  savedPlaces = [{ ...place, name: place.name.trim() }, ...rest].slice(0, MAX_SAVED_PLACES);
+  await saveAccountSettings({ savedPlaces: { places: savedPlaces, updatedAt: Date.now() } });
+  return savedPlaces;
+};
+
+const removeSavedPlace = async (place) => {
+  const current = await readSavedPlaces();
+  savedPlaces = current.filter((entry) => endKey(entry) !== endKey(place));
+  await saveAccountSettings({ savedPlaces: { places: savedPlaces, updatedAt: Date.now() } });
+  return savedPlaces;
+};
+
 // Signed out, the next user's history and favorites are theirs.
 const forgetRouteHistory = () => {
   routes = null;
   favorites = null;
+  savedPlaces = null;
   settings = null;
 };
 
 export {
   MAX_ROUTE_STOPS,
+  SAVED_PLACE_ICONS,
   endKey,
   forgetRouteHistory,
   isFavoriteRoute,
   readFavoriteRoutes,
   readRouteHistory,
+  readSavedPlaces,
   recordRoute,
+  removeSavedPlace,
   sameRoute,
+  savePlace,
   toggleFavoriteRoute,
 };
