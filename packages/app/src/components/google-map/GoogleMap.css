@@ -598,6 +598,8 @@ ev-google-map {
     margin: 0 calc(-0.5 * var(--route-road-weight));
   }
 
+  /* The highlighted road runs to the fork; between the forks only the
+     dashed bypass shows, much less visible (#250). */
   .route-visual-segment {
     position: absolute;
     bottom: 0.0625rem;
@@ -606,17 +608,12 @@ ev-google-map {
 
     &.before {
       left: 0;
-      width: calc(
-        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) * var(--route-ratio, 0.5)
-      );
+      width: calc((100% - var(--route-bend-width)) * var(--route-ratio, 0.5));
     }
 
     &.after {
       right: 0;
-      width: calc(
-        var(--route-bend-width) / 2 + (100% - var(--route-bend-width)) *
-          (1 - var(--route-ratio, 0.5))
-      );
+      width: calc((100% - var(--route-bend-width)) * (1 - var(--route-ratio, 0.5)));
     }
   }
 
@@ -641,10 +638,11 @@ ev-google-map {
     overflow: visible;
   }
 
+  /* The direct road between the forks: there to read, not to stand out. */
   .route-visual-bypass {
-    stroke: var(--color-border-strong);
-    stroke-width: 1.25;
-    stroke-dasharray: 3.5 3.5;
+    stroke: var(--color-border);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
     stroke-linecap: round;
   }
 
