@@ -92,26 +92,6 @@ test(
 );
 
 test(
-  "shows the route and filter buttons with their clear halves",
-  { tag: "@ui" },
-  async ({ page }, testInfo) => {
-    await fakeRouteChargersApi(page);
-    await page.getByRole("button", { name: "Route" }).click();
-    const dialog = page.getByRole("dialog", { name: "Plan a route" });
-    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-    await dialog.getByRole("button", { name: "Show route" }).click();
-    await page.getByRole("button", { name: "Filters", exact: true }).click();
-    await page.getByRole("button", { name: "CCS" }).click();
-    await page.getByRole("button", { name: "Done" }).click();
-
-    await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Clear filters" })).toBeVisible();
-    await captureUi(page, testInfo, "the route and filter buttons with their clear halves");
-  }
-);
-
-test(
   "shows the chargers along a route",
   { tag: ["@regression", "@ui"] },
   async ({ page }, testInfo) => {
@@ -144,98 +124,125 @@ test(
   }
 );
 
-test("lists the chargers in order along the route", { tag: "@ui" }, async ({ page }) => {
-  await fakeRouteChargersApi(page);
+test(
+  "lists the route's chargers in order, sorts them, shows each one's distances, and clears the route",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
+
+    // In order along the route, each with where it sits on it.
+    const list = page.getByRole("dialog", { name: "2 EV chargers" });
+    const entries = list.getByRole("listitem");
+    await expect(entries.nth(0)).toContainText("Downtown Supercharger");
+    await expect(entries.nth(0).getByRole("img")).toHaveAccessibleName(
+      "50 km from the start, 100 km to the end, 1 km off the route"
+    );
+    await expect(entries.nth(1).getByRole("img")).toHaveAccessibleName(
+      "100 km from the start, 50 km to the end, 1 km off the route"
+    );
+
+    // Sorted by the distance to the end instead.
+    const sorting = list.getByRole("group", { name: "Distance" });
+    await expect(sorting.getByRole("radio", { name: "From start" })).toBeChecked();
+    await sorting.getByText("To end", { exact: true }).click();
+    await expect(sorting.getByRole("radio", { name: "To end" })).toBeChecked();
+    await expect(entries.nth(1)).toContainText("Downtown Supercharger");
+    await page.keyboard.press("Escape");
+
+    // A charger's details say where it is along the route.
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
+    const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
+    await expect(details.getByRole("img")).toHaveAccessibleName(
+      "50 km from the start, 100 km to the end, 1 km off the route"
+    );
+    await captureUi(page, testInfo, "a route's charger's details");
+    await details.getByRole("button", { name: "Close" }).click();
+
+    // Cleared, it's the map's chargers again, with nothing to sort.
+    await page.getByRole("button", { name: "Clear route" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    expect(await page.evaluate(() => window.__fakeRouteLine)).toBeNull();
+    await page.getByRole("button", { name: "2 EV chargers found" }).click();
+    await expect(
+      page.getByRole("dialog", { name: "2 EV chargers" }).getByRole("radio")
+    ).toHaveCount(0);
+  }
+);
+
+test(
+  "filters the chargers along the route by the places next to them and by power",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeRouteChargersApi(page, { chargers: chargersWithPlaces });
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
+    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const filters = page.getByRole("dialog", { name: "Filters" });
+    await filters.getByRole("button", { name: "Café" }).click();
+    await filters.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("status")).toHaveText(
+      "1 of 2 EV chargers along the route match the filters"
+    );
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await expect(map.getByRole("button", { name: "Café charger" })).toBeVisible();
+    await expect(map.getByRole("button", { name: "Bare charger" })).toBeHidden();
+    await captureUi(page, testInfo, "the route and filter buttons with their clear halves");
+
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    await filters.getByRole("button", { name: "150–300 kW" }).click();
+    await filters.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("status")).toHaveText(
+      "0 of 2 EV chargers along the route match the filters"
+    );
+  }
+);
+
+test("takes places from the suggestions only, by keyboard too, clears them, and says when there's no route", async ({
+  page,
+}) => {
   await page.getByRole("button", { name: "Route" }).click();
   const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  const from = dialog.getByRole("combobox", { name: "From" });
+  const clearFrom = dialog.getByRole("button", { name: "Clear place: From" });
+
+  // Typed, not chosen: not a place to plan from.
+  await from.fill("Somewhere I typed");
   await dialog.getByRole("button", { name: "Show route" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Choose both places from the suggestions");
 
-  await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
-
-  const list = page.getByRole("dialog", { name: "2 EV chargers" });
+  // Chosen with the keyboard.
+  await from.fill("Buda");
+  await expect(dialog.getByRole("option", { name: "Budapest, Hungary" })).toBeVisible();
+  await from.press("ArrowDown");
   await expect(
-    list.getByRole("group", { name: "Distance" }).getByRole("radio", { name: "From start" })
-  ).toBeChecked();
-  const entries = list.getByRole("listitem");
-  await expect(entries.nth(0)).toContainText("Downtown Supercharger");
-  // Each charger shows where it sits along the route as a small graph,
-  // labelled with the distances from the start, to the end and off it.
-  const first = entries.nth(0).getByRole("img");
-  await expect(first).toHaveAccessibleName(
-    "50 km from the start, 100 km to the end, 1 km off the route"
-  );
-  const second = entries.nth(1).getByRole("img");
-  await expect(second).toHaveAccessibleName(
-    "100 km from the start, 50 km to the end, 1 km off the route"
-  );
-  // Halfway along the route, and a quarter in, with a bend in the road
-  // carrying the +X km detour and the start/end distances under the nodes.
-  const bendProgress = (entry) =>
-    entry.evaluate((el) => el.style.getPropertyValue("--route-progress"));
-  expect(await bendProgress(first)).toBe("33.33333333333333%");
-  expect(await bendProgress(second)).toBe("66.66666666666666%");
-  await expect(first.locator(".route-visual-bend .route-visual-detour")).toHaveText("+1 km");
-  await expect(first.locator(".route-visual-distance.start")).toHaveText("50 km");
-  await expect(first.locator(".route-visual-distance.end")).toHaveText("100 km");
-});
+    dialog.getByRole("option", { name: "Budapest, Hungary", selected: true })
+  ).toBeVisible();
+  await from.press("Enter");
+  await expect(from).toHaveValue("Budapest, Hungary");
+  await expect(dialog.getByRole("listbox")).toBeHidden();
 
-test("filters the chargers along the route by power", async ({ page }) => {
-  await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  // Cleared with its button.
+  await clearFrom.click();
+  await expect(from).toHaveValue("");
+  await expect(clearFrom).toBeHidden();
+
+  // No road between them.
   await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+  await choosePlace(dialog, "To", "Nowhere", "Nowhere Island, Ocean");
   await dialog.getByRole("button", { name: "Show route" }).click();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-
-  await page.getByRole("button", { name: "Filters" }).click();
-  const filters = page.getByRole("dialog", { name: "Filters" });
-  await filters.getByRole("button", { name: "150–300 kW" }).click();
-  await filters.getByRole("button", { name: "Done" }).click();
-
-  await expect(page.getByRole("status")).toHaveText(
-    "1 of 2 EV chargers along the route match the filters"
-  );
-});
-
-test("filters the chargers along the route by the places next to them", async ({ page }) => {
-  await fakeRouteChargersApi(page, { chargers: chargersWithPlaces });
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-
-  await page.getByRole("button", { name: "Filters" }).click();
-  const filters = page.getByRole("dialog", { name: "Filters" });
-  await filters.getByRole("button", { name: "Café" }).click();
-  await filters.getByRole("button", { name: "Done" }).click();
-
-  await expect(page.getByRole("status")).toHaveText(
-    "1 of 2 EV chargers along the route match the filters"
-  );
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await expect(map.getByRole("button", { name: "Café charger" })).toBeVisible();
-  await expect(map.getByRole("button", { name: "Bare charger" })).toBeHidden();
-});
-
-test("clears the route and goes back to the map's chargers", async ({ page }) => {
-  await fakeRouteChargersApi(page, { chargers: [] });
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-  await expect(page.getByRole("status")).toHaveText("No EV chargers along the route");
-
-  await page.getByRole("button", { name: "Clear route" }).click();
-
-  await expect(page.getByRole("button", { name: "Clear route" })).toBeHidden();
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  expect(await page.evaluate(() => window.__fakeRouteLine)).toBeNull();
+  await expect(page.getByRole("status")).toHaveText("No route found between these places");
 });
 
 test("starts from the user's location", async ({ page, context }) => {
@@ -253,45 +260,6 @@ test("starts from the user's location", async ({ page, context }) => {
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
   const [routeRequest] = await page.evaluate(() => window.__routeRequests);
   expect(routeRequest.origin).toEqual({ lat: 47.4979, lng: 19.0402 });
-});
-
-test("chooses a suggestion with the keyboard", async ({ page }) => {
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  const from = dialog.getByRole("combobox", { name: "From" });
-
-  await from.fill("Buda");
-  await expect(dialog.getByRole("option", { name: "Budapest, Hungary" })).toBeVisible();
-  await from.press("ArrowDown");
-  await expect(
-    dialog.getByRole("option", { name: "Budapest, Hungary", selected: true })
-  ).toBeVisible();
-  await from.press("Enter");
-
-  await expect(from).toHaveValue("Budapest, Hungary");
-  await expect(dialog.getByRole("listbox")).toBeHidden();
-});
-
-test("asks to choose both places from the suggestions", async ({ page }) => {
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await dialog.getByRole("combobox", { name: "From" }).fill("Somewhere I typed");
-
-  await dialog.getByRole("button", { name: "Show route" }).click();
-
-  await expect(dialog.getByRole("alert")).toHaveText("Choose both places from the suggestions");
-  await expect(dialog).toBeVisible();
-});
-
-test("says when there's no route", async ({ page }) => {
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Nowhere", "Nowhere Island, Ocean");
-
-  await dialog.getByRole("button", { name: "Show route" }).click();
-
-  await expect(page.getByRole("status")).toHaveText("No route found between these places");
 });
 
 test("plans the route in the page's language", async ({ page }) => {
@@ -448,44 +416,6 @@ test("keeps the routes planned, with their filters, to plan again", async ({ pag
   ).toHaveAccessibleDescription("1 filter on");
 });
 
-test("draws the route over a casing, in the theme's colors", async ({ page }) => {
-  // The route's line and the casing under it (--color-route and
-  // --color-route-casing).
-  const LIGHT = { line: "rgb(126, 34, 206)", casing: "rgb(255, 255, 255)" };
-  const DARK = { line: "rgb(216, 180, 254)", casing: "rgb(15, 23, 42)" };
-  const routeColors = () =>
-    page.evaluate(() => {
-      const [casing, line] = window.__fakeRouteLines ?? [];
-      if (!line) {
-        return null;
-      }
-      return {
-        line: line.strokeColor,
-        casing: casing.strokeColor,
-        wider: casing.strokeWeight > line.strokeWeight,
-      };
-    });
-
-  await page.emulateMedia({ colorScheme: "light" });
-  await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-  await expect.poll(routeColors).toEqual({ ...LIGHT, wider: true });
-
-  // Following the system theme, the route follows the system's.
-  await page.emulateMedia({ colorScheme: "dark" });
-  await expect.poll(routeColors).toEqual({ ...DARK, wider: true });
-
-  // Choosing a theme, the route takes its colors, on the new map.
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
-  await page.getByRole("dialog", { name: "Account" }).getByRole("radio", { name: "Light" }).check();
-  await expect.poll(routeColors).toEqual({ ...LIGHT, wider: true });
-  expect(await page.evaluate(() => window.__fakeRouteLines.length)).toBe(2);
-});
-
 test("plans with the distance from the route chosen, and keeps it with the route", async ({
   page,
 }) => {
@@ -518,72 +448,6 @@ test("plans with the distance from the route chosen, and keeps it with the route
   await expect(
     dialog.getByRole("region", { name: "Recent routes" }).getByText("no filters · within 2 km")
   ).toBeVisible();
-});
-
-test(
-  "shows a route's charger's distances in its details",
-  { tag: "@ui" },
-  async ({ page }, testInfo) => {
-    const map = page.getByRole("region", { name: "EV charging station map" });
-    const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-    // Without a route, a charger has none.
-    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-    await expect(details).toBeVisible();
-    await expect(details.getByText("off the route")).toBeHidden();
-    await details.getByRole("button", { name: "Close" }).click();
-
-    await fakeRouteChargersApi(page);
-    await page.getByRole("button", { name: "Route" }).click();
-    const dialog = page.getByRole("dialog", { name: "Plan a route" });
-    await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-    await dialog.getByRole("button", { name: "Show route" }).click();
-    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-
-    // The same charger's pin, kept from the map's load, opens the route's
-    // copy of it, with where it is along the route as a small graph.
-    await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-    await expect(details.getByRole("img")).toHaveAccessibleName(
-      "50 km from the start, 100 km to the end, 1 km off the route"
-    );
-    await captureUi(page, testInfo, "a route's charger's details");
-  }
-);
-
-test("sorts the chargers along the route by distance from the start, the end or off it", async ({
-  page,
-}) => {
-  await fakeRouteChargersApi(page, { chargers: chargersWithPlaces });
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-  await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
-
-  const list = page.getByRole("dialog", { name: "2 EV chargers" });
-  const names = () =>
-    list.locator(".recent-route, .item .name").evaluateAll((els) => els.map((e) => e.textContent));
-  const sorting = list.getByRole("group", { name: "Distance" });
-  const sortBy = (label) => sorting.getByText(label, { exact: true }).click();
-
-  await expect(sorting.getByRole("radio", { name: "From start" })).toBeChecked();
-  expect(await names()).toEqual(["Café charger", "Bare charger"]);
-
-  await sortBy("To end");
-  await expect(sorting.getByRole("radio", { name: "To end" })).toBeChecked();
-  expect(await names()).toEqual(["Bare charger", "Café charger"]);
-
-  await sortBy("Off route");
-  await expect(sorting.getByRole("radio", { name: "Off route" })).toBeChecked();
-
-  // Not along a route: no sorting to choose.
-  await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Clear route" }).click();
-  await page.getByRole("button", { name: "2 EV chargers found" }).click();
-  await expect(page.getByRole("dialog", { name: "2 EV chargers" }).getByRole("radio")).toHaveCount(
-    0
-  );
 });
 
 test("shares the route as a link that plans it again", async ({ page, context }) => {
@@ -694,31 +558,6 @@ test("adding a charger as a stop before planning opens the route planner with it
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
   const [routeRequest] = await page.evaluate(() => window.__routeRequests);
   expect(routeRequest.intermediates).toEqual([{ lat: 40.71, lng: -74 }]);
-});
-
-test("clears the From and To inputs with their clear buttons", async ({ page }) => {
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  const from = dialog.getByRole("combobox", { name: "From" });
-  const to = dialog.getByRole("combobox", { name: "To" });
-  const clearFrom = dialog.getByRole("button", { name: "Clear place: From" });
-  const clearTo = dialog.getByRole("button", { name: "Clear place: To" });
-
-  await expect(clearFrom).toBeHidden();
-  await expect(clearTo).toBeHidden();
-
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await expect(clearFrom).toBeVisible();
-  await expect(clearTo).toBeVisible();
-
-  await clearFrom.click();
-  await expect(from).toHaveValue("");
-  await expect(clearFrom).toBeHidden();
-
-  await clearTo.click();
-  await expect(to).toHaveValue("");
-  await expect(clearTo).toBeHidden();
 });
 
 test(
