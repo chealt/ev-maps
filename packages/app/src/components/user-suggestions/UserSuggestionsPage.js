@@ -69,7 +69,18 @@ class UserSuggestionsElement extends HTMLElement {
             return item;
           })
         );
-        card.querySelector(".proof-photo").src = suggestion.photoUrl;
+        const photoUrls = suggestion.photoUrls ?? [suggestion.photoUrl].filter(Boolean);
+        card.querySelector(".proof-photos").replaceChildren(
+          ...photoUrls.map((url) => {
+            const item = document.createElement("li");
+            const photo = document.createElement("img");
+            photo.className = "proof-photo";
+            photo.src = url;
+            photo.alt = "";
+            item.append(photo);
+            return item;
+          })
+        );
         return card;
       })
     );

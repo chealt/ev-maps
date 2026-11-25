@@ -1,10 +1,16 @@
 ---
-import { Plus, Trash2, X } from "lucide-static";
+import { ImagePlus, Plus, Trash2, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
+import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
 import "./SuggestChargerDialog.css";
 
+interface Props {
+  apiKey?: string;
+}
+
+const { apiKey = "" } = Astro.props;
 const { page, values } = translations(Astro.currentLocale ?? "en");
 
 const connectorTypes = [
@@ -18,12 +24,31 @@ const connectorTypes = [
   "nacs",
   "schuko",
 ];
+
+const knownOperators = [
+  "Allego",
+  "BP Pulse",
+  "E.ON Drive",
+  "Electra",
+  "EnBW",
+  "Fastned",
+  "GreenWay",
+  "Ionity",
+  "Kaufland",
+  "Lidl",
+  "Mobiliti",
+  "MOL Plugee",
+  "Orlen Charge",
+  "Shell Recharge",
+  "Tesla",
+  "TotalEnergies",
+];
 ---
 
-<!-- Suggest a new charger location with a proof photo and one or more
-     chargers (connector type, power in kW, quantity); opened from the
-     account menu for signed-in users. -->
-<ev-suggest-charger-dialog>
+<!-- Suggest a new charger location using Google Places address lookup,
+     known operators dropdown, one or more chargers (connector type, power
+     in kW, quantity) and up to 5 proof photos (max 2 MB each). -->
+<ev-suggest-charger-dialog data-api-key={apiKey}>
   <dialog class="fullscreen-dialog suggest-charger-dialog" aria-labelledby="suggest-charger-title">
     <div class="header">
       <h2 class="title" id="suggest-charger-title">
@@ -35,32 +60,51 @@ const connectorTypes = [
     </div>
     <form class="body" id="suggest-charger-form" novalidate>
       <p class="hint">{page.suggestChargerHint}</p>
-      <label class="field-group">
-        <span class="label">{page.suggestChargerName}</span>
-        <input type="text" class="field charger-name" name="name" required maxlength="200" />
-      </label>
-      <div class="field-row">
-        <label class="field-group">
-          <span class="label">{page.suggestChargerAddress}</span>
-          <input type="text" class="field charger-address" name="address" maxlength="300" />
-        </label>
-        <label class="field-group">
-          <span class="label">{page.suggestChargerOperator}</span>
-          <input type="text" class="field charger-operator" name="operator" maxlength="200" />
-        </label>
-      </div>
-      <div class="field-row">
-        <label class="field-group">
-          <span class="label">{page.suggestChargerLat}</span>
-          <input type="number" step="any" class="field charger-lat" name="lat" required />
-        </label>
-        <label class="field-group">
-          <span class="label">{page.suggestChargerLng}</span>
-          <input type="number" step="any" class="field charger-lng" name="lng" required />
-        </label>
+
+      <div class="form-section">
+        <div class="field-row">
+          <label class="field-group">
+            <span class="label">{page.suggestChargerName}</span>
+            <input
+              type="text"
+              class="field charger-name"
+              name="name"
+              required
+              maxlength="200"
+              placeholder={page.suggestChargerNamePlaceholder}
+            />
+          </label>
+          <div class="field-group">
+            <label class="field-group">
+              <span class="label">{page.suggestChargerOperator}</span>
+              <select class="field charger-operator-select" name="operator">
+                <option value="">{page.suggestChargerOperatorSelect}</option>
+                {knownOperators.map((op) => (
+                  <option value={op}>{op}</option>
+                ))}
+                <option value="__other__">{page.suggestChargerOperatorOther}</option>
+              </select>
+            </label>
+            <input
+              type="text"
+              class="field charger-operator-custom"
+              name="operatorCustom"
+              maxlength="200"
+              placeholder={page.suggestChargerOperatorCustomPlaceholder}
+              aria-label={page.suggestChargerOperatorOther}
+              hidden
+            />
+          </div>
+        </div>
+
+        <PlaceInput
+          id="suggest-charger-address"
+          label={page.suggestChargerAddress}
+          placeholder={page.placeSearch}
+        />
       </div>
 
-      <fieldset class="chargers-group">
+      <fieldset class="form-section chargers-group">
         <div class="group-header">
           <legend class="label">{page.suggestChargerUnits}</legend>
           <Button variant="secondary" size="small" class="add-connector">
@@ -71,17 +115,23 @@ const connectorTypes = [
         <div class="connector-list"></div>
       </fieldset>
 
-      <label class="field-group">
+      <div class="form-section photos-section">
         <span class="label">{page.suggestChargerPhoto}</span>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          class="field charger-photo"
-          required
-        />
-        <span class="hint">{page.suggestChargerPhotoHint}</span>
-      </label>
-      <img class="photo-preview" alt="" hidden />
+        <label class="photo-dropzone">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            multiple
+            class="visually-hidden charger-photo"
+          />
+          <span class="dropzone-icon">
+            <Icon icon={ImagePlus} />
+          </span>
+          <span class="dropzone-title">{page.suggestChargerAddPhotos}</span>
+          <span class="dropzone-hint">{page.suggestChargerPhotoHint}</span>
+        </label>
+        <ul class="photo-grid" hidden></ul>
+      </div>
 
       <p class="status" role="status"></p>
       <p class="error" role="alert"></p>
@@ -94,7 +144,7 @@ const connectorTypes = [
 
     <template class="connector-row-template">
       <div class="connector-row" role="group">
-        <label class="field-group">
+        <label class="field-group connector-type-group">
           <span class="label">{page.connectorType}</span>
           <select class="field connector-type">
             {connectorTypes.map((type) => (
@@ -102,7 +152,7 @@ const connectorTypes = [
             ))}
           </select>
         </label>
-        <label class="field-group">
+        <label class="field-group connector-power-group">
           <span class="label">{page.suggestChargerPowerKw}</span>
           <input
             type="number"
@@ -114,7 +164,7 @@ const connectorTypes = [
             required
           />
         </label>
-        <label class="field-group">
+        <label class="field-group connector-qty-group">
           <span class="label">{page.suggestChargerQuantity}</span>
           <input
             type="number"
@@ -135,6 +185,20 @@ const connectorTypes = [
           <Icon icon={Trash2} size="sm" />
         </Button>
       </div>
+    </template>
+
+    <template class="photo-item-template">
+      <li class="photo-item">
+        <img class="photo-thumb" alt="" />
+        <Button
+          variant="secondary"
+          size="icon-only"
+          class="remove-photo"
+          aria-label={page.removeChargerPhoto}
+        >
+          <Icon icon={X} size="sm" />
+        </Button>
+      </li>
     </template>
   </dialog>
   <script src="./SuggestChargerDialog.js"></script>

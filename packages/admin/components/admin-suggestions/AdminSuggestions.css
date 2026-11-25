@@ -120,6 +120,15 @@ ev-admin-suggestions {
     }
   }
 
+  .proof-photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
   .proof-photo {
     max-width: var(--proof-photo-max-width);
     max-height: var(--proof-photo-max-height);
