@@ -54,7 +54,9 @@ test("shows charger details in Hungarian", async ({ page }) => {
 
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
   await expect(details.getByRole("heading", { name: "Csatlakozók" })).toBeVisible();
-  await expect(details.getByText("CCS (1-es típus): 4× · 150 kW")).toBeVisible();
+  await expect(
+    details.getByRole("button", { name: "CCS (1-es típus): 4× · 150 kW" })
+  ).toBeVisible();
   await expect(details.getByText("Hozzáférés: Nyilvános, tagság szükséges")).toBeVisible();
   await expect(details.getByText("Állapot: Működik")).toBeVisible();
   await expect(details.getByText("Töltőpontok: 8")).toBeVisible();
