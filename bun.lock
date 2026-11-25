@@ -121,7 +121,6 @@
       },
       "devDependencies": {
         "@ev-maps/dev-config": "workspace:*",
-        "kysely": "0.29.9",
         "wrangler": "4.164.0",
       },
     },
