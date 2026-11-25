@@ -185,8 +185,8 @@ ev-google-map {
     border-color: transparent;
   }
 
-  /* An active filter or route: the button and its compact halves (zoom,
-     clear) share one tinted capsule, split by thin dividers, so the clear
+  /* An active filter or route: the button and its compact clear half
+     share one tinted capsule, split by a thin divider, so the clear
      reads as part of what it clears rather than a separate button. */
   .split:has(.clear-filters:not([hidden]), .clear-route:not([hidden])) {
     border-radius: var(--border-radius-full);
@@ -204,7 +204,7 @@ ev-google-map {
       }
     }
 
-    :is(.clear-filters, .clear-route, .zoom-route) {
+    :is(.clear-filters, .clear-route) {
       position: relative;
       flex: none;
       padding-inline: var(--spacing-sm);
