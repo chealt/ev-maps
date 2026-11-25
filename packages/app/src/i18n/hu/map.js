@@ -190,6 +190,7 @@ const map = {
       other: "Szabad töltőpontok: {available} / {count}",
     },
     pointsOutOfService: "Nem működik: {count}",
+    noLiveStatus: "Nincs élő adat",
     statusUpdated: "Frissítve {time}",
     unknownOperator: "Ismeretlen üzemeltető",
     filtersNotSaved:

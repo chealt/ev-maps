@@ -1087,6 +1087,20 @@ ev-google-map {
         background: var(--color-danger);
       }
     }
+
+    /* Why the points stay grey: shown only while the card has no live state. */
+    .connector-no-status {
+      display: none;
+      font-size: var(--font-size-2xs, 0.625rem);
+      line-height: 1.2;
+      text-align: center;
+      color: var(--color-text-muted);
+    }
+
+    .connector-card:not([data-state]) .connector-no-status,
+    .connector-card[data-state="unknown"] .connector-no-status {
+      display: block;
+    }
   }
 
   .details {

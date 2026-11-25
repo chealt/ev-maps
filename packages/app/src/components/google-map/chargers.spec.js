@@ -368,11 +368,19 @@ test(
     ).toHaveCount(8);
     await captureUi(page, testInfo, "3. all out-of-service / not working (red)");
 
-    // 4. Unknown / static availability (grey points).
+    // 4. Unknown / static availability (grey points), with the caption
+    // saying why they stay grey.
     await map.getByRole("button", { name: "Static Hub" }).click();
     const staticDetails = page.getByRole("complementary", { name: "Static Hub" });
     await expect(staticDetails.getByRole("button", { name: "CHAdeMO: 2× · 50 kW" })).toBeVisible();
-    await captureUi(page, testInfo, "4. static connectors without live status (grey)");
+    await expect(staticDetails.getByText("No live status")).toHaveCount(4);
+    await captureUi(page, testInfo, "4. static connectors without live status (grey, captioned)");
+
+    // The live-colored cards don't show the caption.
+    await map.getByRole("button", { name: "Mixed Hub" }).click();
+    await expect(
+      page.getByRole("complementary", { name: "Mixed Hub" }).getByText("No live status").first()
+    ).toBeHidden();
   }
 );
 

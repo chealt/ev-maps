@@ -1726,6 +1726,9 @@ class GoogleMapElement extends HTMLElement {
           ? message("power", { power: connector.powerKw })
           : "";
         card.querySelector(".connector-qty").textContent = `${connector.quantity ?? 1}×`;
+        // Says why the points stay grey until (or unless) live availability
+        // colors them: the caption shows only while the card has no live state.
+        card.querySelector(".connector-no-status").textContent = message("noLiveStatus");
         const count = Math.min(Math.max(connector.quantity ?? 1, 1), 12);
         card
           .querySelector(".connector-points")
@@ -1757,7 +1760,8 @@ class GoogleMapElement extends HTMLElement {
     );
     if (!points.length || total <= 0) {
       for (const card of cards) {
-        card.dataset.state = state;
+        // Without counts the points stay grey: unknown, not occupied.
+        card.dataset.state = "unknown";
       }
       return;
     }
