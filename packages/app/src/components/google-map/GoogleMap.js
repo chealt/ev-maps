@@ -1169,7 +1169,8 @@ class GoogleMapElement extends HTMLElement {
         destination: routeEndpoint(destination),
         ...(stops.length ? { intermediates: stops.map(routeEndpoint) } : {}),
         travelMode: "DRIVING",
-        fields: ["path"],
+        // `legs` for the distance into each stop along the route.
+        fields: ["path", "legs"],
         language: document.documentElement.lang,
       });
       const path = routes?.[0]?.path?.map(toLatLng);
@@ -1192,14 +1193,20 @@ class GoogleMapElement extends HTMLElement {
       };
       this.loaded = { chargers, truncated: full };
       this.setRouteShown(true);
-      this.routePlanner?.setRoute({
-        origin: savedEnd(origin),
-        destination: savedEnd(destination),
-        corridorKm,
-      });
+      // Leg 0 runs to the first stop, leg 1 to the second, and so on; the
+      // planner shows each stop the distance into it.
+      const stopDistances = (routes[0].legs ?? []).map((leg) => leg.distanceMeters);
+      const savedStops = stops.map(savedEnd);
+      this.routePlanner?.setRoute(
+        {
+          origin: savedEnd(origin),
+          destination: savedEnd(destination),
+          corridorKm,
+        },
+        stopDistances
+      );
       this.hideChargerDetails();
       this.map.fitBounds(pathBounds(path), ROUTE_PADDING);
-      const savedStops = stops.map(savedEnd);
       saveRoute({
         origin: savedEnd(origin),
         destination: savedEnd(destination),

@@ -76,9 +76,21 @@
       font-size: var(--font-size-sm);
     }
 
+    .stop-text {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-2xs);
+      min-width: 0;
+    }
+
     .stop-name {
       font-weight: var(--font-weight-medium);
       overflow-wrap: anywhere;
+    }
+
+    .stop-distance {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
     }
   }
 

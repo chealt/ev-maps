@@ -186,6 +186,7 @@ const map = {
     noRoute: "Nem található útvonal a két hely között",
     routeEnds: "{from} → {to}",
     removeRouteStop: "{stop} eltávolítása a megállók közül",
+    routeStopDistance: "{distance} az előző ponttól",
     removeSavedPlace: "{name} eltávolítása a mentett helyek közül",
     saveFavoriteRoute: "{route} mentése kedvencként",
     removeFavoriteRoute: "{route} eltávolítása a kedvencek közül",
