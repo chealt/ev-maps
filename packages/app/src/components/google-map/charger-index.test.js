@@ -143,3 +143,23 @@ describe("ChargerIndex.filter: the other filters", () => {
     expect(matching(chargers, { priceLevels: [1, 3] })).toEqual(["cheap", "pricey"]);
   });
 });
+
+describe("ChargerIndex.clusterHas", () => {
+  // The rule behind a cluster's favorite mark: any of its chargers is one.
+  test("says whether any charger of a cluster is one of the given ones", () => {
+    const index = new ChargerIndex();
+    index.setChargers([
+      { ...charger("twin-a"), location: { lat: 40.73, lng: -73.99 } },
+      { ...charger("twin-b"), location: { lat: 40.7305, lng: -73.9905 } },
+      { ...charger("far"), location: { lat: 40.79, lng: -74.02 } },
+    ]);
+    index.filter(NO_FILTERS);
+    const [cluster] = index
+      .clusters([-74.1, 40.6, -73.9, 40.9], 10)
+      .filter((feature) => feature.clusterId !== undefined);
+    expect(cluster.count).toBe(2);
+    expect(index.clusterHas(cluster.clusterId, ["twin-a"])).toBe(true);
+    expect(index.clusterHas(cluster.clusterId, ["far"])).toBe(false);
+    expect(index.clusterHas(cluster.clusterId, [])).toBe(false);
+  });
+});
