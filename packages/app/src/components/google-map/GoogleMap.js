@@ -17,6 +17,7 @@ import { operatorOf } from "./charger-index.js";
 import { forgetRouteHistory, recordRoute } from "./route-history.js";
 import { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { routeFromUrl } from "./route-url.js";
+import { planState, samePlan } from "./route-cache.js";
 import {
   readFilters,
   readMapView,
@@ -1231,74 +1232,125 @@ class GoogleMapElement extends HTMLElement {
     ++this.searchId;
     this.setStatus(message("routeLoading"), "loading");
     try {
-      const { Route } = await this.maps.importLibrary("routes");
-      const { routes } = await Route.computeRoutes({
-        origin: routeEndpoint(origin),
-        destination: routeEndpoint(destination),
-        ...(stops.length ? { intermediates: stops.map(routeEndpoint) } : {}),
-        travelMode: "DRIVING",
-        // `legs` for the distance into each stop along the route.
-        fields: ["path", "legs"],
-        language: document.documentElement.lang,
-      });
-      const path = routes?.[0]?.path?.map(toLatLng);
-      if (!path?.length) {
-        if (routeId === this.routeId) {
-          this.setStatus(message("noRoute"), "error");
-        }
-        return;
-      }
-      const { chargers, full } = await fetchChargersAlongRoute(path, corridorKm);
+      const plan = await this.planRoute({ origin, destination, stops, corridorKm });
       if (routeId !== this.routeId) {
         return;
       }
-      const { Polyline } = await this.maps.importLibrary("maps");
-      this.removeRouteLine();
-      const colors = this.routeColors;
-      this.route = {
-        casing: new Polyline({ ...ROUTE_CASING, path, map: this.map, strokeColor: colors.casing }),
-        line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: colors.line }),
-        path,
-      };
-      this.loaded = { chargers, truncated: full };
-      this.setRouteShown(true);
-      // Leg 0 runs to the first stop, leg 1 to the second, and so on; the
-      // planner shows each stop the distance into it.
-      const stopDistances = (routes[0].legs ?? []).map((leg) => leg.distanceMeters);
-      const savedStops = stops.map(savedEnd);
-      this.routePlanner?.setRoute(
-        {
-          origin: savedEnd(origin),
-          destination: savedEnd(destination),
-          corridorKm,
-        },
-        stopDistances
-      );
-      this.hideChargerDetails();
-      this.map.fitBounds(pathBounds(path), this.routePadding());
-      saveRoute({
+      if (!plan) {
+        this.setStatus(message("noRoute"), "error");
+        return;
+      }
+      const ends = {
         origin: savedEnd(origin),
         destination: savedEnd(destination),
-        ...(savedStops.length ? { stops: savedStops } : {}),
-        corridorKm,
-      });
+        stops: stops.map(savedEnd),
+      };
+      await this.drawRoute(ends, corridorKm, plan);
       if (record) {
         const { updatedAt: _, ...filters } = this.currentFilters();
         recordRoute({
-          origin: savedEnd(origin),
-          destination: savedEnd(destination),
-          ...(savedStops.length ? { stops: savedStops } : {}),
+          origin: ends.origin,
+          destination: ends.destination,
+          ...(ends.stops.length ? { stops: ends.stops } : {}),
           filters,
           corridorKm,
           plannedAt: Date.now(),
         }).catch((error) => console.error("Could not save the route history:", error));
       }
-      await this.showMatchingChargers();
     } catch (error) {
       console.error("Could not plan the route:", error);
       if (routeId === this.routeId) {
         this.setStatus(message(navigator.onLine ? "routeFailed" : "offlineChargers"), "error");
       }
+    }
+  }
+
+  // The route between the ends (as the Routes library takes them), and the
+  // chargers along it: { path, stopDistances, chargers, full, plannedAt }, or
+  // null when there's no route.
+  async planRoute({ origin, destination, stops, corridorKm }) {
+    const { Route } = await this.maps.importLibrary("routes");
+    const { routes } = await Route.computeRoutes({
+      origin: routeEndpoint(origin),
+      destination: routeEndpoint(destination),
+      ...(stops.length ? { intermediates: stops.map(routeEndpoint) } : {}),
+      travelMode: "DRIVING",
+      // `legs` for the distance into each stop along the route.
+      fields: ["path", "legs"],
+      language: document.documentElement.lang,
+    });
+    const path = routes?.[0]?.path?.map(toLatLng);
+    if (!path?.length) {
+      return null;
+    }
+    const { chargers, full } = await fetchChargersAlongRoute(path, corridorKm);
+    return {
+      path,
+      // Leg 0 runs to the first stop, leg 1 to the second, and so on, the
+      // last to the destination; the planner shows each between its points.
+      stopDistances: (routes[0].legs ?? []).map((leg) => leg.distanceMeters),
+      chargers,
+      full,
+      plannedAt: Date.now(),
+    };
+  }
+
+  // Shows a planned route: its line, the chargers along it, its legs in the
+  // planner; and saves it with its plan, so a reload shows it at once.
+  // `ends` are saved ends ({ label, placeId } or { label, location });
+  // `fit`: zoom the map to it (not when a background refresh redraws it).
+  async drawRoute(ends, corridorKm, plan, { fit = true } = {}) {
+    const { Polyline } = await this.maps.importLibrary("maps");
+    this.removeRouteLine();
+    const colors = this.routeColors;
+    const { path } = plan;
+    this.route = {
+      casing: new Polyline({ ...ROUTE_CASING, path, map: this.map, strokeColor: colors.casing }),
+      line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: colors.line }),
+      path,
+    };
+    this.loaded = { chargers: plan.chargers, truncated: plan.full };
+    this.setRouteShown(true);
+    this.routePlanner?.setRoute(
+      { origin: ends.origin, destination: ends.destination, corridorKm },
+      plan.stopDistances
+    );
+    if (fit) {
+      this.hideChargerDetails();
+      this.map.fitBounds(pathBounds(path), this.routePadding());
+    }
+    saveRoute({
+      origin: ends.origin,
+      destination: ends.destination,
+      ...(ends.stops.length ? { stops: ends.stops } : {}),
+      corridorKm,
+      plan,
+    });
+    await this.showMatchingChargers();
+  }
+
+  // Plans a route shown from its saved plan again, quietly: the user keeps
+  // the saved one meanwhile, and gets the new one only if it differs (roads,
+  // chargers, their places change). Failing, the saved one stays.
+  async refreshRoute(routeId, places, ends, corridorKm, saved) {
+    try {
+      const plan = await this.planRoute({ ...places, corridorKm });
+      if (!plan || routeId !== this.routeId) {
+        return;
+      }
+      if (samePlan(saved, plan)) {
+        saveRoute({
+          origin: ends.origin,
+          destination: ends.destination,
+          ...(ends.stops.length ? { stops: ends.stops } : {}),
+          corridorKm,
+          plan,
+        });
+        return;
+      }
+      await this.drawRoute(ends, corridorKm, plan, { fit: false });
+    } catch (error) {
+      console.warn("Could not refresh the route:", error);
     }
   }
 
@@ -1356,7 +1408,24 @@ class GoogleMapElement extends HTMLElement {
     const { origin, destination, stops } = await this.routeEnds(saved);
     const corridorKm = saved.corridorKm ?? CORRIDOR_KM;
     this.routePlanner?.setPlaces(origin, destination, corridorKm, stops);
-    await this.showRoute({ origin, destination, stops, corridorKm });
+    // Planned not long ago: shown at once from what was saved, no waiting
+    // on planning it again; past a while, planned again in the background.
+    const state = planState(saved.plan);
+    if (state === "expired") {
+      await this.showRoute({ origin, destination, stops, corridorKm });
+      return;
+    }
+    const routeId = ++this.routeId;
+    ++this.searchId;
+    const ends = {
+      origin: saved.origin,
+      destination: saved.destination,
+      stops: saved.stops ?? [],
+    };
+    await this.drawRoute(ends, corridorKm, saved.plan);
+    if (state === "stale" && routeId === this.routeId) {
+      this.refreshRoute(routeId, { origin, destination, stops }, ends, corridorKm, saved.plan);
+    }
   }
 
   clearRoute() {
