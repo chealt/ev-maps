@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { REPORT_INSTRUCTION, apiKeyName, configErrors, cronOf, workflowOf } from "./workflows.js";
+import { REPORT_INSTRUCTION, configErrors, cronOf, workflowOf } from "./workflows.js";
 
 const config = {
   cron: "daily",
   prompt: 'Upgrade the "outdated" packages',
   model: "claude-opus-5-5",
-  provider: "anthropic",
 };
 
 describe("cronOf", () => {
@@ -30,13 +29,12 @@ describe("configErrors", () => {
       "Bad Name: model is required",
     ]);
   });
-});
 
-describe("apiKeyName", () => {
-  test("is the variable pi reads the provider's key from", () => {
-    expect(apiKeyName("anthropic")).toBe("ANTHROPIC_API_KEY");
-    expect(apiKeyName("google")).toBe("GEMINI_API_KEY");
-    expect(apiKeyName("my-provider")).toBe("MY_PROVIDER_API_KEY");
+  test("allows models through Radius only", () => {
+    expect(configErrors("upgrade-packages", { ...config, provider: "radius" })).toEqual([]);
+    expect(configErrors("upgrade-packages", { ...config, provider: "anthropic" })).toEqual([
+      'upgrade-packages: models are used through Radius only; remove "provider"',
+    ]);
   });
 });
 
@@ -45,10 +43,12 @@ describe("workflowOf", () => {
 
   test("runs pi with the prompt and model on the schedule", () => {
     expect(workflow).toContain(`- cron: "${cronOf("upgrade-packages", "daily")}"`);
-    expect(workflow).toContain('--provider "anthropic" --model "claude-opus-5-5"');
+    expect(workflow).toContain('--provider radius --model "claude-opus-5-5"');
     // The prompt, quoted for YAML, reaches pi through an environment variable.
     expect(workflow).toContain('PROMPT: "Upgrade the \\"outdated\\" packages"');
-    expect(workflow).toContain("ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}");
+    // Through Radius, with its key, and no other provider's.
+    expect(workflow).toContain("RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}");
+    expect(workflow).not.toMatch(/ANTHROPIC|OPENAI|GEMINI/);
   });
 
   test("opens a pull request on a branch of its own", () => {

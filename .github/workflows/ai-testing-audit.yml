@@ -37,6 +37,7 @@ jobs:
       - name: Install pi
         run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
+      # The model through Radius, with the organization's key.
       # --no-approve: only the prompt's model, without the repository's own pi
       # setup (.pi), and no session saved on the runner. pi's final message,
       # its report of what it did, is kept for the pull request's description
@@ -44,19 +45,19 @@ jobs:
       - name: Run the prompt with pi
         shell: bash
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}
           PROMPT: "Audit E2E and unit tests and identify potentially misplaced tests that could be sped up by moving from E2E to quick unit tests instead. Audit unit test that they are fast and don't share state or use real clocks."
           REPORT_INSTRUCTION: "Your final message becomes the description of the pull request with your changes, so write it in Markdown for its reviewer: what you changed and why (for an upgrade, each package or tool with the version it went from and to), and what you checked but left alone, and why. If you changed nothing, say why."
         run: >-
           pi --print --no-session --no-approve
-          --provider "anthropic" --model "claude-opus-5-5"
+          --provider radius --model "claude-opus-5-5"
           "$PROMPT"$'\n\n'"$REPORT_INSTRUCTION"
           | tee "$RUNNER_TEMP/pi-report.md"
 
       - name: Write the pull request's description
         shell: bash
         env:
-          HEADER: "Made by pi (anthropic/claude-opus-5-5) running packages/ai-action-configs/configs/testing-audit.json:"
+          HEADER: "Made by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/testing-audit.json:"
           PROMPT: "Audit E2E and unit tests and identify potentially misplaced tests that could be sped up by moving from E2E to quick unit tests instead. Audit unit test that they are fast and don't share state or use real clocks."
         run: |
           {
