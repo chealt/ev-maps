@@ -9,12 +9,20 @@ import { fetchOverpass } from "./openstreetmap.js";
 const SOURCE = "amenities";
 // After the chargers' own imports, and before the sparse cells: the places
 // next to chargers matter most where the chargers (and the users, and their
-// routes) are, so busy cells are imported first, instead of all cells in
-// coordinate order.
+// routes) are, so cells with more chargers are imported first, instead of
+// all cells in coordinate order.
 const PRIORITY_BUSY = 3;
 const PRIORITY_SPARSE = 4;
-// A cell with at least this many chargers is busy.
+const PRIORITY_QUIET = 5;
+// A cell with at least this many chargers is busy: one Overpass query per
+// quadrant, not per whole cell, as the mirrors refuse the big one (and
+// minutes are lost on each refusal).
 const BUSY_CELL_CHARGERS = 100;
+// Below this a cell barely has chargers to look around: after the sparse ones.
+const QUIET_CELL_CHARGERS = 10;
+// A busy cell's Overpass query runs on one quadrant at a time, this many in
+// all.
+const QUADRANTS = 4;
 // Finding the cells with chargers reads every charger, so at most daily.
 const LIST_EVERY_MS = 24 * 60 * 60 * 1000;
 const BATCH_SIZE = 50;
@@ -41,7 +49,12 @@ const listJobs = async (env) => {
   const jobs = results.map(({ south, west, chargers }) => ({
     source: SOURCE,
     area: `${south},${west}`,
-    priority: chargers >= BUSY_CELL_CHARGERS ? PRIORITY_BUSY : PRIORITY_SPARSE,
+    priority:
+      chargers >= BUSY_CELL_CHARGERS
+        ? PRIORITY_BUSY
+        : chargers >= QUIET_CELL_CHARGERS
+          ? PRIORITY_SPARSE
+          : PRIORITY_QUIET,
   }));
   // Already-queued jobs keep their place (a cursor in progress); only their
   // turn changes, e.g. as chargers move between cells.
@@ -74,17 +87,44 @@ const chargersInCell = async (db, { south, west, north, east }) => {
   return results;
 };
 
-// Looks at a whole cell in one step; only chargers whose places changed are
-// written.
+// The quadrant's box, splitting the cell in two each way; the chargers in
+// it. A charger's quadrant is the one containing it, so every charger is
+// looked at exactly once; the query's margin reaches places over the border.
+const quadrantOf = (cell, index) => {
+  const midLat = (cell.south + cell.north) / 2;
+  const midLng = (cell.west + cell.east) / 2;
+  const southHalf = index < QUADRANTS / 2;
+  const westHalf = index % 2 === 0;
+  return {
+    south: southHalf ? cell.south : midLat,
+    north: southHalf ? midLat : cell.north,
+    west: westHalf ? cell.west : midLng,
+    east: westHalf ? midLng : cell.east,
+  };
+};
+
+const inBox = ({ lat, lng }, { south, north, west, east }) =>
+  lat >= south && lat < north && lng >= west && lng < east;
+
+// Looks at a cell's places, a quadrant at a time when it's busy (the
+// mirrors refuse a whole busy cell's query); only chargers whose places
+// changed are written. `job.cursor` says which quadrant is next.
 const runStep = async (env, job) => {
   const bounds = cellBounds(job.area);
   const chargers = await chargersInCell(env.DB, bounds);
   if (!chargers.length) {
     return { done: true };
   }
-  const places = parsePlaces(await fetchOverpass(amenitiesQuery(bounds)));
-  const masks = amenityMasks(chargers, places, bounds.south + 0.5);
-  const changed = chargers
+  const next = Number(job.cursor ?? 0);
+  const split = job.cursor != null || chargers.length >= BUSY_CELL_CHARGERS;
+  if (split && next >= QUADRANTS) {
+    return { done: true };
+  }
+  const box = split ? quadrantOf(bounds, next) : bounds;
+  const targets = split ? chargers.filter((charger) => inBox(charger, box)) : chargers;
+  const places = parsePlaces(await fetchOverpass(amenitiesQuery(box)));
+  const masks = amenityMasks(targets, places, (box.south + box.north) / 2);
+  const changed = targets
     .map((charger, index) => ({ rid: charger.rid, mask: masks[index], before: charger.amenities }))
     .filter(({ mask, before }) => mask !== before);
   for (let index = 0; index < changed.length; index += BATCH_SIZE) {
@@ -97,9 +137,9 @@ const runStep = async (env, job) => {
     );
   }
   console.log(
-    `Amenities: ${job.area}: ${places.length} places, ${changed.length} of ${chargers.length} chargers changed`
+    `Amenities: ${job.area}${split ? ` quadrant ${next + 1}/${QUADRANTS}` : ""}: ${places.length} places, ${changed.length} of ${targets.length} chargers changed`
   );
-  return { done: true };
+  return split ? { done: next + 1 === QUADRANTS, cursor: next + 1 } : { done: true };
 };
 
 export { listJobs, runStep, SOURCE };
