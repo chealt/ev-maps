@@ -58,10 +58,7 @@ const freshAuth = async () => {
     sqlite.exec(readFileSync(new URL(`../migrations/${name}`, import.meta.url), "utf8"));
   }
   // better-auth takes a bun:sqlite database directly (its BunSqliteDialect).
-  const { auth } = await createAuth(
-    { DB: sqlite, BETTER_AUTH_SECRET: "a".repeat(32) },
-    BASE_URL
-  );
+  const { auth } = await createAuth({ DB: sqlite, BETTER_AUTH_SECRET: "a".repeat(32) }, BASE_URL);
   return { auth, sqlite };
 };
 
