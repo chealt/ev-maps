@@ -318,12 +318,14 @@ class GoogleMapElement extends HTMLElement {
   }
 
   setupEventListeners() {
-    this.addEventListener("locate-start", () => {
+    // The locate button is in the top bar (the account menu's), outside this
+    // element, so its events are heard on the document.
+    document.addEventListener("locate-start", () => {
       track("locate_me");
       this.setStatus(message("locating"), "loading");
     });
-    this.addEventListener("location-found", (event) => this.handleLocationFound(event));
-    this.addEventListener("location-error", (event) =>
+    document.addEventListener("location-found", (event) => this.handleLocationFound(event));
+    document.addEventListener("location-error", (event) =>
       this.setStatus(event.detail?.message || message("locationFailed"), "error")
     );
     this.addEventListener("toggle-filters", () => this.toggleFilters());
@@ -433,7 +435,7 @@ class GoogleMapElement extends HTMLElement {
       const shortcuts = {
         f: () => this.toggleFilters(),
         c: () => !this.querySelector(".map-controls .clear-filters")?.hidden && this.clearFilters(),
-        l: () => this.querySelector("ev-locate-button button")?.click(),
+        l: () => document.querySelector("ev-locate-button button")?.click(),
         r: () => this.routePlanner?.open(),
         s: () => this.querySelector("ev-place-search")?.open(),
         x: () => this.route && this.clearRoute(),
@@ -550,7 +552,7 @@ class GoogleMapElement extends HTMLElement {
 
     // A saved view is where the user left the map, so don't move it.
     if (!savedView) {
-      this.querySelector("ev-locate-button[data-auto-locate]")?.locateIfPermitted();
+      document.querySelector("ev-locate-button[data-auto-locate]")?.locateIfPermitted();
     }
   }
 

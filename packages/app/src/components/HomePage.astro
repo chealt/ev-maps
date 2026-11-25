@@ -19,7 +19,7 @@ const { googleMaps, evChargers } = appConfig;
 ---
 
 <main class="home-page">
-  <UserMenu subtitle={page.subtitle} />
+  <UserMenu subtitle={page.subtitle} autoLocate={googleMaps.autoLocate} />
 
   <GoogleMap
     apiKey={googleMaps.apiKey}
@@ -28,7 +28,6 @@ const { googleMaps, evChargers } = appConfig;
     centerLng={googleMaps.defaultCenter.lng}
     zoom={googleMaps.defaultZoom}
     locatedZoom={googleMaps.locatedZoom}
-    autoLocate={googleMaps.autoLocate}
     minChargerZoom={evChargers.minZoom}
     chargers={chargers}
     chargersTruncated={truncated}

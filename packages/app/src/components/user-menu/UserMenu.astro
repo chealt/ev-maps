@@ -12,6 +12,7 @@ import {
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
+import LocateButton from "../locate-button/LocateButton.astro";
 import ThemePicker from "../theme-picker/ThemePicker.astro";
 import MapsAppPicker from "../maps-app-picker/MapsAppPicker.astro";
 import DistanceUnitPicker from "../distance-unit-picker/DistanceUnitPicker.astro";
@@ -35,9 +36,11 @@ const providers = [
 interface Props {
   // Said to screen readers below the app's name.
   subtitle: string;
+  // Locate Me asks for the location once the map is ready, if permitted.
+  autoLocate?: boolean;
 }
 
-const { subtitle } = Astro.props;
+const { subtitle, autoLocate = false } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
 const { page } = translations(lang);
 ---
@@ -47,6 +50,9 @@ const { page } = translations(lang);
        whose click area covers the whole box. The name is visible because
        Google's OAuth verification checks that the home page shows the same
        name as the consent screen. -->
+  <!-- Locate Me: icon-only, in the top bar next to the account menu, so it
+       doesn't take map space in the map controls. -->
+  <LocateButton autoLocate={autoLocate} />
   <div class="bar">
     <hgroup class="brand">
       <span class="mark">
