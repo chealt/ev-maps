@@ -155,10 +155,14 @@ test("filters the errors and orders them", { tag: "@ui" }, async ({ page }, test
   await expect(rows.nth(2)).toContainText("Server");
   await expect(filters.getByLabel("Where")).toHaveValue("worker");
 
-  // Ordered by how often they happened: Error number 3 (4 times) first.
-  await filters.getByLabel("Sort by").selectOption("count");
-  await filters.getByRole("button", { name: "Apply" }).click();
+  // Ordering by how often they happened, from the Times header: Error
+  // number 3 (4 times) first.
+  await page.getByRole("columnheader", { name: "Times" }).getByRole("link").click();
   await expect(page).toHaveURL(/sort=count/);
+  await expect(page.getByRole("columnheader", { name: "Times" })).toHaveAttribute(
+    "aria-sort",
+    "descending"
+  );
   await expect(rows.nth(1)).toContainText("Error number 3");
   await captureUi(page, testInfo, "the errors filtered to the server, most often first");
 

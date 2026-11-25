@@ -122,6 +122,23 @@
       white-space: nowrap;
     }
 
+    /* The sortable columns' headers, current one marked with an arrow. */
+    .sort {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-2xs);
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      .sort-arrow {
+        color: var(--color-primary);
+      }
+    }
+
     .number {
       text-align: end;
       font-variant-numeric: tabular-nums;

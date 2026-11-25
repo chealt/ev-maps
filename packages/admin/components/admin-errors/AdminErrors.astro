@@ -74,6 +74,18 @@ const viewUrl = ({ error, page: number }: { error?: string; page: number }) => {
 
 const facets = data?.facets ?? { sources: [], countries: [], browsers: [], oss: [] };
 
+// The sortable columns' links: the chosen one shows its order, another
+// starts at the first page ordered by it.
+const sort = data?.sort ?? "last_seen";
+const sortUrl = (key: string) => {
+  const params = filterParams();
+  if (key !== "last_seen") {
+    params.set("sort", key);
+  }
+  const query = params.toString();
+  return query ? `?${query}` : Astro.url.pathname;
+};
+
 const isGroup = Boolean(data?.fingerprint);
 const none = page.adminNone;
 const summary = failed
@@ -190,23 +202,8 @@ const occurrenceFacts = (occurrence: any) => [
             <span class="filter-label">{page.adminFilterSearch}</span>
             <input type="search" name="q" value={filters.q ?? ""} />
           </label>
-          <label class="filter">
-            <span class="filter-label">{page.adminFilterSort}</span>
-            <span class="select-wrap">
-              <select name="sort">
-                <option value="last_seen" selected={(data.sort ?? "last_seen") === "last_seen"}>
-                  {page.adminSortLastSeen}
-                </option>
-                <option value="first_seen" selected={data.sort === "first_seen"}>
-                  {page.adminSortFirstSeen}
-                </option>
-                <option value="count" selected={data.sort === "count"}>
-                  {page.adminSortCount}
-                </option>
-              </select>
-              <Icon icon={ChevronDown} size="sm" class="chevron" />
-            </span>
-          </label>
+          {/* Applying the filters keeps the order chosen in the headers. */}
+          {sort !== "last_seen" && <input type="hidden" name="sort" value={sort} />}
           <Button variant="secondary" size="small" type="submit" class="apply">
             {page.adminFilterApply}
           </Button>
@@ -230,14 +227,27 @@ const occurrenceFacts = (occurrence: any) => [
                 <th scope="col">{page.adminBrowserColumn}</th>
                 <th scope="col">{page.adminOsColumn}</th>
                 <th scope="col">{page.adminCountryLabel}</th>
-                <th scope="col" class="number">
-                  {page.adminCountColumn}
+                <th scope="col" class="number" aria-sort={sort === "count" ? "descending" : "none"}>
+                  <a class="sort" href={sortUrl("count")}>
+                    {page.adminCountColumn}
+                    {sort === "count" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                  </a>
                 </th>
                 <th scope="col" class="number">
                   {page.adminUsersColumn}
                 </th>
-                <th scope="col">{page.adminLastSeenColumn}</th>
-                <th scope="col">{page.adminFirstSeenColumn}</th>
+                <th scope="col" aria-sort={sort === "last_seen" ? "descending" : "none"}>
+                  <a class="sort" href={sortUrl("last_seen")}>
+                    {page.adminLastSeenColumn}
+                    {sort === "last_seen" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                  </a>
+                </th>
+                <th scope="col" aria-sort={sort === "first_seen" ? "descending" : "none"}>
+                  <a class="sort" href={sortUrl("first_seen")}>
+                    {page.adminFirstSeenColumn}
+                    {sort === "first_seen" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                  </a>
+                </th>
               </tr>
             </thead>
             <tbody>
