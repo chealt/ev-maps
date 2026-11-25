@@ -214,6 +214,82 @@ describe("adminApiResponse for errors", () => {
     expect(second.groups).toHaveLength(7);
   });
 
+  test("filters the groups by where they happened, browser, system, country and text", async () => {
+    const testEnv = seeded();
+    const insert = testEnv.ADMIN_DB.sqlite.prepare(
+      `INSERT INTO errors (fingerprint, source, name, message, url, context, user_agent, country,
+         created_at) VALUES (?, ?, 'TypeError', ?, ?, ?, ?, ?, ?)`
+    );
+    const chromeOnMac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) Chrome/130.0 Safari/537.36";
+    const firefoxOnWindows = "Mozilla/5.0 (Windows NT 10.0; Win64) Firefox/140.0";
+    insert.run("cccccccc", "page", "canvas", "/hu/", null, chromeOnMac, "HU", 1500);
+    insert.run("cccccccc", "page", "canvas", "/hu/", null, chromeOnMac, "HU", 2000);
+    insert.run("dddddddd", "worker", "import failed", null, "import eipa PL", null, "PL", 3000);
+    insert.run("eeeeeeee", "page", "storage", "/pl/", null, firefoxOnWindows, "HU", 2500);
+
+    const bySource = await get(testEnv, "/api/admin/errors?source=worker");
+    expect(bySource.groups.map(({ fingerprint }) => fingerprint)).toEqual(["bbbbbbbb", "dddddddd"]);
+
+    const byBrowser = await get(testEnv, "/api/admin/errors?browser=Firefox");
+    expect(
+      byBrowser.groups.map(({ fingerprint, browser, os }) => ({ fingerprint, browser, os }))
+    ).toEqual([{ fingerprint: "eeeeeeee", browser: "Firefox", os: "Windows" }]);
+
+    const byOs = await get(testEnv, "/api/admin/errors?os=macOS");
+    expect(byOs.groups.map(({ fingerprint, count }) => ({ fingerprint, count }))).toEqual([
+      { fingerprint: "cccccccc", count: 2 },
+    ]);
+
+    const byCountry = await get(testEnv, "/api/admin/errors?country=HU");
+    expect(byCountry.groups.map(({ fingerprint }) => fingerprint)).toEqual([
+      "eeeeeeee",
+      "cccccccc",
+    ]);
+
+    const byText = await get(testEnv, "/api/admin/errors?q=import");
+    expect(byText.groups.map(({ fingerprint }) => fingerprint)).toEqual(["dddddddd"]);
+
+    // The values the filters offer come from all the errors kept.
+    expect(bySource.facets).toEqual({
+      sources: ["worker", "page"],
+      countries: ["HU", "PL"],
+      // The seeded bare "Firefox" is no Firefox/… user agent: Other.
+      browsers: ["Chrome", "Firefox", "Other"],
+      oss: ["Other", "Windows", "macOS"],
+    });
+  });
+
+  test("orders the groups by the chosen order", async () => {
+    const testEnv = seeded();
+    const insert = testEnv.ADMIN_DB.sqlite.prepare(
+      "INSERT INTO errors (fingerprint, source, message, created_at) VALUES (?, 'page', ?, ?)"
+    );
+    insert.run("cccccccc", "canvas", 1500);
+    insert.run("cccccccc", "canvas", 2000);
+
+    const byCount = await get(testEnv, "/api/admin/errors?sort=count");
+    expect(byCount.groups.map(({ fingerprint }) => fingerprint)).toEqual([
+      "aaaaaaaa",
+      "cccccccc",
+      "bbbbbbbb",
+    ]);
+
+    const byFirstSeen = await get(testEnv, "/api/admin/errors?sort=first_seen");
+    expect(byFirstSeen.groups.map(({ fingerprint }) => fingerprint)).toEqual([
+      "bbbbbbbb",
+      "cccccccc",
+      "aaaaaaaa",
+    ]);
+
+    // An unknown order falls back to the default, the most recently seen.
+    const unknown = await get(testEnv, "/api/admin/errors?sort=newest");
+    expect(unknown.groups.map(({ fingerprint }) => fingerprint)).toEqual([
+      "bbbbbbbb",
+      "aaaaaaaa",
+      "cccccccc",
+    ]);
+  });
+
   test("knows no other paths or methods", async () => {
     const testEnv = seeded();
     const response = await adminApiResponse(

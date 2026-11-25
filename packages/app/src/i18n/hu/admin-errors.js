@@ -5,6 +5,13 @@ const adminErrors = {
   page: {
     adminErrorColumn: "Hiba",
     adminSourceColumn: "Hol",
+    adminBrowserColumn: "Böngésző",
+    adminOsColumn: "Rendszer",
+    adminErrorFilters: "Hibák szűrése",
+    adminFilterAll: "Mind",
+    adminFilterSearch: "Keresés",
+    adminFilterApply: "Szűrés",
+    adminFilterClear: "Szűrők törlése",
     adminCountColumn: "Hányszor",
     adminUsersColumn: "Felhasználók",
     adminLastSeenColumn: "Utoljára",

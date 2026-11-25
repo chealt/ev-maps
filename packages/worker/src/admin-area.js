@@ -3,7 +3,7 @@
 // pages, and the extra stats of the usage API (the most favorited chargers).
 // Everything here is EV Maps; the package itself knows none of it.
 
-import { createAdminArea } from "@ev-maps/admin/admin.js";
+import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 
@@ -60,7 +60,7 @@ const admin = createAdminArea({
         const error = url.searchParams.get("error");
         return /^[0-9a-f]{8}$/.test(error ?? "")
           ? admin.errorOccurrences(env.ADMIN_DB, error, pageOf(url))
-          : admin.errorGroups(env.ADMIN_DB, pageOf(url));
+          : admin.errorGroups(env.ADMIN_DB, pageOf(url), errorFilters(url));
       },
     },
   ],

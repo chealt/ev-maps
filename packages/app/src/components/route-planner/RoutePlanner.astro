@@ -99,7 +99,10 @@ const placePresets = [
         <ol class="stop-list"></ol>
         <template class="stop-template">
           <li class="stop-item">
-            <span class="stop-name"></span>
+            <span class="stop-text">
+              <span class="stop-name"></span>
+              <span class="stop-distance" hidden></span>
+            </span>
             <Button variant="ghost" size="icon-only" class="remove-stop">
               <Icon icon={X} size="sm" />
             </Button>

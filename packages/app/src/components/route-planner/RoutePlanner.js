@@ -296,6 +296,8 @@ class RoutePlannerElement extends HTMLElement {
 
   setStops(stops) {
     this.stops = [...stops];
+    // Until a route with these stops is planned, no distances are known.
+    this.stopDistances = null;
     this.renderStops();
   }
 
@@ -330,6 +332,15 @@ class RoutePlannerElement extends HTMLElement {
       ...this.stops.map((stop, index) => {
         const item = template.content.firstElementChild.cloneNode(true);
         item.querySelector(".stop-name").textContent = stop.label;
+        // The leg into this stop along the planned route, once one exists.
+        const distance = this.stopDistances?.[index];
+        const distanceEl = item.querySelector(".stop-distance");
+        distanceEl.hidden = distance == null;
+        if (distance != null) {
+          distanceEl.textContent = message("routeStopDistance", {
+            distance: formatDistance(distance),
+          });
+        }
         const remove = item.querySelector(".remove-stop");
         remove.disabled = !signedIn;
         remove.setAttribute("aria-label", message("removeRouteStop", { stop: stop.label }));
@@ -353,8 +364,12 @@ class RoutePlannerElement extends HTMLElement {
   }
 
   // The route shown, for sharing it (a saved shape: placeId or location).
-  setRoute(route) {
+  // `stopDistances` are the legs into its stops along it, in meters: shown
+  // next to each stop.
+  setRoute(route, stopDistances = null) {
     this.currentRoute = route;
+    this.stopDistances = stopDistances;
+    this.renderStops();
   }
 
   // Shares the route with the Web Share API; where that's not supported
