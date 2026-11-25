@@ -1,6 +1,6 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
-import { Route, RouteOff } from "lucide-static";
+import { Route, RouteOff, Scan } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./RouteButton.css";
@@ -13,9 +13,9 @@ const { controls } = Astro.props;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
-<!-- The clear is part of what it clears: with a route shown, a compact clear
-     half appears attached to the route button, instead of a separate button
-     taking map space. -->
+<!-- With a route shown, compact halves appear attached to the route button
+     instead of separate buttons taking map space: zoom out to the whole
+     route, and clear it. -->
 <ev-route-button>
   <span class="split">
     <Button
@@ -27,6 +27,15 @@ const { page } = translations(Astro.currentLocale ?? "en");
     >
       <Icon icon={Route} />
       <span class="label">{page.route}</span>
+    </Button>
+    <Button
+      variant="secondary"
+      size="icon-only"
+      class="zoom-route"
+      aria-label={page.zoomToRoute}
+      hidden
+    >
+      <Icon icon={Scan} />
     </Button>
     <Button
       variant="secondary"

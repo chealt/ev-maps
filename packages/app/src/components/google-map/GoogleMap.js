@@ -250,6 +250,7 @@ class GoogleMapElement extends HTMLElement {
     this.pageChargers = this.readPageChargers();
     this.routePlanner = this.querySelector("ev-route-planner");
     this.clearRouteButton = this.querySelector(".map-controls .clear-route");
+    this.zoomRouteButton = this.querySelector(".map-controls .zoom-route");
 
     this.setupEventListeners();
     this.filtersRestored = this.restoreFilters();
@@ -338,6 +339,7 @@ class GoogleMapElement extends HTMLElement {
     this.addEventListener("route-from-history", (event) => this.showRouteFromHistory(event.detail));
     this.addEventListener("route-cleared", () => this.clearRoute());
     this.clearRouteButton?.addEventListener("click", () => this.clearRoute());
+    this.zoomRouteButton?.addEventListener("click", () => this.zoomToRoute());
     // The status pill opens the list of chargers, or, too far out to load
     // any, zooms in to where they load.
     this.statusButton?.addEventListener("click", () => {
@@ -1192,6 +1194,7 @@ class GoogleMapElement extends HTMLElement {
       this.route = {
         casing: new Polyline({ ...ROUTE_CASING, path, map: this.map, strokeColor: colors.casing }),
         line: new Polyline({ ...ROUTE_LINE, path, map: this.map, strokeColor: colors.line }),
+        path,
       };
       this.loaded = { chargers, truncated: full };
       this.setRouteShown(true);
@@ -1325,7 +1328,18 @@ class GoogleMapElement extends HTMLElement {
     if (this.clearRouteButton) {
       this.clearRouteButton.hidden = !shown;
     }
+    if (this.zoomRouteButton) {
+      this.zoomRouteButton.hidden = !shown;
+    }
     this.routePlanner?.setRouteShown(shown);
+  }
+
+  // Zooms out (or in) so the whole shown route is in view again, e.g. after
+  // panning away to a charger along it.
+  zoomToRoute() {
+    if (this.route?.path) {
+      this.map?.fitBounds(pathBounds(this.route.path), ROUTE_PADDING);
+    }
   }
 
   // The route's colors, design tokens (--color-route and
