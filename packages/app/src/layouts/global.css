@@ -140,9 +140,10 @@
   --container-max-width: 1200px;
   --container-padding: 2rem;
   --overlay-gap: 0.75rem;
-  /* The account menu's box on narrow screens: fixed, so the status pill
-     next to it knows how much room it leaves. */
-  --top-bar-menu-width: 10rem;
+  /* The most the account menu's box takes on narrow screens (the logo and
+     the avatar; the name is hidden there), so the status pill next to it
+     knows how much room it leaves. */
+  --top-bar-menu-width: 5.25rem;
   /* The top row's boxes on narrow screens (status pill, account menu): one
      height, 44px, WCAG's target size. */
   --top-bar-height: 2.75rem;
