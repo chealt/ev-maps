@@ -53,11 +53,12 @@ test(
       { name: "proof.png", mimeType: "image/png", buffer: PHOTO_BUFFER },
       { name: "proof-2.png", mimeType: "image/png", buffer: PHOTO_BUFFER },
     ]);
-    await expect(dialog.locator(".photo-item")).toHaveCount(2);
+    const removePhotoButtons = dialog.getByRole("button", { name: "Remove photo" });
+    await expect(removePhotoButtons).toHaveCount(2);
 
     // Removing a photo updates the previews.
-    await dialog.getByRole("button", { name: "Remove photo" }).last().click();
-    await expect(dialog.locator(".photo-item")).toHaveCount(1);
+    await removePhotoButtons.last().click();
+    await expect(removePhotoButtons).toHaveCount(1);
     await dialog.locator(".charger-photo").setInputFiles({
       name: "proof-2.png",
       mimeType: "image/png",
@@ -165,7 +166,7 @@ test(
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
     const harborCard = page.getByRole("article").filter({ hasText: "Harbor Charging Hub" });
-    await expect(harborCard.locator(".proof-photo")).toHaveCount(2);
+    await expect(harborCard.getByRole("img", { name: "Proof photos" })).toHaveCount(2);
     await captureUi(page, testInfo, "user viewing their suggested chargers (All)");
 
     const statusSelect = page.getByRole("combobox", { name: "Status" });

@@ -70,14 +70,11 @@ class UserSuggestionsElement extends HTMLElement {
           })
         );
         const photoUrls = suggestion.photoUrls ?? [suggestion.photoUrl].filter(Boolean);
+        const photoTemplate = this.querySelector(".photo-item-template");
         card.querySelector(".proof-photos").replaceChildren(
           ...photoUrls.map((url) => {
-            const item = document.createElement("li");
-            const photo = document.createElement("img");
-            photo.className = "proof-photo";
-            photo.src = url;
-            photo.alt = "";
-            item.append(photo);
+            const item = photoTemplate.content.firstElementChild.cloneNode(true);
+            item.querySelector(".proof-photo").src = url;
             return item;
           })
         );
