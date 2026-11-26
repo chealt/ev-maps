@@ -50,6 +50,9 @@ jobs:
               - "packages/app/**"
               - "packages/tiles/**"
               - "packages/ui/**"
+              # The shared test fixtures (captureUi, the fakes): a change
+              # runs every spec (e2e-domains.json's `everything`).
+              - "packages/e2e/**"
               - "packages/worker/**"
               - "packages/dev-config/**"
               - "packages/biome-plugin-css-units/**"

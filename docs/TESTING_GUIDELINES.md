@@ -182,7 +182,9 @@ request with new or updated UI controls has tests tagged `@ui`
 (`test("…", { tag: "@ui" }, …)`), which attach screenshots of the moments
 that show the control (`captureUi(page, testInfo, "the dialog open")`, e.g.
 before closing what they opened; without one, the page as the test left
-it), next to the video CI records of every test. Both are in the Playwright
+it), next to the video CI records of every test. Each moment is captured
+in the light and the dark color scheme (`"…"` and `"… (dark)"`), unless the
+page has a theme chosen in the app. Both are in the Playwright
 report the CI publishes, linked from its commit status, so the review sees
 the control as Playwright actually exercised it.
 
