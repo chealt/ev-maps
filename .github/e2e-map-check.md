@@ -5,7 +5,8 @@ request runs, still correct after it? Read
 `packages/app/scripts/e2e-selection.js` first, for how the map is used.
 
 Below are the pull request's changed files (`git diff --name-status`, so
-`A` added, `M` modified, `D` deleted, `R` renamed) and what
+`A` added, `M` modified, `D` deleted, `R` renamed), its diff (cut short
+when it's long: then read the files themselves) and what
 `scripts/select-e2e.js` selected for it. A unit test already checks that
 every spec the map names exists and that every spec is in a domain: don't
 repeat that. Check what it can't:
@@ -14,8 +15,8 @@ repeat that. Check what it can't:
    each one in the paths of the domain whose specs exercise it? A file no
    domain lists runs every test, which is slow but safe: flag it, with the
    domain it belongs to.
-2. **Modified files:** read the diff's files and what imports them (grep
-   for the file's name). When code a domain lists is now used by the code
+2. **Modified files:** read the diff, e.g. the imports it adds, and what
+   imports the changed files (grep for the file's name). When code a domain lists is now used by the code
    of another domain, whose specs would catch a break in it, say that the
    other domain needs it too (or that it belongs in `everything`, if most
    domains use it).
