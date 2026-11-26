@@ -1,3 +1,5 @@
+# The E2E Map Check
+
 You are checking one pull request of this repository: is
 `packages/app/e2e-domains.json`, the map of which end-to-end specs a pull
 request runs, still correct after it? Read
@@ -16,10 +18,10 @@ repeat that. Check what it can't:
    domain lists runs every test, which is slow but safe: flag it, with the
    domain it belongs to.
 2. **Modified files:** read the diff, e.g. the imports it adds, and what
-   imports the changed files (grep for the file's name). When code a domain lists is now used by the code
-   of another domain, whose specs would catch a break in it, say that the
-   other domain needs it too (or that it belongs in `everything`, if most
-   domains use it).
+   imports the changed files (grep for the file's name). When code a
+   domain lists is now used by the code of another domain, whose specs
+   would catch a break in it, say that the other domain needs it too (or
+   that it belongs in `everything`, if most domains use it).
 3. **Added or moved specs:** is each in the domain of the code it tests,
    rather than the domain of the folder it happens to be in?
 4. **Deleted or renamed files:** does a path in the map now match nothing?

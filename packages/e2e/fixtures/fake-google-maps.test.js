@@ -12,6 +12,7 @@ class FakeElement {
   prepend() {}
   remove() {}
   setAttribute() {}
+  addEventListener() {}
   replaceChildren() {}
 }
 
