@@ -36,6 +36,7 @@ const PAGE_SECTIONS = {
   admin: [
     "common",
     "admin",
+    "admin-charger-reports",
     "admin-dashboard",
     "admin-errors",
     "admin-performance",

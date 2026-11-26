@@ -1,0 +1,72 @@
+---
+import Badge from "@ev-maps/ui/Badge.astro";
+import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import ChargerProof from "../charger-proof/ChargerProof.astro";
+import "./AdminChargerReports.css";
+
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
+---
+
+<!-- Changes to chargers' availability and price reported by signed-in users
+     (GET /api/admin/charger-reports): admins weigh the proof and the trust
+     score, and approve (the charger shows the change) or reject each. -->
+<ev-admin-charger-reports>
+  <section aria-labelledby="admin-charger-reports-title">
+    <h2 class="section-title" id="admin-charger-reports-title">
+      {page.adminChargerReports}
+    </h2>
+    <SegmentedControl
+      class="status-filter"
+      legend={page.adminSuggestionStatusFilter}
+      name="status"
+      value="pending"
+      options={[
+        { value: "pending", label: page.adminSuggestionsPending },
+        { value: "", label: page.adminSuggestionsAll },
+        { value: "approved", label: page.adminSuggestionsApproved },
+        { value: "rejected", label: page.adminSuggestionsRejected },
+      ]}
+    />
+    <p class="summary" role="status"></p>
+    <div class="report-list"></div>
+  </section>
+
+  <template class="report-template">
+    <Card as="article" class="report-card">
+      <div class="card-header">
+        <div>
+          <h3 class="charger-name"></h3>
+          <p class="reported-by"></p>
+        </div>
+        <Badge class="status-badge" />
+      </div>
+      <div class="card-body">
+        <div class="details">
+          <ChargerProof page={page} />
+          <div class="actions">
+            <Button variant="primary" size="small" class="approve">
+              {page.adminApproveReport}
+            </Button>
+            <Button variant="danger" size="small" class="reject">
+              {page.adminRejectSuggestion}
+            </Button>
+          </div>
+        </div>
+        <ul class="proof-photos"></ul>
+      </div>
+    </Card>
+  </template>
+  <template class="photo-item-template">
+    <li>
+      <img class="proof-photo" />
+    </li>
+  </template>
+  <script src="./AdminChargerReports.js"></script>
+</ev-admin-charger-reports>

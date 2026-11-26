@@ -26,6 +26,17 @@ const fakeSuggestionsApi = async (page) => {
         "/api/charger-suggestions/1/photo?index=0",
         "/api/charger-suggestions/1/photo?index=1",
       ],
+      receiptPhotoUrls: ["/api/charger-suggestions/1/photo?index=2"],
+      availability: "operational",
+      price: { free: true },
+      deviceLocation: null,
+      distanceM: null,
+      trustScore: 30,
+      trustFactors: [
+        { id: "location", points: 0 },
+        { id: "chargerPhoto", points: 15 },
+        { id: "receiptPhoto", points: 15 },
+      ],
       status: "pending",
       createdAt: Date.UTC(2026, 10, 24, 12),
     },
@@ -80,6 +91,14 @@ test(
     await expect(page.getByText("CCS (Type 2): 4× · 350 kW")).toBeVisible();
     await expect(page.getByText("Type 2: 2× · 22 kW")).toBeVisible();
     await expect(page.getByRole("img", { name: "Charger proof photo" })).toHaveCount(2);
+    // What it says about the availability and price, and how far to trust it.
+    await expect(
+      page.getByRole("img", { name: "Receipt, invoice or charging app photo" })
+    ).toBeVisible();
+    await expect(page.getByText("30/100")).toBeVisible();
+    await expect(page.getByText("Operational", { exact: true })).toBeVisible();
+    await expect(page.getByText("Free", { exact: true })).toBeVisible();
+    await expect(page.getByText("The device's location wasn't shared")).toBeVisible();
     await captureUi(page, testInfo, "admin reviewing a charger suggestion");
 
     await page.getByRole("button", { name: "Approve & add" }).click();

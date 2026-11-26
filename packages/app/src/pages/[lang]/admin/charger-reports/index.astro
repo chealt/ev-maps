@@ -1,0 +1,18 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
+import AdminChargerReports from "@ev-maps/admin/components/admin-charger-reports/AdminChargerReports.astro";
+import { translations } from "../../../../i18n/index.js";
+import { languages } from "../../../../lib/pages.js";
+
+// The Worker only serves this page to admins (packages/admin/src/admin.js).
+export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<Layout title={`EV Maps - ${page.adminChargerReports}`} noindex kind="admin">
+  <AdminPage current="charger-reports" page={page}>
+    <AdminChargerReports page={page} />
+  </AdminPage>
+</Layout>
