@@ -57,18 +57,12 @@
       }
     }
 
-    /* A block, so it can be cut short; and capitalized, as a word from the
-       middle of the name (Hungarian's "törlése") would otherwise start
-       small. */
+    /* A block, so it can be cut short. */
     .button-label {
       display: block;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
-
-      &::first-letter {
-        text-transform: uppercase;
-      }
     }
   }
 
