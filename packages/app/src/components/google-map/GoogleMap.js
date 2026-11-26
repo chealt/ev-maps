@@ -1356,6 +1356,7 @@ class GoogleMapElement extends HTMLElement {
     };
     this.loaded = { chargers: plan.chargers, truncated: plan.full };
     this.setRouteShown(true);
+    this.showRouteStopState(this.activeCharger);
     this.routePlanner?.setRoute(
       { origin: ends.origin, destination: ends.destination, corridorKm },
       plan.stopDistances
@@ -2138,12 +2139,14 @@ class GoogleMapElement extends HTMLElement {
     this.showAvailability(charger);
   }
 
-  // Whether the open charger is one of the route's stops.
+  // Whether the open charger is one of the route's stops; without a route,
+  // there's no adding a stop.
   showRouteStopState(charger) {
     const button = this.detailsPanel?.querySelector(".add-to-route");
     if (!button) {
       return;
     }
+    button.hidden = !this.route;
     const added = Boolean(
       charger &&
       this.routePlanner?.hasStop({
@@ -2275,8 +2278,6 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const apps = panel.querySelector(".maps-apps");
-    // "Open in maps", as the page was built, for when no app is remembered.
-    this.openInMapsLabel = button.querySelector(".label").textContent.trim();
     button.addEventListener("click", () => {
       const app = mapsApp();
       if (app && this.activeCharger) {
@@ -2303,19 +2304,15 @@ class GoogleMapElement extends HTMLElement {
     onMapsAppChange(() => this.activeCharger && this.showOpenInMaps(this.activeCharger));
   }
 
-  // The button for the remembered app ("Open in Google Maps"), or for the
-  // list; the apps' links go to this charger.
+  // The button opens the remembered app, or the list; the apps' links go to
+  // this charger.
   showOpenInMaps(charger) {
     const panel = this.detailsPanel;
     const button = panel?.querySelector(".open-in-maps");
     if (!button) {
       return;
     }
-    const app = mapsApp();
-    button.querySelector(".label").textContent = app
-      ? message("openInApp", { app: valueLabel("mapsApps", app) })
-      : this.openInMapsLabel;
-    if (app) {
+    if (mapsApp()) {
       button.removeAttribute("aria-expanded");
     }
     for (const link of panel.querySelectorAll(".maps-apps .app")) {

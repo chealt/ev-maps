@@ -432,12 +432,14 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
              if they already allow it, else they choose where from. -->
         <Button variant="primary" class="navigate" aria-haspopup="dialog">
           <Icon icon={Navigation} size="sm" />
-          {page.navigate}
+          <span class="label">{page.navigate}</span>
         </Button>
-        <!-- Adds or removes the charger as a stop along a route. -->
+        <!-- Adds or removes the charger as a stop along the route, shown only
+             while there's one. -->
         <Button
           variant="secondary"
           class="add-to-route"
+          hidden
           aria-pressed="false"
           data-add-label={page.addRouteStop}
           data-remove-label={page.removeRouteStop}
@@ -445,8 +447,8 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <Icon icon={MapPinPlus} size="sm" />
           <span class="label">{page.addRouteStop}</span>
         </Button>
-        <!-- Opens the charger in a maps app: the remembered one at once (its
-             name then says which), else the list of them below. -->
+        <!-- Opens the charger in a maps app: the remembered one at once, else
+             the list of them below. -->
         <Button
           variant="secondary"
           class="open-in-maps"
