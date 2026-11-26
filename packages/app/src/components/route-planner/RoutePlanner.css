@@ -151,37 +151,25 @@
     }
   }
 
-  .saved-place-item {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--spacing-2xs) var(--spacing-2xs) var(--spacing-2xs) var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-full);
-    background: var(--color-surface);
-    transition: border-color var(--transition-fast);
-
-    &:hover {
-      border-color: var(--color-primary);
-    }
-
-    .remove-saved-place {
-      padding: var(--spacing-2xs);
-    }
-  }
-
   .saved-place-chip {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    padding: var(--spacing-2xs) var(--spacing-xs) var(--spacing-2xs) 0;
-    border: none;
-    background: transparent;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--border-radius-full);
+    background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-tight);
     cursor: pointer;
+    transition: border-color var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-primary);
+    }
 
     .chip-icon {
       display: inline-flex;
