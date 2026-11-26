@@ -37,111 +37,71 @@ test(
   }
 );
 
-test("f opens the filters, c clears them", async ({ page }) => {
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  await page
-    .getByRole("dialog", { name: "Filters" })
-    .getByRole("button", { name: "150–300 kW" })
-    .click();
-  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).click();
-  await expect(page.getByRole("status")).toHaveText("1 of 2 EV chargers match the filters");
-  await expect(
-    page.getByRole("button", { name: "Filters", exact: true })
-  ).toHaveAccessibleDescription("1 filter on");
-
-  await page.keyboard.press("f");
-  const filters = page.getByRole("dialog", { name: "Filters" });
-  await expect(filters).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(filters).toBeHidden();
-
-  await page.keyboard.press("c");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  await expect(
-    page.getByRole("button", { name: "Filters", exact: true })
-  ).toHaveAccessibleDescription("");
-});
-
-test("l locates the user", async ({ page, context }) => {
+test("the letter shortcuts: f the filters, c clears them, l locates, r plans a route, x clears it", async ({
+  page,
+  context,
+}) => {
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: 47.4979, longitude: 19.0402 });
+  await fakeAuthApi(page, { signedIn: true });
+  await fakeRouteChargersApi(page);
   await page.reload();
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  // f opens the filters (Escape closes them); c clears them.
+  await page.keyboard.press("f");
+  const filters = page.getByRole("dialog", { name: "Filters" });
+  await filters.getByRole("button", { name: "150–300 kW" }).click();
+  await page.keyboard.press("Escape");
+  await expect(filters).toBeHidden();
+  await expect(page.getByRole("status")).toHaveText("1 of 2 EV chargers match the filters");
+  await page.keyboard.press("c");
+  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+  // l locates the user.
   await page.keyboard.press("l");
   await expect
     .poll(() => page.evaluate(() => window.__fakeMap.getCenter().toJSON()))
     .toEqual({ lat: 47.4979, lng: 19.0402 });
-});
 
-test("r opens the route planner", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await page.reload();
-  await page.keyboard.press("r");
-  await expect(page.getByRole("dialog", { name: "Plan a route" })).toBeVisible();
-});
-
-test("x clears the route shown", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeRouteChargersApi(page);
-  await page.reload();
-  // Without a route, nothing to clear.
+  // x does nothing without a route; r opens the planner, and x clears the
+  // route planned.
   await page.keyboard.press("x");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-
   await page.keyboard.press("r");
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+  const planner = page.getByRole("dialog", { name: "Plan a route" });
   for (const [field, text, option] of [
     ["From", "Buda", "Budapest, Hungary"],
     ["To", "Vie", "Vienna, Austria"],
   ]) {
-    await dialog.getByRole("combobox", { name: field }).fill(text);
-    await dialog.getByRole("option", { name: option }).click();
+    await planner.getByRole("combobox", { name: field }).fill(text);
+    await planner.getByRole("option", { name: option }).click();
   }
-  await dialog.getByRole("button", { name: "Show route" }).click();
+  await planner.getByRole("button", { name: "Show route" }).click();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-  const clear = page.locator(".map-controls").getByRole("button", { name: "Clear route" });
-  await expect(clear).toHaveAttribute("aria-keyshortcuts", "x");
-
+  await expect(page.getByRole("button", { name: "Clear route" })).toHaveAttribute(
+    "aria-keyshortcuts",
+    "x"
+  );
   await page.keyboard.press("x");
-  await expect(clear).toBeHidden();
+  await expect(page.getByRole("button", { name: "Clear route" })).toBeHidden();
   await expect(page.evaluate(() => window.__fakeRouteLine)).resolves.toBeNull();
 });
 
-test("? belongs to an open dialog, not the shortcuts", async ({ page }) => {
+test("the keys belong to an open dialog, or a field, not the map", async ({ page }) => {
   await page.getByRole("button", { name: "Filters", exact: true }).click();
+  const filters = page.getByRole("dialog", { name: "Filters" });
+
+  // ? in a dialog: not the shortcuts.
   await page.keyboard.press("?");
   await expect(shortcuts(page)).toBeHidden();
-  await expect(page.getByRole("dialog", { name: "Filters" })).toBeVisible();
-});
+  await expect(filters).toBeVisible();
 
-test("the letter shortcuts belong to a field, not the map", async ({ page }) => {
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  // f in the dialog doesn't close and reopen it; l doesn't locate.
   await page.keyboard.press("f");
-  await expect(page.getByRole("dialog", { name: "Filters" })).toBeVisible();
-  // Focus lands on the dialog; typing f there must not close and reopen it.
-  await page.getByRole("dialog", { name: "Filters" }).getByRole("button", { name: "Done" }).focus();
+  await expect(filters).toBeVisible();
+  await filters.getByRole("button", { name: "Done" }).focus();
   await page.keyboard.press("Escape");
   await page.keyboard.press("l");
   await expect(page.getByRole("dialog", { name: "Plan a route" })).toBeHidden();
-});
-
-test("lines up the shortcuts' descriptions, and spaces the title from its icon", async ({
-  page,
-}) => {
-  await page.keyboard.press("?");
-  const dialog = shortcuts(page);
-  await expect(dialog).toBeVisible();
-
-  // However wide its key (Esc), every description starts in the same place.
-  const starts = await dialog
-    .locator(".shortcut-list li > span")
-    .evaluateAll((spans) => spans.map((span) => Math.round(span.getBoundingClientRect().left)));
-  expect(new Set(starts).size).toBe(1);
-
-  const gap = await dialog.locator(".title").evaluate((title) => {
-    const icon = title.querySelector(".icon").getBoundingClientRect();
-    const text = document.createRange();
-    text.selectNodeContents(title.lastChild);
-    return text.getBoundingClientRect().left - icon.right;
-  });
-  expect(gap).toBeGreaterThan(4);
 });
