@@ -163,8 +163,16 @@ test("credits every source of a charger merged from several", async ({ page }) =
   await map.getByRole("button", { name: "Downtown Supercharger" }).click();
 
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-  await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
-  await expect(details.getByRole("link", { name: "OpenStreetMap contributors" })).toBeVisible();
+  await expect(
+    details
+      .getByRole("link", { name: "Charging data source" })
+      .and(details.locator('[href="https://openchargemap.org"]'))
+  ).toBeVisible();
+  await expect(
+    details
+      .getByRole("link", { name: "Charging data source" })
+      .and(details.locator('[href="https://www.openstreetmap.org/copyright"]'))
+  ).toBeVisible();
 });
 
 test(
@@ -210,7 +218,11 @@ test(
     await expect(details.locator('.connector-point[data-state="free"]')).toHaveCount(5);
     await expect(details.locator('.connector-point[data-state="occupied"]')).toHaveCount(2);
     await expect(details.locator('.connector-point[data-state="out-of-service"]')).toHaveCount(1);
-    await expect(details.getByRole("link", { name: "EIPA" })).toBeVisible();
+    await expect(
+      details
+        .getByRole("link", { name: "Charging data source" })
+        .and(details.locator('[href="https://eipa.udt.gov.pl"]'))
+    ).toBeVisible();
     // Only the sources with live statuses are asked for.
     expect(statusRequests).toEqual([["eipa:95424"]]);
     await captureUi(
@@ -374,7 +386,11 @@ test("shows France's availability, crediting its register", async ({ page }) => 
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
   await expect(details.getByText("1 of 2 points free")).toBeVisible();
   await expect(details.getByText("Out of service")).toBeHidden();
-  await expect(details.getByRole("link", { name: "IRVE, transport.data.gouv.fr" })).toBeVisible();
+  await expect(
+    details
+      .getByRole("link", { name: "Charging data source" })
+      .and(details.locator('[href*="transport.data.gouv.fr"]'))
+  ).toBeVisible();
 });
 
 test("asks to sign in for live availability", async ({ page }) => {
