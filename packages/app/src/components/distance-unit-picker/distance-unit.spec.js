@@ -28,63 +28,38 @@ test.beforeEach(async ({ page }) => {
   await fakeRouteChargersApi(page);
 });
 
-test("shows kilometres where the locale uses them", async ({ page }) => {
-  await fakeSettingsApi(page);
-  await page.goto("/");
-  const charger = await planRoute(page);
-  await expect(charger.getByRole("img")).toHaveAccessibleName(
-    "50 km from the start, 100 km to the end, 1 km off the route"
-  );
-});
-
-test.describe("in a locale that uses miles", () => {
-  test.use({ locale: "en-US" });
-
-  test("shows miles, and feet when short", async ({ page }) => {
-    await fakeSettingsApi(page);
-    await page.goto("/");
-    await page.getByRole("button", { name: "Route" }).click();
-    await expect(page.getByText("Chargers within 3.1 mi of the route are shown.")).toBeVisible();
-    await page.getByRole("button", { name: "Close route planner" }).click();
-
-    const charger = await planRoute(page);
-    await expect(charger.getByRole("img")).toHaveAccessibleName(
-      "31 mi from the start, 62 mi to the end, 0.6 mi off the route"
-    );
-  });
-});
-
-test("the unit chosen in the account menu shows at once, and is kept in the account", async ({
+// Formatting in each unit, and the unit a locale uses, are unit tested
+// (src/lib/distance.test.js).
+test("takes the unit chosen on another device, shows one chosen here at once, and keeps it in the account", async ({
   page,
 }) => {
-  const saves = await fakeSettingsApi(page);
-  await page.goto("/");
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
-  const menu = page.getByRole("dialog", { name: "Account" });
-  await expect(menu.getByRole("radio", { name: "Automatic" })).toBeChecked();
-  await menu.getByRole("radio", { name: "Miles" }).check();
-  await expect
-    .poll(() => saves.map((save) => save.distanceUnit?.unit).filter(Boolean))
-    .toEqual(["imperial"]);
-  await page.locator('[popovertarget="account-menu"]').click();
-
-  // The filters' "nearby" hint, built in metres, follows.
-  await page.getByRole("button", { name: "Filters" }).click();
-  await expect(page.getByText("Within 490 ft, from OpenStreetMap.")).toBeVisible();
-  await page.getByRole("button", { name: "Close filters" }).click();
-
-  const charger = await planRoute(page);
-  await expect(charger.getByRole("img")).toHaveAccessibleName(/31 mi from the start/);
-});
-
-test("takes the unit chosen on another device, from the account", async ({ page }) => {
-  await fakeSettingsApi(page, { distanceUnit: { unit: "imperial", updatedAt: Date.now() } });
+  const saves = await fakeSettingsApi(page, {
+    distanceUnit: { unit: "imperial", updatedAt: Date.now() },
+  });
   await page.goto("/");
   const charger = await planRoute(page);
   await expect(charger.getByRole("img")).toHaveAccessibleName(/31 mi from the start/);
   await page.keyboard.press("Escape");
+
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await expect(menu.getByRole("radio", { name: "Miles" })).toBeChecked();
+  await menu.getByRole("radio", { name: "Kilometres" }).check();
+  await expect
+    .poll(() => saves.map((save) => save.distanceUnit?.unit).filter(Boolean))
+    .toEqual(["metric"]);
+  await page.locator('[popovertarget="account-menu"]').click();
+
+  // The filters' "nearby" hint, built in metres, follows at once.
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
+  await expect(page.getByText("Within 150 m, from OpenStreetMap.")).toBeVisible();
+  await page.getByRole("button", { name: "Close filters" }).click();
+  await page.getByRole("button", { name: "2 EV chargers along the route" }).click();
   await expect(
-    page.getByRole("dialog", { name: "Account" }).getByRole("radio", { name: "Miles" })
-  ).toBeChecked();
+    page
+      .getByRole("dialog", { name: "2 EV chargers" })
+      .getByRole("listitem")
+      .first()
+      .getByRole("img")
+  ).toHaveAccessibleName(/50 km from the start/);
 });
