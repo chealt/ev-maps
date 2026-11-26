@@ -92,4 +92,4 @@ const connectorType = (value) => CONNECTOR_TYPES[value?.trim()] ?? value?.trim()
 
 const isFreeCost = (value) => value?.trim().toLowerCase() === FREE_COST.toLowerCase();
 
-export { accessId, connectorType, isFreeCost, statusId };
+export { FREE_COST, accessId, connectorType, isFreeCost, statusId };

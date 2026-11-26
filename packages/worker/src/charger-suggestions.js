@@ -7,6 +7,12 @@
 // - POST /api/charger-suggestions: submits a suggestion (signed in)
 // - GET /api/charger-suggestions/{id}/photo: serves the proof photo only to
 //   the user who submitted it or to an admin (private, no-store)
+//
+// A suggestion can also say the charger's availability and price, with the
+// device's location and, for a price, a receipt's photo as proof
+// (src/charger-proof.js); each gets a trust score (src/trust-score.js), and
+// an approved one's availability and price become the charger's community
+// values.
 // - GET /api/admin/charger-suggestions: lists all suggestions (admin)
 // - POST /api/admin/charger-suggestions/{id}/approve: approves and upserts
 //   into `chargers` and `chargers_rtree` (admin)
@@ -14,7 +20,10 @@
 
 import { Buffer } from "node:buffer";
 import { isAdmin } from "./admin-area.js";
+import { cleanPrice, isAvailability, isDeviceLocation, isPrice } from "./charger-proof.js";
+import { setCommunityValues } from "./charger-reports.js";
 import { upsertChargers } from "./db.js";
+import { distanceMeters, trustInputs, trustScore } from "./trust-score.js";
 
 const SUGGESTIONS_PATH = "/api/charger-suggestions";
 const SUGGESTION_PHOTO_PATH = /^\/api\/charger-suggestions\/(\d+)\/photo$/;
@@ -23,6 +32,7 @@ const ADMIN_SUGGESTION_ACTION_PATH = /^\/api\/admin\/charger-suggestions\/(\d+)\
 const MAX_BODY_BYTES = 12 * 1024 * 1024;
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const MAX_PHOTOS = 5;
+const MAX_RECEIPT_PHOTOS = 2;
 const MAX_CONNECTORS = 20;
 const PHOTO_PATTERN = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/;
 const CONNECTOR_TYPES = [
@@ -88,6 +98,23 @@ const photosOf = (payload) => {
   return [];
 };
 
+const isUnset = (value) => value === undefined || value === null;
+
+// Availability, price and the device's location are optional; a price needs
+// a receipt's photo.
+const validProof = (payload) => {
+  const receipts = payload.receiptPhotos ?? [];
+  return (
+    (isUnset(payload.availability) || isAvailability(payload.availability)) &&
+    (isUnset(payload.price) || isPrice(payload.price)) &&
+    (isUnset(payload.deviceLocation) || isDeviceLocation(payload.deviceLocation)) &&
+    Array.isArray(receipts) &&
+    receipts.length >= (isUnset(payload.price) ? 0 : 1) &&
+    receipts.length <= MAX_RECEIPT_PHOTOS &&
+    receipts.every(isValidPhotoDataUrl)
+  );
+};
+
 const validSuggestion = (payload) => {
   const photos = photosOf(payload);
   return (
@@ -105,12 +132,19 @@ const validSuggestion = (payload) => {
     payload.connectors.every(validConnector) &&
     photos.length >= 1 &&
     photos.length <= MAX_PHOTOS &&
-    photos.every(isValidPhotoDataUrl)
+    photos.every(isValidPhotoDataUrl) &&
+    validProof(payload)
   );
 };
 
+const allPhotosOf = (row) => [
+  ...(row.photos ? JSON.parse(row.photos) : row.photo ? [row.photo] : []),
+  ...(row.receipt_photos ? JSON.parse(row.receipt_photos) : []),
+];
+
 const toClientSuggestion = (row, { includeUser = false } = {}) => {
   const photos = row.photos ? JSON.parse(row.photos) : row.photo ? [row.photo] : [];
+  const receipts = row.receipt_photos ? JSON.parse(row.receipt_photos) : [];
   const photoUrls = photos.map(
     (_, index) => `/api/charger-suggestions/${row.id}/photo?index=${index}`
   );
@@ -124,6 +158,21 @@ const toClientSuggestion = (row, { includeUser = false } = {}) => {
     connectors: JSON.parse(row.connectors || "[]"),
     photoUrl: photoUrls[0] ?? `/api/charger-suggestions/${row.id}/photo`,
     photoUrls,
+    receiptPhotoUrls: receipts.map(
+      (_, index) => `/api/charger-suggestions/${row.id}/photo?index=${photos.length + index}`
+    ),
+    availability: row.availability ?? null,
+    price: row.price ? JSON.parse(row.price) : null,
+    ...(includeUser
+      ? {
+          deviceLocation: Number.isFinite(row.device_lat)
+            ? { lat: row.device_lat, lng: row.device_lng, accuracy: row.device_accuracy ?? null }
+            : null,
+          distanceM: row.distance_m ?? null,
+          trustScore: row.trust_score ?? null,
+          trustFactors: row.trust_factors ? JSON.parse(row.trust_factors) : [],
+        }
+      : {}),
     status: row.status,
     createdAt: row.created_at,
     reviewedAt: row.reviewed_at ?? null,
@@ -150,11 +199,28 @@ const submitSuggestion = async (request, env, userId, user) => {
     quantity,
   }));
   const photos = photosOf(payload);
+  const receipts = payload.receiptPhotos ?? [];
   const createdAt = Date.now();
+  const device = payload.deviceLocation ?? null;
+  const distanceM = device ? Math.round(distanceMeters(device, payload.location)) : null;
+  const { history, usage } = await trustInputs(env.DB, userId);
+  const trust = trustScore(
+    {
+      distanceM: distanceM ?? undefined,
+      accuracyM: device?.accuracy,
+      chargerPhotos: photos.length,
+      receiptPhotos: receipts.length,
+    },
+    history,
+    usage,
+    createdAt
+  );
   await env.DB.prepare(
     `INSERT INTO charger_suggestions
-       (user_id, user_email, name, address, operator, lat, lng, connectors, photo, photos, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
+       (user_id, user_email, name, address, operator, lat, lng, connectors, photo, photos,
+        receipt_photos, availability, price, device_lat, device_lng, device_accuracy,
+        distance_m, trust_score, trust_factors, status, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`
   )
     .bind(
       userId,
@@ -167,6 +233,15 @@ const submitSuggestion = async (request, env, userId, user) => {
       JSON.stringify(connectors),
       photos[0],
       JSON.stringify(photos),
+      receipts.length ? JSON.stringify(receipts) : null,
+      payload.availability ?? null,
+      payload.price ? JSON.stringify(cleanPrice(payload.price)) : null,
+      device?.lat ?? null,
+      device?.lng ?? null,
+      device?.accuracy ?? null,
+      distanceM,
+      trust.score,
+      JSON.stringify(trust.factors),
       createdAt
     )
     .run();
@@ -177,7 +252,7 @@ const submitSuggestion = async (request, env, userId, user) => {
 const listUserSuggestions = async (db, userId, url) => {
   const status = url.searchParams.get("status") || "";
   const columns =
-    "id, name, address, operator, lat, lng, connectors, photos, status, created_at, reviewed_at";
+    "id, name, address, operator, lat, lng, connectors, photos, receipt_photos, availability, price, status, created_at, reviewed_at";
   const query = STATUSES.includes(status)
     ? db
         .prepare(
@@ -198,13 +273,13 @@ const listUserSuggestions = async (db, userId, url) => {
 // Serves a suggestion's proof photo only to its author or an admin.
 const photoResponse = async (db, env, id, url, userId, user) => {
   const row = await db
-    .prepare("SELECT user_id, photo, photos FROM charger_suggestions WHERE id = ?")
+    .prepare("SELECT user_id, photo, photos, receipt_photos FROM charger_suggestions WHERE id = ?")
     .bind(id)
     .first();
   if (!row || (row.user_id !== userId && !isAdmin(env, user))) {
     return json({ error: "Not found" }, 404);
   }
-  const photos = row.photos ? JSON.parse(row.photos) : row.photo ? [row.photo] : [];
+  const photos = allPhotosOf(row);
   const index = Math.max(0, Number.parseInt(url.searchParams.get("index") ?? "0", 10) || 0);
   const match = photos[index]?.match(PHOTO_PATTERN);
   if (!match) {
@@ -224,7 +299,7 @@ const photoResponse = async (db, env, id, url, userId, user) => {
 const listAdminSuggestions = async (db, url) => {
   const status = url.searchParams.get("status") || "";
   const columns =
-    "id, user_email, name, address, operator, lat, lng, connectors, photos, status, created_at, reviewed_at";
+    "id, user_email, name, address, operator, lat, lng, connectors, photos, receipt_photos, availability, price, device_lat, device_lng, device_accuracy, distance_m, trust_score, trust_factors, status, created_at, reviewed_at";
   const query = STATUSES.includes(status)
     ? db
         .prepare(
@@ -272,6 +347,14 @@ const reviewSuggestion = async (db, id, action) => {
       ],
       now
     );
+    if (row.availability || row.price) {
+      await setCommunityValues(
+        db,
+        `community:${row.id}`,
+        { availability: row.availability, price: row.price ? JSON.parse(row.price) : null },
+        now
+      );
+    }
   }
   await db
     .prepare("UPDATE charger_suggestions SET status = ?, reviewed_at = ? WHERE id = ?")

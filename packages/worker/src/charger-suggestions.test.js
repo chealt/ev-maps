@@ -4,7 +4,7 @@ import {
   suggestionsResponse,
   validSuggestion,
 } from "./charger-suggestions.js";
-import { chargersInBounds } from "./db.js";
+import { chargersInBounds, toClientCharger } from "./db.js";
 import { testD1 } from "./test-d1.js";
 
 const PHOTO =
@@ -26,7 +26,10 @@ const createDb = () =>
   testD1(
     "../migrations/0001_chargers.sql",
     "../migrations/0008_charger_suggestions.sql",
-    "../migrations/0009_charger_suggestions_photos.sql"
+    "../migrations/0009_charger_suggestions_photos.sql",
+    "../migrations/0002_auth.sql",
+    "../migrations/0005_favorites.sql",
+    "../migrations/0010_charger_reports.sql"
   );
 
 describe("validSuggestion", () => {
@@ -110,6 +113,48 @@ describe("charger suggestions flow", () => {
       number_of_points: 6,
       max_power_kw: 350,
     });
+  });
+
+  test("takes the availability and price with proof, scores it, and the approved charger shows them", async () => {
+    const db = createDb();
+    const env = { DB: db, ADMIN_EMAIL_DOMAIN: "chealt.com" };
+    expect(validSuggestion({ ...SUGGESTION, price: { free: true } })).toBe(false);
+
+    const submit = await suggestionsResponse(
+      new Request("https://ev.chealt.com/api/charger-suggestions", {
+        method: "POST",
+        body: JSON.stringify({
+          ...SUGGESTION,
+          availability: "partly-operational",
+          price: { free: true },
+          receiptPhotos: [PHOTO],
+          deviceLocation: { lat: 47.5, lng: 19.05, accuracy: 8 },
+        }),
+      }),
+      env,
+      "user-1",
+      { email: "ada@example.com" }
+    );
+    expect(submit.status).toBe(201);
+
+    const listUrl = new URL("https://ev.chealt.com/api/admin/charger-suggestions");
+    const listed = await (
+      await adminSuggestionsResponse(new Request(listUrl), env, listUrl)
+    ).json();
+    expect(listed.suggestions[0]).toMatchObject({
+      availability: "partly-operational",
+      price: { free: true },
+      receiptPhotoUrls: ["/api/charger-suggestions/1/photo?index=1"],
+      deviceLocation: { lat: 47.5, lng: 19.05, accuracy: 8 },
+      distanceM: 0,
+      // At the charger, with a charger and a receipt photo.
+      trustScore: 60,
+    });
+
+    const approveUrl = new URL("https://ev.chealt.com/api/admin/charger-suggestions/1/approve");
+    await adminSuggestionsResponse(new Request(approveUrl, { method: "POST" }), env, approveUrl);
+    const { rows } = await chargersInBounds(db, { north: 48, south: 47, east: 20, west: 19 }, 10);
+    expect(toClientCharger(rows[0])).toMatchObject({ status: "partly-operational", free: true });
   });
 
   test("scopes suggestions and proof photos strictly to the submitting user and admins", async () => {
