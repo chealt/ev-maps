@@ -1,11 +1,15 @@
 ---
 import { Keyboard } from "lucide-static";
+import Card from "@ev-maps/ui/Card.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
+import { shortcutGroups } from "./shortcut-groups.js";
 import "./ShortcutsDialog.css";
 
 const { page } = translations(Astro.currentLocale ?? "en");
+
+const groups = shortcutGroups(page);
 ---
 
 <ev-shortcuts>
@@ -19,36 +23,23 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <Icon icon={Keyboard} size="sm" />
       {page.shortcuts.title}
     </Fragment>
-    <ul class="shortcut-list">
-      <li>
-        <kbd>?</kbd>
-        <span>{page.shortcuts.help}</span>
-      </li>
-      <li>
-        <kbd>Esc</kbd>
-        <span>{page.shortcuts.closeDialogs}</span>
-      </li>
-      <li>
-        <kbd>f</kbd>
-        <span>{page.shortcuts.filters}</span>
-      </li>
-      <li>
-        <kbd>c</kbd>
-        <span>{page.shortcuts.clearFilters}</span>
-      </li>
-      <li>
-        <kbd>l</kbd>
-        <span>{page.shortcuts.locate}</span>
-      </li>
-      <li>
-        <kbd>r</kbd>
-        <span>{page.shortcuts.route}</span>
-      </li>
-      <li>
-        <kbd>x</kbd>
-        <span>{page.shortcuts.clearRoute}</span>
-      </li>
-    </ul>
+    <div class="shortcut-groups">
+      {groups.map(({ id, title, keys }) => (
+        <Card as="section" class="shortcut-group" aria-labelledby={`shortcuts-${id}`}>
+          <h3 class="group-title" id={`shortcuts-${id}`}>
+            {title}
+          </h3>
+          <ul class="shortcut-list">
+            {keys.map(({ key, description }) => (
+              <li>
+                <kbd>{key}</kbd>
+                <span>{description}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ))}
+    </div>
   </Dialog>
   <script src="./ShortcutsDialog.js"></script>
 </ev-shortcuts>

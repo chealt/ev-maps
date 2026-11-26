@@ -111,6 +111,17 @@ const map = {
       "A kWh-nkénti ár alapján, az itt lévő töltőkhöz képest. Amíg egy szint be van kapcsolva, az ár nélküli töltők nem látszanak.",
     shortcuts: {
       title: "Billentyűparancsok",
+      groups: {
+        map: "Térkép",
+        route: "Útvonal",
+        filters: "Szűrők",
+        account: "Fiók",
+      },
+      search: "Hely keresése",
+      accountMenu: "Fiókmenü megnyitása vagy bezárása",
+      favorites: "Kedvencek megjelenítése",
+      suggestCharger: "Töltő javaslása",
+      savedPlaces: "Mentett helyek megnyitása",
       help: "Súgó megjelenítése",
       closeDialogs: "Párbeszédablakok és a töltő részleteinek bezárása",
       filters: "Szűrők megjelenítése vagy elrejtése",
