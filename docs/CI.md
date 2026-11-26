@@ -60,11 +60,12 @@ into the next release. The notes also link the run's Playwright,
 accessibility and performance reports (in the admin area), with their
 totals. To preview the notes: `bun scripts/release-notes.js <previous tag>`.
 
-The Playwright tests run in 3 shards in parallel (`Test shard 1/3` …), each
+The Playwright tests run in 5 shards in parallel (`Test shard 1/5` …), each
 saving a blob report. The `Test` job, the required check, merges them
 (`playwright merge-reports`) into one HTML report and fails if any shard did.
-To change the number of shards, edit the matrix in `app.yml`. Locally:
-`bunx playwright test --shard=1/3`.
+The config's `fullyParallel` splits the shards by test, not by file, so each
+shard gets about as many. To change the number of shards, edit the matrix in
+`app.yml`. Locally: `bunx playwright test --shard=1/5`.
 
 Each shard caches Playwright's Chromium per Playwright version, so most
 runs skip downloading it and only install its system libraries.
