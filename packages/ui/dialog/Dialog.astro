@@ -1,0 +1,69 @@
+---
+// A full-screen dialog: a header with its title and a close button, a body
+// that scrolls, and a footer. Open it with `showModal()`; Escape closes it,
+// as every `<dialog>`. The close button only has the class `close`: the
+// page decides what closing does (e.g. an animation), and listens for it.
+//
+// Slots: the default one is the body; `title` replaces the title's text
+// (e.g. with an icon); `header` is more under the title (e.g. a hint);
+// `footer` holds the actions; `after` is outside them, e.g. templates.
+import type { HTMLAttributes } from "astro/types";
+import { X } from "lucide-static";
+import Button from "../button/Button.astro";
+import Icon from "../icon/Icon.astro";
+import "./Dialog.css";
+
+interface Props extends HTMLAttributes<"dialog"> {
+  /** The title's text, also the dialog's name. */
+  title: string;
+  /** The title's ID, for `aria-labelledby`. */
+  titleId: string;
+  /** The close button's name, e.g. "Close filters". */
+  closeLabel: string;
+  /** A form for a body with fields, so a footer button can submit it. */
+  bodyAs?: "div" | "form";
+  /** Attributes of the body, e.g. a form's `id` and `novalidate`. */
+  bodyAttrs?: HTMLAttributes<"form">;
+}
+
+const {
+  title,
+  titleId,
+  closeLabel,
+  bodyAs: Body = "div",
+  bodyAttrs = {},
+  class: className,
+  ...attrs
+} = Astro.props;
+const { class: bodyClass, ...bodyRest } = bodyAttrs;
+const hasHeader = Astro.slots.has("header");
+---
+
+<dialog class:list={["dialog", className]} aria-labelledby={titleId} {...attrs}>
+  <div class="header">
+    {hasHeader ? (
+      <div class="heading">
+        <h2 class="title" id={titleId}>
+          <slot name="title">{title}</slot>
+        </h2>
+        <slot name="header" />
+      </div>
+    ) : (
+      <h2 class="title" id={titleId}>
+        <slot name="title">{title}</slot>
+      </h2>
+    )}
+    <Button variant="ghost" size="icon-only" class="close" aria-label={closeLabel}>
+      <Icon icon={X} />
+    </Button>
+  </div>
+  <Body class:list={["body", bodyClass]} {...bodyRest}>
+    <slot />
+  </Body>
+  {Astro.slots.has("footer") && (
+    <div class="footer">
+      <slot name="footer" />
+    </div>
+  )}
+  <slot name="after" />
+</dialog>

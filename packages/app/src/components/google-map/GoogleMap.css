@@ -223,57 +223,6 @@ ev-google-map {
 }
 
 /* Filters */
-/* Full screen on every screen size; the content is a centered column,
-   wider on large screens so their space holds more options per row. */
-.fullscreen-dialog {
-  --dialog-content-width: 40rem;
-
-  width: 100%;
-  max-width: none;
-  height: 100dvh;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-
-  &[open] {
-    display: flex;
-    flex-direction: column;
-    animation: rise-in var(--transition-base);
-  }
-
-  .header,
-  .body,
-  .footer {
-    width: 100%;
-    max-width: var(--dialog-content-width);
-    margin: 0 auto;
-    padding: var(--spacing-md) var(--spacing-lg);
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .title {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    letter-spacing: var(--letter-spacing-tight);
-  }
-
-  .body {
-    flex: 1;
-    overflow-y: auto;
-    /* Content that loads in above (a list, availability) doesn't scroll the
-       body: it only moves when the user, or a focus, scrolls it. */
-    overflow-anchor: none;
-  }
-}
-
 .filter-dialog {
   .body {
     display: flex;
@@ -1374,24 +1323,11 @@ ev-google-map {
   }
 }
 
-@media (width >= 64em) {
-  .fullscreen-dialog {
-    --dialog-content-width: 60rem;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none;
-  }
-}
-
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--spacing-sm));
   }
 }
 

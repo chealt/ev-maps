@@ -1,6 +1,7 @@
 ---
 import { ImagePlus, MapPin, Plus, Trash2, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
@@ -49,171 +50,169 @@ const knownOperators = [
      known operators dropdown, one or more chargers (connector type, power
      in kW, quantity) and up to 5 proof photos (max 2 MB each). -->
 <ev-suggest-charger-dialog data-api-key={apiKey}>
-  <dialog class="fullscreen-dialog suggest-charger-dialog" aria-labelledby="suggest-charger-title">
-    <div class="header">
-      <h2 class="title" id="suggest-charger-title">
-        {page.suggestCharger}
-      </h2>
-      <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeSuggestCharger}>
-        <Icon icon={X} />
-      </Button>
-    </div>
-    <form class="body" id="suggest-charger-form" novalidate>
-      <p class="hint">{page.suggestChargerHint}</p>
+  <Dialog
+    class="suggest-charger-dialog"
+    title={page.suggestCharger}
+    titleId="suggest-charger-title"
+    closeLabel={page.closeSuggestCharger}
+    bodyAs="form"
+    bodyAttrs={{ id: "suggest-charger-form", novalidate: true }}
+  >
+    <p class="hint">{page.suggestChargerHint}</p>
 
-      <div class="form-section">
-        <div class="field-row">
-          <label class="field-group">
-            <span class="label">{page.suggestChargerName}</span>
-            <input
-              type="text"
-              class="field charger-name"
-              name="name"
-              required
-              maxlength="200"
-              placeholder={page.suggestChargerNamePlaceholder}
-            />
-          </label>
-          <div class="field-group">
-            <label class="field-group">
-              <span class="label">{page.suggestChargerOperator}</span>
-              <select class="field charger-operator-select" name="operator">
-                <option value="">{page.suggestChargerOperatorSelect}</option>
-                {knownOperators.map((op) => (
-                  <option value={op}>{op}</option>
-                ))}
-                <option value="__other__">{page.suggestChargerOperatorOther}</option>
-              </select>
-            </label>
-            <input
-              type="text"
-              class="field charger-operator-custom"
-              name="operatorCustom"
-              maxlength="200"
-              placeholder={page.suggestChargerOperatorCustomPlaceholder}
-              aria-label={page.suggestChargerOperatorOther}
-              hidden
-            />
-          </div>
-        </div>
-
-        <PlaceInput
-          id="suggest-charger-address"
-          label={page.suggestChargerAddress}
-          placeholder={page.placeSearch}
-        />
-        <!-- Where exactly the charger is: a pin dropped on the map, from the
-             address's spot (or the map's), wins over the address's location. -->
-        <div class="pin-row">
-          <Button variant="secondary" size="small" class="drop-pin">
-            <Icon icon={MapPin} size="sm" />
-            {page.dropPin}
-          </Button>
-          <span class="pinned" hidden>
-            <span class="pinned-text"></span>
-            <Button variant="ghost" size="small" class="remove-pin">
-              {page.removePin}
-            </Button>
-          </span>
-        </div>
-      </div>
-
-      <fieldset class="form-section chargers-group">
-        <div class="group-header">
-          <legend class="label">{page.suggestChargerUnits}</legend>
-          <Button variant="secondary" size="small" class="add-connector">
-            <Icon icon={Plus} size="sm" />
-            {page.addChargerUnit}
-          </Button>
-        </div>
-        <div class="connector-list"></div>
-      </fieldset>
-
-      <div class="form-section photos-section">
-        <span class="label">{page.suggestChargerPhoto}</span>
-        <label class="photo-dropzone">
+    <div class="form-section">
+      <div class="field-row">
+        <label class="field-group">
+          <span class="label">{page.suggestChargerName}</span>
           <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            multiple
-            class="visually-hidden charger-photo"
+            type="text"
+            class="field charger-name"
+            name="name"
+            required
+            maxlength="200"
+            placeholder={page.suggestChargerNamePlaceholder}
           />
-          <span class="dropzone-icon">
-            <Icon icon={ImagePlus} />
-          </span>
-          <span class="dropzone-title">{page.suggestChargerAddPhotos}</span>
-          <span class="dropzone-hint">{page.suggestChargerPhotoHint}</span>
         </label>
-        <ul class="photo-grid" hidden></ul>
+        <div class="field-group">
+          <label class="field-group">
+            <span class="label">{page.suggestChargerOperator}</span>
+            <select class="field charger-operator-select" name="operator">
+              <option value="">{page.suggestChargerOperatorSelect}</option>
+              {knownOperators.map((op) => (
+                <option value={op}>{op}</option>
+              ))}
+              <option value="__other__">{page.suggestChargerOperatorOther}</option>
+            </select>
+          </label>
+          <input
+            type="text"
+            class="field charger-operator-custom"
+            name="operatorCustom"
+            maxlength="200"
+            placeholder={page.suggestChargerOperatorCustomPlaceholder}
+            aria-label={page.suggestChargerOperatorOther}
+            hidden
+          />
+        </div>
       </div>
 
-      <p class="status" role="status"></p>
-      <p class="error" role="alert"></p>
-    </form>
-    <div class="footer">
+      <PlaceInput
+        id="suggest-charger-address"
+        label={page.suggestChargerAddress}
+        placeholder={page.placeSearch}
+      />
+      <!-- Where exactly the charger is: a pin dropped on the map, from the
+           address's spot (or the map's), wins over the address's location. -->
+      <div class="pin-row">
+        <Button variant="secondary" size="small" class="drop-pin">
+          <Icon icon={MapPin} size="sm" />
+          {page.dropPin}
+        </Button>
+        <span class="pinned" hidden>
+          <span class="pinned-text"></span>
+          <Button variant="ghost" size="small" class="remove-pin">
+            {page.removePin}
+          </Button>
+        </span>
+      </div>
+    </div>
+
+    <fieldset class="form-section chargers-group">
+      <div class="group-header">
+        <legend class="label">{page.suggestChargerUnits}</legend>
+        <Button variant="secondary" size="small" class="add-connector">
+          <Icon icon={Plus} size="sm" />
+          {page.addChargerUnit}
+        </Button>
+      </div>
+      <div class="connector-list"></div>
+    </fieldset>
+
+    <div class="form-section photos-section">
+      <span class="label">{page.suggestChargerPhoto}</span>
+      <label class="photo-dropzone">
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          class="visually-hidden charger-photo"
+        />
+        <span class="dropzone-icon">
+          <Icon icon={ImagePlus} />
+        </span>
+        <span class="dropzone-title">{page.suggestChargerAddPhotos}</span>
+        <span class="dropzone-hint">{page.suggestChargerPhotoHint}</span>
+      </label>
+      <ul class="photo-grid" hidden></ul>
+    </div>
+
+    <p class="status" role="status"></p>
+    <p class="error" role="alert"></p>
+    <Fragment slot="footer">
       <Button variant="primary" size="large" type="submit" form="suggest-charger-form">
         {page.submitChargerSuggestion}
       </Button>
-    </div>
+    </Fragment>
+    <Fragment slot="after">
+      <template class="connector-row-template">
+        <div class="connector-row" role="group">
+          <label class="field-group connector-type-group">
+            <span class="label">{page.connectorType}</span>
+            <select class="field connector-type">
+              {connectorTypes.map((type) => (
+                <option value={type}>{values.connectors[type]}</option>
+              ))}
+            </select>
+          </label>
+          <label class="field-group connector-power-group">
+            <span class="label">{page.suggestChargerPowerKw}</span>
+            <input
+              type="number"
+              min="1"
+              max="1000"
+              step="any"
+              value="50"
+              class="field connector-power"
+              required
+            />
+          </label>
+          <label class="field-group connector-qty-group">
+            <span class="label">{page.suggestChargerQuantity}</span>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              step="1"
+              value="1"
+              class="field connector-quantity"
+              required
+            />
+          </label>
+          <Button
+            variant="ghost"
+            size="icon-only"
+            class="remove-connector"
+            aria-label={page.removeChargerUnit}
+          >
+            <Icon icon={Trash2} size="sm" />
+          </Button>
+        </div>
+      </template>
 
-    <template class="connector-row-template">
-      <div class="connector-row" role="group">
-        <label class="field-group connector-type-group">
-          <span class="label">{page.connectorType}</span>
-          <select class="field connector-type">
-            {connectorTypes.map((type) => (
-              <option value={type}>{values.connectors[type]}</option>
-            ))}
-          </select>
-        </label>
-        <label class="field-group connector-power-group">
-          <span class="label">{page.suggestChargerPowerKw}</span>
-          <input
-            type="number"
-            min="1"
-            max="1000"
-            step="any"
-            value="50"
-            class="field connector-power"
-            required
-          />
-        </label>
-        <label class="field-group connector-qty-group">
-          <span class="label">{page.suggestChargerQuantity}</span>
-          <input
-            type="number"
-            min="1"
-            max="100"
-            step="1"
-            value="1"
-            class="field connector-quantity"
-            required
-          />
-        </label>
-        <Button
-          variant="ghost"
-          size="icon-only"
-          class="remove-connector"
-          aria-label={page.removeChargerUnit}
-        >
-          <Icon icon={Trash2} size="sm" />
-        </Button>
-      </div>
-    </template>
-
-    <template class="photo-item-template">
-      <li class="photo-item">
-        <img class="photo-thumb" alt="" />
-        <Button
-          variant="secondary"
-          size="icon-only"
-          class="remove-photo"
-          aria-label={page.removeChargerPhoto}
-        >
-          <Icon icon={X} size="sm" />
-        </Button>
-      </li>
-    </template>
-  </dialog>
+      <template class="photo-item-template">
+        <li class="photo-item">
+          <img class="photo-thumb" alt="" />
+          <Button
+            variant="secondary"
+            size="icon-only"
+            class="remove-photo"
+            aria-label={page.removeChargerPhoto}
+          >
+            <Icon icon={X} size="sm" />
+          </Button>
+        </li>
+      </template>
+    </Fragment>
+  </Dialog>
   <script src="./SuggestChargerDialog.js"></script>
 </ev-suggest-charger-dialog>

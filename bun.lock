@@ -103,9 +103,11 @@
       "version": "0.0.1",
       "devDependencies": {
         "@ev-maps/dev-config": "workspace:*",
+        "lucide-static": "^1.75.0",
       },
       "peerDependencies": {
         "astro": "^7.4.12",
+        "lucide-static": "^1.75.0",
       },
     },
     "packages/worker": {

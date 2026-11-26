@@ -1,6 +1,7 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
-import { MapPin, Navigation, Search, X } from "lucide-static";
+import Dialog from "@ev-maps/ui/Dialog.astro";
+import { MapPin, Navigation, Search } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
@@ -20,32 +21,24 @@ const { page } = translations(Astro.currentLocale ?? "en");
     <Icon icon={Search} />
     <span class="label">{page.search}</span>
   </Button>
-  <dialog
-    class="fullscreen-dialog place-search-dialog"
+  <Dialog
+    class="place-search-dialog"
     id="place-search"
-    aria-labelledby="place-search-title"
+    title={page.search}
+    titleId="place-search-title"
+    closeLabel={page.close}
   >
-    <div class="header">
-      <h2 class="title" id="place-search-title">
-        {page.search}
-      </h2>
-      <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
-        <Icon icon={X} />
+    <PlaceInput id="place-search-input" label={page.search} placeholder={page.placeSearch} />
+    <div class="actions">
+      <Button variant="primary" size="large" class="search-here" disabled>
+        <Icon icon={MapPin} size="sm" />
+        {page.showOnMap}
+      </Button>
+      <Button variant="secondary" size="large" class="plan-route-here" disabled>
+        <Icon icon={Navigation} size="sm" />
+        {page.navigate}
       </Button>
     </div>
-    <div class="body">
-      <PlaceInput id="place-search-input" label={page.search} placeholder={page.placeSearch} />
-      <div class="actions">
-        <Button variant="primary" size="large" class="search-here" disabled>
-          <Icon icon={MapPin} size="sm" />
-          {page.showOnMap}
-        </Button>
-        <Button variant="secondary" size="large" class="plan-route-here" disabled>
-          <Icon icon={Navigation} size="sm" />
-          {page.navigate}
-        </Button>
-      </div>
-    </div>
-  </dialog>
+  </Dialog>
   <script src="./PlaceSearch.js"></script>
 </ev-place-search>
