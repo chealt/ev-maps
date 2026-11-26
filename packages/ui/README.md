@@ -5,13 +5,19 @@ their CSS, and no copy of their own (the page passes its text in). They use
 the app's design tokens (`packages/app/src/layouts/global.css`), so they look
 right on any of its pages.
 
-| Import                       | What                                      |
-| ---------------------------- | ----------------------------------------- |
-| `@ev-maps/ui/Button.astro`   | A button: `variant`, `size`               |
-| `@ev-maps/ui/Icon.astro`     | A `lucide-static` icon: `size`, `filled`  |
-| `@ev-maps/ui/BarChart.astro` | A bar per day; its `title` and `id`       |
-| `@ev-maps/ui/bar-chart.js`   | `renderBarChart`, `formatDay`: fill it in |
+| Import                               | What                                                      |
+| ------------------------------------ | --------------------------------------------------------- |
+| `@ev-maps/ui/Button.astro`           | A button: `variant`, `size`                               |
+| `@ev-maps/ui/Icon.astro`             | A `lucide-static` icon: `size`, `filled`                  |
+| `@ev-maps/ui/Badge.astro`            | A short label in a pill: `tone`                           |
+| `@ev-maps/ui/Card.astro`             | A surface for one item: `as`                              |
+| `@ev-maps/ui/SegmentedControl.astro` | One choice of a few: `legend`, `name`, `options`, `value` |
+| `@ev-maps/ui/BarChart.astro`         | A bar per day; its `title` and `id`                       |
+| `@ev-maps/ui/bar-chart.js`           | `renderBarChart`, `formatDay`: fill it in                 |
 
-Components that know about chargers, the map or the account stay in the app
-(`packages/app/src/components`). A component moves here when it's generic:
-no app state, no translations, no API calls.
+Treat them like a third-party library's components: generic, with no
+domain or business logic. Components that know about chargers, the map or
+the account stay in the app (`packages/app/src/components`) or the admin
+area (`packages/admin/components`). A component moves here when it's
+generic: no app state, no translations, no API calls; and when the app and
+the admin area would otherwise each build their own (#307).

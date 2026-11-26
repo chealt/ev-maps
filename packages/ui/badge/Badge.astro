@@ -1,0 +1,16 @@
+---
+// A short label in a pill, e.g. a status. Its `tone` colors it; a script can
+// change it later through the data-tone attribute.
+import type { HTMLAttributes } from "astro/types";
+import "./Badge.css";
+
+interface Props extends HTMLAttributes<"span"> {
+  tone?: "neutral" | "success" | "warning" | "danger";
+}
+
+const { tone = "neutral", class: className, ...attrs } = Astro.props;
+---
+
+<span class:list={["badge", className]} data-tone={tone} {...attrs}>
+  <slot />
+</span>
