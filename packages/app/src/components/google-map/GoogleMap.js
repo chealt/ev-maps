@@ -435,9 +435,11 @@ class GoogleMapElement extends HTMLElement {
       ?.addEventListener("click", () => this.closeChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
-    // the map's shortcuts (see the ? dialog): f filters, c clears them, l
-    // locates, r plans a route, x clears it. Not while typing or in a dialog: those keys
-    // belong to it.
+    // the map's shortcuts (see the ? dialog): s searches, l locates; r plans
+    // a route, x clears it; f the filters, c clears them; a the account menu,
+    // h favorites, n suggests a charger, p the saved places (signed in: the
+    // menu's items say no otherwise). Not while typing or in a dialog: those
+    // keys belong to it.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
@@ -462,6 +464,15 @@ class GoogleMapElement extends HTMLElement {
         r: () => this.routePlanner?.open(),
         s: () => this.querySelector("ev-place-search")?.open(),
         x: () => this.route && this.clearRoute(),
+        a: () => document.querySelector("ev-user-menu .account-menu")?.togglePopover(),
+        h: () => document.querySelector("ev-user-menu .favorites-button")?.click(),
+        n: () => document.querySelector("ev-user-menu .suggest-charger-button")?.click(),
+        p: () => {
+          const link = document.querySelector("ev-user-menu .my-saved-places-link");
+          if (link && !link.hidden) {
+            link.click();
+          }
+        },
       };
       shortcuts[event.key.toLowerCase()]?.();
     });

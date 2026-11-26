@@ -19,16 +19,43 @@ test(
 
     const dialog = shortcuts(page);
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Show this help")).toBeVisible();
-    await expect(dialog.getByText("Close dialogs and the charger details")).toBeVisible();
-    for (const [key, label] of [
-      ["f", "Show or hide the filters"],
-      ["c", "Clear the filters"],
-      ["l", "Locate me"],
-      ["r", "Plan a route"],
-      ["x", "Clear the route"],
+    // A card per group, of what the keys control.
+    for (const [group, keys] of [
+      [
+        "Map",
+        [
+          ["s", "Search for a place"],
+          ["l", "Locate me"],
+          ["Esc", "Close dialogs and the charger details"],
+          ["?", "Show this help"],
+        ],
+      ],
+      [
+        "Route",
+        [
+          ["r", "Plan a route"],
+          ["x", "Clear the route"],
+        ],
+      ],
+      [
+        "Filters",
+        [
+          ["f", "Show or hide the filters"],
+          ["c", "Clear the filters"],
+        ],
+      ],
+      [
+        "Account",
+        [
+          ["a", "Open or close the account menu"],
+          ["h", "Show your favorites"],
+          ["n", "Suggest a charger"],
+          ["p", "Go to your saved places"],
+        ],
+      ],
     ]) {
-      await expect(dialog.getByRole("listitem").filter({ hasText: label })).toContainText(key);
+      const items = dialog.getByRole("region", { name: group }).getByRole("listitem");
+      await expect(items).toHaveText(keys.map(([key, label]) => `${key}${label}`));
     }
     await captureUi(page, testInfo, "the keyboard shortcuts");
 
@@ -37,7 +64,7 @@ test(
   }
 );
 
-test("the letter shortcuts: f the filters, c clears them, l locates, r plans a route, x clears it", async ({
+test("the letter shortcuts: f the filters, c clears them, l locates, r plans a route, x clears it, a the account menu, h favorites, n suggests a charger, p the saved places", async ({
   page,
   context,
 }) => {
@@ -86,6 +113,26 @@ test("the letter shortcuts: f the filters, c clears them, l locates, r plans a r
   await page.keyboard.press("x");
   await expect(page.getByRole("button", { name: "Clear route" })).toBeHidden();
   await expect(page.evaluate(() => window.__fakeRouteLine)).resolves.toBeNull();
+
+  // a opens the account menu (Escape closes it); h shows the favorites, n
+  // the suggest-a-charger form, and p goes to the saved places.
+  const menu = page.getByRole("dialog", { name: "Account" });
+  await page.keyboard.press("a");
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await page.keyboard.press("h");
+  const favorites = page.getByRole("dialog", { name: "Favorites" });
+  await expect(favorites).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(favorites).toBeHidden();
+  await page.keyboard.press("n");
+  const suggest = page.getByRole("dialog", { name: "Suggest a charger" });
+  await expect(suggest).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(suggest).toBeHidden();
+  await page.keyboard.press("p");
+  await expect(page).toHaveURL(/\/en\/places\/$/);
 });
 
 test("the keys belong to an open dialog, or a field, not the map", async ({ page }) => {

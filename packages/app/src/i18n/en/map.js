@@ -109,6 +109,17 @@ const map = {
       "By the per-kWh price, compared with the chargers here. Chargers without one are left out while a level is on.",
     shortcuts: {
       title: "Keyboard shortcuts",
+      groups: {
+        map: "Map",
+        route: "Route",
+        filters: "Filters",
+        account: "Account",
+      },
+      search: "Search for a place",
+      accountMenu: "Open or close the account menu",
+      favorites: "Show your favorites",
+      suggestCharger: "Suggest a charger",
+      savedPlaces: "Go to your saved places",
       help: "Show this help",
       closeDialogs: "Close dialogs and the charger details",
       filters: "Show or hide the filters",
