@@ -36,7 +36,7 @@
     "lucide-static": "^1.75.0"
   },
   "peerDependencies": {
-    "astro": "^7.4.12",
+    "astro": "^7.4.13",
     "lucide-static": "^1.75.0"
   }
 }
