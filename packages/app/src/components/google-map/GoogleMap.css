@@ -1092,10 +1092,18 @@ ev-google-map {
     }
   }
 
-  .attribution {
+  /* The data sources: inline links on one line, wrapping if they must. */
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs) var(--spacing-md);
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
+
+    .attribution[hidden] {
+      display: none;
+    }
 
     a {
       color: inherit;
@@ -1392,4 +1400,16 @@ ev-google-map.picking :is(.map-controls, .map-status) {
     outline: none;
     background: var(--color-surface-hover);
   }
+}
+
+/* The operator in the details: a link-like button to the operator's
+   chargers. */
+.charger-details .operator-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
 }

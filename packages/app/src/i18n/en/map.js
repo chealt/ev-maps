@@ -23,6 +23,8 @@ const map = {
     rememberMapsAppHint: "You can change it in the account menu.",
     connectors: "Connectors",
     details: "Details",
+    chargingDataSource: "Charging data source",
+    nearbyPlacesSource: "Nearby places source",
     openChargeMapCredit: {
       before: "Charging data from",
       after: "",
@@ -175,6 +177,11 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Operator: {value}",
+    operatorChargers: {
+      one: "{count} EV charger by {operator}",
+      other: "{count} EV chargers by {operator}",
+    },
+    showOperatorChargers: "Show the chargers by {operator}",
     access: "Access: {value}",
     cost: "Cost: {value}",
     status: "Status: {value}",

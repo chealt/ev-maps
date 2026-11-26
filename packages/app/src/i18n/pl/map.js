@@ -23,6 +23,8 @@ const map = {
     rememberMapsAppHint: "Możesz to zmienić w menu konta.",
     connectors: "Złącza",
     details: "Szczegóły",
+    chargingDataSource: "Źródło danych o ładowaniu",
+    nearbyPlacesSource: "Źródło pobliskich miejsc",
     openChargeMapCredit: {
       before: "Dane o stacjach:",
       after: "",
@@ -183,6 +185,13 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Operator: {value}",
+    operatorChargers: {
+      one: "{operator}: {count} stacja ładowania",
+      few: "{operator}: {count} stacje ładowania",
+      many: "{operator}: {count} stacji ładowania",
+      other: "{operator}: {count} stacji ładowania",
+    },
+    showOperatorChargers: "Pokaż stacje ładowania: {operator}",
     access: "Dostęp: {value}",
     cost: "Koszt: {value}",
     status: "Status: {value}",

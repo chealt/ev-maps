@@ -73,7 +73,11 @@ test(
     await expect(details.getByRole("button", { name: "Navigate" })).toBeVisible();
     await expect(details.getByRole("button", { name: "Open map" })).toBeVisible();
     await expect(details.getByRole("button", { name: "Add stop" })).toBeHidden();
-    await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
+    await expect(
+      details
+        .getByRole("link", { name: "Charging data source" })
+        .and(details.locator('[href="https://openchargemap.org"]'))
+    ).toBeVisible();
     await captureUi(page, testInfo, "the charger's details");
     await details.getByRole("button", { name: "Close" }).click();
     await expect(page.getByRole("complementary")).toBeHidden();

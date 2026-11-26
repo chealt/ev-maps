@@ -89,6 +89,42 @@ const amenities = [
   { id: "playground", icon: Baby },
 ];
 
+// The data sources the details credit, in the order shown.
+const OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright";
+const osmCredit = `${page.openStreetMapCredit.link}${page.openStreetMapCredit.after}`;
+const sources = [
+  {
+    id: "ocm",
+    href: "https://openchargemap.org",
+    label: page.chargingDataSource,
+    credit: `${page.openChargeMapCredit.before} Open Charge Map${page.openChargeMapCredit.after}`,
+  },
+  {
+    id: "eipa",
+    href: "https://eipa.udt.gov.pl",
+    label: page.chargingDataSource,
+    credit: `${page.eipaCredit.before} EIPA${page.eipaCredit.after}`,
+  },
+  {
+    id: "irve",
+    href: "https://transport.data.gouv.fr/datasets/base-nationale-des-irve-infrastructures-de-recharge-pour-vehicules-electriques",
+    label: page.chargingDataSource,
+    credit: `${page.irveCredit.before} ${page.irveCredit.link}${page.irveCredit.after}`,
+  },
+  {
+    id: "osm",
+    href: OSM_COPYRIGHT,
+    label: page.chargingDataSource,
+    credit: `${page.openStreetMapCredit.before} ${osmCredit}`,
+  },
+  {
+    id: "osm-places",
+    href: OSM_COPYRIGHT,
+    label: page.nearbyPlacesSource,
+    credit: `${page.openStreetMapPlacesCredit.before} ${osmCredit}`,
+  },
+];
+
 // Connector types users choose between (src/lib/connector-groups.js).
 const connectorGroups = connectorGroupsFor(page);
 
@@ -538,47 +574,25 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           ))}
         </BadgeList>
       </section>
-      <p class="attribution" data-source="ocm" hidden>
-        {page.openChargeMapCredit.before}{" "}
-        <a href="https://openchargemap.org" target="_blank" rel="noopener">
-          Open Charge Map
-        </a>
-        {page.openChargeMapCredit.after}
-      </p>
-      <p class="attribution" data-source="eipa" hidden>
-        {page.eipaCredit.before}{" "}
-        <a href="https://eipa.udt.gov.pl" target="_blank" rel="noopener">
-          EIPA
-        </a>
-        {page.eipaCredit.after}
-      </p>
-      <p class="attribution" data-source="irve" hidden>
-        {page.irveCredit.before}{" "}
-        <a
-          href="https://transport.data.gouv.fr/datasets/base-nationale-des-irve-infrastructures-de-recharge-pour-vehicules-electriques"
-          target="_blank"
-          rel="noopener"
-        >
-          {page.irveCredit.link}
-        </a>
-        {page.irveCredit.after}
-      </p>
-      <p class="attribution" data-source="osm" hidden>
-        {page.openStreetMapCredit.before}{" "}
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
-          {page.openStreetMapCredit.link}
-        </a>
-        {page.openStreetMapCredit.after}
-      </p>
-      <p class="attribution" data-source="osm-places" hidden>
-        {page.openStreetMapPlacesCredit.before}{" "}
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">
-          {page.openStreetMapCredit.link}
-        </a>
-        {page.openStreetMapCredit.after}
-      </p>
-      <p class="attribution" data-source="community" hidden>
-        {page.communityCredit}
+      <!-- Where the charger's data comes from: a link per source shown (the
+           script picks them), each with its full credit as its title. -->
+      <p class="sources">
+        {sources.map(({ id, href, label, credit }) => (
+          <a
+            class="attribution"
+            data-source={id}
+            href={href}
+            title={credit}
+            target="_blank"
+            rel="noopener"
+            hidden
+          >
+            {label}
+          </a>
+        ))}
+        <span class="attribution" data-source="community" hidden>
+          {page.communityCredit}
+        </span>
       </p>
       <template class="item-template">
         <li></li>
