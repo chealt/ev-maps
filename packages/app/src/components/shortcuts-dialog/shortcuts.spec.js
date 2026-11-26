@@ -9,54 +9,35 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/");
 });
 
-const shortcuts = (page) => page.getByRole("dialog", { name: "Keyboard shortcuts" });
-
 test(
   "the ? key opens the keyboard shortcuts, Escape closes it",
   { tag: "@ui" },
   async ({ page }, testInfo) => {
     await page.keyboard.press("?");
 
-    const dialog = shortcuts(page);
+    const dialog = page.getByRole("dialog", { name: "Keyboard shortcuts" });
     await expect(dialog).toBeVisible();
     // A card per group, of what the keys control.
-    for (const [group, keys] of [
-      [
-        "Map",
-        [
-          ["s", "Search for a place"],
-          ["l", "Locate me"],
-          ["Esc", "Close dialogs and the charger details"],
-          ["?", "Show this help"],
-        ],
-      ],
-      [
-        "Route",
-        [
-          ["r", "Plan a route"],
-          ["x", "Clear the route"],
-        ],
-      ],
-      [
-        "Filters",
-        [
-          ["f", "Show or hide the filters"],
-          ["c", "Clear the filters"],
-        ],
-      ],
-      [
-        "Account",
-        [
-          ["a", "Open or close the account menu"],
-          ["h", "Show your favorites"],
-          ["n", "Suggest a charger"],
-          ["p", "Go to your saved places"],
-        ],
-      ],
-    ]) {
-      const items = dialog.getByRole("region", { name: group }).getByRole("listitem");
-      await expect(items).toHaveText(keys.map(([key, label]) => `${key}${label}`));
-    }
+    await expect(dialog.getByRole("region", { name: "Map" }).getByRole("listitem")).toHaveText([
+      "sSearch for a place",
+      "lLocate me",
+      "EscClose dialogs and the charger details",
+      "?Show this help",
+    ]);
+    await expect(dialog.getByRole("region", { name: "Route" }).getByRole("listitem")).toHaveText([
+      "rPlan a route",
+      "xClear the route",
+    ]);
+    await expect(dialog.getByRole("region", { name: "Filters" }).getByRole("listitem")).toHaveText([
+      "fShow or hide the filters",
+      "cClear the filters",
+    ]);
+    await expect(dialog.getByRole("region", { name: "Account" }).getByRole("listitem")).toHaveText([
+      "aOpen or close the account menu",
+      "hShow your favorites",
+      "nSuggest a charger",
+      "pGo to your saved places",
+    ]);
     await captureUi(page, testInfo, "the keyboard shortcuts");
 
     await page.keyboard.press("Escape");
@@ -97,13 +78,10 @@ test("the letter shortcuts: f the filters, c clears them, l locates, r plans a r
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   await page.keyboard.press("r");
   const planner = page.getByRole("dialog", { name: "Plan a route" });
-  for (const [field, text, option] of [
-    ["From", "Buda", "Budapest, Hungary"],
-    ["To", "Vie", "Vienna, Austria"],
-  ]) {
-    await planner.getByRole("combobox", { name: field }).fill(text);
-    await planner.getByRole("option", { name: option }).click();
-  }
+  await planner.getByRole("combobox", { name: "From" }).fill("Buda");
+  await planner.getByRole("option", { name: "Budapest, Hungary" }).click();
+  await planner.getByRole("combobox", { name: "To" }).fill("Vie");
+  await planner.getByRole("option", { name: "Vienna, Austria" }).click();
   await planner.getByRole("button", { name: "Show route" }).click();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
   await expect(page.getByRole("button", { name: "Clear route" })).toHaveAttribute(
@@ -141,7 +119,7 @@ test("the keys belong to an open dialog, or a field, not the map", async ({ page
 
   // ? in a dialog: not the shortcuts.
   await page.keyboard.press("?");
-  await expect(shortcuts(page)).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeHidden();
   await expect(filters).toBeVisible();
 
   // f in the dialog doesn't close and reopen it; l doesn't locate.
