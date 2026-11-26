@@ -743,8 +743,18 @@ ev-google-map {
     gap: var(--spacing-sm);
   }
 
+  /* Centred on the name's first line, so they stay at the top when a long
+     name wraps (#339): half the difference between that line and the
+     icon buttons (an icon and its padding) moves them up. */
   .actions {
     flex-shrink: 0;
+    margin-block-start: calc(
+      (
+          var(--font-size-xl) * var(--line-height-tight) - var(--icon-size-md) - 2 *
+            var(--spacing-sm)
+        ) /
+        2
+    );
   }
 
   .name {
