@@ -1141,13 +1141,6 @@ ev-google-map {
 
   .facts {
     grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-
-    &:empty {
-      display: none;
-    }
   }
 
   .address {
@@ -1339,27 +1332,5 @@ ev-google-map.picking :is(.map-controls, .map-status) {
   .pick-actions {
     display: flex;
     gap: var(--spacing-sm);
-  }
-}
-
-/* The places next to a charger: pills with the nearby filters' icons. */
-.charger-details .nearby-places {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li[hidden] {
-    display: none;
-  }
-
-  .nearby-place {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
   }
 }

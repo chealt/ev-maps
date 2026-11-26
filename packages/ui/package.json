@@ -19,6 +19,8 @@
     "./Dialog.astro": "./dialog/Dialog.astro",
     "./Field.astro": "./field/Field.astro",
     "./Badge.css": "./badge/Badge.css",
+    "./BadgeList.astro": "./badge-list/BadgeList.astro",
+    "./BadgeList.css": "./badge-list/BadgeList.css",
     "./EmptyState.astro": "./empty-state/EmptyState.astro",
     "./Tooltip.astro": "./tooltip/Tooltip.astro",
     "./Stat.astro": "./stat/Stat.astro",
