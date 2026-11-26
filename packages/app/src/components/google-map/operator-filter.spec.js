@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -33,6 +33,30 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page);
   await fakeChargersApi(page, { chargers });
 });
+
+test(
+  "the operator in a charger's details lists the operator's chargers",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "Ionity North" }).click();
+    const details = page.getByRole("complementary", { name: "Ionity North" });
+    await expect(details.getByText("Operator: Ionity")).toBeVisible();
+
+    await details.getByRole("button", { name: "Show the chargers by Ionity" }).click();
+    const list = page.getByRole("dialog", { name: "2 EV chargers by Ionity" });
+    await expect(list.getByRole("listitem")).toHaveCount(2);
+    await expect(list.getByRole("button", { name: /Ionity North/ })).toBeVisible();
+    await captureUi(page, testInfo, "an operator's chargers");
+
+    // One of them opens its details.
+    await list.getByRole("button", { name: /Ionity South/ }).click();
+    await expect(list).toBeHidden();
+    await expect(page.getByRole("complementary", { name: "Ionity South" })).toBeVisible();
+  }
+);
 
 // Which chargers an operator turned off hides is unit tested in
 // charger-index.test.js.

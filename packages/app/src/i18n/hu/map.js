@@ -23,6 +23,8 @@ const map = {
     rememberMapsAppHint: "A fiókmenüben módosíthatod.",
     connectors: "Csatlakozók",
     details: "Részletek",
+    chargingDataSource: "Töltőadatok forrása",
+    nearbyPlacesSource: "Közeli helyek forrása",
     openChargeMapCredit: {
       before: "A töltőadatok forrása:",
       after: "",
@@ -178,6 +180,11 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Üzemeltető: {value}",
+    operatorChargers: {
+      one: "{operator}: {count} töltőállomás",
+      other: "{operator}: {count} töltőállomás",
+    },
+    showOperatorChargers: "{operator} töltőállomásainak megjelenítése",
     access: "Hozzáférés: {value}",
     cost: "Díj: {value}",
     status: "Állapot: {value}",
@@ -204,7 +211,6 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "{stop} eltávolítása a megállók közül",
     routeStopDistance: "{distance} az előző ponttól",
-    removeSavedPlace: "{name} eltávolítása a mentett helyek közül",
     saveFavoriteRoute: "{route} mentése kedvencként",
     removeFavoriteRoute: "{route} eltávolítása a kedvencek közül",
     noFiltersOn: "nincsenek szűrők",

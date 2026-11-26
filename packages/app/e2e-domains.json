@@ -54,6 +54,9 @@
     "filters": {
       "paths": [
         "packages/app/src/components/filter-button/**",
+        "packages/app/src/components/google-map/GoogleMap.*",
+        "packages/app/src/components/google-map/charger-index.js",
+        "packages/app/src/i18n/*/map.js",
         "packages/app/src/components/google-map/saved-state.js",
         "packages/app/src/lib/account-settings.js",
         "packages/app/src/lib/car.js",
@@ -78,7 +81,9 @@
         "packages/app/src/components/place-search/**",
         "packages/app/src/components/google-map/route.js",
         "packages/app/src/components/google-map/route-cache.js",
-        "packages/app/src/components/google-map/route-history.js"
+        "packages/app/src/components/google-map/route-history.js",
+        "packages/app/src/components/google-map/route-url.js",
+        "packages/app/src/i18n/*/map.js"
       ],
       "tests": ["route-planner", "favorite-routes", "navigate", "place-search", "saved-places"]
     },

@@ -10,7 +10,6 @@ import {
   readFavoriteRoutes,
   readRouteHistory,
   readSavedPlaces,
-  removeSavedPlace,
   sameRoute,
   savePlace,
   toggleFavoriteRoute,
@@ -203,24 +202,17 @@ class RoutePlannerElement extends HTMLElement {
       container.hidden = places.length === 0;
       container.replaceChildren(
         ...places.map((saved) => {
-          const item = template.content.firstElementChild.cloneNode(true);
-          const chip = item.querySelector(".saved-place-chip");
-          const iconEl = item.querySelector(`.chip-icon[data-icon="${saved.icon}"]`);
+          const chip = template.content.firstElementChild.cloneNode(true);
+          const iconEl = chip.querySelector(`.chip-icon[data-icon="${saved.icon}"]`);
           if (iconEl) {
             iconEl.hidden = false;
           }
-          item.querySelector(".chip-name").textContent = saved.name;
+          chip.querySelector(".chip-name").textContent = saved.name;
           chip.title = saved.label;
           chip.addEventListener("click", async () => {
             await this.applySavedPlace(target, saved);
           });
-          const remove = item.querySelector(".remove-saved-place");
-          remove.setAttribute("aria-label", message("removeSavedPlace", { name: saved.name }));
-          remove.addEventListener("click", async () => {
-            await removeSavedPlace(saved);
-            await this.showSavedPlaces();
-          });
-          return item;
+          return chip;
         })
       );
     }

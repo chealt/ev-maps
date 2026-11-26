@@ -197,19 +197,16 @@ const placePresets = [
       </div>
     </div>
     <template class="saved-place-chip-template">
-      <span class="saved-place-item">
-        <button type="button" class="saved-place-chip">
-          {placeIcons.map(({ id: iconId, icon }) => (
-            <span class="chip-icon" data-icon={iconId} hidden>
-              <Icon icon={icon} size="sm" />
-            </span>
-          ))}
-          <span class="chip-name"></span>
-        </button>
-        <Button variant="ghost" size="icon-only" class="remove-saved-place">
-          <Icon icon={X} size="sm" />
-        </Button>
-      </span>
+      <!-- Fills the field with the place; the account menu's saved places
+           page renames and removes them. -->
+      <button type="button" class="saved-place-chip">
+        {placeIcons.map(({ id: iconId, icon }) => (
+          <span class="chip-icon" data-icon={iconId} hidden>
+            <Icon icon={icon} size="sm" />
+          </span>
+        ))}
+        <span class="chip-name"></span>
+      </button>
     </template>
     <!-- How far from the route chargers are shown; the labels and the hint
          are in the user's unit once the page runs (DistanceText.js). -->
