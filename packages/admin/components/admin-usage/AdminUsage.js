@@ -1,6 +1,7 @@
 import { formatNumber, message, valueLabel } from "@ev-maps/ui/messages.js";
 import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
 import { dayCount } from "../day-count.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const USAGE_URL = "/api/admin/usage";
 
@@ -52,11 +53,7 @@ class AdminUsageElement extends HTMLElement {
     const summary = this.querySelector(".summary");
     let stats;
     try {
-      const response = await fetch(`${USAGE_URL}?days=${days}`);
-      if (!response.ok) {
-        throw new Error(`${USAGE_URL} failed: ${response.status}`);
-      }
-      stats = await response.json();
+      stats = await fetchJson(`${USAGE_URL}?days=${days}`);
     } catch (error) {
       console.error("Could not load the usage stats:", error);
       summary.textContent = message("adminUsageNotLoaded");
