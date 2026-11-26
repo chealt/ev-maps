@@ -1,0 +1,102 @@
+# Asks an LLM whether a pull request leaves the end-to-end map
+# (packages/app/e2e-domains.json) right: new app files in the domain whose
+# specs test them, shared code in every domain that uses it, no stale paths.
+# The unit tests check what's mechanical (every spec exists, and is in a
+# domain); this is what needs reading the code. Its report is one comment on
+# the pull request, updated on every push; the check fails when the map
+# needs a change. The prompt: .github/e2e-map-check.md.
+name: E2E map check
+
+on:
+  pull_request:
+    paths:
+      - "packages/**"
+      - ".github/e2e-map-check.md"
+      - ".github/workflows/e2e-map-check.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: e2e-map-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check the E2E map
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+
+      - name: Install pi
+        run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+
+      # What the pull request changed, and what CI selected for it.
+      - name: Describe the pull request
+        shell: bash
+        working-directory: packages/app
+        env:
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          {
+            cat ../../.github/e2e-map-check.md
+            printf '\n## Changed files\n\n```\n'
+            git diff --name-status "$BASE...HEAD"
+            printf '```\n\n## Selected\n\n'
+            bun scripts/select-e2e.js "$BASE"
+          } > "$RUNNER_TEMP/prompt.md"
+
+      # The model through Radius, with the organization's key; only tools
+      # that read (no bash: the diff is in the prompt), and --no-approve, so
+      # nothing of the repository's own pi setup (.pi) runs.
+      - name: Check the map with pi
+        shell: bash
+        env:
+          RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}
+        run: >-
+          pi --print --no-session --no-approve
+          --provider radius --model "claude-opus-5-5"
+          --tools read,grep,find,ls
+          "$(cat "$RUNNER_TEMP/prompt.md")"
+          | tee "$RUNNER_TEMP/report.md"
+
+      # One comment, found by its marker and updated, so pushes don't pile
+      # comments up.
+      - name: Comment the report
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          MARKER: "<!-- e2e-map-check -->"
+        run: |
+          {
+            printf '%s\n### E2E map check\n\n' "$MARKER"
+            cat "$RUNNER_TEMP/report.md"
+            printf '\n\n<sub>By pi (radius/claude-opus-5-5) with .github/e2e-map-check.md, for %s.</sub>\n' "${{ github.event.pull_request.head.sha }}"
+          } > "$RUNNER_TEMP/comment.md"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$MARKER\")) | .id" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@"$RUNNER_TEMP/comment.md" >/dev/null
+          else
+            gh pr comment "$PR" --body-file "$RUNNER_TEMP/comment.md"
+          fi
+
+      - name: Fail when the map needs a change
+        shell: bash
+        run: |
+          verdict=$(grep -E '^VERDICT: ' "$RUNNER_TEMP/report.md" | tail -n 1)
+          echo "$verdict"
+          [ "$verdict" = "VERDICT: OK" ]
