@@ -19,6 +19,10 @@ export default defineConfig({
       caret: "hide",
     },
   },
+  // Each test on its own, not each file: the shards (and their workers) split
+  // the tests evenly, rather than one getting the big files. No test depends
+  // on another's state.
+  fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a
