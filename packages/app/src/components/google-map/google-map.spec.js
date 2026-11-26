@@ -69,6 +69,10 @@ test(
     await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();
     await expect(details.getByText("Status: Operational")).toBeVisible();
     await expect(details.getByText("Charging points: 8")).toBeVisible();
+    // Its actions on one line; no adding a stop without a route.
+    await expect(details.getByRole("button", { name: "Navigate" })).toBeVisible();
+    await expect(details.getByRole("button", { name: "Open map" })).toBeVisible();
+    await expect(details.getByRole("button", { name: "Add stop" })).toBeHidden();
     await expect(details.getByRole("link", { name: "Open Charge Map" })).toBeVisible();
     await captureUi(page, testInfo, "the charger's details");
     await details.getByRole("button", { name: "Close" }).click();

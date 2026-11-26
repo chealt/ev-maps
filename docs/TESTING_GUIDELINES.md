@@ -18,6 +18,8 @@ they give you.
 
 **❌ NEVER wrap queries in one-line helper functions. Write them inline.**
 
+**❌ NEVER use loops in specs. Write each step and assertion out.**
+
 **❌ NEVER check layout or visual appearance in end-to-end tests.**
 
 **❌ NEVER write a Playwright spec for what a `@ui` spec's UI evidence already shows.**
@@ -115,6 +117,30 @@ What's fine:
 - Constants for test data, such as a charger name used in several assertions
 - Helpers that aren't queries, such as faking an external service or reading
   a fake's recorded state
+
+### No Loops
+
+Don't loop in a spec: no `for`, `forEach` or `map` over test data to run
+steps or assertions. Write each one out, even if they repeat.
+
+```javascript
+// ❌ Bad
+for (const [field, text] of [
+  ["From", "Buda"],
+  ["To", "Vie"],
+]) {
+  await planner.getByRole("combobox", { name: field }).fill(text);
+}
+
+// ✅ Good
+await planner.getByRole("combobox", { name: "From" }).fill("Buda");
+await planner.getByRole("combobox", { name: "To" }).fill("Vie");
+```
+
+A spec reads as what the user does, step by step. A loop makes you work out
+the steps from a table. When it fails, its line points at the loop, not the
+step that broke. To check a list, assert all of it in one go, e.g.
+`await expect(items).toHaveText(["Café", "Toilets"])`.
 
 ### If an Element Can't Be Found
 

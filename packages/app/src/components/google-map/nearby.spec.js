@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -92,22 +92,27 @@ test("asks to sign in for the nearby places when signed out", async ({ page }) =
   ).toBeVisible();
 });
 
-test("lists the places next to a charger, crediting OpenStreetMap", async ({ page }) => {
-  await fakeAuthApi(page);
-  await page.goto("/");
-  const map = page.getByRole("region", { name: "EV charging station map" });
+test(
+  "lists the places next to a charger, crediting OpenStreetMap",
+  { tag: "@ui" },
+  async ({ page }, testInfo) => {
+    await fakeAuthApi(page);
+    await page.goto("/");
+    const map = page.getByRole("region", { name: "EV charging station map" });
 
-  await map.getByRole("button", { name: "Service area" }).click();
+    await map.getByRole("button", { name: "Service area" }).click();
 
-  const details = page.getByRole("complementary", { name: "Service area" });
-  const nearby = details.locator(".nearby");
-  await expect(nearby.getByRole("heading", { name: "Nearby" })).toBeVisible();
-  await expect(nearby.getByRole("listitem")).toHaveText(["Café", "Toilets", "Restaurant"]);
-  await expect(details.getByText("Nearby places ©")).toBeVisible();
+    const details = page.getByRole("complementary", { name: "Service area" });
+    const nearby = details.locator(".nearby");
+    await expect(nearby.getByRole("heading", { name: "Nearby" })).toBeVisible();
+    await expect(nearby.getByRole("listitem")).toHaveText(["Café", "Toilets", "Restaurant"]);
+    await expect(details.getByText("Nearby places ©")).toBeVisible();
+    await captureUi(page, testInfo, "nearby places");
 
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await map.getByRole("button", { name: "Lonely charger" }).click();
-  const lonely = page.getByRole("complementary", { name: "Lonely charger" });
-  await expect(lonely.locator(".nearby")).toBeHidden();
-  await expect(lonely.getByText("Nearby places ©")).toBeHidden();
-});
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await map.getByRole("button", { name: "Lonely charger" }).click();
+    const lonely = page.getByRole("complementary", { name: "Lonely charger" });
+    await expect(lonely.locator(".nearby")).toBeHidden();
+    await expect(lonely.getByText("Nearby places ©")).toBeHidden();
+  }
+);

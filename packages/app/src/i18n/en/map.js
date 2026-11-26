@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Route from or to here",
+    routeFromHere: "Route from here",
+    routeToHere: "Route to here",
     mapLabel: "EV charging station map",
     apiKeyMissing: "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY.",
     locate: "Locate Me",
@@ -109,6 +112,17 @@ const map = {
       "By the per-kWh price, compared with the chargers here. Chargers without one are left out while a level is on.",
     shortcuts: {
       title: "Keyboard shortcuts",
+      groups: {
+        map: "Map",
+        route: "Route",
+        filters: "Filters",
+        account: "Account",
+      },
+      search: "Search for a place",
+      accountMenu: "Open or close the account menu",
+      favorites: "Show your favorites",
+      suggestCharger: "Suggest a charger",
+      savedPlaces: "Go to your saved places",
       help: "Show this help",
       closeDialogs: "Close dialogs and the charger details",
       filters: "Show or hide the filters",
@@ -119,7 +133,6 @@ const map = {
     },
   },
   messages: {
-    openInApp: "Open in {app}",
     power: "{power} kW",
 
     chargersFound: {

@@ -348,6 +348,24 @@ class GoogleMapElement extends HTMLElement {
     onSavedPlacesOnMapChange(() => this.showSavedPlaces());
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
+    const mapMenu = this.querySelector(".map-menu");
+    mapMenu?.addEventListener("click", (event) => {
+      const item = event.target.closest(".map-menu-item");
+      if (item) {
+        this.pickMapMenuItem(item);
+      }
+    });
+    // Up and down move between its items, as in any menu.
+    mapMenu?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") {
+        return;
+      }
+      event.preventDefault();
+      const items = [...mapMenu.querySelectorAll(".map-menu-item")];
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      const index = items.indexOf(document.activeElement);
+      items[(index + step + items.length) % items.length].focus();
+    });
     this.addEventListener("place-chosen", (event) => this.showPlace(event.detail));
     this.addEventListener("place-navigate", (event) => this.routePlanner?.planTo(event.detail));
     this.addEventListener("route-requested", (event) =>
@@ -435,12 +453,17 @@ class GoogleMapElement extends HTMLElement {
       ?.addEventListener("click", () => this.closeChargerDetails());
     // Escape closes the charger's details, unless a dialog (the filters, the
     // charger list) is open: those close themselves with it. The letters are
-    // the map's shortcuts (see the ? dialog): f filters, c clears them, l
-    // locates, r plans a route, x clears it. Not while typing or in a dialog: those keys
-    // belong to it.
+    // the map's shortcuts (see the ? dialog): s searches, l locates; r plans
+    // a route, x clears it; f the filters, c clears them; a the account menu,
+    // h favorites, n suggests a charger, p the saved places (signed in: the
+    // menu's items say no otherwise). Not while typing or in a dialog: those
+    // keys belong to it.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
-        if (!this.detailsPanel?.hidden && !this.querySelector("dialog[open]")) {
+        if (
+          !this.detailsPanel?.hidden &&
+          !this.querySelector("dialog[open], .map-menu:popover-open")
+        ) {
           this.closeChargerDetails();
         }
         return;
@@ -462,6 +485,15 @@ class GoogleMapElement extends HTMLElement {
         r: () => this.routePlanner?.open(),
         s: () => this.querySelector("ev-place-search")?.open(),
         x: () => this.route && this.clearRoute(),
+        a: () => document.querySelector("ev-user-menu .account-menu")?.togglePopover(),
+        h: () => document.querySelector("ev-user-menu .favorites-button")?.click(),
+        n: () => document.querySelector("ev-user-menu .suggest-charger-button")?.click(),
+        p: () => {
+          const link = document.querySelector("ev-user-menu .my-saved-places-link");
+          if (link && !link.hidden) {
+            link.click();
+          }
+        },
       };
       shortcuts[event.key.toLowerCase()]?.();
     });
@@ -611,6 +643,42 @@ class GoogleMapElement extends HTMLElement {
       rendered = true;
       this.loadEvChargers();
     });
+    // A right-click, or a long press on touch (Google Maps fires
+    // "contextmenu" for both): a menu for a route from or to there.
+    this.map.addListener("contextmenu", (event) => this.showMapMenu(event));
+  }
+
+  // The menu where the pointer was, kept inside the window; its first item
+  // focused, so a keyboard can pick one.
+  showMapMenu({ latLng, domEvent }) {
+    const menu = this.querySelector(".map-menu");
+    if (!menu || !latLng) {
+      return;
+    }
+    domEvent?.preventDefault?.();
+    const point = domEvent?.changedTouches?.[0] ?? domEvent;
+    const location = latLng.toJSON();
+    menu.place = {
+      label: `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`,
+      location,
+    };
+    menu.showPopover();
+    const { width, height } = menu.getBoundingClientRect();
+    const x = point?.clientX ?? window.innerWidth / 2;
+    const y = point?.clientY ?? window.innerHeight / 2;
+    menu.style.left = `${Math.max(0, Math.min(x, window.innerWidth - width))}px`;
+    menu.style.top = `${Math.max(0, Math.min(y, window.innerHeight - height))}px`;
+    menu.querySelector(".map-menu-item")?.focus();
+  }
+
+  pickMapMenuItem(item) {
+    const menu = this.querySelector(".map-menu");
+    menu.hidePopover();
+    if (item.dataset.end === "from") {
+      this.routePlanner?.planFrom(menu.place);
+    } else {
+      this.routePlanner?.planTo(menu.place);
+    }
   }
 
   // Google Maps only accepts a color scheme when a map is created, so a theme
@@ -1356,6 +1424,7 @@ class GoogleMapElement extends HTMLElement {
     };
     this.loaded = { chargers: plan.chargers, truncated: plan.full };
     this.setRouteShown(true);
+    this.showRouteStopState(this.activeCharger);
     this.routePlanner?.setRoute(
       { origin: ends.origin, destination: ends.destination, corridorKm },
       plan.stopDistances
@@ -2118,10 +2187,9 @@ class GoogleMapElement extends HTMLElement {
     }
     this.fillList(panel.querySelector(".details"), details);
     const nearby = charger.amenities ?? [];
-    this.fillList(
-      panel.querySelector(".nearby-places"),
-      nearby.map((amenity) => valueLabel("amenities", amenity))
-    );
+    for (const place of panel.querySelectorAll(".nearby-places li")) {
+      place.hidden = !nearby.includes(place.dataset.amenity);
+    }
     panel.querySelector(".nearby").hidden = nearby.length === 0;
     // A charger merged from several sources credits each of them, and
     // OpenStreetMap for the places next to it.
@@ -2138,12 +2206,14 @@ class GoogleMapElement extends HTMLElement {
     this.showAvailability(charger);
   }
 
-  // Whether the open charger is one of the route's stops.
+  // Whether the open charger is one of the route's stops; without a route,
+  // there's no adding a stop.
   showRouteStopState(charger) {
     const button = this.detailsPanel?.querySelector(".add-to-route");
     if (!button) {
       return;
     }
+    button.hidden = !this.route;
     const added = Boolean(
       charger &&
       this.routePlanner?.hasStop({
@@ -2275,8 +2345,6 @@ class GoogleMapElement extends HTMLElement {
       return;
     }
     const apps = panel.querySelector(".maps-apps");
-    // "Open in maps", as the page was built, for when no app is remembered.
-    this.openInMapsLabel = button.querySelector(".label").textContent.trim();
     button.addEventListener("click", () => {
       const app = mapsApp();
       if (app && this.activeCharger) {
@@ -2303,19 +2371,15 @@ class GoogleMapElement extends HTMLElement {
     onMapsAppChange(() => this.activeCharger && this.showOpenInMaps(this.activeCharger));
   }
 
-  // The button for the remembered app ("Open in Google Maps"), or for the
-  // list; the apps' links go to this charger.
+  // The button opens the remembered app, or the list; the apps' links go to
+  // this charger.
   showOpenInMaps(charger) {
     const panel = this.detailsPanel;
     const button = panel?.querySelector(".open-in-maps");
     if (!button) {
       return;
     }
-    const app = mapsApp();
-    button.querySelector(".label").textContent = app
-      ? message("openInApp", { app: valueLabel("mapsApps", app) })
-      : this.openInMapsLabel;
-    if (app) {
+    if (mapsApp()) {
       button.removeAttribute("aria-expanded");
     }
     for (const link of panel.querySelectorAll(".maps-apps .app")) {
