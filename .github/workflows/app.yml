@@ -550,6 +550,41 @@ jobs:
             -f state=success -f context="Visual review" -f target_url="$REPORT_URL" \
             -f description="$CHANGES visual changes approved by $approver"
 
+  # GitHub assigns the approval job's URL after Test finishes. Update the
+  # comment alongside the waiting job, not inside it (which would be too late).
+  link-visual-approval:
+    name: Link visual approval
+    needs: test
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.test.outputs.visual-changes != '' && needs.test.outputs.visual-changes != '0' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Link directly to the Visual approval job
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          repo="repos/$GITHUB_REPOSITORY"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          for attempt in {1..15}; do
+            job_url=$(gh api --paginate "$repo/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+              --jq '.jobs[] | select(.name == "Visual approval") | .html_url')
+            if [ -n "$job_url" ]; then break; fi
+            sleep 2
+          done
+          test -n "$job_url"
+          gh api --paginate "$repo/issues/$PR_NUMBER/comments" |
+            jq -c --arg run "$run_url" --arg job "$job_url" '
+              .[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- visual-review -->")))
+              | select(.body | contains("[Review and approve the visual changes →](" + $run + ")"))
+              | {id, body: (.body | split("[Review and approve the visual changes →](" + $run + ")") | join("[Review and approve the visual changes →](" + $job + ")"))}' |
+            while IFS= read -r comment; do
+              id=$(jq -r '.id' <<< "$comment")
+              jq '{body}' <<< "$comment" | gh api --method PATCH "$repo/issues/comments/$id" --input - >/dev/null
+            done
+
   # Each production deploy gets a GitHub release, tagged with the date and
   # time it went out, with notes listing the pull requests merged since the
   # previous release (scripts/release-notes.js).
