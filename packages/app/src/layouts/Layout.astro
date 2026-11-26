@@ -1,4 +1,9 @@
 ---
+// Inter, served with the site (no third-party request); each page loads
+// only the subsets its text needs (unicode-range): Latin and Latin Extended,
+// for Polish and Hungarian.
+import "@fontsource-variable/inter/wght.css";
+import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import "./global.css";
 import { runtimeTranslations, translations } from "../i18n/index.js";
 import { languages } from "../lib/pages.js";
@@ -44,6 +49,9 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
       content={noindex ? "noindex, nofollow, noai, noimageai" : "noai, noimageai"}
     />
     <meta name="theme-color" content="#059669" />
+    <!-- Every page's text is mostly Latin: fetched with the HTML, so it
+         doesn't show in another font first. -->
+    <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href={`/${lang}/manifest.webmanifest`} />
