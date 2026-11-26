@@ -1,6 +1,7 @@
 import { renderBarChart } from "@ev-maps/ui/bar-chart.js";
 import { dayCount } from "../day-count.js";
 import { formatNumber, message } from "@ev-maps/ui/messages.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const DASHBOARD_URL = "/api/admin/dashboard";
 
@@ -12,11 +13,7 @@ class AdminDashboardElement extends HTMLElement {
   async load() {
     let stats;
     try {
-      const response = await fetch(DASHBOARD_URL);
-      if (!response.ok) {
-        throw new Error(`${DASHBOARD_URL} failed: ${response.status}`);
-      }
-      stats = await response.json();
+      stats = await fetchJson(DASHBOARD_URL);
     } catch (error) {
       console.error("Could not load the dashboard:", error);
       this.querySelector(".not-loaded").hidden = false;

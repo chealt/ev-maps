@@ -50,6 +50,9 @@ jobs:
               - "packages/app/**"
               - "packages/tiles/**"
               - "packages/ui/**"
+              # The shared test fixtures (captureUi, the fakes): a change
+              # runs every spec (e2e-domains.json's `everything`).
+              - "packages/e2e/**"
               - "packages/worker/**"
               - "packages/dev-config/**"
               - "packages/biome-plugin-css-units/**"
@@ -94,6 +97,9 @@ jobs:
           - name: Check UI components formatting
             package: ui
             script: format:check
+          - name: Unit test the UI components
+            package: ui
+            script: test
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
