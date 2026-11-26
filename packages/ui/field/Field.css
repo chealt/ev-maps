@@ -1,0 +1,104 @@
+.field {
+  --field-height: 3rem;
+  --field-padding-inline: var(--spacing-md);
+  --field-chevron-size: var(--icon-size-sm);
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+
+  .field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+  }
+
+  .field-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+  }
+
+  .field-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .field-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .field-control-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* A select's chevron, in the text's muted color. */
+  .field-control-wrap:has(> select.field-control)::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: var(--field-padding-inline);
+    width: var(--field-chevron-size);
+    height: var(--field-chevron-size);
+    background: var(--color-text-muted);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    pointer-events: none;
+  }
+}
+
+/* Compact: the admin area's filter bars. */
+.field.small {
+  --field-height: 2.375rem;
+  --field-padding-inline: var(--spacing-sm);
+
+  gap: var(--spacing-2xs);
+
+  .field-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+}
+
+/* The control: also usable without a .field around it, e.g. a second input
+   that a field's label doesn't name (it has its own aria-label). */
+.field-control {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--field-height, 3rem);
+  padding: 0 var(--field-padding-inline, var(--spacing-md));
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  line-height: var(--line-height-base);
+
+  &:focus-visible {
+    outline: var(--border-width-thick) solid var(--color-primary);
+    outline-offset: var(--border-width);
+  }
+
+  &:is(select) {
+    appearance: none;
+    padding-inline-end: calc(
+      2 * var(--field-padding-inline, var(--spacing-md)) + var(--field-chevron-size, 1rem)
+    );
+    cursor: pointer;
+  }
+
+  &:is(textarea) {
+    height: auto;
+    min-height: calc(2 * var(--field-height, 3rem));
+    padding-block: var(--spacing-sm);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}

@@ -2,7 +2,6 @@
   --dropzone-border-dash: 2px;
   --photo-thumb-size: 5rem;
   /* Inputs and selects alike, so labels on one line are level. */
-  --field-height: 3rem;
   --field-min-width: 10rem;
 
   .body {
@@ -25,11 +24,7 @@
   }
 
   .field-group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-2xs);
     flex: 1;
-    min-width: 0;
   }
 
   /* Side by side where they fit, else one under the other. */
@@ -46,30 +41,6 @@
   .label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
-  }
-
-  .field {
-    width: 100%;
-    height: var(--field-height);
-    padding: var(--overlay-gap) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-md);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
-
-    &:focus-visible {
-      outline: var(--border-width-thick) solid var(--color-primary);
-      outline-offset: var(--border-width);
-    }
-  }
-
-  .charger-operator-custom {
-    margin-top: var(--spacing-2xs);
-
-    &[hidden] {
-      display: none;
-    }
   }
 
   .pin-row {

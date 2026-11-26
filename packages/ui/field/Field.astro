@@ -1,0 +1,47 @@
+---
+// A form field: its label, the control, and a hint. The control is the
+// slot, with the class `field-control` (an input, a select, a textarea),
+// so every field has one height, border and focus ring; a select gets a
+// chevron.
+//
+// The label wraps the control; with `for` (the control's ID) it doesn't,
+// so the `actions` slot can hold buttons next to it. `after` is under the
+// control, e.g. suggestions.
+import "./Field.css";
+
+interface Props {
+  label: string;
+  /** The control's ID: the label points at it instead of wrapping it. */
+  for?: string;
+  hint?: string;
+  /** Small: the admin area's filter bars. */
+  size?: "medium" | "small";
+  class?: string;
+}
+
+const { label, for: controlId, hint, size = "medium", class: className } = Astro.props;
+const Root = controlId ? "div" : "label";
+const hasActions = Astro.slots.has("actions");
+---
+
+<Root class:list={["field", size, className]}>
+  {controlId ? (
+    <div class="field-label-row">
+      <label class="field-label" for={controlId}>
+        {label}
+      </label>
+      {hasActions && (
+        <div class="field-actions">
+          <slot name="actions" />
+        </div>
+      )}
+    </div>
+  ) : (
+    <span class="field-label">{label}</span>
+  )}
+  <span class="field-control-wrap">
+    <slot />
+  </span>
+  {hint && <span class="field-hint">{hint}</span>}
+  <slot name="after" />
+</Root>

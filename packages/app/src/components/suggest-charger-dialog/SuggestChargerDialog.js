@@ -204,7 +204,9 @@ class SuggestChargerDialogElement extends HTMLElement {
     if (this.pinnedLocation) {
       return {
         address:
-          resolved?.address ?? this.addressInput?.querySelector(".field")?.value.trim() ?? "",
+          resolved?.address ??
+          this.addressInput?.querySelector(".field-control")?.value.trim() ??
+          "",
         location: this.pinnedLocation,
       };
     }
@@ -225,7 +227,7 @@ class SuggestChargerDialogElement extends HTMLElement {
     if (placeObj?.location) {
       return { address: placeObj.label || "", location: placeObj.location };
     }
-    const address = this.addressInput?.querySelector(".field")?.value.trim() || "";
+    const address = this.addressInput?.querySelector(".field-control")?.value.trim() || "";
     if (this.centerLocation) {
       return { address, location: this.centerLocation };
     }
