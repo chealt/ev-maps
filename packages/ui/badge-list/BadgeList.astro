@@ -1,0 +1,20 @@
+---
+// Badges in a row that wraps, e.g. a charger's facts or the places near it.
+// A list (`ul`) of `li`s, each holding a Badge; or `as="span"` where only
+// phrasing content may go (inside a button), the Badges directly in it. An
+// `li` can be hidden for a script to show. A script that makes the list
+// itself gives it the class "badge-list" and imports
+// "@ev-maps/ui/BadgeList.css".
+import type { HTMLAttributes } from "astro/types";
+import "./BadgeList.css";
+
+interface Props extends HTMLAttributes<"ul"> {
+  as?: "ul" | "span";
+}
+
+const { as: Element = "ul", class: className, ...attrs } = Astro.props;
+---
+
+<Element class:list={["badge-list", className]} {...attrs}>
+  <slot />
+</Element>

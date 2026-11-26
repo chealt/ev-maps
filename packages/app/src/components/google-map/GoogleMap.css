@@ -918,13 +918,17 @@ ev-google-map {
       padding: var(--spacing-sm) var(--spacing-xs) var(--spacing-xs);
       border-radius: var(--border-radius-md);
       border: var(--border-width) solid var(--color-border);
-      border-top: var(--border-width-marker) solid var(--color-primary);
       background: var(--color-surface-muted);
       font-weight: var(--font-weight-medium);
       text-align: center;
       transition:
         background-color var(--transition-fast),
         border-color var(--transition-fast);
+
+      /* Only a live status gets a colored edge: green would look free. */
+      &:is([data-state="free"], [data-state="occupied"], [data-state="out-of-service"]) {
+        border-top-width: var(--border-width-marker);
+      }
 
       &[data-state="free"] {
         border-top-color: var(--color-success, var(--color-primary));
@@ -1158,13 +1162,6 @@ ev-google-map {
 
   .facts {
     grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-
-    &:empty {
-      display: none;
-    }
   }
 
   .address {
@@ -1356,5 +1353,43 @@ ev-google-map.picking :is(.map-controls, .map-status) {
   .pick-actions {
     display: flex;
     gap: var(--spacing-sm);
+  }
+}
+
+/* The right-click (or long press) menu: a route from or to the point, where
+   the pointer was (GoogleMap.js places it). */
+.map-menu:popover-open {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xs);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.map-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    background: var(--color-surface-hover);
   }
 }

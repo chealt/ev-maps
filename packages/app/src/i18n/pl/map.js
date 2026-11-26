@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Trasa stąd lub tutaj",
+    routeFromHere: "Trasa stąd",
+    routeToHere: "Trasa tutaj",
     mapLabel: "Mapa stacji ładowania",
     apiKeyMissing: "Brak klucza API Map Google. Ustaw VITE_GOOGLE_MAPS_API_KEY.",
     locate: "Zlokalizuj mnie",
@@ -109,6 +112,17 @@ const map = {
       "Według ceny za kWh, w porównaniu ze stacjami tutaj. Stacje bez niej są pomijane, gdy poziom jest włączony.",
     shortcuts: {
       title: "Skróty klawiszowe",
+      groups: {
+        map: "Mapa",
+        route: "Trasa",
+        filters: "Filtry",
+        account: "Konto",
+      },
+      search: "Szukaj miejsca",
+      accountMenu: "Otwórz lub zamknij menu konta",
+      favorites: "Pokaż ulubione",
+      suggestCharger: "Zaproponuj stację",
+      savedPlaces: "Przejdź do zapisanych miejsc",
       help: "Pokaż tę pomoc",
       closeDialogs: "Zamyka okna i szczegóły stacji",
       filters: "Pokaż lub ukryj filtry",

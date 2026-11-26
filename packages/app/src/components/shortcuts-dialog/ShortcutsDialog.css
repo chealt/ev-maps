@@ -1,10 +1,23 @@
-/* The keyboard shortcuts dialog: a plain list of keys and what they do. */
+/* The keyboard shortcuts dialog: a card per group, each a list of keys and
+   what they do. */
 
 /* The keyboard icon and the title, apart. */
 .shortcuts-dialog .title {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+/* The groups side by side where they fit, one under another on a phone. */
+.shortcuts-dialog .shortcut-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--shortcut-group-min-width, 16rem), 1fr));
+  gap: var(--spacing-md);
+}
+
+.shortcuts-dialog .group-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Two columns, the keys' as wide as the widest key (Esc), so every

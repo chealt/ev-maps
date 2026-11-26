@@ -82,6 +82,7 @@ const { page } = translations(lang);
       type="button"
       class="menu-button"
       popovertarget="account-menu"
+      aria-keyshortcuts="a"
       aria-haspopup="dialog"
       aria-expanded="false"
       aria-busy="true"
@@ -156,6 +157,7 @@ const { page } = translations(lang);
       <Button
         variant="ghost"
         class="favorites-button"
+        aria-keyshortcuts="h"
         aria-disabled="true"
         aria-describedby="favorites-sign-in-hint"
       >
@@ -168,6 +170,7 @@ const { page } = translations(lang);
       <Button
         variant="ghost"
         class="suggest-charger-button"
+        aria-keyshortcuts="n"
         aria-disabled="true"
         aria-describedby="suggest-charger-sign-in-hint"
       >
@@ -181,7 +184,7 @@ const { page } = translations(lang);
         <Icon icon={ClipboardList} size="sm" />
         {page.mySuggestedChargers}
       </a>
-      <a class="my-saved-places-link" href={`/${lang}/places/`} hidden>
+      <a class="my-saved-places-link" href={`/${lang}/places/`} aria-keyshortcuts="p" hidden>
         <Icon icon={Bookmark} size="sm" />
         {page.mySavedPlaces}
       </a>
