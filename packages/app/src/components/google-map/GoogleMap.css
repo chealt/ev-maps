@@ -1434,9 +1434,19 @@ ev-google-map {
       border-radius: var(--border-radius-lg);
     }
 
+    /* Each control takes an equal share of the row, and a capsule fills its
+       share: the button takes the room, its clear half stays compact (#326). */
     > * {
       display: flex;
       flex: 1;
+
+      > .split {
+        flex: 1;
+      }
+    }
+
+    :is(.clear-filters, .clear-route) {
+      flex: none;
     }
   }
 
