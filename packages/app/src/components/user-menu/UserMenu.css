@@ -421,7 +421,8 @@
     }
 
     .admin-link,
-    .my-suggestions-link {
+    .my-suggestions-link,
+    .my-saved-places-link {
       display: flex;
       align-items: center;
       gap: var(--spacing-sm);

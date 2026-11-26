@@ -52,6 +52,11 @@ const SECTIONS = {
   distanceUnit: {
     unit: (value) => value === null || DISTANCE_UNITS.includes(value),
   },
+  // Whether the saved places show on the map, from the account menu; null
+  // is the default, shown (the app's src/lib/saved-places-on-map.js).
+  savedPlacesOnMap: {
+    shown: (value) => value === null || typeof value === "boolean",
+  },
   // The user's car: the connector groups it charges with, and whether
   // chargers are filtered by them automatically (the app's src/lib/car.js).
   car: {

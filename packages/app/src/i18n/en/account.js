@@ -75,6 +75,13 @@ const account = {
     suggestionsPending: "Pending",
     suggestionsApproved: "Approved",
     suggestionsRejected: "Rejected",
+    mySavedPlaces: "My saved places",
+    mySavedPlacesHint:
+      "The places you saved in the route planner. They show on the map with their icon, unless you turn that off in the account menu.",
+    savedPlacesOnMap: "Show saved places",
+    savedPlaceName: "Name",
+    saveSavedPlaceChanges: "Save",
+    deleteSavedPlace: "Remove",
   },
   messages: {
     signInFailed: "Sign-in failed. Please try again.",
@@ -103,6 +110,14 @@ const account = {
     suggestionPending: "Pending",
     suggestionApproved: "Approved",
     suggestionRejected: "Rejected",
+    signInForMySavedPlaces: "Sign in to see your saved places.",
+    noMySavedPlaces: "You haven't saved any places yet. Save one in the route planner.",
+    mySavedPlaceCount: {
+      one: "{count} saved place",
+      other: "{count} saved places",
+    },
+    savedPlaceChangesSaved: "{name} saved",
+    savedPlaceRemoved: "{name} removed",
   },
   values: {
     mapsApps: {

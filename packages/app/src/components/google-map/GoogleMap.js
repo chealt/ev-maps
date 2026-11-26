@@ -14,7 +14,9 @@ import { mapsApp, mapsAppUrl, onMapsAppChange, setMapsApp } from "../../lib/maps
 import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
-import { forgetRouteHistory, recordRoute } from "./route-history.js";
+import { forgetRouteHistory, readSavedPlaces, recordRoute } from "./route-history.js";
+import { SavedPlacesLayer } from "./saved-places-layer.js";
+import { onSavedPlacesOnMapChange, savedPlacesOnMap } from "../../lib/saved-places-on-map.js";
 import { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
 import { routeFromUrl } from "./route-url.js";
 import { planState, samePlan } from "./route-cache.js";
@@ -340,6 +342,10 @@ class GoogleMapElement extends HTMLElement {
     document.addEventListener("location-error", (event) =>
       this.setStatus(event.detail?.message || message("locationFailed"), "error")
     );
+    document.addEventListener("saved-places-change", ({ detail }) =>
+      this.showSavedPlaces(detail ?? [])
+    );
+    onSavedPlacesOnMapChange(() => this.showSavedPlaces());
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
     this.addEventListener("place-chosen", (event) => this.showPlace(event.detail));
@@ -404,6 +410,7 @@ class GoogleMapElement extends HTMLElement {
       this.showPinAvailability();
       this.showFavoritesSignedIn(signedIn);
       this.showFilterSyncSignedIn(signedIn);
+      this.showSavedPlaces();
       if (signedIn) {
         this.syncAccountFilters();
         this.restoreRoute();
@@ -565,6 +572,15 @@ class GoogleMapElement extends HTMLElement {
       this.map.fitBounds(countryBounds, 0);
     }
     this.resolveMapReady();
+    this.savedPlacesLayer = new SavedPlacesLayer({
+      maps,
+      pin: (icon) => {
+        const pin = this.cloneTemplate(".saved-place-marker-template");
+        pin.querySelector(`[data-icon="${icon}"]`)?.removeAttribute("hidden");
+        return pin;
+      },
+    });
+    this.showSavedPlaces();
 
     // A saved view is where the user left the map, so don't move it.
     if (!savedView) {
@@ -613,6 +629,18 @@ class GoogleMapElement extends HTMLElement {
     for (const marker of this.markersById.values()) {
       marker.map = this.map;
     }
+    this.savedPlacesLayer?.moveTo(this.map);
+  }
+
+  // The saved places' pins: signed in, unless turned off in the account
+  // menu. `places`: as just changed, else the account's.
+  async showSavedPlaces(places) {
+    if (!this.savedPlacesLayer) {
+      return;
+    }
+    const shown = isSignedIn() && savedPlacesOnMap();
+    const list = shown ? (places ?? (await readSavedPlaces())) : [];
+    await this.savedPlacesLayer.show(this.map, list);
   }
 
   async handleLocationFound(event) {

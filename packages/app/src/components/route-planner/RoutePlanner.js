@@ -33,6 +33,20 @@ const GEOLOCATION_TIMEOUT_MS = 10000;
 // GeolocationPositionError codes.
 const LOCATION_ERRORS = { 1: "locationDenied", 2: "locationUnavailable", 3: "locationTimeout" };
 
+// A Google place's { location }, fetched if it isn't known yet; none if
+// Google can't say.
+const placeLocation = async (place) => {
+  try {
+    if (!place.location) {
+      await place.fetchFields({ fields: ["location"] });
+    }
+    const location = place.location?.toJSON?.() ?? place.location;
+    return Number.isFinite(location?.lat) ? { location } : {};
+  } catch {
+    return {};
+  }
+};
+
 class RoutePlannerElement extends HTMLElement {
   stops = [];
 
@@ -172,8 +186,9 @@ class RoutePlannerElement extends HTMLElement {
     const icon =
       this.querySelector('.icon-option[aria-pressed="true"]')?.dataset.iconValue ?? "home";
     const { label, place, location } = input.place;
+    // A Google place's location too, for its pin on the map.
     const saved = place?.id
-      ? { name, icon, label, placeId: place.id }
+      ? { name, icon, label, placeId: place.id, ...(await placeLocation(place)) }
       : { name, icon, label, location };
     this.closeSavePlacePanel();
     await savePlace(saved);
