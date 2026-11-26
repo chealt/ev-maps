@@ -387,16 +387,22 @@ jobs:
           SITE_URL: https://ev.chealt.com
         run: bun scripts/publish-test-report.js
 
-      # The "Visual review" status (scripts/visual-review.js): the @ui
-      # moments that differ from main's (captureUi's annotations), waiting
-      # for the Visual approval job while any did.
+      # The "Visual review" status and comment (scripts/visual-review.js):
+      # the @ui moments that differ from main's (captureUi's annotations),
+      # main's and the pull request's screenshots side by side with a link to
+      # the test, and the status waiting for the Visual approval job while
+      # any did.
       - name: Review the visual changes
         id: visual
         if: ${{ needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           REPORT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
           SITE_URL: https://ev.chealt.com
         run: bun scripts/visual-review.js
 
