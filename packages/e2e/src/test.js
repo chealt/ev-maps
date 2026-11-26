@@ -15,6 +15,7 @@
 // feels like. A test captures the moments that show it with
 // `await captureUi(page, testInfo, "the dialog open")`, e.g. before closing
 // what it opened; one that captures none gets the page as it left it.
+import { existsSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test as base } from "@playwright/test";
 import { THRESHOLDS, measureWebVitals } from "./web-vitals.js";
@@ -52,6 +53,37 @@ const summaryOf = ({ url, passes, violations, incomplete }) => {
   };
 };
 
+// The screenshot's name for the visual comparison: the test's titles and the
+// caption, e.g. "shows-charger-details-when-a-marker-is-clicked--the-charger-s-details.png".
+const slug = (text) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 120);
+
+// Visual regression (#309, docs/CI.md): with VISUAL_COMPARE, each moment is
+// also matched against main's screenshot of it with Playwright's
+// toHaveScreenshot (the baselines in packages/app/visual-baseline/). A
+// difference doesn't fail the test: it's a "visual-change" annotation, with
+// Playwright's expected, actual and diff images attached to the test, for a
+// person to approve. On main, --update-snapshots=all makes them the baselines.
+const compareWithMain = async (page, testInfo, caption) => {
+  if (!process.env.VISUAL_COMPARE) {
+    return;
+  }
+  const name = `${slug([...testInfo.titlePath.slice(1), caption].filter(Boolean).join(" "))}.png`;
+  const isNew = !existsSync(testInfo.snapshotPath(name));
+  try {
+    await expect(page).toHaveScreenshot(name);
+  } catch {
+    testInfo.annotations.push({
+      type: "visual-change",
+      description: `${isNew ? "new" : "changed"}: ${name}`,
+    });
+  }
+};
+
 // Attaches a screenshot of the page now as UI evidence, with a caption.
 const captureUi = async (page, testInfo, caption) => {
   // Colors in the middle of a fade-in aren't what anyone reads.
@@ -62,6 +94,7 @@ const captureUi = async (page, testInfo, caption) => {
     contentType: "image/png",
     body: await page.screenshot(),
   });
+  await compareWithMain(page, testInfo, caption);
 };
 
 const isUiEvidence = ({ name }) => name === "ui" || name.startsWith("ui: ");
