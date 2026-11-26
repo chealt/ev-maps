@@ -508,7 +508,18 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <Icon icon={MapPinned} size="sm" />
           {page.nearby}
         </h3>
-        <ul class="nearby-places"></ul>
+        <!-- A pill per kind, with the filter's icon; the script shows the
+             charger's. -->
+        <ul class="nearby-places">
+          {amenities.map(({ id, icon }) => (
+            <li data-amenity={id} hidden>
+              <Badge class="nearby-place">
+                <Icon icon={icon} size="sm" />
+                {values.amenities[id]}
+              </Badge>
+            </li>
+          ))}
+        </ul>
       </section>
       <p class="attribution" data-source="ocm" hidden>
         {page.openChargeMapCredit.before}{" "}
