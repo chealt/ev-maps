@@ -1,0 +1,26 @@
+---
+// A short hint on its trigger (the slot), shown while the trigger is hovered
+// or focused. Point the trigger's aria-describedby at `id`. The text is
+// `text`, or set by a script (the `.tooltip` element) when it's dynamic.
+//
+// `placement`: above or below the trigger; `align`: its start, center or end
+// edge lines up with the trigger's, e.g. "end" near the right of the screen.
+import "./Tooltip.css";
+
+interface Props {
+  id?: string;
+  text?: string;
+  placement?: "top" | "bottom";
+  align?: "start" | "center" | "end";
+  class?: string;
+}
+
+const { id, text, placement = "top", align = "center", class: className } = Astro.props;
+---
+
+<span class:list={["tooltip-anchor", className]} data-placement={placement} data-align={align}>
+  <slot />
+  <span class="tooltip" id={id} role="tooltip">
+    {text}
+  </span>
+</span>

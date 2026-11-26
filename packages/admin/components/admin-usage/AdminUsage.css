@@ -88,31 +88,13 @@ ev-admin-usage {
     gap: var(--spacing-lg);
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-  }
-
-  th,
-  td {
-    padding: var(--spacing-xs) 0;
-    border-bottom: var(--border-width) solid var(--color-border);
-    text-align: start;
+  /* Each row: a name and its count; the names as plain text. */
+  .table th {
     font-weight: var(--font-weight-normal);
   }
 
   .count {
     text-align: end;
     font-variant-numeric: tabular-nums;
-  }
-
-  .empty {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-
-    &[hidden] {
-      display: none;
-    }
   }
 }

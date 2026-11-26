@@ -20,14 +20,8 @@ ev-admin-dashboard {
     margin-top: var(--spacing-md);
   }
 
-  .card {
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
-  }
-
   /* Errors in red, so they don't read as usage. */
-  .card[data-key="errors"] {
+  .chart[data-key="errors"] {
     --bar-color: var(--color-danger);
   }
 
@@ -35,7 +29,6 @@ ev-admin-dashboard {
     margin-top: var(--spacing-lg);
 
     .chart-title {
-      margin-bottom: var(--spacing-sm);
       font-size: var(--font-size-lg);
       font-weight: var(--font-weight-semibold);
     }
@@ -77,11 +70,6 @@ ev-admin-dashboard {
       height: 100%;
       border-radius: var(--border-radius-sm);
       background: var(--color-primary);
-    }
-
-    .empty {
-      color: var(--color-text-muted);
-      font-size: var(--font-size-sm);
     }
   }
 

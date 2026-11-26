@@ -1,11 +1,13 @@
 ---
-// A short label in a pill, e.g. a status. Its `tone` colors it; a script can
-// change it later through the data-tone attribute.
+// A short label in a pill, e.g. a status, or a count (the accent tone). Its
+// `tone` colors it; a script can change it later through the data-tone
+// attribute. A script that makes badges itself gives them the class "badge"
+// and imports "@ev-maps/ui/Badge.css".
 import type { HTMLAttributes } from "astro/types";
 import "./Badge.css";
 
 interface Props extends HTMLAttributes<"span"> {
-  tone?: "neutral" | "success" | "warning" | "danger";
+  tone?: "neutral" | "accent" | "success" | "warning" | "danger";
 }
 
 const { tone = "neutral", class: className, ...attrs } = Astro.props;

@@ -1,4 +1,5 @@
 ---
+import Table from "@ev-maps/ui/Table.astro";
 import { ArrowLeft, ChevronDown } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Field from "@ev-maps/ui/Field.astro";
@@ -202,68 +203,64 @@ const occurrenceFacts = (occurrence: any) => [
         {summary}
       </p>
       {data?.groups.length > 0 && (
-        <div class="table-wrapper">
-          <table class="groups">
-            <thead>
+        <Table class="groups">
+          <thead>
+            <tr>
+              <th scope="col">{page.adminErrorColumn}</th>
+              <th scope="col">{page.adminSourceColumn}</th>
+              <th scope="col">{page.adminBrowserColumn}</th>
+              <th scope="col">{page.adminOsColumn}</th>
+              <th scope="col">{page.adminCountryLabel}</th>
+              <th scope="col" class="number" aria-sort={sort === "count" ? "descending" : "none"}>
+                <a class="sort" href={sortUrl("count")}>
+                  {page.adminCountColumn}
+                  {sort === "count" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                </a>
+              </th>
+              <th scope="col" class="number">
+                {page.adminUsersColumn}
+              </th>
+              <th scope="col" aria-sort={sort === "last_seen" ? "descending" : "none"}>
+                <a class="sort" href={sortUrl("last_seen")}>
+                  {page.adminLastSeenColumn}
+                  {sort === "last_seen" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                </a>
+              </th>
+              <th scope="col" aria-sort={sort === "first_seen" ? "descending" : "none"}>
+                <a class="sort" href={sortUrl("first_seen")}>
+                  {page.adminFirstSeenColumn}
+                  {sort === "first_seen" && (
+                    <Icon icon={ChevronDown} size="sm" class="sort-arrow" />
+                  )}
+                </a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.groups.map((group: any) => (
               <tr>
-                <th scope="col">{page.adminErrorColumn}</th>
-                <th scope="col">{page.adminSourceColumn}</th>
-                <th scope="col">{page.adminBrowserColumn}</th>
-                <th scope="col">{page.adminOsColumn}</th>
-                <th scope="col">{page.adminCountryLabel}</th>
-                <th scope="col" class="number" aria-sort={sort === "count" ? "descending" : "none"}>
-                  <a class="sort" href={sortUrl("count")}>
-                    {page.adminCountColumn}
-                    {sort === "count" && <Icon icon={ChevronDown} size="sm" class="sort-arrow" />}
+                <td>
+                  <a class="message" href={viewUrl({ error: group.fingerprint, page: 1 })}>
+                    {title(group)}
                   </a>
-                </th>
-                <th scope="col" class="number">
-                  {page.adminUsersColumn}
-                </th>
-                <th scope="col" aria-sort={sort === "last_seen" ? "descending" : "none"}>
-                  <a class="sort" href={sortUrl("last_seen")}>
-                    {page.adminLastSeenColumn}
-                    {sort === "last_seen" && (
-                      <Icon icon={ChevronDown} size="sm" class="sort-arrow" />
-                    )}
-                  </a>
-                </th>
-                <th scope="col" aria-sort={sort === "first_seen" ? "descending" : "none"}>
-                  <a class="sort" href={sortUrl("first_seen")}>
-                    {page.adminFirstSeenColumn}
-                    {sort === "first_seen" && (
-                      <Icon icon={ChevronDown} size="sm" class="sort-arrow" />
-                    )}
-                  </a>
-                </th>
+                  <span class="where">{group.context ?? group.url ?? ""}</span>
+                </td>
+                <td class="source">{page.adminErrorSources[group.source] ?? group.source}</td>
+                <td class="browser">{group.browser ?? none}</td>
+                <td class="os">{group.os ?? none}</td>
+                <td class="country">{group.country ?? none}</td>
+                <td class="count number">{group.count}</td>
+                <td class="users number">{group.users}</td>
+                <td class="last-seen" title={formatTime(group.last_seen)}>
+                  {timeAgo(group.last_seen)}
+                </td>
+                <td class="first-seen" title={formatTime(group.first_seen)}>
+                  {timeAgo(group.first_seen)}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {data.groups.map((group: any) => (
-                <tr>
-                  <td>
-                    <a class="message" href={viewUrl({ error: group.fingerprint, page: 1 })}>
-                      {title(group)}
-                    </a>
-                    <span class="where">{group.context ?? group.url ?? ""}</span>
-                  </td>
-                  <td class="source">{page.adminErrorSources[group.source] ?? group.source}</td>
-                  <td class="browser">{group.browser ?? none}</td>
-                  <td class="os">{group.os ?? none}</td>
-                  <td class="country">{group.country ?? none}</td>
-                  <td class="count number">{group.count}</td>
-                  <td class="users number">{group.users}</td>
-                  <td class="last-seen" title={formatTime(group.last_seen)}>
-                    {timeAgo(group.last_seen)}
-                  </td>
-                  <td class="first-seen" title={formatTime(group.first_seen)}>
-                    {timeAgo(group.first_seen)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </Table>
       )}
     </section>
   )}

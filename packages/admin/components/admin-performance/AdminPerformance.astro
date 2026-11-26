@@ -1,4 +1,6 @@
 ---
+import Table from "@ev-maps/ui/Table.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
@@ -81,34 +83,32 @@ const tables = [
         <h3 class="subtitle" id={`admin-${id}-title`}>
           {title}
         </h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">{nameColumn}</th>
-                <th scope="col" class="number">
-                  {page.adminCountColumn}
-                </th>
-                <th scope="col" class="number">
-                  P75
-                </th>
-                <th scope="col" class="number">
-                  P95
-                </th>
-                <th scope="col" class="number">
-                  {page.adminMaxColumn}
-                </th>
-                <th scope="col" class="number">
-                  {page.adminErrorsColumn}
-                </th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="empty" hidden>
+        <Table density="compact">
+          <thead>
+            <tr>
+              <th scope="col">{nameColumn}</th>
+              <th scope="col" class="number">
+                {page.adminCountColumn}
+              </th>
+              <th scope="col" class="number">
+                P75
+              </th>
+              <th scope="col" class="number">
+                P95
+              </th>
+              <th scope="col" class="number">
+                {page.adminMaxColumn}
+              </th>
+              <th scope="col" class="number">
+                {page.adminErrorsColumn}
+              </th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </Table>
+        <EmptyState class="empty" hidden>
           {page.adminNoData}
-        </p>
+        </EmptyState>
       </section>
     ))}
 
@@ -116,24 +116,22 @@ const tables = [
       <h3 class="subtitle" id="admin-slowest-title">
         {page.adminSlowestRequests}
       </h3>
-      <div class="table-wrapper">
-        <table class="slowest">
-          <thead>
-            <tr>
-              <th scope="col">{page.adminRequestColumn}</th>
-              <th scope="col">{page.adminPathColumn}</th>
-              <th scope="col" class="number">
-                {page.adminDurationColumn}
-              </th>
-              <th scope="col">{page.adminWhenColumn}</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="empty" hidden>
+      <Table density="compact" class="slowest">
+        <thead>
+          <tr>
+            <th scope="col">{page.adminRequestColumn}</th>
+            <th scope="col">{page.adminPathColumn}</th>
+            <th scope="col" class="number">
+              {page.adminDurationColumn}
+            </th>
+            <th scope="col">{page.adminWhenColumn}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </Table>
+      <EmptyState class="empty" hidden>
         {page.adminNoData}
-      </p>
+      </EmptyState>
     </section>
   </section>
 

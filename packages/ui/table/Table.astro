@@ -1,0 +1,20 @@
+---
+// A data table that scrolls sideways when it's wider than its column: the
+// slot is its content (thead, tbody). Header cells are muted, rows split by
+// a line; a cell with the class "number" lines up its digits on the end.
+// `compact`: less padding, for tables of many short rows.
+import type { HTMLAttributes } from "astro/types";
+import "./Table.css";
+
+interface Props extends HTMLAttributes<"table"> {
+  density?: "default" | "compact";
+}
+
+const { density = "default", class: className, ...attrs } = Astro.props;
+---
+
+<div class="table-scroll">
+  <table class:list={["table", density, className]} {...attrs}>
+    <slot />
+  </table>
+</div>

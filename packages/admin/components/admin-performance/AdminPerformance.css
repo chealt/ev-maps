@@ -120,30 +120,6 @@ ev-admin-performance {
     margin-bottom: var(--spacing-xl);
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-  }
-
-  th,
-  td {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-bottom: var(--border-width) solid var(--color-border);
-    text-align: start;
-    vertical-align: top;
-  }
-
-  thead th {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
-    white-space: nowrap;
-  }
-
   tbody th {
     font-weight: var(--font-weight-normal);
     overflow-wrap: anywhere;
@@ -164,12 +140,6 @@ ev-admin-performance {
     font-size: var(--font-size-xs);
   }
 
-  .number {
-    text-align: end;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
   .trace-link,
   .all-performance {
     color: var(--color-primary-light-text);
@@ -181,10 +151,6 @@ ev-admin-performance {
     gap: var(--spacing-xs);
     margin-bottom: var(--spacing-md);
     font-size: var(--font-size-sm);
-  }
-
-  .empty[hidden] {
-    display: none;
   }
 
   /* One row per span: its label, a bar placed by its start and length

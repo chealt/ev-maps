@@ -10,7 +10,7 @@ class FilterButtonElement extends HTMLElement {
   // Shows how many filters are on: a badge on the icon, and a description
   // for screen readers. With none on, both are empty.
   showActiveCount(count) {
-    const badge = this.querySelector(".badge");
+    const badge = this.querySelector(".filter-count");
     badge.hidden = count === 0;
     badge.textContent = count === 0 ? "" : formatNumber(count);
     this.querySelector("#active-filter-count").textContent =

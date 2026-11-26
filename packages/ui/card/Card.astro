@@ -1,10 +1,11 @@
 ---
 // A surface for one item of a list or a group of content: padded, rounded,
-// with a soft border. `as` is its element (article, section, li, div).
+// with a soft border. `as` is its element (article, section, li, div); as a
+// button or a link the whole card is clickable, and lifts when hovered.
 import "./Card.css";
 
 interface Props {
-  as?: "article" | "section" | "li" | "div";
+  as?: "article" | "section" | "li" | "div" | "button" | "a";
   class?: string;
   [attribute: string]: unknown;
 }

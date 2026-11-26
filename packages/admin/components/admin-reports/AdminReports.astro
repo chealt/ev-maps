@@ -1,4 +1,5 @@
 ---
+import Table from "@ev-maps/ui/Table.astro";
 import Field from "@ev-maps/ui/Field.astro";
 import "./AdminReports.css";
 
@@ -27,25 +28,23 @@ const { page } = Astro.props;
       </select>
     </Field>
     <p class="summary"></p>
-    <div class="table-wrapper">
-      <table class="reports">
-        <thead>
-          <tr>
-            <th scope="col">{page.adminWhenColumn}</th>
-            <th scope="col">{page.adminResultColumn}</th>
-            <th scope="col">{page.adminBranchColumn}</th>
-            <th scope="col">{page.adminCommitColumn}</th>
-            <th scope="col" class="number">
-              {page.adminDurationColumn}
-            </th>
-            <th scope="col">
-              <span class="visually-hidden">{page.adminReportColumn}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <Table class="reports">
+      <thead>
+        <tr>
+          <th scope="col">{page.adminWhenColumn}</th>
+          <th scope="col">{page.adminResultColumn}</th>
+          <th scope="col">{page.adminBranchColumn}</th>
+          <th scope="col">{page.adminCommitColumn}</th>
+          <th scope="col" class="number">
+            {page.adminDurationColumn}
+          </th>
+          <th scope="col">
+            <span class="visually-hidden">{page.adminReportColumn}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </Table>
     <nav class="pager" aria-label={page.adminPages} hidden>
       <button type="button" class="previous">
         {page.adminPreviousPage}

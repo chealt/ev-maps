@@ -44,29 +44,7 @@
     white-space: nowrap;
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-  }
-
   .groups {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-
-    th,
-    td {
-      padding: var(--spacing-sm);
-      border-bottom: var(--border-width) solid var(--color-border);
-      text-align: start;
-      vertical-align: top;
-    }
-
-    th {
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-muted);
-      white-space: nowrap;
-    }
-
     /* The sortable columns' headers, current one marked with an arrow. */
     .sort {
       display: inline-flex;
@@ -82,11 +60,6 @@
       .sort-arrow {
         color: var(--color-primary);
       }
-    }
-
-    .number {
-      text-align: end;
-      font-variant-numeric: tabular-nums;
     }
 
     /* Wide enough to read; the table scrolls on small screens. */

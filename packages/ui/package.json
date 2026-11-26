@@ -17,7 +17,11 @@
     "./fetch-json.js": "./fetch-json/fetch-json.js",
     "./Switch.astro": "./switch/Switch.astro",
     "./Dialog.astro": "./dialog/Dialog.astro",
-    "./Field.astro": "./field/Field.astro"
+    "./Field.astro": "./field/Field.astro",
+    "./Badge.css": "./badge/Badge.css",
+    "./EmptyState.astro": "./empty-state/EmptyState.astro",
+    "./Tooltip.astro": "./tooltip/Tooltip.astro",
+    "./Table.astro": "./table/Table.astro"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",

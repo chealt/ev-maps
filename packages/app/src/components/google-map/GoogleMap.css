@@ -16,7 +16,6 @@ ev-google-map {
   --operator-option-min-width: 14rem;
   --operator-option-height: 2.75rem;
   --checkbox-size: 1.25rem;
-  --tooltip-max-width: 14rem;
 
   /* Charger list */
   --list-item-height: 4.5rem;
@@ -501,10 +500,6 @@ ev-google-map {
   display: flex;
   align-items: center;
 
-  .favorite-wrapper {
-    position: relative;
-  }
-
   .favorite-button {
     &[aria-pressed="true"] {
       color: var(--color-danger);
@@ -518,29 +513,6 @@ ev-google-map {
       opacity: var(--opacity-disabled);
       cursor: not-allowed;
     }
-  }
-
-  /* Signed out: why the heart is disabled, on hover or focus. */
-  .tooltip {
-    position: absolute;
-    top: calc(100% + var(--spacing-xs));
-    right: 0;
-    z-index: 1;
-    width: max-content;
-    max-width: var(--tooltip-max-width);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--border-radius-sm);
-    background: var(--color-secondary);
-    color: var(--color-secondary-contrast);
-    font-size: var(--font-size-xs);
-
-    &[hidden] {
-      display: none;
-    }
-  }
-
-  .favorite-wrapper:not(:hover, :focus-within) .tooltip {
-    display: none;
   }
 }
 
@@ -988,41 +960,6 @@ ev-google-map {
       }
     }
 
-    .connector-tooltip {
-      position: absolute;
-      bottom: calc(100% + var(--spacing-2xs));
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 3;
-      width: max-content;
-      max-width: var(--tooltip-max-width);
-      padding: var(--spacing-2xs) var(--spacing-xs);
-      border-radius: var(--border-radius-sm);
-      background: var(--color-secondary);
-      color: var(--color-secondary-contrast);
-      font-size: var(--font-size-xs);
-      font-weight: var(--font-weight-medium);
-      white-space: nowrap;
-      box-shadow: var(--shadow-sm);
-      pointer-events: none;
-    }
-
-    .connector-info-wrapper:not(:hover, :focus-within) .connector-tooltip {
-      display: none;
-    }
-
-    .connector-card:first-child .connector-tooltip {
-      left: auto;
-      right: -0.5rem;
-      transform: none;
-    }
-
-    .connector-card:last-child .connector-tooltip {
-      left: auto;
-      right: 0;
-      transform: none;
-    }
-
     .connector-diagram {
       display: inline-flex;
       align-items: center;
@@ -1162,62 +1099,8 @@ ev-google-map {
     }
   }
 
-  /* Along a route: by distance from the start, to the end or off it, as one
-     segmented toggle on one row. */
   .sort-options {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--spacing-xs) var(--spacing-sm);
     margin-top: var(--spacing-sm);
-    border: none;
-    padding: 0;
-
-    &[hidden] {
-      display: none;
-    }
-
-    .sort-legend {
-      float: inline-start;
-      font-size: var(--font-size-sm);
-      color: var(--color-text-muted);
-    }
-
-    .segments {
-      display: inline-flex;
-      padding: var(--spacing-2xs);
-      border-radius: var(--border-radius-full);
-      background: var(--color-surface-muted);
-      box-shadow: inset 0 0 0 var(--border-width) var(--color-border);
-    }
-
-    .sort-option {
-      padding: var(--spacing-xs) var(--spacing-md);
-      border-radius: var(--border-radius-full);
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-text-muted);
-      white-space: nowrap;
-      cursor: pointer;
-      transition:
-        background var(--transition-fast),
-        color var(--transition-fast);
-
-      &:hover {
-        color: var(--color-text);
-      }
-
-      &:has(input:checked) {
-        background: var(--color-surface);
-        color: var(--color-primary-light-text);
-        box-shadow: var(--shadow-sm);
-      }
-
-      &:has(input:focus-visible) {
-        outline: var(--border-width-thick) solid var(--color-primary);
-        outline-offset: var(--border-width-thick);
-      }
-    }
   }
 
   /* The chargers as cards. */
@@ -1234,33 +1117,12 @@ ev-google-map {
     contain-intrinsic-size: auto var(--list-item-height);
   }
 
+  /* A card (@ev-maps/ui/Card.astro): the name and its distance, then the
+     rest under them. */
   .entry {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: var(--spacing-xs) var(--spacing-md);
-    width: 100%;
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-lg);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-    color: inherit;
-    font: inherit;
-    text-align: start;
-    cursor: pointer;
-    transition:
-      border-color var(--transition-fast),
-      box-shadow var(--transition-fast);
-
-    &:hover {
-      border-color: var(--color-border-strong);
-      box-shadow: var(--shadow-md);
-    }
-
-    &:focus-visible {
-      outline: var(--border-width-thick) solid var(--color-primary);
-      outline-offset: var(--border-width-thick);
-    }
   }
 
   .name {
@@ -1271,12 +1133,6 @@ ev-google-map {
 
   .distance {
     align-self: start;
-    padding: var(--spacing-2xs) var(--spacing-sm);
-    border-radius: var(--border-radius-full);
-    background: var(--color-primary-light);
-    color: var(--color-primary-light-text);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
 
     &:empty {
       display: none;
@@ -1292,14 +1148,6 @@ ev-google-map {
     &:empty {
       display: none;
     }
-  }
-
-  .fact {
-    padding: var(--spacing-2xs) var(--spacing-sm);
-    border-radius: var(--border-radius-full);
-    background: var(--color-surface-muted);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
   }
 
   .address {

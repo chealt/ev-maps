@@ -1,4 +1,6 @@
 ---
+import Table from "@ev-maps/ui/Table.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import { fill } from "@ev-maps/ui/format.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminUsage.css";
@@ -64,12 +66,12 @@ const {
           <h3 class="subtitle" id={`admin-breakdown-${event}`}>
             {values.usageEvents[event]}
           </h3>
-          <table>
+          <Table density="compact">
             <tbody></tbody>
-          </table>
-          <p class="empty" hidden>
+          </Table>
+          <EmptyState class="empty" hidden>
             {page.adminNoData}
-          </p>
+          </EmptyState>
         </section>
       ))}
       <!-- Now, not in the period: the host's top items, e.g. favorites. -->
@@ -77,12 +79,12 @@ const {
         <h3 class="subtitle" id="admin-top-items">
           {page.adminTopItems}
         </h3>
-        <table>
+        <Table density="compact">
           <tbody></tbody>
-        </table>
-        <p class="empty" hidden>
+        </Table>
+        <EmptyState class="empty" hidden>
           {page.adminNoData}
-        </p>
+        </EmptyState>
       </section>
     </div>
   </section>

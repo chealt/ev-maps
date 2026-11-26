@@ -1,0 +1,21 @@
+---
+// What a list or a chart shows when it has nothing: a muted line, with an
+// icon before it if given. A script can show and hide it (`hidden`).
+import type { HTMLAttributes } from "astro/types";
+import Icon from "../icon/Icon.astro";
+import "./EmptyState.css";
+
+interface Props extends HTMLAttributes<"p"> {
+  /** A lucide-static icon. */
+  icon?: string;
+}
+
+const { icon, class: className, ...attrs } = Astro.props;
+---
+
+<p class:list={["empty-state", className]} {...attrs}>
+  {icon && <Icon icon={icon} size="sm" />}
+  <span class="empty-state-text">
+    <slot />
+  </span>
+</p>

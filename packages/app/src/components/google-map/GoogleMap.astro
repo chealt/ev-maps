@@ -1,6 +1,12 @@
 ---
+import Card from "@ev-maps/ui/Card.astro";
+import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import Tooltip from "@ev-maps/ui/Tooltip.astro";
+// The chargers list's facts are badges its script makes.
+import "@ev-maps/ui/Badge.css";
 import {
   Activity,
   Baby,
@@ -356,39 +362,30 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <p class="sort-basis"></p>
         <!-- Along a route: sort the list by distance from the start, to
              the end, or off the route. -->
-        <fieldset class="sort-options" hidden>
-          <legend class="sort-legend">{page.sortByDistance}</legend>
-          <!-- A segmented toggle: the radios are only for keyboards and
-               screen readers; the labels are the segments. -->
-          <span class="segments">
-            {["start", "end", "route"].map((by, index) => (
-              <label class="sort-option">
-                <input
-                  type="radio"
-                  class="visually-hidden"
-                  name="sort-by"
-                  value={by}
-                  checked={index === 0}
-                />
-                {page.sortByOptions[by]}
-              </label>
-            ))}
-          </span>
-        </fieldset>
+        <SegmentedControl
+          class="sort-options"
+          legend={page.sortByDistance}
+          name="sort-by"
+          options={["start", "end", "route"].map((by) => ({
+            value: by,
+            label: page.sortByOptions[by],
+          }))}
+          hidden
+        />
       </Fragment>
       <ol class="items"></ol>
       <Fragment slot="after">
         <template class="item-template">
           <li class="item">
-            <button type="button" class="entry">
+            <Card as="button" type="button" class="entry">
               <span class="name"></span>
-              <span class="distance"></span>
+              <Badge tone="success" class="distance" />
               <!-- Along a route: from the start, to the end, off the route. -->
               <span class="route-distances" hidden></span>
               <!-- Power and priciness as chips, then the address. -->
               <span class="facts"></span>
               <span class="address"></span>
-            </button>
+            </Card>
           </li>
         </template>
       </Fragment>
@@ -400,7 +397,13 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <div class="actions">
           <!-- Signed out: disabled-looking, says to sign in, and opens the
                sign-in options. -->
-          <span class="favorite-wrapper">
+          <Tooltip
+            class="favorite-wrapper"
+            id="favorite-sign-in-hint"
+            text={page.signInForFavorites}
+            placement="bottom"
+            align="end"
+          >
             <Button
               variant="ghost"
               size="icon-only"
@@ -412,10 +415,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             >
               <Icon icon={Heart} />
             </Button>
-            <span class="tooltip" id="favorite-sign-in-hint" role="tooltip">
-              {page.signInForFavorites}
-            </span>
-          </span>
+          </Tooltip>
           <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
             <Icon icon={X} />
           </Button>
@@ -557,12 +557,12 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       </template>
       <template class="connector-card-template">
         <li class="connector-card">
-          <span class="connector-info-wrapper">
+          <!-- Its text, ID and alignment are set by the script. -->
+          <Tooltip class="connector-info-wrapper">
             <button type="button" class="connector-info">
               <Icon icon={Info} size="sm" />
             </button>
-            <span class="connector-tooltip" role="tooltip"></span>
-          </span>
+          </Tooltip>
           <!-- Standard EV connector plug diagrams; the matching one is unhidden. -->
           <span class="connector-diagram" data-diagram="ccs" hidden>
             <svg class="plug-svg" viewBox="0 0 36 44" aria-hidden="true">

@@ -4,26 +4,26 @@
     color: var(--color-text-muted);
   }
 
+  /* Only while there are no favorites. */
   .empty {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    color: var(--color-text-muted);
-
     &:not(:has(~ .items:empty)) {
       display: none;
     }
   }
 
+  /* Cards, like the chargers list's. */
   .items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
     list-style: none;
   }
 
   .item {
-    display: flex;
+    flex-direction: row;
     align-items: center;
     gap: var(--spacing-xs);
-    border-bottom: var(--border-width) solid var(--color-border);
+    padding: var(--spacing-xs);
   }
 
   .entry {
