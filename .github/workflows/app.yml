@@ -100,6 +100,17 @@ jobs:
           - name: Unit test the UI components
             package: ui
             script: test
+          - name: Lint the end-to-end fixtures
+            package: e2e
+            script: lint
+          - name: Unit test the end-to-end fixtures
+            package: e2e
+            script: test
+          # The root's script (packages/.. is the repository), run with the
+          # app's checks.
+          - name: Lint Markdown
+            package: ..
+            script: lint:md
     steps:
       # A skipped check counts as passed, so fail if change detection failed.
       - name: Check change detection
