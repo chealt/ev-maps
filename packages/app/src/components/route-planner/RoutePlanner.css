@@ -44,11 +44,9 @@
     gap: var(--spacing-sm);
     padding-bottom: var(--spacing-lg);
 
-    /* On a phone, "Clear route" and "Show route" share the width left
-       by Share, their labels wrapping rather than running off screen (#331). */
+    /* On a phone, Clear and Show share the width left by Share, on one
+       line each, cut short if they still don't fit (#331). */
     @media (width < 40em) {
-      align-items: center;
-
       > .button {
         padding-inline: var(--spacing-md);
       }
@@ -56,7 +54,20 @@
       > .button:not(.share-route) {
         flex: 1;
         min-width: 0;
-        white-space: normal;
+      }
+    }
+
+    /* A block, so it can be cut short; and capitalized, as a word from the
+       middle of the name (Hungarian's "törlése") would otherwise start
+       small. */
+    .button-label {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &::first-letter {
+        text-transform: uppercase;
       }
     }
   }

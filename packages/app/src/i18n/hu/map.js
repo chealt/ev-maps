@@ -69,6 +69,8 @@ const map = {
     useMyLocation: "Saját helyzetem használata",
     showRoute: "Útvonal mutatása",
     clearRoute: "Útvonal törlése",
+    clearRouteShort: "törlése",
+    showRouteShort: "mutatása",
     zoomToRoute: "Ugrás a teljes útvonalra",
     shareRoute: "Útvonal megosztása",
     routeCorridor: "Az útvonaltól legfeljebb {distance} távolságra lévő töltőállomások látszanak.",
