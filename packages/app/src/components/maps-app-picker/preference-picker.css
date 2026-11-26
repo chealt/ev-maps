@@ -1,5 +1,5 @@
-/* A setting chosen among a few options, in the account menu: the maps app,
-   the distance unit. */
+/* A setting chosen among a few options, in the account menu: the theme, the
+   maps app, the distance unit (segments), the car. */
 .preference-picker {
   border: none;
   display: flex;
@@ -53,5 +53,35 @@
     padding: 0 var(--spacing-sm);
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
+  }
+}
+
+/* As segments: the legend a heading above them, like the other settings'. */
+.preference-picker.segmented-control {
+  align-items: stretch;
+  gap: var(--spacing-xs);
+
+  .segmented-legend {
+    float: none;
+    margin-bottom: 0;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* The menu is narrow: the segments share its width, wrapping when they
+     don't fit, rather than scrolling. */
+  .segments {
+    flex-wrap: wrap;
+    border-radius: var(--border-radius-lg);
+  }
+
+  .segment {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-inline: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
   }
 }

@@ -28,13 +28,13 @@ test("follows the system theme, or the one chosen, kept after a reload, with the
 
   // Dark: the map takes it, in the same place, with its chargers.
   const before = await mapState(page);
-  await menu.getByRole("radio", { name: "Dark" }).check();
+  await menu.getByText("Dark", { exact: true }).click();
   await expect.poll(() => mapState(page)).toEqual({ ...before, colorScheme: "DARK" });
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button")).toHaveCount(2);
 
   // Light, kept after a reload.
-  await menu.getByRole("radio", { name: "Light" }).check();
+  await menu.getByText("Light", { exact: true }).click();
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   expect((await mapState(page)).colorScheme).toBe("LIGHT");
@@ -42,7 +42,7 @@ test("follows the system theme, or the one chosen, kept after a reload, with the
   await expect(menu.getByRole("radio", { name: "Light" })).toBeChecked();
 
   // Back to the system's, kept too.
-  await menu.getByRole("radio", { name: "System" }).check();
+  await menu.getByText("System", { exact: true }).click();
   await expect.poll(async () => (await mapState(page)).colorScheme).toBe("FOLLOW_SYSTEM");
   await page.reload();
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");

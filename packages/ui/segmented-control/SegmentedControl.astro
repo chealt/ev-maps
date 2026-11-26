@@ -3,11 +3,16 @@
 // screen readers know it as one), shown as a segmented toggle. Listen for
 // "change" on it, and read the checked input's value.
 import type { HTMLAttributes } from "astro/types";
+import Icon from "../icon/Icon.astro";
 import "./SegmentedControl.css";
 
 interface Option {
   value: string;
   label: string;
+  /** An icon before the label (an SVG string, e.g. from lucide-static). */
+  icon?: string;
+  /** Attributes for the label's span, e.g. for a script that rewrites it. */
+  labelAttrs?: Record<string, string>;
 }
 
 interface Props extends HTMLAttributes<"fieldset"> {
@@ -45,7 +50,10 @@ const {
           value={option.value}
           checked={option.value === value}
         />
-        {option.label}
+        {option.icon && <Icon icon={option.icon} size="sm" />}
+        <span {...option.labelAttrs} class:list={["segment-label", option.labelAttrs?.class]}>
+          {option.label}
+        </span>
       </label>
     ))}
   </span>

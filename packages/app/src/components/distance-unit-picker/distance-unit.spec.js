@@ -44,7 +44,7 @@ test("takes the unit chosen on another device, shows one chosen here at once, an
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
   const menu = page.getByRole("dialog", { name: "Account" });
   await expect(menu.getByRole("radio", { name: "Miles" })).toBeChecked();
-  await menu.getByRole("radio", { name: "Kilometres" }).check();
+  await menu.getByText("Kilometres", { exact: true }).click();
   await expect
     .poll(() => saves.map((save) => save.distanceUnit?.unit).filter(Boolean))
     .toEqual(["metric"]);

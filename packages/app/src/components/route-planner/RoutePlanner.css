@@ -340,51 +340,15 @@
   }
 }
 
-/* How far from the route chargers are shown: a row of choices. */
+/* How far from the route chargers are shown: segments, under their legend. */
 .route-planner .corridor {
-  display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  border: none;
+  align-items: flex-start;
 
-  .label {
+  .segmented-legend {
+    float: none;
+    font-size: inherit;
     font-weight: var(--font-weight-semibold);
-  }
-
-  .corridor-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
-  .corridor-option {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-full);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--color-surface-hover);
-    }
-
-    &:has(input:checked) {
-      border-color: var(--color-primary);
-      background: var(--color-primary-light);
-      color: var(--color-primary-light-text);
-      font-weight: var(--font-weight-medium);
-    }
-
-    &:has(input:focus-visible) {
-      outline: var(--border-width-thick) solid var(--color-primary);
-      outline-offset: var(--border-width);
-    }
-
-    input {
-      margin: 0;
-      accent-color: var(--color-primary);
-    }
+    color: var(--color-text);
   }
 }
