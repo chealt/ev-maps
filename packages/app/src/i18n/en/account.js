@@ -28,7 +28,6 @@ const account = {
     animationsReducedMotion: "Off: your system asks for reduced motion.",
     language: "Language",
     mapsApp: "Maps app",
-    mapsAppAsk: "Ask every time",
     carConnectors: "My car's connectors",
     carAutoFilter: "Filter chargers automatically",
     carAutoFilterHint: "Show only chargers your car can use, on the map and on routes.",

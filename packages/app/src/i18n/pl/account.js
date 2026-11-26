@@ -28,7 +28,6 @@ const account = {
     animationsReducedMotion: "Wyłączone: Twój system prosi o ograniczenie ruchu.",
     language: "Język",
     mapsApp: "Aplikacja map",
-    mapsAppAsk: "Pytaj za każdym razem",
     carConnectors: "Złącza mojego auta",
     carAutoFilter: "Filtruj stacje automatycznie",
     carAutoFilterHint:

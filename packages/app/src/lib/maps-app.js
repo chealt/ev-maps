@@ -1,11 +1,9 @@
-// The maps app "Open in maps" opens a charger in: Google Maps,
-// OpenStreetMap or Apple Maps. Unless the user remembered one (in the
-// dialog, or in the account menu), it asks every time.
+// The maps app a charger's address links to: Google Maps, OpenStreetMap or
+// Apple Maps, chosen in the account menu; Google Maps until then.
 //
-// The choice is kept in memory, so a click can open the app at once (a new
-// tab opened later than the click itself is blocked as a popup); on this
-// device (localStorage); and, signed in, in the account (the Worker's
-// settings, section `mapsApp`), where the newer of the two wins.
+// The choice is kept on this device (localStorage) and, signed in, in the
+// account (the Worker's settings, section `mapsApp`), where the newer of
+// the two wins.
 
 import { createAccountPreference } from "./account-preference.js";
 
@@ -28,9 +26,9 @@ const preference = createAccountPreference({
   values: MAPS_APPS,
 });
 
-// The remembered app, or null to ask.
-const mapsApp = preference.get;
-// Remembers `app` (null: ask every time), here and in the account.
+// The chosen app.
+const mapsApp = () => preference.get() ?? "google";
+// Remembers `app`, here and in the account.
 const setMapsApp = preference.set;
 // Calls `listener(app)` when the remembered app changes.
 const onMapsAppChange = preference.onChange;

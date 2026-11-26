@@ -4,24 +4,22 @@ import { translations } from "../../i18n/index.js";
 import "./preference-picker.css";
 
 const { page, values } = translations(Astro.currentLocale ?? "en");
-// "" is to ask every time (src/lib/maps-app.js's null).
 const options = [
-  { value: "", label: page.mapsAppAsk },
   { value: "google", label: values.mapsApps.google },
   { value: "osm", label: values.mapsApps.osm },
   { value: "apple", label: values.mapsApps.apple },
 ];
 ---
 
-<!-- The app a charger's "Open in maps" opens; asking every time by default.
-     The details' dialog can remember one too (src/lib/maps-app.js). -->
+<!-- The app a charger's address opens it in; Google Maps by default
+     (src/lib/maps-app.js). -->
 <ev-maps-app-picker>
   <SegmentedControl
     class="preference-picker"
     legend={page.mapsApp}
     name="maps-app"
     options={options}
-    value=""
+    value="google"
   />
   <script src="./MapsAppPicker.js"></script>
 </ev-maps-app-picker>

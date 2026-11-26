@@ -737,19 +737,24 @@ ev-google-map {
     overflow-wrap: anywhere;
   }
 
+  /* A link, though it looks like the details' text: muted, underlined on
+     hover. */
   .address {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-xs);
+    width: fit-content;
     margin-top: var(--spacing-sm);
     color: var(--color-text-muted);
+    text-decoration: none;
 
-    .icon {
-      margin-top: var(--spacing-2xs);
+    &:hover .text {
+      text-decoration: underline;
     }
 
-    &:has(.text:empty) {
-      display: none;
+    .icon {
+      flex: none;
+      margin-top: var(--spacing-2xs);
     }
   }
 
@@ -778,66 +783,6 @@ ev-google-map {
     .label {
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-  }
-
-  /* The maps apps, under the buttons while "Open in maps" is expanded. */
-  .maps-apps {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
-    padding: var(--spacing-sm);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
-
-    &[hidden] {
-      display: none;
-    }
-
-    .apps {
-      display: flex;
-      flex-direction: column;
-      list-style: none;
-    }
-
-    .app {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      border-radius: var(--border-radius-sm);
-      color: var(--color-text);
-      font-weight: var(--font-weight-medium);
-      text-decoration: none;
-
-      &:hover {
-        background: var(--color-surface-hover);
-      }
-
-      .icon {
-        color: var(--color-text-muted);
-      }
-    }
-
-    .remember {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      cursor: pointer;
-
-      input {
-        margin: 0;
-        accent-color: var(--color-primary);
-      }
-    }
-
-    .hint {
-      padding: 0 var(--spacing-sm);
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
     }
   }
 
