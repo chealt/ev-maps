@@ -4,8 +4,14 @@
 // answers in seconds (#270). `fetchImpl` and `now` are for tests.
 
 const MIRROR_COOLDOWN_MS = 15 * 60 * 1000;
+// A mirror that refuses at once (a 5xx within this) is often only busy for
+// a moment: asked again once, after RETRY_DELAY_MS, before the next mirror.
+const QUICK_FAILURE_MS = 5000;
+const RETRY_DELAY_MS = 2000;
 
-const overpassClient = ({ urls, timeoutMs, fetchImpl = fetch, now = Date.now }) => {
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const overpassClient = ({ urls, timeoutMs, fetchImpl = fetch, now = Date.now, sleep = wait }) => {
   // When each mirror may be asked first again; kept between the queries of a
   // run (and of runs on the same isolate).
   const downUntil = new Map();
@@ -20,24 +26,41 @@ const overpassClient = ({ urls, timeoutMs, fetchImpl = fetch, now = Date.now }) 
     ];
   };
 
+  // One mirror's answer: the elements, or an error message.
+  const ask = async (url, overpassQuery) => {
+    const started = now();
+    try {
+      const response = await fetchImpl(url, {
+        method: "POST",
+        body: new URLSearchParams({ data: overpassQuery }),
+        headers: { "user-agent": "ev-maps importer (https://ev.chealt.com)" },
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.ok) {
+        return { elements: (await response.json()).elements ?? [] };
+      }
+      return {
+        error: `${new URL(url).host}: ${response.status}`,
+        quick: response.status >= 500 && now() - started < QUICK_FAILURE_MS,
+      };
+    } catch (error) {
+      return { error: `${new URL(url).host}: ${error.message}` };
+    }
+  };
+
   const fetchOverpass = async (overpassQuery) => {
     const errors = [];
     for (const url of mirrorOrder()) {
-      try {
-        const response = await fetchImpl(url, {
-          method: "POST",
-          body: new URLSearchParams({ data: overpassQuery }),
-          headers: { "user-agent": "ev-maps importer (https://ev.chealt.com)" },
-          signal: AbortSignal.timeout(timeoutMs),
-        });
-        if (response.ok) {
-          downUntil.delete(url);
-          return (await response.json()).elements ?? [];
-        }
-        errors.push(`${new URL(url).host}: ${response.status}`);
-      } catch (error) {
-        errors.push(`${new URL(url).host}: ${error.message}`);
+      let answer = await ask(url, overpassQuery);
+      if (answer.quick) {
+        await sleep(RETRY_DELAY_MS);
+        answer = await ask(url, overpassQuery);
       }
+      if (answer.elements) {
+        downUntil.delete(url);
+        return answer.elements;
+      }
+      errors.push(answer.error);
       downUntil.set(url, now() + MIRROR_COOLDOWN_MS);
     }
     throw new Error(`Overpass failed: ${errors.join("; ")}`);
@@ -46,4 +69,4 @@ const overpassClient = ({ urls, timeoutMs, fetchImpl = fetch, now = Date.now }) 
   return fetchOverpass;
 };
 
-export { MIRROR_COOLDOWN_MS, overpassClient };
+export { MIRROR_COOLDOWN_MS, QUICK_FAILURE_MS, overpassClient };
