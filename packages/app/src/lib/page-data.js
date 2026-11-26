@@ -5,6 +5,8 @@
 // - otherwise it's read from the Worker's API (`bun run dev`, port 8787), as
 //   the signed-in user, unless no Worker runs (EV_MAPS_NO_API_PROXY, the
 //   tests): then the page shows it couldn't load, as it would offline
+
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 const DEV_API = "http://localhost:8787";
 const TEST_DATA_HEADER = "x-ev-maps-page-data";
 
@@ -17,13 +19,10 @@ const devPageData = async (request, apiPath) => {
     return { failed: true };
   }
   try {
-    const response = await fetch(`${DEV_API}${apiPath}`, {
+    const data = await fetchJson(`${DEV_API}${apiPath}`, {
       headers: { cookie: request.headers.get("cookie") ?? "" },
     });
-    if (!response.ok) {
-      throw new Error(`${apiPath} failed: ${response.status}`);
-    }
-    return { data: await response.json() };
+    return { data };
   } catch (error) {
     console.error("Could not read the page's data from the Worker:", error);
     return { failed: true };

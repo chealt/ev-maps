@@ -1,5 +1,6 @@
 import { formatNumber, message } from "@ev-maps/ui/messages.js";
 import { formatDay, renderBarChart } from "@ev-maps/ui/bar-chart.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const SUMMARY_URL = "/api/admin/performance";
 const TRACE_URL = "/api/admin/performance/traces";
@@ -80,11 +81,7 @@ class AdminPerformanceElement extends HTMLElement {
     const url = view.trace ? `${TRACE_URL}/${view.trace}` : `${SUMMARY_URL}?days=${view.days}`;
     let data;
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`${url} failed: ${response.status}`);
-      }
-      data = await response.json();
+      data = await fetchJson(url);
     } catch (error) {
       console.error("Could not load the performance:", error);
       section.querySelector(".summary").textContent = message("adminPerformanceNotLoaded");

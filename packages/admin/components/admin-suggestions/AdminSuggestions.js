@@ -1,4 +1,5 @@
 import { message, valueLabel } from "@ev-maps/ui/messages.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const SUGGESTIONS_URL = "/api/admin/charger-suggestions";
 
@@ -26,11 +27,7 @@ class AdminSuggestionsElement extends HTMLElement {
     const params = status ? `?status=${encodeURIComponent(status)}` : "";
     let data;
     try {
-      const response = await fetch(`${SUGGESTIONS_URL}${params}`);
-      if (!response.ok) {
-        throw new Error(`${SUGGESTIONS_URL} failed: ${response.status}`);
-      }
-      data = await response.json();
+      data = await fetchJson(`${SUGGESTIONS_URL}${params}`);
     } catch (error) {
       console.error("Could not load charger suggestions:", error);
       this.summary.textContent = message("adminSuggestionsNotLoaded");
