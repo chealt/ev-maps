@@ -474,6 +474,13 @@ class RoutePlannerElement extends HTMLElement {
     }
   }
 
+  // A route from `origin` ({ label, location }), e.g. a point picked on the
+  // map: the planner opens with it filled in, to choose where to.
+  planFrom(origin) {
+    this.from.setPlace(origin);
+    this.open();
+  }
+
   // A route to `destination` ({ label, location }), e.g. a charger's
   // Navigate: planned right away from where the user is when they're signed
   // in and already allow their location; otherwise the planner opens with

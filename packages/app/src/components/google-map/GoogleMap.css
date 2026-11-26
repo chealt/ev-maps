@@ -1341,3 +1341,41 @@ ev-google-map.picking :is(.map-controls, .map-status) {
     gap: var(--spacing-sm);
   }
 }
+
+/* The right-click (or long press) menu: a route from or to the point, where
+   the pointer was (GoogleMap.js places it). */
+.map-menu:popover-open {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xs);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.map-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    background: var(--color-surface-hover);
+  }
+}

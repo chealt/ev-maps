@@ -245,7 +245,7 @@ test("takes places from the suggestions only, by keyboard too, clears them, and 
   await expect(page.getByRole("status")).toHaveText("No route found between these places");
 });
 
-test("starts from the user's location", async ({ page, context }) => {
+test("starts from the user's location, or a point picked on the map", async ({ page, context }) => {
   await context.grantPermissions(["geolocation"]);
   await context.setGeolocation({ latitude: 47.4979, longitude: 19.0402 });
   await fakeRouteChargersApi(page);
@@ -260,6 +260,29 @@ test("starts from the user's location", async ({ page, context }) => {
   await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
   const [routeRequest] = await page.evaluate(() => window.__routeRequests);
   expect(routeRequest.origin).toEqual({ lat: 47.4979, lng: 19.0402 });
+
+  // A right-click on the map (a long press on touch): a route to there plans
+  // it at once, from the user's location; from there opens the planner.
+  const map = page.locator(".google-map");
+  const menu = page.getByRole("menu", { name: "Route from or to here" });
+  const center = await page.evaluate(() => window.__fakeMap.getCenter().toJSON());
+  await map.click({ button: "right" });
+  await expect(menu.getByRole("menuitem", { name: "Route from here" })).toBeFocused();
+  await menu.getByRole("menuitem", { name: "Route to here" }).click();
+  await expect(menu).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.__routeRequests.length)).toBe(2);
+  const destination = await page.evaluate(() => window.__routeRequests[1].destination);
+  expect(destination.lat).toBeCloseTo(center.lat, 2);
+  expect(destination.lng).toBeCloseTo(center.lng, 2);
+
+  // The map has moved to the route since.
+  const routeCenter = await page.evaluate(() => window.__fakeMap.getCenter().toJSON());
+  await map.click({ button: "right" });
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue(
+    `${routeCenter.lat.toFixed(5)}, ${routeCenter.lng.toFixed(5)}`
+  );
 });
 
 test("plans the route in the page's language", async ({ page }) => {
