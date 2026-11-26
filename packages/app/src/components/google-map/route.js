@@ -1,3 +1,4 @@
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 // A route's line for the Worker's POST /api/chargers/route, and its chargers.
 
 // The Worker takes at most 5000 points (packages/worker/src/route-chargers.js).
@@ -51,8 +52,8 @@ const pathBounds = (path) => {
   };
 };
 
-const fetchChargersAlongRoute = async (path, corridorKm = CORRIDOR_KM) => {
-  const response = await fetch("/api/chargers/route", {
+const fetchChargersAlongRoute = (path, corridorKm = CORRIDOR_KM) =>
+  fetchJson("/api/chargers/route", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -63,10 +64,5 @@ const fetchChargersAlongRoute = async (path, corridorKm = CORRIDOR_KM) => {
       corridorKm,
     }),
   });
-  if (!response.ok) {
-    throw new Error(`Route chargers request failed: ${response.status}`);
-  }
-  return response.json();
-};
 
 export { CORRIDOR_KM, CORRIDOR_OPTIONS_KM, fetchChargersAlongRoute, pathBounds, toLatLng };

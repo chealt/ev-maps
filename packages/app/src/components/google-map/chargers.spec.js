@@ -6,7 +6,6 @@ import {
   fakeChargersApi,
   fakeStatusApi,
   requestCovers,
-  tileWidth,
 } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import fixtureChargers from "@ev-maps/e2e/fixtures/chargers.json" with { type: "json" };
 
@@ -15,38 +14,28 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page);
 });
 
-test("loads chargers for the visible area", { tag: "@regression" }, async ({ page }) => {
-  const requests = await fakeChargersApi(page);
-  await page.goto("/");
+// Which tiles are asked for (the zoom, the format, splitting dense ones) is
+// unit tested in chargers.test.js.
+test(
+  "loads the chargers of the visible area, and again where the map moves",
+  { tag: "@regression" },
+  async ({ page }) => {
+    const requests = await fakeChargersApi(page);
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+    expect(requests.some((request) => requestCovers(request, { lat: 40.7128, lng: -74.006 }))).toBe(
+      true
+    );
+    expect(
+      requests.every((request) => request.searchParams.get("v") === String(TILE_FORMAT_VERSION))
+    ).toBe(true);
 
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-  expect(requests.length).toBeGreaterThan(0);
-  expect(requests.some((request) => requestCovers(request, { lat: 40.7128, lng: -74.006 }))).toBe(
-    true
-  );
-});
-
-test("asks for chargers in the current format", async ({ page }) => {
-  const requests = await fakeChargersApi(page);
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-
-  for (const request of requests) {
-    expect(request.searchParams.get("v")).toBe(String(TILE_FORMAT_VERSION));
+    const london = { lat: 51.5074, lng: -0.1278 };
+    await page.evaluate((center) => window.__fakeMap.setCenter(center), london);
+    await expect.poll(() => requests.some((request) => requestCovers(request, london))).toBe(true);
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   }
-});
-
-test("loads chargers again when the map moves to a new area", async ({ page }) => {
-  const requests = await fakeChargersApi(page);
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-
-  const london = { lat: 51.5074, lng: -0.1278 };
-  await page.evaluate((center) => window.__fakeMap.setCenter(center), london);
-
-  await expect.poll(() => requests.some((request) => requestCovers(request, london))).toBe(true);
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-});
+);
 
 test.describe("with the service worker", () => {
   // Every other test blocks service workers (see playwright.config.js).
@@ -77,58 +66,35 @@ test.describe("with the service worker", () => {
       24 * 60 * 60 * 1000
     );
 
-  test("serves chargers from its cache after a reload", async ({ page }) => {
+  test("serves chargers from its cache, loads them again after a day, or uses the old ones offline", async ({
+    page,
+  }) => {
     const requests = await fakeChargersApi(page);
     await loadControlledPage(page);
     const requestCount = requests.length;
 
+    // From the cache after a reload.
     await page.reload();
-
     await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
     expect(requests).toHaveLength(requestCount);
-  });
 
-  test("loads chargers again after a day", async ({ page }) => {
-    const requests = await fakeChargersApi(page);
-    await loadControlledPage(page);
-    const requestCount = requests.length;
-
+    // Loaded again after a day.
     await ageCachedResponses(page);
     await page.reload();
-
     await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
     expect(requests.length).toBeGreaterThan(requestCount);
-  });
 
-  test("uses expired chargers when the network fails", async ({ page }) => {
-    await fakeChargersApi(page);
-    await loadControlledPage(page);
+    // A day old, without the network: the old ones.
     await ageCachedResponses(page);
-
     await page.context().unrouteAll();
     await page.context().route("**/api/chargers/**", (route) => route.abort());
     await page.reload();
-
     await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
   });
 });
 
-test("asks to zoom in when the visible area is too large", async ({ page }) => {
-  await fakeChargersApi(page);
-  await page.goto("/");
-  const markers = page.getByRole("region", { name: "EV charging station map" }).getByRole("button");
-  await expect(markers).toHaveCount(2);
-
-  await page.evaluate(() => window.__fakeMap.setZoom(5));
-  await expect(page.getByRole("status")).toHaveText("Zoom in to see EV chargers");
-  await expect(markers).toHaveCount(0);
-
-  await page.evaluate(() => window.__fakeMap.setZoom(12));
-  await expect(markers).toHaveCount(2);
-});
-
 test(
-  "zooms in to where chargers load from the zoom in warning",
+  "asks to zoom in where the area is too large, and zooms in to where chargers load",
   { tag: "@ui" },
   async ({ page }, testInfo) => {
     await fakeChargersApi(page);
@@ -138,6 +104,7 @@ test(
       .getByRole("button");
     await expect(markers).toHaveCount(2);
     await page.evaluate(() => window.__fakeMap.setZoom(5));
+    await expect(markers).toHaveCount(0);
 
     // The warning is a button that zooms in, not the list's.
     const zoomIn = page.getByRole("button", { name: "Zoom in to see EV chargers" });
@@ -156,54 +123,32 @@ test(
   }
 );
 
-test("loads smaller tiles where an area is too dense for one request", async ({ page }) => {
-  // Tiles at the default zoom are ~0.35° wide; their smaller tiles are ~0.18°.
-  const requests = await fakeChargersApi(page, { fullTilesWiderThan: 0.3 });
-  await page.goto("/");
-
-  await expect(page.getByRole("status")).toHaveText(/^\d+ EV chargers found$/);
-  expect(requests.some((request) => tileWidth(request) < 0.3)).toBe(true);
-});
-
-test("says when only some chargers are shown", async ({ page }) => {
+test("says when only some chargers are shown, or none could be loaded", async ({ page }) => {
   await page.setViewportSize({ width: 400, height: 300 });
   await fakeChargersApi(page, { fullTilesWiderThan: 0 });
   await page.goto("/");
-
   await expect(page.getByRole("status")).toHaveText(
     /^Showing \d+ EV chargers, zoom in to see all$/
   );
-});
 
-test("reports a failed request", async ({ page }) => {
+  await page.context().unrouteAll();
   await page.route("**/api/chargers/**", (route) => route.fulfill({ status: 500 }));
-  await page.goto("/");
-
+  await page.reload();
   await expect(page.getByRole("status")).toHaveText("Could not load EV chargers");
 });
 
-test("groups nearby chargers when zoomed out", async ({ page }) => {
+test("groups nearby chargers when zoomed out, and splits a group when clicked", async ({
+  page,
+}) => {
   await fakeChargersApi(page);
   await page.goto("/");
   const map = page.getByRole("region", { name: "EV charging station map" });
   await expect(map.getByRole("button")).toHaveCount(2);
 
   await page.evaluate(() => window.__fakeMap.setZoom(9));
-
-  await expect(map.getByRole("button", { name: "2 EV chargers" })).toBeVisible();
   await expect(map.getByRole("button")).toHaveCount(1);
-});
-
-test("zooms in to split a group when it is clicked", async ({ page }) => {
-  await fakeChargersApi(page);
-  await page.goto("/");
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  // The map exists once its chargers show.
-  await expect(map.getByRole("button")).toHaveCount(2);
-  await page.evaluate(() => window.__fakeMap.setZoom(9));
 
   await map.getByRole("button", { name: "2 EV chargers" }).click();
-
   await expect(map.getByRole("button", { name: "Downtown Supercharger" })).toBeVisible();
   await expect(map.getByRole("button")).toHaveCount(2);
   expect(await page.evaluate(() => window.__fakeMap.zoom)).toBeGreaterThan(9);
