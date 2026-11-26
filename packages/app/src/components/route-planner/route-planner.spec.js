@@ -262,11 +262,21 @@ test("starts from the user's location", async ({ page, context }) => {
   expect(routeRequest.origin).toEqual({ lat: 47.4979, lng: 19.0402 });
 });
 
-test("plans the route in the page's language", async ({ page }) => {
+test("plans the route in the page's language, its buttons on a small phone's screen", async ({
+  page,
+}) => {
   await fakeRouteChargersApi(page);
+  await page.setViewportSize({ width: 320, height: 640 });
   await page.goto("/pl/");
   await page.getByRole("button", { name: "Trasa" }).click();
   const dialog = page.getByRole("dialog", { name: "Zaplanuj trasę" });
+
+  // The longer labels than English's still fit beside each other (#331).
+  for (const name of ["Wyczyść trasę", "Udostępnij trasę", "Pokaż trasę"]) {
+    const box = await dialog.getByRole("button", { name, exact: true }).boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(320);
+  }
 
   await choosePlace(dialog, "Skąd", "Buda", "Budapest, Hungary");
   await choosePlace(dialog, "Dokąd", "Vie", "Vienna, Austria");

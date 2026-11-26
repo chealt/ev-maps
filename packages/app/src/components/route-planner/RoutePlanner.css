@@ -43,6 +43,22 @@
     justify-content: center;
     gap: var(--spacing-sm);
     padding-bottom: var(--spacing-lg);
+
+    /* On a phone, "Clear route" and "Show route" share the width left
+       by Share, their labels wrapping rather than running off screen (#331). */
+    @media (width < 40em) {
+      align-items: center;
+
+      > .button {
+        padding-inline: var(--spacing-md);
+      }
+
+      > .button:not(.share-route) {
+        flex: 1;
+        min-width: 0;
+        white-space: normal;
+      }
+    }
   }
 
   .route-stops {
