@@ -1,0 +1,20 @@
+.badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &:empty {
+    display: none;
+  }
+
+  > li {
+    display: flex;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+}

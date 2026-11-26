@@ -757,11 +757,28 @@ ev-google-map {
     margin-top: var(--spacing-xs);
   }
 
+  /* The actions on one line: their labels end in "…" when it's narrow. */
   .directions {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--spacing-xs);
     margin-top: var(--spacing-md);
+
+    .button {
+      flex: 0 1 auto;
+      min-width: 0;
+      gap: var(--spacing-xs);
+      padding-inline: var(--spacing-xs) var(--spacing-sm);
+      font-size: var(--font-size-sm);
+
+      &[hidden] {
+        display: none;
+      }
+    }
+
+    .label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* The maps apps, under the buttons while "Open in maps" is expanded. */
@@ -1145,13 +1162,6 @@ ev-google-map {
 
   .facts {
     grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-
-    &:empty {
-      display: none;
-    }
   }
 
   .address {
@@ -1343,5 +1353,43 @@ ev-google-map.picking :is(.map-controls, .map-status) {
   .pick-actions {
     display: flex;
     gap: var(--spacing-sm);
+  }
+}
+
+/* The right-click (or long press) menu: a route from or to the point, where
+   the pointer was (GoogleMap.js places it). */
+.map-menu:popover-open {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xs);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+.map-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    background: var(--color-surface-hover);
   }
 }

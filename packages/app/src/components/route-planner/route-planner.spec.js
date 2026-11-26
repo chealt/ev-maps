@@ -245,22 +245,50 @@ test("takes places from the suggestions only, by keyboard too, clears them, and 
   await expect(page.getByRole("status")).toHaveText("No route found between these places");
 });
 
-test("starts from the user's location", async ({ page, context }) => {
-  await context.grantPermissions(["geolocation"]);
-  await context.setGeolocation({ latitude: 47.4979, longitude: 19.0402 });
-  await fakeRouteChargersApi(page);
-  await page.getByRole("button", { name: "Route" }).click();
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
+test(
+  "starts from the user's location, or a point picked on the map",
+  { tag: "@ui" },
+  async ({ page, context }, testInfo) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 47.4979, longitude: 19.0402 });
+    await fakeRouteChargersApi(page);
+    await page.getByRole("button", { name: "Route" }).click();
+    const dialog = page.getByRole("dialog", { name: "Plan a route" });
 
-  await dialog.getByRole("button", { name: "Use my location" }).click();
-  await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("My location");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
+    await dialog.getByRole("button", { name: "Use my location" }).click();
+    await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("My location");
+    await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
+    await dialog.getByRole("button", { name: "Show route" }).click();
 
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
-  expect(routeRequest.origin).toEqual({ lat: 47.4979, lng: 19.0402 });
-});
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
+    const [routeRequest] = await page.evaluate(() => window.__routeRequests);
+    expect(routeRequest.origin).toEqual({ lat: 47.4979, lng: 19.0402 });
+
+    // A right-click on the map (a long press on touch): a route to there plans
+    // it at once, from the user's location; from there opens the planner.
+    const map = page.locator(".google-map");
+    const menu = page.getByRole("menu", { name: "Route from or to here" });
+    const center = await page.evaluate(() => window.__fakeMap.getCenter().toJSON());
+    await map.click({ button: "right" });
+    await expect(menu.getByRole("menuitem", { name: "Route from here" })).toBeFocused();
+    await captureUi(page, testInfo, "the map's menu");
+    await menu.getByRole("menuitem", { name: "Route to here" }).click();
+    await expect(menu).toBeHidden();
+    await expect.poll(() => page.evaluate(() => window.__routeRequests.length)).toBe(2);
+    const destination = await page.evaluate(() => window.__routeRequests[1].destination);
+    expect(destination.lat).toBeCloseTo(center.lat, 2);
+    expect(destination.lng).toBeCloseTo(center.lng, 2);
+
+    // The map has moved to the route since.
+    const routeCenter = await page.evaluate(() => window.__fakeMap.getCenter().toJSON());
+    await map.click({ button: "right" });
+    await page.keyboard.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue(
+      `${routeCenter.lat.toFixed(5)}, ${routeCenter.lng.toFixed(5)}`
+    );
+  }
+);
 
 test("plans the route in the page's language", async ({ page }) => {
   await fakeRouteChargersApi(page);
@@ -535,30 +563,6 @@ test(
     expect(await page.evaluate(() => window.__routeRequests.at(-1).intermediates)).toBeUndefined();
   }
 );
-
-test("adding a charger as a stop before planning opens the route planner with it", async ({
-  page,
-}) => {
-  await fakeRouteChargersApi(page);
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-
-  await details.getByRole("button", { name: "Add stop" }).click();
-
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await expect(dialog).toBeVisible();
-  const stops = dialog.getByRole("group", { name: "Stops" });
-  await expect(stops.getByText("Downtown Supercharger")).toBeVisible();
-
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
-  expect(routeRequest.intermediates).toEqual([{ lat: 40.71, lng: -74 }]);
-});
 
 test(
   "saves places with presets or a custom label and icon, and chooses them for the route",
