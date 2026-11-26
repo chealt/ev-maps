@@ -21,6 +21,7 @@
     "./Badge.css": "./badge/Badge.css",
     "./EmptyState.astro": "./empty-state/EmptyState.astro",
     "./Tooltip.astro": "./tooltip/Tooltip.astro",
+    "./Stat.astro": "./stat/Stat.astro",
     "./Table.astro": "./table/Table.astro"
   },
   "scripts": {

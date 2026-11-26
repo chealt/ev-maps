@@ -2,6 +2,7 @@
 import Table from "@ev-maps/ui/Table.astro";
 import { ArrowLeft, ChevronDown } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
 import Field from "@ev-maps/ui/Field.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { formatMessage } from "@ev-maps/ui/format.js";
@@ -120,7 +121,7 @@ const occurrenceFacts = (occurrence: any) => [
       <p class="summary">{summary}</p>
       <ol class="occurrences">
         {data.occurrences.map((occurrence: any) => (
-          <li class="occurrence">
+          <Card as="li" class="occurrence">
             <dl class="facts">
               {occurrenceFacts(occurrence).map(([label, value]) => (
                 <div>
@@ -133,7 +134,7 @@ const occurrenceFacts = (occurrence: any) => [
               <summary>{page.adminStackTrace}</summary>
               <pre class="stack">{occurrence.stack || none}</pre>
             </details>
-          </li>
+          </Card>
         ))}
       </ol>
     </section>
@@ -267,25 +268,35 @@ const occurrenceFacts = (occurrence: any) => [
   {data?.pages > 1 && (
     <nav class="pager" aria-label={page.adminPages}>
       {data.page > 1 ? (
-        <a class="previous" href={viewUrl({ error: data.fingerprint, page: data.page - 1 })}>
+        <Button
+          variant="secondary"
+          size="small"
+          class="previous"
+          href={viewUrl({ error: data.fingerprint, page: data.page - 1 })}
+        >
           {page.adminPreviousPage}
-        </a>
+        </Button>
       ) : (
-        <span class="previous" aria-disabled="true">
+        <Button variant="secondary" size="small" class="previous" disabled>
           {page.adminPreviousPage}
-        </span>
+        </Button>
       )}
       <span class="page-of">
         {formatMessage(lang, messages.adminPageOf, { page: data.page, pages: data.pages })}
       </span>
       {data.page < data.pages ? (
-        <a class="next" href={viewUrl({ error: data.fingerprint, page: data.page + 1 })}>
+        <Button
+          variant="secondary"
+          size="small"
+          class="next"
+          href={viewUrl({ error: data.fingerprint, page: data.page + 1 })}
+        >
           {page.adminNextPage}
-        </a>
+        </Button>
       ) : (
-        <span class="next" aria-disabled="true">
+        <Button variant="secondary" size="small" class="next" disabled>
           {page.adminNextPage}
-        </span>
+        </Button>
       )}
     </nav>
   )}

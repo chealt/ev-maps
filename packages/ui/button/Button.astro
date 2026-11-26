@@ -5,17 +5,26 @@ import "./Button.css";
 interface Props extends HTMLAttributes<"button"> {
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "small" | "medium" | "large" | "icon-only";
+  /** Makes it a link that looks like a button. */
+  href?: string;
 }
 
 const {
   variant = "primary",
   size = "medium",
   type = "button",
+  href,
   class: className,
   ...attrs
 } = Astro.props;
 ---
 
-<button type={type} class:list={["button", variant, size, className]} {...attrs}>
-  <slot />
-</button>
+{href ? (
+  <a href={href} class:list={["button", variant, size, className]} {...attrs}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class:list={["button", variant, size, className]} {...attrs}>
+    <slot />
+  </button>
+)}

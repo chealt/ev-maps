@@ -17,31 +17,6 @@ ev-admin-usage {
     font-weight: var(--font-weight-bold);
   }
 
-  .periods {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
-  .period {
-    padding: var(--spacing-xs) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-full);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
-    font-size: var(--font-size-sm);
-    white-space: nowrap;
-    cursor: pointer;
-
-    &[aria-pressed="true"] {
-      border-color: var(--color-primary);
-      background: var(--color-primary-light);
-      color: var(--color-primary-light-text);
-      font-weight: var(--font-weight-semibold);
-    }
-  }
-
   .summary {
     margin-bottom: var(--spacing-md);
     font-size: var(--font-size-sm);
@@ -53,23 +28,6 @@ ev-admin-usage {
     grid-template-columns: repeat(auto-fill, minmax(var(--total-min-width), 1fr));
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-xl);
-  }
-
-  .total {
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
-
-    dt {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-muted);
-    }
-
-    .value {
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
-      font-variant-numeric: tabular-nums;
-    }
   }
 
   .subtitle {

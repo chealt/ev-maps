@@ -1,0 +1,25 @@
+---
+// One figure with its name, for a row of key numbers: a card holding a
+// `dt` (the label, or the `label` slot) and a `dd` with the big value. Put
+// stats in a `dl`. The value starts as `value` ("–" by default); a script
+// can fill in `.value`. The default slot adds more `dd`s, e.g. a count.
+import Card from "../card/Card.astro";
+import "./Stat.css";
+
+interface Props {
+  label?: string;
+  value?: string;
+  class?: string;
+  [attribute: string]: unknown;
+}
+
+const { label, value = "–", class: className, ...attrs } = Astro.props;
+---
+
+<Card as="div" class:list={["stat", className]} {...attrs}>
+  <dt class="label">
+    <slot name="label">{label}</slot>
+  </dt>
+  <dd class="value">{value}</dd>
+  <slot />
+</Card>

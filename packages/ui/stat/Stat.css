@@ -1,0 +1,14 @@
+.stat {
+  gap: var(--spacing-2xs);
+
+  .label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    font-variant-numeric: tabular-nums;
+  }
+}

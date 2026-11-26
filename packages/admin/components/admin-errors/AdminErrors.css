@@ -94,20 +94,6 @@
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-sm);
-
-    .previous,
-    .next {
-      padding: var(--spacing-xs) var(--spacing-md);
-      border: var(--border-width) solid var(--color-border-strong);
-      border-radius: var(--border-radius-full);
-      background: var(--color-surface);
-      color: var(--color-text);
-      text-decoration: none;
-    }
-
-    [aria-disabled="true"] {
-      opacity: var(--opacity-disabled);
-    }
   }
 
   .all-errors {
@@ -124,12 +110,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-  }
-
-  .occurrence {
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
   }
 
   .facts {

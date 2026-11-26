@@ -19,33 +19,6 @@ ev-admin-performance {
     overflow-wrap: anywhere;
   }
 
-  .periods,
-  .trend-vitals {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-  }
-
-  .period,
-  .trend-vital {
-    padding: var(--spacing-xs) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-full);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
-    font-size: var(--font-size-sm);
-    white-space: nowrap;
-    cursor: pointer;
-
-    &[aria-pressed="true"] {
-      border-color: var(--color-primary);
-      background: var(--color-primary-light);
-      color: var(--color-primary-light-text);
-      font-weight: var(--font-weight-semibold);
-    }
-  }
-
   .vital-trend {
     display: flex;
     flex-direction: column;
@@ -82,10 +55,7 @@ ev-admin-performance {
 
   /* Colored by the P75's rating: good, needs improvement, poor. */
   .vital {
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
     border-left-width: var(--border-width-marker);
-    border-radius: var(--border-radius-md);
 
     &[data-rating="good"] {
       border-left-color: var(--color-primary);
@@ -97,17 +67,6 @@ ev-admin-performance {
 
     &[data-rating="poor"] {
       border-left-color: var(--color-danger);
-    }
-
-    dt {
-      font-size: var(--font-size-sm);
-      font-weight: var(--font-weight-semibold);
-    }
-
-    .value {
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-bold);
-      font-variant-numeric: tabular-nums;
     }
 
     .count {
@@ -126,7 +85,7 @@ ev-admin-performance {
   }
 
   /* Long statements (e.g. batches) show three lines; all of it on hover. */
-  [data-table="queries"] tbody th,
+  [data-table="queries"] tbody .name,
   .statement {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -135,7 +94,7 @@ ev-admin-performance {
     overflow: hidden;
   }
 
-  [data-table="queries"] tbody th {
+  [data-table="queries"] tbody .name {
     font-family: monospace;
     font-size: var(--font-size-xs);
   }
