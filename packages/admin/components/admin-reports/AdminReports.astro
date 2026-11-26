@@ -1,4 +1,5 @@
 ---
+import Field from "@ev-maps/ui/Field.astro";
 import "./AdminReports.css";
 
 interface Props {
@@ -17,15 +18,14 @@ const { page } = Astro.props;
       {page.adminReports}
     </h2>
     <!-- Filled in with the branches that have reports; "main" until then. -->
-    <label class="branch-filter">
-      {page.adminBranchFilter}
-      <select class="branch-select">
+    <Field label={page.adminBranchFilter} size="small" class="branch-filter">
+      <select class="field-control branch-select">
         <option value="">{page.adminAllBranches}</option>
         <option value="main" selected>
           main
         </option>
       </select>
-    </label>
+    </Field>
     <p class="summary"></p>
     <div class="table-wrapper">
       <table class="reports">

@@ -11,7 +11,7 @@ class PlaceInputElement extends HTMLElement {
   activeIndex = -1;
 
   connectedCallback() {
-    this.input = this.querySelector(".field");
+    this.input = this.querySelector(".field-control");
     this.clearButton = this.querySelector(".clear-place");
     this.list = this.querySelector(".options");
     this.template = this.querySelector(".option-template");

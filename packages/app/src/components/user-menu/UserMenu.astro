@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import LanguagePicker from "../language-picker/LanguagePicker.astro";
 import LocateButton from "../locate-button/LocateButton.astro";
@@ -132,18 +133,16 @@ const { page } = translations(lang);
       </button>
       <form class="email-sign-in" data-method="email" hidden>
         <p class="divider">{page.orWithEmail}</p>
-        <label class="email-label" for="sign-in-email">
-          {page.emailAddress}
-        </label>
-        <input
-          class="email-input"
-          id="sign-in-email"
-          type="email"
-          name="email"
-          required
-          autocomplete="email"
-          spellcheck="false"
-        />
+        <Field label={page.emailAddress} class="email-field">
+          <input
+            class="field-control email-input"
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            spellcheck="false"
+          />
+        </Field>
         <button type="submit" class="provider email-link">
           <Icon icon={Mail} size="sm" />
           {page.emailMeALink}

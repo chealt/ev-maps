@@ -16,7 +16,8 @@
     "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro",
     "./fetch-json.js": "./fetch-json/fetch-json.js",
     "./Switch.astro": "./switch/Switch.astro",
-    "./Dialog.astro": "./dialog/Dialog.astro"
+    "./Dialog.astro": "./dialog/Dialog.astro",
+    "./Field.astro": "./field/Field.astro"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",

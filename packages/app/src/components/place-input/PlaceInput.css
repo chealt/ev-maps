@@ -7,51 +7,8 @@
   flex-direction: column;
   gap: var(--spacing-xs);
 
-  .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-sm);
-  }
-
-  .label-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2xs);
-  }
-
-  .label {
-    font-weight: var(--font-weight-semibold);
-  }
-
-  .field-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  /* An explicit height: without one the field's height depends on the
-     browser's input defaults (iOS Safari's especially), so the From and To
-     fields could end up different heights. */
-  .field {
-    width: 100%;
-    min-height: 3.25rem;
-    padding: var(--overlay-gap) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-md);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
-    line-height: var(--line-height-base);
-
-    &:has(+ .clear-place:not([hidden])) {
-      padding-inline-end: var(--field-clear-padding);
-    }
-
-    &:focus-visible {
-      outline: var(--border-width-thick) solid var(--color-primary);
-      outline-offset: var(--border-width);
-    }
+  .field-control:has(+ .clear-place:not([hidden])) {
+    padding-inline-end: var(--field-clear-padding);
   }
 
   .clear-place {

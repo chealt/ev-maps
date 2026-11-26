@@ -78,7 +78,6 @@
     font-weight: var(--font-weight-bold);
   }
 
-  .field-label,
   .icons {
     display: flex;
     flex-direction: column;
@@ -88,16 +87,6 @@
   .label {
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
-  }
-
-  .field {
-    width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--border-radius-md);
-    background: var(--color-surface);
-    color: var(--color-text);
-    font: inherit;
   }
 
   .icon-options {

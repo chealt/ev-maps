@@ -1,6 +1,7 @@
 ---
 import { ArrowLeft, ChevronDown } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminErrors.css";
@@ -142,66 +143,49 @@ const occurrenceFacts = (occurrence: any) => [
       </h2>
       {data && (
         <form class="filters" method="get" aria-label={page.adminErrorFilters}>
-          <label class="filter">
-            <span class="filter-label">{page.adminSourceColumn}</span>
-            <span class="select-wrap">
-              <select name="source">
-                <option value="">{page.adminFilterAll}</option>
-                {facets.sources.map((source: string) => (
-                  <option value={source} selected={filters.source === source}>
-                    {page.adminErrorSources[source] ?? source}
-                  </option>
-                ))}
-              </select>
-              <Icon icon={ChevronDown} size="sm" class="chevron" />
-            </span>
-          </label>
-          <label class="filter">
-            <span class="filter-label">{page.adminBrowserColumn}</span>
-            <span class="select-wrap">
-              <select name="browser">
-                <option value="">{page.adminFilterAll}</option>
-                {facets.browsers.map((browser: string) => (
-                  <option value={browser} selected={filters.browser === browser}>
-                    {browser}
-                  </option>
-                ))}
-              </select>
-              <Icon icon={ChevronDown} size="sm" class="chevron" />
-            </span>
-          </label>
-          <label class="filter">
-            <span class="filter-label">{page.adminOsColumn}</span>
-            <span class="select-wrap">
-              <select name="os">
-                <option value="">{page.adminFilterAll}</option>
-                {facets.oss.map((os: string) => (
-                  <option value={os} selected={filters.os === os}>
-                    {os}
-                  </option>
-                ))}
-              </select>
-              <Icon icon={ChevronDown} size="sm" class="chevron" />
-            </span>
-          </label>
-          <label class="filter">
-            <span class="filter-label">{page.adminCountryLabel}</span>
-            <span class="select-wrap">
-              <select name="country">
-                <option value="">{page.adminFilterAll}</option>
-                {facets.countries.map((country: string) => (
-                  <option value={country} selected={filters.country === country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-              <Icon icon={ChevronDown} size="sm" class="chevron" />
-            </span>
-          </label>
-          <label class="filter search">
-            <span class="filter-label">{page.adminFilterSearch}</span>
-            <input type="search" name="q" value={filters.q ?? ""} />
-          </label>
+          <Field label={page.adminSourceColumn} size="small">
+            <select class="field-control" name="source">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.sources.map((source: string) => (
+                <option value={source} selected={filters.source === source}>
+                  {page.adminErrorSources[source] ?? source}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={page.adminBrowserColumn} size="small">
+            <select class="field-control" name="browser">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.browsers.map((browser: string) => (
+                <option value={browser} selected={filters.browser === browser}>
+                  {browser}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={page.adminOsColumn} size="small">
+            <select class="field-control" name="os">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.oss.map((os: string) => (
+                <option value={os} selected={filters.os === os}>
+                  {os}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={page.adminCountryLabel} size="small">
+            <select class="field-control" name="country">
+              <option value="">{page.adminFilterAll}</option>
+              {facets.countries.map((country: string) => (
+                <option value={country} selected={filters.country === country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label={page.adminFilterSearch} size="small" class="search">
+            <input type="search" class="field-control" name="q" value={filters.q ?? ""} />
+          </Field>
           {/* Applying the filters keeps the order chosen in the headers. */}
           {sort !== "last_seen" && <input type="hidden" name="sort" value={sort} />}
           <Button variant="secondary" size="small" type="submit" class="apply">

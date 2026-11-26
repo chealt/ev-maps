@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -158,15 +159,14 @@ const placePresets = [
           </Button>
         ))}
       </div>
-      <label class="save-place-field">
-        <span class="label">{page.savedPlaceLabel}</span>
+      <Field label={page.savedPlaceLabel}>
         <input
           type="text"
-          class="field save-place-name"
+          class="field-control save-place-name"
           maxlength="60"
           placeholder={page.savedPlaceLabelPlaceholder}
         />
-      </label>
+      </Field>
       <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
         <span class="label" id="save-place-icon-title">
           {page.savedPlaceIcon}
