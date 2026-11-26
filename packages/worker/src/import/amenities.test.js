@@ -6,14 +6,19 @@ import { upsertChargers } from "../db.js";
 // replaced with this.
 const overpassQueries = [];
 let overpassElements = [];
+// Queries this says no to fail, as an overloaded mirror would.
+let overpassRefuses = () => false;
 mock.module("./openstreetmap.js", () => ({
   fetchOverpass: async (query) => {
     overpassQueries.push(query);
+    if (overpassRefuses(query)) {
+      throw new Error("Overpass failed: maps.mail.ru: 504");
+    }
     return overpassElements;
   },
 }));
 
-const { listJobs, runStep, SOURCE } = await import("./amenities.js");
+const { doneQuadrants, listJobs, quadrantOf, runStep, SOURCE } = await import("./amenities.js");
 
 const db = () => {
   const database = testD1(
@@ -125,7 +130,7 @@ describe("amenities runStep", () => {
     ]);
   });
 
-  test("looks up a busy cell a quadrant at a time, by the job's cursor", async () => {
+  const busyCell = async () => {
     const env = { DB: db() };
     await upsertChargers(
       env.DB,
@@ -140,30 +145,54 @@ describe("amenities runStep", () => {
     );
     overpassQueries.length = 0;
     overpassElements = [];
+    overpassRefuses = () => false;
+    return env;
+  };
+  const unchecked = async (env) =>
+    (await env.DB.prepare("SELECT COUNT(*) AS count FROM chargers WHERE amenities IS NULL").first())
+      .count;
+  test("looks up a busy cell's quadrants all at once, in one step", async () => {
+    const env = await busyCell();
 
-    const steps = [];
-    let cursor = null;
-    do {
-      const result = await runStep(env, { source: SOURCE, area: "47,19", cursor });
-      steps.push(result);
-      cursor = result.cursor;
-    } while (!steps.at(-1).done);
+    const result = await runStep(env, { source: SOURCE, area: "47,19", cursor: null });
 
-    expect(steps).toEqual([
-      { done: false, cursor: 1 },
-      { done: false, cursor: 2 },
-      { done: false, cursor: 3 },
-      { done: true, cursor: 4 },
-    ]);
-    // Four queries, one per quadrant of the cell.
+    expect(result).toEqual({ done: true, cursor: null });
+    // Four queries, one per quadrant, none for the whole cell.
     expect(overpassQueries).toHaveLength(4);
     for (const query of overpassQueries) {
-      expect(query).not.toContain("47.00000,19.00000,48.00000,20.00000");
+      expect(query).not.toContain("46.99865,18.99799,48.00135,20.00201");
     }
-    // Every charger was looked at: none is left with no mask.
-    const unchecked = await env.DB.prepare(
-      "SELECT COUNT(*) AS count FROM chargers WHERE amenities IS NULL"
-    ).first();
-    expect(unchecked.count).toBe(0);
+    expect(await unchecked(env)).toBe(0);
+  });
+
+  test("keeps the quadrants that failed for the next step, and fails only when none worked", async () => {
+    const env = await busyCell();
+    // The north-east quadrant's mirror is overloaded.
+    overpassRefuses = (query) => query.includes("(47.49865,19.49");
+
+    const first = await runStep(env, { source: SOURCE, area: "47,19", cursor: null });
+    expect(first).toEqual({ done: false, cursor: "0,1,2" });
+    expect(await unchecked(env)).toBe(1);
+
+    // Next time, only that one is asked for.
+    overpassQueries.length = 0;
+    await expect(runStep(env, { source: SOURCE, area: "47,19", cursor: "0,1,2" })).rejects.toThrow(
+      "Overpass failed"
+    );
+    expect(overpassQueries).toHaveLength(1);
+    overpassRefuses = () => false;
+    const second = await runStep(env, { source: SOURCE, area: "47,19", cursor: "0,1,2" });
+    expect(second).toEqual({ done: true, cursor: null });
+    expect(await unchecked(env)).toBe(0);
+  });
+});
+
+describe("doneQuadrants", () => {
+  test("reads the quadrants done, also from a cursor of the one-at-a-time steps", () => {
+    expect([...doneQuadrants(null)]).toEqual([]);
+    expect([...doneQuadrants("0,2")]).toEqual([0, 2]);
+    expect([...doneQuadrants("2")]).toEqual([0, 1]);
+    expect([...doneQuadrants("2.0")]).toEqual([0, 1]);
+    expect([...doneQuadrants(4)]).toEqual([0, 1, 2, 3]);
   });
 });
