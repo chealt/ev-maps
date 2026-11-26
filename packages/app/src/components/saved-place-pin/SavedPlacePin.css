@@ -1,0 +1,26 @@
+/* The icon sits in the middle of the circle. Its wrapper is a grid too, not
+   a line of text, so the icon doesn't sit on a text baseline, which would
+   move it up by the font's descent (and differently for each font). */
+.saved-place-pin {
+  --saved-place-pin-size: var(--marker-size, 2.25rem);
+
+  display: grid;
+  flex: none;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--saved-place-pin-size);
+  height: var(--saved-place-pin-size);
+  border: var(--border-width-marker) solid var(--color-secondary);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-secondary);
+
+  .pin-icon {
+    display: grid;
+    place-items: center;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+}

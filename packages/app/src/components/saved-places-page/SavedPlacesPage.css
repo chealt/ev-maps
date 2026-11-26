@@ -1,0 +1,114 @@
+.saved-places-page {
+  --saved-places-content-width: 40rem;
+  --place-icon-size: 2.5rem;
+
+  max-width: var(--saved-places-content-width);
+  margin: 0 auto;
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+  color: var(--color-text);
+  line-height: var(--line-height-base);
+
+  .links {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    font-size: var(--font-size-sm);
+
+    a {
+      color: var(--color-primary-light-text);
+    }
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .subtitle,
+  .summary,
+  .place-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .subtitle {
+    margin-top: var(--spacing-2xs);
+  }
+
+  .summary {
+    margin: var(--spacing-sm) 0 var(--spacing-md);
+  }
+
+  .place-list,
+  .place-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .place-form {
+    margin-top: var(--spacing-md);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* As the saved place's pin on the map (GoogleMap.css). */
+  .place-icon {
+    --saved-place-pin-size: var(--place-icon-size);
+  }
+
+  .place-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .field-label,
+  .icons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .field {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .icon-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+  }
+}

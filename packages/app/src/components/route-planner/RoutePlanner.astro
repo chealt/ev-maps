@@ -9,15 +9,15 @@ import {
   History,
   House,
   LocateFixed,
-  MapPin,
   Share2,
-  Star,
   X,
 } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
+import ShortLabel from "./ShortLabel.astro";
+import { savedPlaceIcons } from "./saved-place-icons.js";
 import "./RoutePlanner.css";
 
 interface Props {
@@ -27,14 +27,7 @@ interface Props {
 const { id } = Astro.props;
 const { page, values } = translations(Astro.currentLocale ?? "en");
 
-const placeIcons = [
-  { id: "home", icon: House },
-  { id: "work", icon: Briefcase },
-  { id: "school", icon: GraduationCap },
-  { id: "star", icon: Star },
-  { id: "heart", icon: Heart },
-  { id: "pin", icon: MapPin },
-];
+const placeIcons = savedPlaceIcons;
 
 const placePresets = [
   { id: "home", label: page.savedPlaceHome, icon: "home", iconSvg: House },
@@ -271,14 +264,16 @@ const placePresets = [
       </template>
     </form>
     <div class="footer">
+      <!-- One word shows, so the buttons fit on a phone (#331); the rest of
+           their names is there for screen readers. -->
       <Button variant="secondary" size="large" class="clear-route" disabled>
-        {page.clearRoute}
+        <ShortLabel label={page.clearRoute} short={page.clearRouteShort} />
       </Button>
       <Button variant="secondary" size="large" class="share-route" aria-label={page.shareRoute}>
         <Icon icon={Share2} size="sm" />
       </Button>
       <Button variant="primary" size="large" type="submit" form="route-planner-form">
-        {page.showRoute}
+        <ShortLabel label={page.showRoute} short={page.showRouteShort} />
       </Button>
     </div>
   </dialog>

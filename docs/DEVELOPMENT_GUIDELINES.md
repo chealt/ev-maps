@@ -608,7 +608,11 @@ routing.
 **❌ NEVER write copy in JavaScript, in the Worker or in a component.** All
 text lives in `src/i18n/{language}/{section}.js`, used only at build time;
 the
-build fails if a language is missing a key that English has.
+build fails if a language is missing a key that English has, or starts a
+text in lowercase where English starts with a capital (a label from the
+middle of a phrase, like Hungarian's "törlése", is written "Törlése"). Where
+English starts with a name and the translation rightly doesn't, add the key
+to `STARTS_WITH_A_NAME` in `src/i18n/index.js`.
 
 - **Sections**: `common` (used on more than one kind of page, or by the
   layout), `map` (the map, filters, charger details, routes), `account` (the

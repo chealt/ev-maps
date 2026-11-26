@@ -171,6 +171,20 @@ describe("distanceUnit", () => {
   });
 });
 
+describe("savedPlacesOnMap", () => {
+  test("takes shown or hidden, or null for the default", () => {
+    for (const shown of [true, false, null]) {
+      expect(validSection("savedPlacesOnMap", { shown, updatedAt: 1 })).toBe(true);
+    }
+  });
+
+  test("turns down other values", () => {
+    for (const shown of ["yes", 1, undefined]) {
+      expect(validSection("savedPlacesOnMap", { shown, updatedAt: 1 })).toBe(false);
+    }
+  });
+});
+
 describe("car", () => {
   test("takes connector groups and the auto-filter toggle", () => {
     expect(

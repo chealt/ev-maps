@@ -74,24 +74,44 @@ const readSavedPlaces = async () => {
   return savedPlaces;
 };
 
-// Saves a place ({ name, icon, label, placeId } or { name, icon, label,
-// location }); replaces one with the same name or the same place.
+// Tells the map and the saved places page that the places changed.
+const announceSavedPlaces = () =>
+  document.dispatchEvent(new CustomEvent("saved-places-change", { detail: savedPlaces }));
+
+const storeSavedPlaces = async (places) => {
+  savedPlaces = places;
+  announceSavedPlaces();
+  await saveAccountSettings({ savedPlaces: { places, updatedAt: Date.now() } });
+  return savedPlaces;
+};
+
+// Saves a place ({ name, icon, label, placeId, location } or { name, icon,
+// label, location }: the map shows it at its location); replaces one with
+// the same name or the same place.
 const savePlace = async (place) => {
   const current = await readSavedPlaces();
   const normalizedName = place.name.trim().toLowerCase();
   const rest = current.filter(
     (entry) => entry.name.trim().toLowerCase() !== normalizedName && endKey(entry) !== endKey(place)
   );
-  savedPlaces = [{ ...place, name: place.name.trim() }, ...rest].slice(0, MAX_SAVED_PLACES);
-  await saveAccountSettings({ savedPlaces: { places: savedPlaces, updatedAt: Date.now() } });
-  return savedPlaces;
+  return storeSavedPlaces(
+    [{ ...place, name: place.name.trim() }, ...rest].slice(0, MAX_SAVED_PLACES)
+  );
+};
+
+// Renames a saved place or changes its icon ({ name, icon }), in place.
+const updateSavedPlace = async (place, { name, icon }) => {
+  const current = await readSavedPlaces();
+  return storeSavedPlaces(
+    current.map((entry) =>
+      endKey(entry) === endKey(place) ? { ...entry, name: name.trim(), icon } : entry
+    )
+  );
 };
 
 const removeSavedPlace = async (place) => {
   const current = await readSavedPlaces();
-  savedPlaces = current.filter((entry) => endKey(entry) !== endKey(place));
-  await saveAccountSettings({ savedPlaces: { places: savedPlaces, updatedAt: Date.now() } });
-  return savedPlaces;
+  return storeSavedPlaces(current.filter((entry) => endKey(entry) !== endKey(place)));
 };
 
 // Signed out, the next user's history and favorites are theirs.
@@ -100,6 +120,7 @@ const forgetRouteHistory = () => {
   favorites = null;
   savedPlaces = null;
   settings = null;
+  announceSavedPlaces();
 };
 
 export {
@@ -116,4 +137,5 @@ export {
   sameRoute,
   savePlace,
   toggleFavoriteRoute,
+  updateSavedPlace,
 };

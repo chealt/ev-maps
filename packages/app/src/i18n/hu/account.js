@@ -78,6 +78,13 @@ const account = {
     suggestionsPending: "Függőben",
     suggestionsApproved: "Jóváhagyva",
     suggestionsRejected: "Elutasítva",
+    mySavedPlaces: "Mentett helyeim",
+    mySavedPlacesHint:
+      "Az útvonaltervezőben mentett helyeid. A térképen az ikonjukkal látszanak, hacsak ki nem kapcsolod a fiókmenüben.",
+    savedPlacesOnMap: "Mentett helyek mutatása",
+    savedPlaceName: "Név",
+    saveSavedPlaceChanges: "Mentés",
+    deleteSavedPlace: "Törlés",
   },
   messages: {
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
@@ -107,6 +114,14 @@ const account = {
     suggestionPending: "Függőben",
     suggestionApproved: "Jóváhagyva",
     suggestionRejected: "Elutasítva",
+    signInForMySavedPlaces: "Jelentkezz be a mentett helyeid megtekintéséhez.",
+    noMySavedPlaces: "Még nem mentettél helyet. Az útvonaltervezőben menthetsz egyet.",
+    mySavedPlaceCount: {
+      one: "{count} mentett hely",
+      other: "{count} mentett hely",
+    },
+    savedPlaceChangesSaved: "{name} mentve",
+    savedPlaceRemoved: "{name} törölve",
   },
   values: {
     mapsApps: {

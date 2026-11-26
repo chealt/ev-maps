@@ -14,7 +14,8 @@
     "./Badge.astro": "./badge/Badge.astro",
     "./Card.astro": "./card/Card.astro",
     "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro",
-    "./fetch-json.js": "./fetch-json/fetch-json.js"
+    "./fetch-json.js": "./fetch-json/fetch-json.js",
+    "./Switch.astro": "./switch/Switch.astro"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",

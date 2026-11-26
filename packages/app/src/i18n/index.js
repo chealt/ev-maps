@@ -74,6 +74,45 @@ for (const [language, sections] of Object.entries(SECTIONS)) {
   }
 }
 
+// A translation starts with a capital letter where English does, so a label
+// isn't the odd one out in a row of buttons (#332). Where English starts
+// with a name, the translation may start mid-sentence.
+const STARTS_WITH_A_NAME = new Set([
+  "map.page.openStreetMapCredit.link",
+  "admin-reports.page.adminReportsDescription",
+]);
+const capitalized = (text) => /^\p{Lu}/u.test(text);
+const startsWithALetter = (text) => /^\p{L}/u.test(text);
+
+const lowercaseKeys = (reference, translation, path = []) =>
+  Object.entries(reference).flatMap(([key, value]) => {
+    const translated = translation?.[key];
+    const keyPath = [...path, key];
+    if (typeof value === "object") {
+      return lowercaseKeys(value, translated, keyPath);
+    }
+    const lowercase =
+      typeof value === "string" &&
+      typeof translated === "string" &&
+      startsWithALetter(value) &&
+      startsWithALetter(translated) &&
+      capitalized(value) &&
+      !capitalized(translated) &&
+      !STARTS_WITH_A_NAME.has(keyPath.join("."));
+    return lowercase ? [keyPath.join(".")] : [];
+  });
+
+for (const [language, sections] of Object.entries(SECTIONS)) {
+  const lowercase = Object.entries(SECTIONS.en).flatMap(([name, section]) =>
+    lowercaseKeys(section, sections[name], [name])
+  );
+  if (lowercase.length) {
+    throw new Error(
+      `${language} translations start lowercase where English is capitalized: ${lowercase.join(", ")}`
+    );
+  }
+}
+
 // The sections put together: { languageName, page, messages, values }.
 const merge = (sections) => ({
   languageName: sections[0]?.languageName,

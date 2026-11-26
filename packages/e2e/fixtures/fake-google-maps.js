@@ -233,10 +233,15 @@
 
   class AutocompleteSessionToken {}
 
-  // A place by its ID, as the app rebuilds a saved route's places.
+  // A place by its ID, as the app rebuilds a saved route's places; its
+  // location once fetched, as Google's.
   class Place {
     constructor({ id }) {
       this.id = id;
+    }
+    async fetchFields() {
+      const known = PLACES.find((place) => place.id === this.id)?.location;
+      this.location = known && { ...known, toJSON: () => known };
     }
   }
 

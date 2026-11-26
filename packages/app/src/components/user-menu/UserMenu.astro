@@ -1,5 +1,6 @@
 ---
 import {
+  Bookmark,
   ClipboardList,
   Heart,
   KeyRound,
@@ -19,6 +20,7 @@ import MapsAppPicker from "../maps-app-picker/MapsAppPicker.astro";
 import DistanceUnitPicker from "../distance-unit-picker/DistanceUnitPicker.astro";
 import CarPicker from "../car-picker/CarPicker.astro";
 import MotionSetting from "../motion-setting/MotionSetting.astro";
+import SavedPlacesSetting from "../saved-places-setting/SavedPlacesSetting.astro";
 import { fill, translations } from "../../i18n/index.js";
 import AppleLogo from "./apple-logo.svg";
 import GitHubLogo from "./github-logo.svg";
@@ -180,6 +182,11 @@ const { page } = translations(lang);
         <Icon icon={ClipboardList} size="sm" />
         {page.mySuggestedChargers}
       </a>
+      <a class="my-saved-places-link" href={`/${lang}/places/`} hidden>
+        <Icon icon={Bookmark} size="sm" />
+        {page.mySavedPlaces}
+      </a>
+      <SavedPlacesSetting />
     </div>
     <ThemePicker />
     <MapsAppPicker />

@@ -69,6 +69,8 @@ const map = {
     useMyLocation: "Użyj mojej lokalizacji",
     showRoute: "Pokaż trasę",
     clearRoute: "Wyczyść trasę",
+    clearRouteShort: "Wyczyść",
+    showRouteShort: "Pokaż",
     zoomToRoute: "Powiększ do całej trasy",
     shareRoute: "Udostępnij trasę",
     routeCorridor: "Wyświetlane są stacje ładowania do {distance} od trasy.",
