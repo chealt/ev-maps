@@ -15,7 +15,9 @@ const scrolledBy = async (page) => {
 
 test.use({ viewport: { width: 360, height: 400 } });
 
-test("scrolls the admin pages", async ({ page }) => {
+test("scrolls the admin and legal pages, but not the map page", async ({ page }) => {
+  await fakeGoogleMaps(page);
+  await fakeChargersApi(page);
   await fakeAuthApi(page, { signedIn: true });
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: "grace@chealt.com" } })
@@ -43,20 +45,11 @@ test("scrolls the admin pages", async ({ page }) => {
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(26);
 
   expect(await scrolledBy(page)).toBeGreaterThan(0);
-});
 
-test("scrolls the legal pages", async ({ page }) => {
   await page.goto("/en/privacy/");
-
   expect(await scrolledBy(page)).toBeGreaterThan(0);
-});
 
-test("keeps the map page from scrolling", async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeAuthApi(page);
-  await fakeChargersApi(page);
   await page.goto("/en/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-
   expect(await scrolledBy(page)).toBe(0);
 });

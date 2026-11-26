@@ -18,7 +18,9 @@ test.beforeEach(async ({ page }) => {
   await fakeChargersApi(page);
 });
 
-test("reports the page's uncaught errors, each once", async ({ page }) => {
+test("reports the page's uncaught errors and unhandled rejections, each once, but not extensions'", async ({
+  page,
+}) => {
   const reports = await fakeErrorsApi(page);
   await page.goto("/");
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
@@ -29,41 +31,19 @@ test("reports the page's uncaught errors, each once", async ({ page }) => {
     };
     setTimeout(fail);
     setTimeout(fail);
+    Promise.reject(new Error("The route failed"));
+    const foreign = new Error("Extension broke");
+    foreign.stack = "Error: Extension broke\n    at chrome-extension://abc/content.js:1:1";
+    Promise.reject(foreign);
   });
 
-  await expect.poll(() => reports.length).toBe(1);
-  expect(reports[0]).toMatchObject({
-    name: "TypeError",
+  await expect.poll(() => reports.length).toBe(2);
+  const uncaught = reports.find((report) => report.name === "TypeError");
+  expect(uncaught).toMatchObject({
     message: "Cannot read the charger",
     url: "http://localhost:4322/en/",
   });
-  expect(reports[0].stack).toContain("TypeError: Cannot read the charger");
-});
-
-test("reports rejected promises nobody handled", async ({ page }) => {
-  const reports = await fakeErrorsApi(page);
-  await page.goto("/");
-
-  await page.evaluate(() => {
-    Promise.reject(new Error("The route failed"));
-  });
-
-  await expect.poll(() => reports.map((report) => report.message)).toContain("The route failed");
-});
-
-test("ignores errors from browser extensions", async ({ page }) => {
-  const reports = await fakeErrorsApi(page);
-  await page.goto("/");
-
-  await page.evaluate(() => {
-    const error = new Error("Extension broke");
-    error.stack = "Error: Extension broke\n    at chrome-extension://abc/content.js:1:1";
-    Promise.reject(error);
-    setTimeout(() => {
-      throw new Error("The page's own");
-    });
-  });
-
-  await expect.poll(() => reports.length).toBe(1);
-  expect(reports[0].message).toBe("The page's own");
+  expect(uncaught.stack).toContain("TypeError: Cannot read the charger");
+  expect(reports.map((report) => report.message)).toContain("The route failed");
+  expect(reports.map((report) => report.message)).not.toContain("Extension broke");
 });

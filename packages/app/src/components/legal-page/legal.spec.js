@@ -3,31 +3,36 @@ import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
 
-test("has a privacy policy and terms of use in every language", async ({ page }) => {
-  for (const { path, heading, updated } of [
-    { path: "/en/privacy/", heading: "Privacy policy", updated: "Last updated: November 24, 2026" },
-    { path: "/en/terms/", heading: "Terms of use", updated: "Last updated: November 21, 2026" },
-    { path: "/pl/privacy/", heading: "Polityka prywatności", updated: /^Ostatnia aktualizacja:/ },
-    { path: "/pl/terms/", heading: "Regulamin", updated: /^Ostatnia aktualizacja:/ },
-    { path: "/hu/privacy/", heading: "Adatvédelmi tájékoztató", updated: /^Utolsó frissítés:/ },
-    { path: "/hu/terms/", heading: "Felhasználási feltételek", updated: /^Utolsó frissítés:/ },
-  ]) {
-    await page.goto(path);
-    await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
-    await expect(page.getByText(updated)).toBeVisible();
+test(
+  "has a privacy policy and terms of use in every language, with the terms Google requires",
+  { tag: "@performance" },
+  async ({ page }) => {
+    for (const { path, heading, updated } of [
+      { path: "/pl/privacy/", heading: "Polityka prywatności", updated: /^Ostatnia aktualizacja:/ },
+      { path: "/pl/terms/", heading: "Regulamin", updated: /^Ostatnia aktualizacja:/ },
+      { path: "/hu/privacy/", heading: "Adatvédelmi tájékoztató", updated: /^Utolsó frissítés:/ },
+      { path: "/hu/terms/", heading: "Felhasználási feltételek", updated: /^Utolsó frissítés:/ },
+      {
+        path: "/en/privacy/",
+        heading: "Privacy policy",
+        updated: "Last updated: November 24, 2026",
+      },
+      { path: "/en/terms/", heading: "Terms of use", updated: "Last updated: November 21, 2026" },
+    ]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+      await expect(page.getByText(updated)).toBeVisible();
+    }
+
+    // The English terms, last: what Google requires for its maps.
+    await expect(
+      page.getByRole("link", { name: "Google Maps/Google Earth Additional Terms of Service" })
+    ).toHaveAttribute("href", "https://maps.google.com/help/terms_maps/");
+    await expect(
+      page.getByRole("heading", { name: "No crawling, scraping or AI use" })
+    ).toBeVisible();
   }
-});
-
-test("states the terms Google requires for its maps", { tag: "@performance" }, async ({ page }) => {
-  await page.goto("/en/terms/");
-
-  await expect(
-    page.getByRole("link", { name: "Google Maps/Google Earth Additional Terms of Service" })
-  ).toHaveAttribute("href", "https://maps.google.com/help/terms_maps/");
-  await expect(
-    page.getByRole("heading", { name: "No crawling, scraping or AI use" })
-  ).toBeVisible();
-});
+);
 
 test("links the legal pages from the account menu, signed in or not", async ({ page }) => {
   await fakeGoogleMaps(page);

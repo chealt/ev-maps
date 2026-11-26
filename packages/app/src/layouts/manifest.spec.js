@@ -3,7 +3,9 @@ import { expect, test } from "@ev-maps/e2e/test.js";
 // The web app manifest is what browsers read to install the app, so these
 // tests check what it tells them.
 
-test("describes the app in each language", async ({ request }) => {
+test("describes the app in each language, with icons for every purpose that exist", async ({
+  request,
+}) => {
   for (const { lang, description } of [
     { lang: "en", description: "Find electric vehicle charging stations near you" },
     { lang: "pl", description: "Znajdź stacje ładowania samochodów elektrycznych w pobliżu" },
@@ -19,11 +21,8 @@ test("describes the app in each language", async ({ request }) => {
       display: "standalone",
     });
   }
-});
 
-test("has icons for every purpose, and they exist", async ({ request }) => {
   const { icons } = await (await request.get("/en/manifest.webmanifest")).json();
-
   expect(icons.map(({ sizes, purpose }) => `${sizes} ${purpose}`)).toEqual([
     "192x192 any",
     "512x512 any",

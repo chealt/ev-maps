@@ -65,7 +65,7 @@ test("traces a sampled page's API calls and sends the spans with its Web Vitals"
   expect(vitals.every((vital) => vital.pageKind === "home")).toBe(true);
 });
 
-test("tells the Worker not to sample an unsampled page's calls, and sends no spans", async ({
+test("tells the Worker not to sample an unsampled page's calls, and measures nothing in the admin area", async ({
   page,
 }) => {
   await withRandom(page, 0.99);
@@ -81,16 +81,11 @@ test("tells the Worker not to sample an unsampled page's calls, and sends no spa
   expect(batches[0].vitals.length).toBeGreaterThan(0);
   expect(headers.length).toBeGreaterThan(0);
   expect(headers.every((header) => /^00-[0-9a-f]{32}-[0-9a-f]{16}-00$/.test(header))).toBe(true);
-});
 
-test("measures no Web Vitals in the admin area", async ({ page }) => {
-  await withRandom(page, 0.99);
-  const batches = await fakeTelemetryApi(page);
+  // The admin area: no Web Vitals.
   await page.route("**/api/admin/me", (route) => route.fulfill({ status: 403, json: {} }));
   await page.goto("/en/admin/");
-
   await leavePage(page);
   await page.waitForTimeout(300);
-
-  expect(batches).toEqual([]);
+  expect(batches).toHaveLength(1);
 });
