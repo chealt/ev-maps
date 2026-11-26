@@ -1,27 +1,26 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import { TILE_FORMAT_VERSION } from "@ev-maps/tiles";
-import { fetchChargersInBounds } from "./chargers.js";
 
 // The tiles asked for, and the API's answer for each: full ones are a
-// sample of a dense area.
-const realFetch = globalThis.fetch;
+// sample of a dense area. fetchJson is mocked, not the global fetch.
 let asked;
-const fakeApi = (fullWhen) => {
-  asked = [];
-  globalThis.fetch = async (url) => {
+let answer;
+mock.module("@ev-maps/ui/fetch-json.js", () => ({
+  fetchJson: async (url) => {
     const [, zoom, x, y] = /\/api\/chargers\/(\d+)\/(\d+)\/(\d+)/.exec(url).map(Number);
     asked.push({ url, zoom, x, y });
-    const tile = { zoom, x, y };
-    return Response.json({
-      chargers: [{ id: `${zoom}/${x}/${y}` }, { id: "everywhere" }],
-      full: fullWhen(tile),
-    });
-  };
-};
+    return answer({ zoom, x, y });
+  },
+}));
+const { fetchChargersInBounds } = await import("./chargers.js");
 
-afterEach(() => {
-  globalThis.fetch = realFetch;
-});
+const fakeApi = (fullWhen) => {
+  asked = [];
+  answer = (tile) => ({
+    chargers: [{ id: `${tile.zoom}/${tile.x}/${tile.y}` }, { id: "everywhere" }],
+    full: fullWhen(tile),
+  });
+};
 
 const NEW_YORK = {
   bounds: { south: 40.65, west: -74.1, north: 40.78, east: -73.9 },
@@ -58,7 +57,10 @@ describe("fetchChargersInBounds", () => {
   });
 
   test("fails when a tile can't be loaded", async () => {
-    globalThis.fetch = async () => new Response("", { status: 500 });
-    await expect(fetchChargersInBounds(NEW_YORK)).rejects.toThrow("Charger request failed: 500");
+    asked = [];
+    answer = () => {
+      throw new Error("/api/chargers/… failed: 500");
+    };
+    await expect(fetchChargersInBounds(NEW_YORK)).rejects.toThrow("failed: 500");
   });
 });

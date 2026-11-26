@@ -140,6 +140,10 @@ gets them). Test the rules underneath with unit tests (`*.test.js`, run by
   function, with every case and boundary, not through the map. If the logic
   is inside a component, move it into a module first (e.g. `ChargerIndex`
   in `charger-index.js`, tested in `charger-index.test.js`).
+- **Mock modules, not globals.** Fetch JSON with `fetchJson`
+  (`@ev-maps/ui/fetch-json.js`), not `fetch` and a status check of your
+  own, and a unit test mocks that module (`mock.module`) instead of
+  replacing `globalThis.fetch`.
 - **One flow, not one test per step.** Testing a feature end to end means
   one test that walks through it (turn a filter on, see the map change,
   reload, clear it), not a test per step with the same setup each time.
