@@ -54,7 +54,14 @@ jobs:
             cat ../../.github/e2e-map-check.md
             printf '\n## Changed files\n\n```\n'
             git diff --name-status "$BASE...HEAD"
-            printf '```\n\n## Selected\n\n'
+            # The diff, up to 60 KB: enough for the imports and paths a pull
+            # request changes, and the prompt stays one argument under
+            # Linux's 128 KB limit. Through a file: piping into head would
+            # fail the step (pipefail) when head stops reading.
+            printf '```\n\n## Diff\n\n```diff\n'
+            git diff --unified=2 "$BASE...HEAD" > "$RUNNER_TEMP/pr.diff"
+            head -c 60000 "$RUNNER_TEMP/pr.diff"
+            printf '\n```\n\n## Selected\n\n'
             bun scripts/select-e2e.js "$BASE"
           } > "$RUNNER_TEMP/prompt.md"
 

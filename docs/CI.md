@@ -54,7 +54,9 @@ code.
 
 Its report is one comment on the pull request, updated on every push. The
 check fails when the report ends in `VERDICT: UPDATE NEEDED`, and it isn't
-required. The prompt is `.github/e2e-map-check.md`.
+required. The prompt is `.github/e2e-map-check.md`. The workflow adds the
+pull request's changed files, its diff (the first 60 KB) and the specs CI
+selected for it.
 
 A run of `app.yml` started this way, or by hand, checks, builds and deploys
 everything, without change detection. On `main` it deploys to production;
