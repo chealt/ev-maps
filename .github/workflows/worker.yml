@@ -22,7 +22,7 @@ defaults:
 
 jobs:
   changes:
-    name: Detect changes
+    name: Detect worker changes
     runs-on: ubuntu-latest
     outputs:
       worker: ${{ steps.filter.outputs.worker }}
