@@ -620,6 +620,11 @@ test(
     await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("Budapest, Hungary");
     await expect(dialog.getByRole("combobox", { name: "To" })).toHaveValue("Vienna, Austria");
     await captureUi(page, testInfo, "route planner with saved places");
+    // On a phone, the buttons share its width (#331).
+    const viewport = page.viewportSize();
+    await page.setViewportSize({ width: 360, height: 740 });
+    await captureUi(page, testInfo, "route planner on a phone");
+    await page.setViewportSize(viewport);
 
     await dialog.getByRole("button", { name: "Show route" }).click();
     await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");

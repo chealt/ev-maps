@@ -1,0 +1,19 @@
+---
+// A button's label of which only `short`, a word of `label`, shows, as the
+// translation writes it; the rest of `label` stays in the button's name,
+// for screen readers.
+interface Props {
+  label: string;
+  short: string;
+}
+
+const { label, short } = Astro.props;
+const at = label.toLowerCase().indexOf(short.toLowerCase());
+const before = at > 0 ? label.slice(0, at) : "";
+const after = at >= 0 ? label.slice(at + short.length) : "";
+const shown = at >= 0 ? short : label;
+---
+
+{before && <span class="visually-hidden">{before}</span>}
+<span class="button-label">{shown}</span>
+{after && <span class="visually-hidden">{after}</span>}

@@ -43,6 +43,27 @@
     justify-content: center;
     gap: var(--spacing-sm);
     padding-bottom: var(--spacing-lg);
+
+    /* On a phone, Clear and Show share the width left by Share, on one
+       line each, cut short if they still don't fit (#331). */
+    @media (width < 40em) {
+      > .button {
+        padding-inline: var(--spacing-md);
+      }
+
+      > .button:not(.share-route) {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    /* A block, so it can be cut short. */
+    .button-label {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .route-stops {
