@@ -177,11 +177,13 @@ ev-google-map {
   padding: var(--spacing-xs);
   border-radius: var(--border-radius-full);
 
-  .button {
+  /* The toolbar's own buttons, not those of the search dialog inside it
+     (#337). */
+  .button:not(dialog .button) {
     padding: var(--overlay-gap) var(--spacing-md);
   }
 
-  .button.secondary:not([aria-expanded="true"]) {
+  .button.secondary:not([aria-expanded="true"], dialog .button) {
     background: transparent;
     border-color: transparent;
   }
@@ -1370,7 +1372,7 @@ ev-google-map {
     translate: none;
     border-radius: var(--border-radius-xl);
 
-    .button {
+    .button:not(dialog .button) {
       flex: 1;
       flex-direction: column;
       gap: var(--spacing-2xs);

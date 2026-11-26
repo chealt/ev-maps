@@ -32,6 +32,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: var(--spacing-sm);
+
+    /* The close button stays in the corner, its own size, whatever the
+       page's styles around the dialog say about buttons (#337). */
+    > .close {
+      flex: none;
+      flex-direction: row;
+      margin-inline-start: auto;
+    }
   }
 
   .title {

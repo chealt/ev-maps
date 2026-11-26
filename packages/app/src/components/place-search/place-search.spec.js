@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi, fakeRouteChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -11,7 +11,10 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
 });
 
-test("searches for a place and moves the map there", async ({ page }) => {
+// On a phone: the dialog sits in the map's toolbar, whose button styles
+// stay off its close button and actions (#337).
+test("searches for a place and moves the map there", { tag: "@ui" }, async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Search" }).click();
   const dialog = page.getByRole("dialog", { name: "Search" });
   const showButton = dialog.getByRole("button", { name: "Show on map" });
@@ -20,6 +23,7 @@ test("searches for a place and moves the map there", async ({ page }) => {
   await dialog.getByRole("combobox", { name: "Search" }).fill("Buda");
   await dialog.getByRole("option", { name: "Budapest, Hungary" }).click();
   await expect(showButton).toBeEnabled();
+  await captureUi(page, testInfo, "search dialog");
 
   await showButton.click();
   await expect(dialog).toBeHidden();
