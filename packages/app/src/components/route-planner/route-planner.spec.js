@@ -629,10 +629,9 @@ test(
     await dialog.getByRole("button", { name: "Show route" }).click();
     await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
 
-    // Removing a saved place removes it from the chips and the account.
+    // The chips only choose a place: nothing to remove them here (the saved
+    // places page does that).
     await page.getByRole("button", { name: "Route", exact: true }).click();
-    await fromSaved.getByRole("button", { name: "Remove Opera from saved places" }).click();
-    await expect(fromSaved.getByRole("button", { name: "Opera", exact: true })).toBeHidden();
-    expect(saves.at(-1).savedPlaces.places).toHaveLength(1);
+    await expect(fromSaved.getByRole("button", { name: /^Remove/ })).toHaveCount(0);
   }
 );

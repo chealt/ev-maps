@@ -198,7 +198,6 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "Usuń przystanek {stop}",
     routeStopDistance: "{distance} od poprzedniego punktu",
-    removeSavedPlace: "Usuń {name} z zapisanych miejsc",
     saveFavoriteRoute: "Zapisz {route} jako ulubioną",
     removeFavoriteRoute: "Usuń {route} z ulubionych",
     noFiltersOn: "bez filtrów",
