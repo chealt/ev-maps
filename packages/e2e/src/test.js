@@ -84,12 +84,33 @@ const compareWithMain = async (page, testInfo, caption) => {
   }
 };
 
+// Colors in the middle of a fade-in aren't what anyone reads; nor a page
+// still scrolling: this waits until no scrolled area (a dialog, the
+// charger's panel) has moved for a few frames, so a focus or a hover that
+// scrolls it has, every run, by the time of the screenshot.
+const settle = (page) =>
+  page.evaluate(async () => {
+    await Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => {}))
+    );
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const positions = () =>
+      [...document.querySelectorAll("*")]
+        .filter((element) => element.scrollTop || element.scrollLeft)
+        .map((element) => `${element.scrollTop},${element.scrollLeft}`)
+        .join("|");
+    let last = positions();
+    for (let still = 0, frames = 0; still < 3 && frames < 60; frames++) {
+      await frame();
+      const now = positions();
+      still = now === last ? still + 1 : 0;
+      last = now;
+    }
+  });
+
 // Attaches a screenshot of the page now as UI evidence, with a caption.
 const captureUi = async (page, testInfo, caption) => {
-  // Colors in the middle of a fade-in aren't what anyone reads.
-  await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})))
-  );
+  await settle(page);
   await testInfo.attach(caption ? `ui: ${caption}` : "ui", {
     contentType: "image/png",
     body: await page.screenshot(),

@@ -316,8 +316,6 @@ jobs:
       a11y-summary: ${{ steps.publish.outputs.a11y-summary }}
       performance-report-url: ${{ steps.publish.outputs.performance-report-url }}
       performance-summary: ${{ steps.publish.outputs.performance-summary }}
-      ui-evidence: ${{ steps.publish.outputs.ui-evidence }}
-      ui-files: ${{ steps.publish.outputs.ui-files }}
       visual-changes: ${{ steps.visual.outputs.visual-changes }}
       visual-report-url: ${{ steps.visual.outputs.visual-report-url }}
     steps:
@@ -387,16 +385,24 @@ jobs:
           SITE_URL: https://ev.chealt.com
         run: bun scripts/publish-test-report.js
 
-      # The "Visual review" status (scripts/visual-review.js): the @ui
-      # moments that differ from main's (captureUi's annotations), waiting
-      # for the Visual approval job while any did.
+      # The "Visual review" status and comment (scripts/visual-review.js):
+      # the @ui moments that differ from main's (captureUi's annotations),
+      # main's and the pull request's screenshots side by side with a link to
+      # the test, and the status waiting for the Visual approval job while
+      # any did.
       - name: Review the visual changes
         id: visual
         if: ${{ needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           REPORT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          # The run, where its Visual approval job is approved.
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SITE_URL: https://ev.chealt.com
         run: bun scripts/visual-review.js
 
@@ -421,7 +427,7 @@ jobs:
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
       url: ${{ steps.url.outputs.url }}
-    # Where this run was deployed, e.g. for the UI evidence job's embeds.
+    # Where this run was deployed.
     outputs:
       url: ${{ steps.url.outputs.url }}
     steps:
@@ -519,34 +525,6 @@ jobs:
           url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
           echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
 
-  # The UI evidence of a pull request's @ui tests
-  # (scripts/publish-test-report.js), commented on it: embedded from its own
-  # preview once that's deployed (with the `deploy` label), else from
-  # production, whose /reports/{id}/ui/ serves them too. Forks get no
-  # comment (no published report); their reports are the workflow's artifact.
-  ui-evidence:
-    name: UI evidence
-    needs: [changes, test, deploy]
-    if: ${{ !cancelled() && needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.test.result == 'success' && needs.deploy.result != 'failure' && needs.test.outputs.ui-files != '' && needs.test.outputs.ui-files != '[]' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
-      - name: Comment the UI evidence on the pull request
-        working-directory: packages/app
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PULL_REQUEST: ${{ github.event.pull_request.number }}
-          UI_FILES: ${{ needs.test.outputs.ui-files }}
-          DEPLOY_URL: ${{ needs.deploy.outputs.url || 'https://ev.chealt.com' }}
-          REPORT_URL: ${{ needs.test.outputs.report-url }}
-        run: bun scripts/pr-ui-evidence-comment.js
-
   # A pull request whose UI screenshots changed (the Test job's visual
   # comparison) waits here for a person to look at the changes and approve
   # them: the visual-review environment requires a reviewer. Approved, the
@@ -561,6 +539,7 @@ jobs:
       url: ${{ needs.test.outputs.visual-report-url }}
     steps:
       - name: Approve the visual changes
+        working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
           CHANGES: ${{ needs.test.outputs.visual-changes }}
@@ -571,6 +550,42 @@ jobs:
           gh api "repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }}" \
             -f state=success -f context="Visual review" -f target_url="$REPORT_URL" \
             -f description="$CHANGES visual changes approved by $approver"
+
+  # GitHub assigns the approval job's URL after Test finishes. Update the
+  # comment alongside the waiting job, not inside it (which would be too late).
+  link-visual-approval:
+    name: Link visual approval
+    needs: test
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.test.outputs.visual-changes != '' && needs.test.outputs.visual-changes != '0' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Link directly to the Visual approval job
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          repo="repos/$GITHUB_REPOSITORY"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          for attempt in {1..15}; do
+            job_url=$(gh api --paginate "$repo/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT/jobs" \
+              --jq '.jobs[] | select(.name == "Visual approval") | .html_url')
+            if [ -n "$job_url" ]; then break; fi
+            sleep 2
+          done
+          test -n "$job_url"
+          gh api --paginate "$repo/issues/$PR_NUMBER/comments" |
+            jq -c --arg run "$run_url" --arg job "$job_url?pr=$PR_NUMBER" '
+              .[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- visual-review -->")))
+              | select(.body | contains("[Review and approve the visual changes →](" + $run + ")"))
+              | {id, body: (.body | split("[Review and approve the visual changes →](" + $run + ")") | join("[Review and approve the visual changes →](" + $job + ")"))}' |
+            while IFS= read -r comment; do
+              id=$(jq -r '.id' <<< "$comment")
+              jq '{body}' <<< "$comment" | gh api --method PATCH "$repo/issues/comments/$id" --input - >/dev/null
+            done
 
   # Each production deploy gets a GitHub release, tagged with the date and
   # time it went out, with notes listing the pull requests merged since the
@@ -607,7 +622,6 @@ jobs:
           A11Y_SUMMARY: ${{ needs.test.outputs.a11y-summary }}
           PERFORMANCE_REPORT_URL: ${{ needs.test.outputs.performance-report-url }}
           PERFORMANCE_SUMMARY: ${{ needs.test.outputs.performance-summary }}
-          UI_EVIDENCE: ${{ needs.test.outputs.ui-evidence }}
         run: |
           previous=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
           tag="v$(date -u +%Y.%m.%d-%H%M)"
@@ -617,10 +631,6 @@ jobs:
             printf '\n## Test reports\n\n- [Playwright report](%s): %s\n- [Accessibility report](%s): %s\n- [Performance report](%s): %s\n' \
               "$REPORT_URL" "$SUMMARY" "$A11Y_REPORT_URL" "$A11Y_SUMMARY" \
               "$PERFORMANCE_REPORT_URL" "$PERFORMANCE_SUMMARY" >> notes.md
-          fi
-          # The screenshots and videos of the @ui tests this release passed.
-          if [ -n "$UI_EVIDENCE" ]; then
-            printf '\n## UI changes\n\n%s\n' "$UI_EVIDENCE" >> notes.md
           fi
           if [ -n "$previous" ]; then
             printf '\n**Full changes:** %s/%s/compare/%s...%s\n' \

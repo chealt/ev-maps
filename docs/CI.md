@@ -92,7 +92,14 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
   and diff images to the test in the report.
 - After the report is published, `scripts/visual-review.js` sets the
   **Visual review** commit status, linking to the report: green when nothing
-  changed, pending when something did.
+  changed, pending when something did. It also **comments the changes on the
+  pull request**: for each, `main`'s screenshot and the pull request's side by
+  side, the diff under them, and a link to the test in the report
+  (`#?testId=…`). The images are published in the report's public `ui/`
+  folder. A later run without changes updates the comment to say so.
+- Before comparing, `captureUi` scrolls the page's scrolled areas (a dialog,
+  the charger's panel) to their top, and back after: where a focus or a
+  hover scrolled them varies from run to run, and isn't a change.
 - While it's pending, the **Visual approval** job waits on the
   `visual-review` environment, which requires a reviewer. Look at the
   report, then approve the job (**Review deployments** on the run): the

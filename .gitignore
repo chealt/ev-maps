@@ -43,6 +43,7 @@ performance-report/
 blob-report/
 ui-evidence/
 visual-baseline/
+visual-changes/
 
 # Cloudflare
 .wrangler/

@@ -182,6 +182,20 @@ it), next to the video CI records of every test. Both are in the Playwright
 report the CI publishes, linked from its commit status, so the review sees
 the control as Playwright actually exercised it.
 
+Each captured moment is compared with `main`'s (see
+[Visual review](CI.md#visual-review)), so it has to look the same every run,
+**scroll positions included**:
+
+- Wait for what the page does before capturing, e.g. the focus that scrolls a
+  dialog (`await expect(button).toBeFocused()`), not only for the dialog.
+- Don't let a hover or a click scroll by chance: Playwright scrolls an
+  element into view on each retry, by more or less. Where a capture follows a
+  hover, move the mouse to an element that's in view
+  (`page.mouse.move(…)`), with a scrolled area at a known position.
+- In the app, a panel or a dialog that opens for something else starts at
+  its top, and content loading into it doesn't scroll it
+  (`overflow-anchor: none` on the scrolled areas).
+
 That evidence is the visual check: if a `@ui` spec already captures the
 control, don't add a Playwright spec that re-measures or re-asserts it
 (e.g. two fields' sizes being equal, an element lining up, a color being

@@ -110,9 +110,12 @@ ${METRICS.map((metric) => {
 `;
 
 const writePerformanceReport = async () => {
+  // The measurements of each test's final attempt: a retried attempt's are of
+  // whatever failed it.
   const measurements = attachmentsNamed(
     JSON.parse(await readFile(RESULTS_FILE, "utf8")),
-    "web-vitals"
+    "web-vitals",
+    { finalAttempt: true }
   );
   const pages = pagesOf(measurements);
   const totals = {

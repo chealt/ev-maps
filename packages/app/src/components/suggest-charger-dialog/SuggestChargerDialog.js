@@ -83,7 +83,10 @@ class SuggestChargerDialogElement extends HTMLElement {
     document.dispatchEvent(new CustomEvent(PICK_MAP_LOCATION, { detail: { near } }));
   }
 
-  pinPicked(detail) {
+  // Back in the dialog, once it's open, with the focus on the button: the
+  // form from its top, scrolled only as far as the button needs to be seen,
+  // the same every time (wherever a focus had scrolled it before).
+  async pinPicked(detail) {
     if (!this.picking) {
       return;
     }
@@ -91,8 +94,11 @@ class SuggestChargerDialogElement extends HTMLElement {
     if (detail?.location) {
       this.setPin(detail.location);
     }
-    openDialog(this.dialog);
-    this.querySelector(".drop-pin").focus();
+    await openDialog(this.dialog);
+    const button = this.querySelector(".drop-pin");
+    this.form.scrollTop = 0;
+    button.focus({ preventScroll: true });
+    button.scrollIntoView({ block: "nearest" });
   }
 
   setPin(location) {

@@ -10,12 +10,15 @@ const escapeHtml = (text) =>
 
 // [{ title, file, value }] for every test result with a JSON attachment of
 // that name (e.g. "axe", "web-vitals"; packages/e2e/src/test.js).
-const attachmentsNamed = (results, name) => {
+// `finalAttempt`: only each test's last attempt, the one that counts: a
+// failed attempt that was retried measured the failure (e.g. a server still
+// compiling), not the page.
+const attachmentsNamed = (results, name, { finalAttempt = false } = {}) => {
   const found = [];
   const walk = (suite, titles) => {
     for (const spec of suite.specs ?? []) {
       for (const test of spec.tests) {
-        for (const result of test.results) {
+        for (const result of finalAttempt ? test.results.slice(-1) : test.results) {
           const attachment = result.attachments?.find((item) => item.name === name);
           if (attachment?.body) {
             found.push({

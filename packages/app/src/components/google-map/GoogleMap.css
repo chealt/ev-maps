@@ -268,6 +268,9 @@ ev-google-map {
   .body {
     flex: 1;
     overflow-y: auto;
+    /* Content that loads in above (a list, availability) doesn't scroll the
+       body: it only moves when the user, or a focus, scrolls it. */
+    overflow-anchor: none;
   }
 }
 
@@ -761,6 +764,9 @@ ev-google-map {
   width: var(--details-panel-width);
   max-width: calc(100% - 2 * var(--spacing-md));
   overflow-y: auto;
+  /* Availability loading in above what's in view doesn't scroll the panel:
+     it only moves when the user, or a focus, scrolls it. */
+  overflow-anchor: none;
   padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
   background: var(--color-surface);
   border-radius: var(--border-radius-xl);
