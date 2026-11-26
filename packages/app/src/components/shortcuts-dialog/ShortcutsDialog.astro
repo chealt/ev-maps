@@ -4,46 +4,12 @@ import Card from "@ev-maps/ui/Card.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
+import { shortcutGroups } from "./shortcut-groups.js";
 import "./ShortcutsDialog.css";
 
 const { page } = translations(Astro.currentLocale ?? "en");
 
-// The keys (GoogleMap.js and ShortcutsDialog.js handle them), by what they
-// control; each with its description's message.
-const groups = [
-  {
-    id: "map",
-    keys: [
-      ["s", "search"],
-      ["l", "locate"],
-      ["Esc", "closeDialogs"],
-      ["?", "help"],
-    ],
-  },
-  {
-    id: "route",
-    keys: [
-      ["r", "route"],
-      ["x", "clearRoute"],
-    ],
-  },
-  {
-    id: "filters",
-    keys: [
-      ["f", "filters"],
-      ["c", "clearFilters"],
-    ],
-  },
-  {
-    id: "account",
-    keys: [
-      ["a", "accountMenu"],
-      ["h", "favorites"],
-      ["n", "suggestCharger"],
-      ["p", "savedPlaces"],
-    ],
-  },
-];
+const groups = shortcutGroups(page);
 ---
 
 <ev-shortcuts>
@@ -58,16 +24,16 @@ const groups = [
       {page.shortcuts.title}
     </Fragment>
     <div class="shortcut-groups">
-      {groups.map(({ id, keys }) => (
+      {groups.map(({ id, title, keys }) => (
         <Card as="section" class="shortcut-group" aria-labelledby={`shortcuts-${id}`}>
           <h3 class="group-title" id={`shortcuts-${id}`}>
-            {page.shortcuts.groups[id]}
+            {title}
           </h3>
           <ul class="shortcut-list">
-            {keys.map(([key, label]) => (
+            {keys.map(({ key, description }) => (
               <li>
                 <kbd>{key}</kbd>
-                <span>{page.shortcuts[label]}</span>
+                <span>{description}</span>
               </li>
             ))}
           </ul>

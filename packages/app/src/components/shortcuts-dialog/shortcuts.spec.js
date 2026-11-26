@@ -17,27 +17,7 @@ test(
 
     const dialog = page.getByRole("dialog", { name: "Keyboard shortcuts" });
     await expect(dialog).toBeVisible();
-    // A card per group, of what the keys control.
-    await expect(dialog.getByRole("region", { name: "Map" }).getByRole("listitem")).toHaveText([
-      "sSearch for a place",
-      "lLocate me",
-      "EscClose dialogs and the charger details",
-      "?Show this help",
-    ]);
-    await expect(dialog.getByRole("region", { name: "Route" }).getByRole("listitem")).toHaveText([
-      "rPlan a route",
-      "xClear the route",
-    ]);
-    await expect(dialog.getByRole("region", { name: "Filters" }).getByRole("listitem")).toHaveText([
-      "fShow or hide the filters",
-      "cClear the filters",
-    ]);
-    await expect(dialog.getByRole("region", { name: "Account" }).getByRole("listitem")).toHaveText([
-      "aOpen or close the account menu",
-      "hShow your favorites",
-      "nSuggest a charger",
-      "pGo to your saved places",
-    ]);
+    // Which keys it lists is unit tested in shortcut-groups.test.js.
     await captureUi(page, testInfo, "the keyboard shortcuts");
 
     await page.keyboard.press("Escape");
