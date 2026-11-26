@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Trasa stąd lub tutaj",
+    routeFromHere: "Trasa stąd",
+    routeToHere: "Trasa tutaj",
     mapLabel: "Mapa stacji ładowania",
     apiKeyMissing: "Brak klucza API Map Google. Ustaw VITE_GOOGLE_MAPS_API_KEY.",
     locate: "Zlokalizuj mnie",

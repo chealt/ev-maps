@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Route from or to here",
+    routeFromHere: "Route from here",
+    routeToHere: "Route to here",
     mapLabel: "EV charging station map",
     apiKeyMissing: "Google Maps API key is missing. Set VITE_GOOGLE_MAPS_API_KEY.",
     locate: "Locate Me",

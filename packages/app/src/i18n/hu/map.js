@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Útvonal innen vagy ide",
+    routeFromHere: "Útvonal innen",
+    routeToHere: "Útvonal ide",
     mapLabel: "Töltőállomások térképe",
     apiKeyMissing: "Hiányzik a Google Maps API-kulcs. Állítsd be a VITE_GOOGLE_MAPS_API_KEY-t.",
     locate: "Helymeghatározás",

@@ -25,6 +25,8 @@ import {
   PlugZap,
   X,
   Zap,
+  Flag,
+  Route,
 } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -128,6 +130,18 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     <!-- No separate clear or locate buttons here: clearing is part of the
          filter and route buttons (compact halves that appear when active),
          and Locate Me is in the top bar, next to the account menu. -->
+    <!-- Right-click or long press on the map: a route from or to there. -->
+    <div class="map-menu" id="map-menu" popover role="menu" aria-label={page.mapMenu}>
+      <button type="button" class="map-menu-item" role="menuitem" data-end="from">
+        <Icon icon={Route} size="sm" />
+        {page.routeFromHere}
+      </button>
+      <button type="button" class="map-menu-item" role="menuitem" data-end="to">
+        <Icon icon={Flag} size="sm" />
+        {page.routeToHere}
+      </button>
+    </div>
+
     <div class="map-controls">
       <PlaceSearch />
       <RouteButton controls="route-planner" />

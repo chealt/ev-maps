@@ -20,7 +20,32 @@
       this.zoom = options.zoom;
       this.listeners = [];
       window.__fakeMap = this;
+      // A right-click (and, on touch, a long press) is the map's
+      // "contextmenu": the place under the pointer, and the DOM event.
+      element.addEventListener("contextmenu", (domEvent) => {
+        domEvent.preventDefault();
+        const rect = element.getBoundingClientRect();
+        const latLng = new LatLng(
+          this.placeAt(domEvent.clientX - rect.left, domEvent.clientY - rect.top)
+        );
+        this.emit("contextmenu", { latLng, domEvent });
+      });
       this.emitIdle();
+    }
+    emit(type, event) {
+      for (const { event: name, handler } of this.listeners) {
+        if (name === type) {
+          handler(event);
+        }
+      }
+    }
+    // The place at a pixel of the map's element: pixelOf's inverse.
+    placeAt(x, y) {
+      const degreesPerPixel = 360 / (TILE_SIZE * 2 ** this.zoom);
+      return {
+        lat: this.center.lat - (y - this.element.clientHeight / 2) * degreesPerPixel,
+        lng: this.center.lng + (x - this.element.clientWidth / 2) * degreesPerPixel,
+      };
     }
     // Like Google Maps, "idle" fires after the map renders or stops moving.
     emitIdle() {
