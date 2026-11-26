@@ -757,11 +757,28 @@ ev-google-map {
     margin-top: var(--spacing-xs);
   }
 
+  /* The actions on one line: their labels end in "…" when it's narrow. */
   .directions {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--spacing-xs);
     margin-top: var(--spacing-md);
+
+    .button {
+      flex: 0 1 auto;
+      min-width: 0;
+      gap: var(--spacing-xs);
+      padding-inline: var(--spacing-xs) var(--spacing-sm);
+      font-size: var(--font-size-sm);
+
+      &[hidden] {
+        display: none;
+      }
+    }
+
+    .label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   /* The maps apps, under the buttons while "Open in maps" is expanded. */

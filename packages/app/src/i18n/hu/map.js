@@ -135,7 +135,6 @@ const map = {
     },
   },
   messages: {
-    openInApp: "Megnyitás: {app}",
     power: "{power} kW",
 
     chargersFound: {

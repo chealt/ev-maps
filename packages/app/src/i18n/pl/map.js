@@ -133,7 +133,6 @@ const map = {
     },
   },
   messages: {
-    openInApp: "Otwórz w: {app}",
     power: "{power} kW",
 
     chargersFound: {

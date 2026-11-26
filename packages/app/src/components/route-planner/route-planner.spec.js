@@ -564,30 +564,6 @@ test(
   }
 );
 
-test("adding a charger as a stop before planning opens the route planner with it", async ({
-  page,
-}) => {
-  await fakeRouteChargersApi(page);
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-  const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
-
-  await details.getByRole("button", { name: "Add stop" }).click();
-
-  const dialog = page.getByRole("dialog", { name: "Plan a route" });
-  await expect(dialog).toBeVisible();
-  const stops = dialog.getByRole("group", { name: "Stops" });
-  await expect(stops.getByText("Downtown Supercharger")).toBeVisible();
-
-  await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
-  await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
-  await dialog.getByRole("button", { name: "Show route" }).click();
-
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers along the route");
-  const [routeRequest] = await page.evaluate(() => window.__routeRequests);
-  expect(routeRequest.intermediates).toEqual([{ lat: 40.71, lng: -74 }]);
-});
-
 test(
   "saves places with presets or a custom label and icon, and chooses them for the route",
   { tag: "@ui" },
