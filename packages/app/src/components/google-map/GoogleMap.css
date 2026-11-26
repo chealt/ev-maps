@@ -1092,10 +1092,18 @@ ev-google-map {
     }
   }
 
-  .attribution {
+  /* The data sources: inline links on one line, wrapping if they must. */
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs) var(--spacing-md);
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
+
+    .attribution[hidden] {
+      display: none;
+    }
 
     a {
       color: inherit;

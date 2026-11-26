@@ -23,6 +23,8 @@ const map = {
     rememberMapsAppHint: "You can change it in the account menu.",
     connectors: "Connectors",
     details: "Details",
+    chargingDataSource: "Charging data source",
+    nearbyPlacesSource: "Nearby places source",
     openChargeMapCredit: {
       before: "Charging data from",
       after: "",

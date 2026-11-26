@@ -23,6 +23,8 @@ const map = {
     rememberMapsAppHint: "A fiókmenüben módosíthatod.",
     connectors: "Csatlakozók",
     details: "Részletek",
+    chargingDataSource: "Töltőadatok forrása",
+    nearbyPlacesSource: "Közeli helyek forrása",
     openChargeMapCredit: {
       before: "A töltőadatok forrása:",
       after: "",
