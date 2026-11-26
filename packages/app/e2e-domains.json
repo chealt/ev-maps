@@ -58,7 +58,8 @@
         "packages/app/src/lib/account-settings.js",
         "packages/app/src/lib/car.js",
         "packages/app/src/lib/connector-groups.js",
-        "packages/app/src/components/car-picker/**"
+        "packages/app/src/components/car-picker/**",
+        "packages/app/src/components/maps-app-picker/preference-picker.css"
       ],
       "tests": [
         "power-filter",
@@ -102,6 +103,7 @@
       "paths": [
         "packages/app/src/components/user-menu/**",
         "packages/app/src/components/theme-picker/**",
+        "packages/app/src/components/maps-app-picker/preference-picker.css",
         "packages/app/src/components/language-picker/**",
         "packages/app/src/lib/session.js",
         "packages/app/src/i18n/*/account.js"
@@ -151,7 +153,8 @@
         "packages/app/src/lib/distance-unit.js",
         "packages/app/src/lib/account-preference.js",
         "packages/app/src/components/distance-text/**",
-        "packages/app/src/components/distance-unit-picker/**"
+        "packages/app/src/components/distance-unit-picker/**",
+        "packages/app/src/components/maps-app-picker/preference-picker.css"
       ],
       "tests": ["distance-unit", "route-planner", "favorites", "nearby", "open-in-maps"]
     },
