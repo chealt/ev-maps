@@ -1,0 +1,30 @@
+name: Visual review for forks
+
+# Fork pull requests run App without write access or the report secrets, so
+# they can't compare screenshots or set the required "Visual review" status.
+# This runs in this repository afterwards and sets it: a maintainer has to
+# check such a pull request's UI by hand, then set the status, or push its
+# branch here so App compares it.
+on:
+  workflow_run:
+    workflows: [App]
+    types: [completed]
+
+permissions:
+  statuses: write
+
+jobs:
+  status:
+    name: Visual review for forks
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.head_repository.full_name != github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask a maintainer for the visual review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
+            -f state=failure -f context="Visual review" -f target_url="$RUN_URL" \
+            -f description="Fork: a maintainer reviews the UI (no screenshots compared)" >/dev/null

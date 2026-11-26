@@ -17,7 +17,7 @@ includes everything that artifact needs from CI.
   every Worker gets its own package and workflow.
 - Run it for every push and pull request, and list the artifact, everything it
   depends on (e.g. `packages/dev-config`, the root `package.json` and
-  `bun.lock`) and the workflow file itself in its `Detect changes` job.
+  `bun.lock`) and the workflow file itself in its `Detect app changes` job.
   Don't put `paths` filters on the triggers: required checks would never
   report for other changes, and those pull requests couldn't be merged.
 - Run the artifact's own scripts with `working-directory` set to its package.
@@ -97,9 +97,9 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
   side, the diff under them, and a link to the test in the report
   (`#?testId=…`). The images are published in the report's public `ui/`
   folder. A later run without changes updates the comment to say so.
-- Before comparing, `captureUi` scrolls the page's scrolled areas (a dialog,
-  the charger's panel) to their top, and back after: where a focus or a
-  hover scrolled them varies from run to run, and isn't a change.
+- Before comparing, `captureUi` waits for animations and scrolling to stop.
+  Tests end each captured moment at the same scroll position every run (see
+  the Testing Guidelines), so a scroll-only difference is a real change.
 - While it's pending, the **Visual approval** job waits on the
   `visual-review` environment, which requires a reviewer. Look at the
   report, then approve the job (**Review deployments** on the run): the
@@ -108,6 +108,14 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
 **Visual review** is a required check, so a pull request whose screenshots
 changed can't be merged until a person has approved the changes. A new push
 compares again, so an approval covers only the screenshots it was given for.
+
+It reports on every pull request:
+
+- **No app changes:** the Test job sets it green ("nothing to compare").
+- **Fork pull requests:** App has no write access or report secrets there, so
+  `visual-review-fork.yml` sets it to failed after App runs. A maintainer
+  checks the UI by hand and pushes the branch to this repository to compare
+  it, or sets the status.
 
 When nothing the app depends on changed (e.g. a docs-only pull request), the
 checks still run so they report, but skip their steps and pass in seconds, and

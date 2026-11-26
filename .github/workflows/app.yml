@@ -31,7 +31,7 @@ defaults:
 
 jobs:
   changes:
-    name: Detect changes
+    name: Detect app changes
     runs-on: ubuntu-latest
     outputs:
       app: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.app == 'true' }}
@@ -331,6 +331,18 @@ jobs:
         if: needs.changes.outputs.app != 'true'
         working-directory: .
         run: echo "No app changes; skipping." >> "$GITHUB_STEP_SUMMARY"
+
+      # "Visual review" is required, so a pull request with nothing to compare
+      # still reports it. Fork pull requests get it from visual-review-fork.yml.
+      - name: No visual changes to review
+        if: ${{ needs.changes.result == 'success' && needs.changes.outputs.app != 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/${{ github.event.pull_request.head.sha }}" \
+            -f state=success -f context="Visual review" \
+            -f description="No app changes; nothing to compare" >/dev/null
 
       - uses: actions/checkout@v7
         if: needs.changes.outputs.app == 'true'
