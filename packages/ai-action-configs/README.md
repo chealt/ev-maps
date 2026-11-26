@@ -10,17 +10,19 @@ on its schedule and opens a pull request with whatever it changed (branch
 {
   "cron": "daily",
   "prompt": "Upgrade the packages released over a week ago",
-  "model": "claude-opus-5-5",
-  "provider": "anthropic"
+  "model": "claude-opus-5-5"
 }
 ```
 
 - `cron`: `hourly`, `daily` (06:xx UTC), `weekly` (Mondays 06:xx UTC), or a
   five-field cron expression. Named schedules get a minute of their own, so
   the configs don't all start at once.
-- `provider` and `model`: as pi names them (`pi --list-models`). The
-  provider's API key comes from the repository secret pi reads, e.g.
-  `ANTHROPIC_API_KEY` (`src/workflows.js` lists them).
+- `model`: a model ID of [Radius](https://radius.earendil.com), the
+  organization's AI gateway (its catalog: `radius.pi.dev/v1/config`, or
+  `pi --list-models radius`). Every action uses its model through Radius,
+  with the `RADIUS_API_KEY` repository secret, so the organization's budgets,
+  policies and analytics apply; a config naming another `provider` is
+  rejected.
 - The file name is the config's name: lowercase letters, digits and dashes.
 
 ## The pull request's description
