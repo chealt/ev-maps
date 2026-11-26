@@ -106,13 +106,13 @@ test(
     const nearby = details.locator(".nearby");
     await expect(nearby.getByRole("heading", { name: "Nearby" })).toBeVisible();
     await expect(nearby.getByRole("listitem")).toHaveText(["Café", "Toilets", "Restaurant"]);
-    await expect(details.getByText("Nearby places ©")).toBeVisible();
+    await expect(details.getByRole("link", { name: "Nearby places source" })).toBeVisible();
     await captureUi(page, testInfo, "nearby places");
 
     await page.getByRole("button", { name: "Close", exact: true }).click();
     await map.getByRole("button", { name: "Lonely charger" }).click();
     const lonely = page.getByRole("complementary", { name: "Lonely charger" });
     await expect(lonely.locator(".nearby")).toBeHidden();
-    await expect(lonely.getByText("Nearby places ©")).toBeHidden();
+    await expect(lonely.getByRole("link", { name: "Nearby places source" })).toBeHidden();
   }
 );

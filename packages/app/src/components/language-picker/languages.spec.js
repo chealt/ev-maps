@@ -62,7 +62,7 @@ test("shows a charger's details, Google Maps and sign-in in Hungarian", async ({
   ).toBeVisible();
   await expect(details.getByText("Hozzáférés: Nyilvános, tagság szükséges")).toBeVisible();
   await expect(details.getByText("Állapot: Működik")).toBeVisible();
-  await expect(details.getByText("A töltőadatok forrása:")).toBeVisible();
+  await expect(details.getByRole("link", { name: "Töltőadatok forrása" })).toBeVisible();
   await details.getByRole("button", { name: "Bezárás" }).click();
 
   await page.getByRole("button", { name: "Bejelentkezés" }).click();
