@@ -79,7 +79,7 @@ const account = {
     mySavedPlaces: "Moje zapisane miejsca",
     mySavedPlacesHint:
       "Miejsca zapisane w planerze tras. Widać je na mapie z ich ikoną, chyba że wyłączysz to w menu konta.",
-    savedPlacesOnMap: "Zapisane miejsca na mapie",
+    savedPlacesOnMap: "Pokaż zapisane miejsca",
     savedPlaceName: "Nazwa",
     saveSavedPlaceChanges: "Zapisz",
     deleteSavedPlace: "Usuń",

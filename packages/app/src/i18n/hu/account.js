@@ -81,7 +81,7 @@ const account = {
     mySavedPlaces: "Mentett helyeim",
     mySavedPlacesHint:
       "Az útvonaltervezőben mentett helyeid. A térképen az ikonjukkal látszanak, hacsak ki nem kapcsolod a fiókmenüben.",
-    savedPlacesOnMap: "Mentett helyek a térképen",
+    savedPlacesOnMap: "Mentett helyek mutatása",
     savedPlaceName: "Név",
     saveSavedPlaceChanges: "Mentés",
     deleteSavedPlace: "Törlés",

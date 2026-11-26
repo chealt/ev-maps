@@ -36,7 +36,7 @@ test(
     // Turned off in the account menu, in the account too; and on again.
     await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
     const menu = page.getByRole("dialog", { name: "Account" });
-    const shown = menu.getByRole("checkbox", { name: "Saved places on the map" });
+    const shown = menu.getByRole("switch", { name: "Show saved places" });
     await expect(shown).toBeChecked();
     await captureUi(page, testInfo, "account menu with saved places");
     await shown.uncheck();

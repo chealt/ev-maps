@@ -1,8 +1,8 @@
 ---
 import { MapPinned } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
+import Switch from "@ev-maps/ui/Switch.astro";
 import { translations } from "../../i18n/index.js";
-import "../motion-setting/MotionSetting.css";
 import "./SavedPlacesSetting.css";
 
 const { page } = translations(Astro.currentLocale ?? "en");
@@ -11,10 +11,9 @@ const { page } = translations(Astro.currentLocale ?? "en");
 <!-- The saved places' pins on the map, on by default; signed in only, as
      saved places are (src/lib/saved-places-on-map.js). -->
 <ev-saved-places-setting hidden>
-  <label class="motion-setting">
-    <input type="checkbox" class="saved-places-on-map" checked />
+  <Switch class="saved-places-on-map" labelClass="saved-places-switch" checked>
     <Icon icon={MapPinned} size="sm" />
     {page.savedPlacesOnMap}
-  </label>
+  </Switch>
   <script src="./SavedPlacesSetting.js"></script>
 </ev-saved-places-setting>

@@ -1,0 +1,63 @@
+.switch {
+  --switch-width: 2.25rem;
+  --switch-height: 1.25rem;
+  --switch-thumb-gap: 0.125rem;
+  --switch-thumb-size: calc(var(--switch-height) - 2 * var(--switch-thumb-gap));
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+
+  .switch-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* The track, and its thumb sliding to the end when on. */
+  .switch-input {
+    appearance: none;
+    position: relative;
+    flex: none;
+    width: var(--switch-width);
+    height: var(--switch-height);
+    margin: 0;
+    border-radius: var(--border-radius-full);
+    background: var(--color-text-muted);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: var(--switch-thumb-gap);
+      left: var(--switch-thumb-gap);
+      width: var(--switch-thumb-size);
+      height: var(--switch-thumb-size);
+      border-radius: 50%;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
+      transition: translate var(--transition-fast);
+    }
+
+    &:checked {
+      background: var(--color-primary-dark);
+
+      &::before {
+        translate: calc(var(--switch-width) - var(--switch-height)) 0;
+      }
+    }
+
+    &:focus-visible {
+      outline: var(--border-width-thick) solid var(--color-primary);
+      outline-offset: var(--border-width-thick);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: var(--opacity-disabled);
+    }
+  }
+}

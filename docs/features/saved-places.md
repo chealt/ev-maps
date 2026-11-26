@@ -12,7 +12,7 @@ looked up by its place ID when the map shows it.
 under the chargers' pins, which stay clickable. The pins follow every change
 to the places (`saved-places-change` on the document) and the session.
 
-The account menu's **Saved places on the map** switch
+The account menu's **Show saved places** switch
 (`<ev-saved-places-setting>`, signed in only) turns them off and on; they're
 on by default. The choice is kept like the other account-menu preferences
 (`src/lib/saved-places-on-map.js`, `account-preference.js`): on this device

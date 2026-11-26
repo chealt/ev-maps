@@ -78,7 +78,7 @@ const account = {
     mySavedPlaces: "My saved places",
     mySavedPlacesHint:
       "The places you saved in the route planner. They show on the map with their icon, unless you turn that off in the account menu.",
-    savedPlacesOnMap: "Saved places on the map",
+    savedPlacesOnMap: "Show saved places",
     savedPlaceName: "Name",
     saveSavedPlaceChanges: "Save",
     deleteSavedPlace: "Remove",

@@ -1,4 +1,12 @@
 /* In line with the account menu's links next to it (UserMenu.css). */
-ev-saved-places-setting .motion-setting {
+ev-saved-places-setting .saved-places-switch {
   padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+
+  &:hover {
+    background: var(--color-surface-hover);
+  }
 }
