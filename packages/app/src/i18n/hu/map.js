@@ -3,6 +3,7 @@
 
 const map = {
   page: {
+    signInToReportChange: "Jelentkezz be, hogy bejelenthesd a töltő változását.",
     mapMenu: "Útvonal innen vagy ide",
     routeFromHere: "Útvonal innen",
     routeToHere: "Útvonal ide",

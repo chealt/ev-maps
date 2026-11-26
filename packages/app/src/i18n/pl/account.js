@@ -5,7 +5,6 @@ const account = {
   page: {
     suggestChargerAvailabilityAndPrice: "Dostępność i cena (opcjonalnie)",
     reportChange: "Zgłoś zmianę",
-    signInToReportChange: "Zaloguj się, aby zgłosić zmianę tej ładowarki.",
     closeReportChange: "Zamknij zgłaszanie zmiany",
     reportChangeHint:
       "Widzisz tu inną dostępność lub cenę? Daj nam znać, z lokalizacją urządzenia przy ładowarce i jej zdjęciem, abyśmy mogli temu zaufać.",

@@ -5,7 +5,6 @@ const account = {
   page: {
     suggestChargerAvailabilityAndPrice: "Elérhetőség és ár (nem kötelező)",
     reportChange: "Változás bejelentése",
-    signInToReportChange: "Jelentkezz be, hogy bejelenthesd a töltő változását.",
     closeReportChange: "Változás bejelentésének bezárása",
     reportChangeHint:
       "Mást láttál itt az elérhetőségről vagy az árról? Írd meg, az eszközöd helyével a töltőnél és egy fényképpel róla, hogy megbízhassunk benne.",

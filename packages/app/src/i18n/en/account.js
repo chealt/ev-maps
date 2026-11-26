@@ -5,7 +5,6 @@ const account = {
   page: {
     suggestChargerAvailabilityAndPrice: "Availability and price (optional)",
     reportChange: "Report a change",
-    signInToReportChange: "Sign in to report a change to this charger.",
     closeReportChange: "Close report a change",
     reportChangeHint:
       "Seen a different availability or price here? Tell us, with your device's location at the charger and a photo of it, so we can trust it.",

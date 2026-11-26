@@ -3,6 +3,7 @@
 
 const map = {
   page: {
+    signInToReportChange: "Sign in to report a change to this charger.",
     mapMenu: "Route from or to here",
     routeFromHere: "Route from here",
     routeToHere: "Route to here",

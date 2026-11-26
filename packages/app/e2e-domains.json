@@ -131,7 +131,8 @@
         "packages/app/src/components/report-change-dialog/**",
         "packages/app/src/components/charger-proof-fields/**",
         "packages/app/src/components/photo-picker/**",
-        "packages/app/src/lib/photos.js"
+        "packages/app/src/lib/photos.js",
+        "packages/app/src/i18n/*/account.js"
       ],
       "tests": ["suggest-charger", "report-change"]
     },
