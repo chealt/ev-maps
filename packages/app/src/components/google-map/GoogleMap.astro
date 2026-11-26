@@ -472,45 +472,14 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </div>
       </div>
-      <!-- The address, and a button to open the charger in a maps app (even
-           without an address). -->
-      <div class="address-row">
-        <p class="address">
-          <Icon icon={MapPin} size="sm" />
-          <span class="text"></span>
-        </p>
-        <!-- Opens the charger in a maps app: the remembered one at once, else
-             the list of them below. -->
-        <Button
-          variant="secondary"
-          size="small"
-          class="open-in-maps"
-          aria-expanded="false"
-          aria-controls="charger-maps-apps"
-        >
-          <Icon icon={ExternalLink} size="sm" />
-          <span class="label">{page.openInMaps}</span>
-        </Button>
-      </div>
-      <div class="maps-apps" id="charger-maps-apps" hidden>
-        <ul class="apps">
-          {["google", "osm", "apple"].map((app) => (
-            <li>
-              <a class="app" data-app={app} target="_blank" rel="noopener">
-                {values.mapsApps[app]}
-                <Icon icon={ExternalLink} size="sm" />
-              </a>
-            </li>
-          ))}
-        </ul>
-        <label class="remember">
-          <input type="checkbox" class="remember-app" aria-describedby="remember-maps-app-hint" />
-          {page.rememberMapsApp}
-        </label>
-        <p class="hint" id="remember-maps-app-hint">
-          {page.rememberMapsAppHint}
-        </p>
-      </div>
+      <!-- The address, as a link to the charger in the maps app chosen in the
+           account menu (Google Maps by default), in a new tab; "Open map"
+           without an address. -->
+      <a class="address" target="_blank" rel="noopener">
+        <Icon icon={MapPin} size="sm" />
+        <span class="text" data-no-address={page.openInMaps}></span>
+        <Icon icon={ExternalLink} size="sm" class="external" />
+      </a>
       <!-- Along a route: from the start, to the end, off the route. -->
       <p class="route-distances" hidden></p>
       <div class="directions">

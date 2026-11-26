@@ -30,7 +30,6 @@ const account = {
     animationsReducedMotion: "Kikapcsolva: a rendszered csökkentett mozgást kér.",
     language: "Nyelv",
     mapsApp: "Térképalkalmazás",
-    mapsAppAsk: "Mindig kérdezzen",
     carConnectors: "Az autóm csatlakozói",
     carAutoFilter: "Töltők automatikus szűrése",
     carAutoFilterHint:

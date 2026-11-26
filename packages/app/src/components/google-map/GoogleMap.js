@@ -10,7 +10,7 @@ import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js
 import { chosenCar, onCarChange } from "../../lib/car.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
-import { mapsApp, mapsAppUrl, onMapsAppChange, setMapsApp } from "../../lib/maps-app.js";
+import { mapsApp, mapsAppUrl, onMapsAppChange } from "../../lib/maps-app.js";
 import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
@@ -2209,7 +2209,6 @@ class GoogleMapElement extends HTMLElement {
     this.activeChargerId = charger.id;
     this.activeCharger = charger;
     panel.querySelector(".name").textContent = chargerName(charger);
-    panel.querySelector(".address .text").textContent = charger.address;
     this.showOpenInMaps(charger);
     // A charger of the route shown: where it is along it.
     const routeDistances = panel.querySelector(".route-distances");
@@ -2376,67 +2375,21 @@ class GoogleMapElement extends HTMLElement {
     withViewTransition(() => this.hideChargerDetails());
   }
 
-  // "Open in maps": the remembered app at once, else the list of apps to
-  // choose from, which can remember the choice (src/lib/maps-app.js). The
-  // app is opened in the click itself, so it isn't blocked as a popup.
+  // The address links to the charger in the chosen maps app
+  // (src/lib/maps-app.js), kept up to date when it's changed in the account
+  // menu.
   setupOpenInMaps() {
-    const panel = this.detailsPanel;
-    const button = panel?.querySelector(".open-in-maps");
-    if (!button) {
-      return;
-    }
-    const apps = panel.querySelector(".maps-apps");
-    button.addEventListener("click", () => {
-      const app = mapsApp();
-      if (app && this.activeCharger) {
-        window.open(
-          mapsAppUrl(app, this.activeCharger.location, chargerName(this.activeCharger)),
-          "_blank",
-          "noopener"
-        );
-        return;
-      }
-      this.setMapsAppsExpanded(apps.hidden);
-    });
-    apps.addEventListener("click", (event) => {
-      const link = event.target.closest(".app");
-      if (!link) {
-        return;
-      }
-      if (apps.querySelector(".remember-app").checked) {
-        setMapsApp(link.dataset.app);
-      }
-      this.setMapsAppsExpanded(false);
-    });
-    // Remembered or forgotten here or in the account menu.
     onMapsAppChange(() => this.activeCharger && this.showOpenInMaps(this.activeCharger));
   }
 
-  // The button opens the remembered app, or the list; the apps' links go to
-  // this charger.
   showOpenInMaps(charger) {
-    const panel = this.detailsPanel;
-    const button = panel?.querySelector(".open-in-maps");
-    if (!button) {
+    const link = this.detailsPanel?.querySelector(".address");
+    if (!link) {
       return;
     }
-    if (mapsApp()) {
-      button.removeAttribute("aria-expanded");
-    }
-    for (const link of panel.querySelectorAll(".maps-apps .app")) {
-      link.href = mapsAppUrl(link.dataset.app, charger.location, chargerName(charger));
-    }
-    panel.querySelector(".remember-app").checked = false;
-    this.setMapsAppsExpanded(false);
-  }
-
-  setMapsAppsExpanded(expanded) {
-    const panel = this.detailsPanel;
-    const button = panel.querySelector(".open-in-maps");
-    panel.querySelector(".maps-apps").hidden = !expanded;
-    if (!mapsApp()) {
-      button.setAttribute("aria-expanded", String(expanded));
-    }
+    const text = link.querySelector(".text");
+    text.textContent = charger.address || text.dataset.noAddress;
+    link.href = mapsAppUrl(mapsApp(), charger.location, chargerName(charger));
   }
 
   // Moves the map to a place found in the place search, at the located zoom.

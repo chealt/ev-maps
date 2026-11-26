@@ -19,8 +19,6 @@ const map = {
     close: "Bezárás",
     navigate: "Útvonal ide",
     openInMaps: "Térkép",
-    rememberMapsApp: "Emlékezzen a választásomra",
-    rememberMapsAppHint: "A fiókmenüben módosíthatod.",
     connectors: "Csatlakozók",
     details: "Részletek",
     chargingDataSource: "Töltőadatok forrása",

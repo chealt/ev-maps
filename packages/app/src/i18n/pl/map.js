@@ -19,8 +19,6 @@ const map = {
     close: "Zamknij",
     navigate: "Nawiguj",
     openInMaps: "Mapa",
-    rememberMapsApp: "Zapamiętaj mój wybór",
-    rememberMapsAppHint: "Możesz to zmienić w menu konta.",
     connectors: "Złącza",
     details: "Szczegóły",
     chargingDataSource: "Źródło danych o ładowaniu",

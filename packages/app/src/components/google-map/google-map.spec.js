@@ -69,9 +69,12 @@ test(
     await expect(details.getByText("Cost: $0.40/kWh")).toBeVisible();
     await expect(details.getByText("Status: Operational")).toBeVisible();
     await expect(details.getByText("Charging points: 8")).toBeVisible();
-    // Its actions on one line; no adding a stop without a route.
+    // The address opens the charger in Google Maps, in a new tab.
+    await expect(
+      details.getByRole("link", { name: "1 Main St, New York, NY, 10001" })
+    ).toHaveAttribute("target", "_blank");
+    // No adding a stop without a route.
     await expect(details.getByRole("button", { name: "Navigate" })).toBeVisible();
-    await expect(details.getByRole("button", { name: "Open map" })).toBeVisible();
     await expect(details.getByRole("button", { name: "Add stop" })).toBeHidden();
     await expect(
       details

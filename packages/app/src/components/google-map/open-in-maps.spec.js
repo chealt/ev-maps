@@ -38,76 +38,49 @@ const openDetails = async (page) => {
   return page.getByRole("complementary", { name: "Downtown charger" });
 };
 
-test("lists the maps apps, each opening the charger in a new tab", async ({ page }) => {
-  await fakeAuthApi(page);
-  await page.goto("/");
-  const details = await openDetails(page);
-
-  const button = details.getByRole("button", { name: "Open map" });
-  await expect(button).toHaveAttribute("aria-expanded", "false");
-  await button.click();
-  await expect(button).toHaveAttribute("aria-expanded", "true");
-  const google = details.getByRole("link", { name: "Google Maps" });
-  await expect(google).toHaveAttribute("href", GOOGLE);
-  await expect(google).toHaveAttribute("target", "_blank");
-  await expect(details.getByRole("link", { name: "OpenStreetMap" })).toHaveAttribute("href", OSM);
-  await expect(details.getByRole("link", { name: "Apple Maps" })).toHaveAttribute("href", APPLE);
-
-  // Without "Remember my choice", it asks again next time.
-  const tab = page.context().waitForEvent("page");
-  await details.getByRole("link", { name: "OpenStreetMap" }).click();
-  expect((await tab).url()).toBe(OSM);
-  await expect(details.getByRole("link", { name: "OpenStreetMap" })).toBeHidden();
-  await expect(details.getByRole("button", { name: "Open map" })).toBeVisible();
-});
-
-test("remembers the app chosen, opens it at once, and forgets it in the account menu", async ({
+test("the address opens the charger in Google Maps in a new tab, Open map without one", async ({
   page,
 }) => {
   await fakeAuthApi(page);
   await page.goto("/");
+  const details = await openDetails(page);
+  const link = details.getByRole("link", { name: "Open map" });
+  await expect(link).toHaveAttribute("href", GOOGLE);
+  await expect(link).toHaveAttribute("target", "_blank");
+  const tab = page.context().waitForEvent("page");
+  await link.click();
+  expect((await tab).url()).toBe(GOOGLE);
+});
+
+test("opens the app chosen in the account menu, after a reload too", async ({ page }) => {
+  await fakeAuthApi(page);
+  await page.goto("/");
   let details = await openDetails(page);
-  await details.getByRole("button", { name: "Open map" }).click();
-  await details.getByRole("checkbox", { name: "Remember my choice" }).check();
-  const first = page.context().waitForEvent("page");
-  await details.getByRole("link", { name: "Apple Maps" }).click();
-  expect((await first).url()).toBe(APPLE);
-
-  // Remembered, after a reload too: the button opens it at once.
-  await page.reload();
-  details = await openDetails(page);
-  const button = details.getByRole("button", { name: "Open map" });
-  await expect(button).not.toHaveAttribute("aria-expanded");
-  const second = page.context().waitForEvent("page");
-  await button.click();
-  expect((await second).url()).toBe(APPLE);
-  await expect(details.getByRole("link", { name: "Apple Maps" })).toBeHidden();
-
-  // The account menu shows it, and can go back to asking.
   await page.getByRole("button", { name: "Sign in" }).click();
   const menu = page.getByRole("dialog", { name: "Account" });
-  await expect(menu.getByRole("radio", { name: "Apple Maps" })).toBeChecked();
-  await menu.getByText("Ask every time", { exact: true }).click();
-  // Closed with its button (Escape would close the details too).
-  await page.locator('[popovertarget="account-menu"]').click();
+  await expect(menu.getByRole("radio", { name: "Google Maps" })).toBeChecked();
+  await expect(menu.getByRole("radio", { name: "Ask every time" })).toHaveCount(0);
+  await menu.getByText("Apple Maps", { exact: true }).click();
+  // The open charger's link follows at once.
+  await expect(details.getByRole("link", { name: "Open map" })).toHaveAttribute("href", APPLE);
+
+  await page.reload();
   details = await openDetails(page);
-  await expect(details.getByRole("button", { name: "Open map" })).toHaveAttribute(
-    "aria-expanded",
-    "false"
-  );
+  const tab = page.context().waitForEvent("page");
+  await details.getByRole("link", { name: "Open map" }).click();
+  expect((await tab).url()).toBe(APPLE);
 });
 
 test("signed in, keeps the choice in the account, the newer one winning", async ({ page }) => {
   await fakeAuthApi(page, { signedIn: true });
-  // Another device remembered OpenStreetMap.
+  // Another device chose OpenStreetMap.
   const saves = await fakeSettingsApi(page, {
     mapsApp: { app: "osm", updatedAt: Date.now() - 1000 },
   });
   await page.goto("/");
-  let details = await openDetails(page);
-  const osm = page.context().waitForEvent("page");
-  await details.getByRole("button", { name: "Open map" }).click();
-  expect((await osm).url()).toBe(OSM);
+  const details = await openDetails(page);
+  const link = details.getByRole("link", { name: "Open map" });
+  await expect(link).toHaveAttribute("href", OSM);
 
   // Chosen here, in the account menu: saved to the account.
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
@@ -118,9 +91,5 @@ test("signed in, keeps the choice in the account, the newer one winning", async 
   await expect
     .poll(() => saves.map((save) => save.mapsApp?.app).filter((app) => app !== undefined))
     .toEqual(["google"]);
-  await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
-  details = await openDetails(page);
-  const google = page.context().waitForEvent("page");
-  await details.getByRole("button", { name: "Open map" }).click();
-  expect((await google).url()).toBe(GOOGLE);
+  await expect(link).toHaveAttribute("href", GOOGLE);
 });
