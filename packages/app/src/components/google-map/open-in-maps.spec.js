@@ -87,7 +87,7 @@ test("remembers the app chosen, opens it at once, and forgets it in the account 
   await page.getByRole("button", { name: "Sign in" }).click();
   const menu = page.getByRole("dialog", { name: "Account" });
   await expect(menu.getByRole("radio", { name: "Apple Maps" })).toBeChecked();
-  await menu.getByRole("radio", { name: "Ask every time" }).check();
+  await menu.getByText("Ask every time", { exact: true }).click();
   // Closed with its button (Escape would close the details too).
   await page.locator('[popovertarget="account-menu"]').click();
   details = await openDetails(page);
@@ -113,8 +113,8 @@ test("signed in, keeps the choice in the account, the newer one winning", async 
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
   await page
     .getByRole("dialog", { name: "Account" })
-    .getByRole("radio", { name: "Google Maps" })
-    .check();
+    .getByText("Google Maps", { exact: true })
+    .click();
   await expect
     .poll(() => saves.map((save) => save.mapsApp?.app).filter((app) => app !== undefined))
     .toEqual(["google"]);

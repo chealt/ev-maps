@@ -30,6 +30,9 @@
   }
 
   .segment {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
     padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--border-radius-full);
     font-size: var(--font-size-sm);

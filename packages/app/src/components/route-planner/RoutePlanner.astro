@@ -16,6 +16,7 @@ import Button from "@ev-maps/ui/Button.astro";
 import Field from "@ev-maps/ui/Field.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
 import ShortLabel from "./ShortLabel.astro";
@@ -209,22 +210,20 @@ const placePresets = [
     </template>
     <!-- How far from the route chargers are shown; the labels and the hint
          are in the user's unit once the page runs (DistanceText.js). -->
-    <fieldset class="corridor">
-      <legend class="label">{page.routeCorridorLegend}</legend>
-      <div class="corridor-options">
-        {CORRIDOR_OPTIONS_KM.map((km) => (
-          <label class="corridor-option">
-            <input type="radio" name="corridor-km" value={km} checked={km === CORRIDOR_KM} />
-            <span class="distance-text" data-meters={km * 1000}>
-              {new Intl.NumberFormat(Astro.currentLocale ?? "en", {
-                style: "unit",
-                unit: "kilometer",
-              }).format(km)}
-            </span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
+    <SegmentedControl
+      class="corridor"
+      legend={page.routeCorridorLegend}
+      name="corridor-km"
+      options={CORRIDOR_OPTIONS_KM.map((km) => ({
+        value: String(km),
+        label: new Intl.NumberFormat(Astro.currentLocale ?? "en", {
+          style: "unit",
+          unit: "kilometer",
+        }).format(km),
+        labelAttrs: { class: "distance-text", "data-meters": String(km * 1000) },
+      }))}
+      value={String(CORRIDOR_KM)}
+    />
     <DistanceText
       class="hint corridor-hint"
       template={page.routeCorridor}

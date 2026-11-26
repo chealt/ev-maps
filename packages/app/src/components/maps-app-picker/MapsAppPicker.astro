@@ -1,4 +1,5 @@
 ---
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
 import { translations } from "../../i18n/index.js";
 import "./preference-picker.css";
 
@@ -15,14 +16,12 @@ const options = [
 <!-- The app a charger's "Open in maps" opens; asking every time by default.
      The details' dialog can remember one too (src/lib/maps-app.js). -->
 <ev-maps-app-picker>
-  <fieldset class="preference-picker">
-    <legend class="legend">{page.mapsApp}</legend>
-    {options.map(({ value, label }) => (
-      <label class="option">
-        <input type="radio" name="maps-app" value={value} checked={value === ""} />
-        {label}
-      </label>
-    ))}
-  </fieldset>
+  <SegmentedControl
+    class="preference-picker"
+    legend={page.mapsApp}
+    name="maps-app"
+    options={options}
+    value=""
+  />
   <script src="./MapsAppPicker.js"></script>
 </ev-maps-app-picker>

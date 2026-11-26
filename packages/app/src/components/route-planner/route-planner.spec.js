@@ -455,7 +455,7 @@ test("plans with the distance from the route chosen, and keeps it with the route
   await expect(distances.getByRole("radio", { name: "5 km" })).toBeChecked();
   await expect(dialog.getByText("Chargers within 5 km of the route are shown.")).toBeVisible();
 
-  await distances.getByRole("radio", { name: "2 km" }).check();
+  await distances.getByText("2 km", { exact: true }).click();
   await expect(dialog.getByText("Chargers within 2 km of the route are shown.")).toBeVisible();
   await choosePlace(dialog, "From", "Buda", "Budapest, Hungary");
   await choosePlace(dialog, "To", "Vie", "Vienna, Austria");
