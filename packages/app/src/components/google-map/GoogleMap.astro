@@ -472,36 +472,18 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </div>
       </div>
-      <p class="address">
-        <Icon icon={MapPin} size="sm" />
-        <span class="text"></span>
-      </p>
-      <!-- Along a route: from the start, to the end, off the route. -->
-      <p class="route-distances" hidden></p>
-      <div class="directions">
-        <!-- Plans a route here, in the route planner: from where the user is,
-             if they already allow it, else they choose where from. -->
-        <Button variant="primary" class="navigate" aria-haspopup="dialog">
-          <Icon icon={Navigation} size="sm" />
-          <span class="label">{page.navigate}</span>
-        </Button>
-        <!-- Adds or removes the charger as a stop along the route, shown only
-             while there's one. -->
-        <Button
-          variant="secondary"
-          class="add-to-route"
-          hidden
-          aria-pressed="false"
-          data-add-label={page.addRouteStop}
-          data-remove-label={page.removeRouteStop}
-        >
-          <Icon icon={MapPinPlus} size="sm" />
-          <span class="label">{page.addRouteStop}</span>
-        </Button>
+      <!-- The address, and a button to open the charger in a maps app (even
+           without an address). -->
+      <div class="address-row">
+        <p class="address">
+          <Icon icon={MapPin} size="sm" />
+          <span class="text"></span>
+        </p>
         <!-- Opens the charger in a maps app: the remembered one at once, else
              the list of them below. -->
         <Button
           variant="secondary"
+          size="small"
           class="open-in-maps"
           aria-expanded="false"
           aria-controls="charger-maps-apps"
@@ -528,6 +510,29 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         <p class="hint" id="remember-maps-app-hint">
           {page.rememberMapsAppHint}
         </p>
+      </div>
+      <!-- Along a route: from the start, to the end, off the route. -->
+      <p class="route-distances" hidden></p>
+      <div class="directions">
+        <!-- Plans a route here, in the route planner: from where the user is,
+             if they already allow it, else they choose where from. -->
+        <Button variant="primary" class="navigate" aria-haspopup="dialog">
+          <Icon icon={Navigation} size="sm" />
+          <span class="label">{page.navigate}</span>
+        </Button>
+        <!-- Adds or removes the charger as a stop along the route, shown only
+             while there's one. -->
+        <Button
+          variant="secondary"
+          class="add-to-route"
+          hidden
+          aria-pressed="false"
+          data-add-label={page.addRouteStop}
+          data-remove-label={page.removeRouteStop}
+        >
+          <Icon icon={MapPinPlus} size="sm" />
+          <span class="label">{page.addRouteStop}</span>
+        </Button>
       </div>
       <section class="section connectors-section">
         <h3 class="title">

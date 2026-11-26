@@ -737,11 +737,24 @@ ev-google-map {
     overflow-wrap: anywhere;
   }
 
+  /* The address, and Open map at its end. */
+  .address-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+
+    .open-in-maps {
+      flex: none;
+      margin-inline-start: auto;
+    }
+  }
+
   .address {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
+    margin: 0;
     color: var(--color-text-muted);
 
     .icon {
