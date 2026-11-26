@@ -344,7 +344,12 @@ test(
     const mixedDetails = page.getByRole("complementary", { name: "Mixed Hub" });
     await expect(mixedDetails.getByText("4 of 8 points free")).toBeVisible();
     const ccsInfo = mixedDetails.getByRole("button", { name: "CCS (Type 2): 3× · 350 kW" });
-    await ccsInfo.hover();
+    // The mouse moved onto it, rather than hover(), whose retries under load
+    // scroll the panel by more or less: the details stay at their top, the
+    // same every run. It's in view there.
+    await expect(ccsInfo).toBeInViewport();
+    const info = await ccsInfo.boundingBox();
+    await page.mouse.move(info.x + info.width / 2, info.y + info.height / 2);
     await expect(mixedDetails.getByRole("tooltip", { name: "CCS (Type 2)" })).toBeVisible();
     await captureUi(
       page,

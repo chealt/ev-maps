@@ -68,40 +68,12 @@ const slug = (text) =>
 // difference doesn't fail the test: it's a "visual-change" annotation, with
 // Playwright's expected, actual and diff images attached to the test, for a
 // person to approve. On main, --update-snapshots=all makes them the baselines.
-// Scrolls every scrolled area of the page to its top, returning where each
-// was, as [index among the page's elements, top, left].
-const scrollToTop = (page) =>
-  page.evaluate(async () => {
-    const scrolled = [];
-    const elements = [...document.querySelectorAll("*")];
-    elements.forEach((element, index) => {
-      if (element.scrollTop || element.scrollLeft) {
-        scrolled.push([index, element.scrollTop, element.scrollLeft]);
-        element.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      }
-    });
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    return scrolled;
-  });
-
-const restoreScroll = (page, scrolled) =>
-  page.evaluate((positions) => {
-    const elements = [...document.querySelectorAll("*")];
-    for (const [index, top, left] of positions) {
-      elements[index]?.scrollTo({ top, left, behavior: "instant" });
-    }
-  }, scrolled);
-
 const compareWithMain = async (page, testInfo, caption) => {
   if (!process.env.VISUAL_COMPARE) {
     return;
   }
   const name = `${slug([...testInfo.titlePath.slice(1), caption].filter(Boolean).join(" "))}.png`;
   const isNew = !existsSync(testInfo.snapshotPath(name));
-  // Scrolled areas (a dialog, the charger's panel) compared from their top:
-  // where a focus or a hover scrolled them to varies from run to run, and
-  // isn't what changed. Scrolled back after.
-  const scrolled = await scrollToTop(page);
   try {
     await expect(page).toHaveScreenshot(name);
   } catch {
@@ -109,17 +81,36 @@ const compareWithMain = async (page, testInfo, caption) => {
       type: "visual-change",
       description: `${isNew ? "new" : "changed"}: ${name}`,
     });
-  } finally {
-    await restoreScroll(page, scrolled);
   }
 };
 
+// Colors in the middle of a fade-in aren't what anyone reads; nor a page
+// still scrolling: this waits until no scrolled area (a dialog, the
+// charger's panel) has moved for a few frames, so a focus or a hover that
+// scrolls it has, every run, by the time of the screenshot.
+const settle = (page) =>
+  page.evaluate(async () => {
+    await Promise.all(
+      document.getAnimations().map((animation) => animation.finished.catch(() => {}))
+    );
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const positions = () =>
+      [...document.querySelectorAll("*")]
+        .filter((element) => element.scrollTop || element.scrollLeft)
+        .map((element) => `${element.scrollTop},${element.scrollLeft}`)
+        .join("|");
+    let last = positions();
+    for (let still = 0, frames = 0; still < 3 && frames < 60; frames++) {
+      await frame();
+      const now = positions();
+      still = now === last ? still + 1 : 0;
+      last = now;
+    }
+  });
+
 // Attaches a screenshot of the page now as UI evidence, with a caption.
 const captureUi = async (page, testInfo, caption) => {
-  // Colors in the middle of a fade-in aren't what anyone reads.
-  await page.evaluate(() =>
-    Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})))
-  );
+  await settle(page);
   await testInfo.attach(caption ? `ui: ${caption}` : "ui", {
     contentType: "image/png",
     body: await page.screenshot(),

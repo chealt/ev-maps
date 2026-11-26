@@ -130,8 +130,10 @@ test(
     await captureUi(page, testInfo, "dropping a pin for a suggested charger");
     await picker.getByRole("button", { name: "Use this spot" }).click();
 
-    // Back in the dialog, with what was filled in, and the pin.
+    // Back in the dialog, with what was filled in, and the pin; the focus
+    // back on the button (which scrolls the dialog to it).
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Drop a pin on the map" })).toBeFocused();
     await expect(dialog.getByLabel("Location name")).toHaveValue("Harbor Charging Hub");
     await expect(dialog.getByText(/Pinned on the map at/)).toBeVisible();
     await captureUi(page, testInfo, "the suggestion with a dropped pin");

@@ -67,28 +67,21 @@ To measure another test's page, tag it:
 `test("…", { tag: "@performance" }, async ({ page }) => { … })`. Run only
 those with `bunx playwright test --grep @performance`.
 
-## UI evidence
+## UI screenshots and the visual review
 
-Tests that show a new or updated UI control are tagged `@ui`. They attach
-screenshots of the moments that show it, captioned
+Tests that show a new or updated UI control are tagged `@ui`. They capture
+the moments that show it, captioned
 (`captureUi(page, testInfo, "the dialog open")` from `@ev-maps/e2e/test.js`),
 before closing what they opened; a test that captures none gets the page as
-it left it. With the video CI records of every test, that is
-the evidence of what the control looks and feels like, straight from
-Playwright. `scripts/publish-test-report.js` puts the two, per `@ui` test,
-into `reports/{id}/ui/` (`scripts/ui-evidence.js`), and:
+it left it. The screenshots are attached to the test in the report.
 
-- on a pull request, comments them on it (replacing the comment an earlier
-  run of it left), so the review sees them next to the code
-- on main, hands them to the release notes as a "UI changes" section
-
-The comment and the notes embed each screenshot the test took, with links
-to its video and the report, from `/reports/{id}/ui/{file}` (the site's only
-public report path, for the screenshots and videos of the app's own UI;
-everything else about a report stays for admins). On a pull request, a
-separate "UI evidence" job comments once the pull request's own preview is
-deployed (`scripts/pr-ui-evidence-comment.js`), so the embeds come from code
-that already serves them.
+Each moment is also compared with `main`'s screenshot of it (Playwright's
+`toHaveScreenshot`), and a pull request whose screenshots changed gets a
+comment with `main`'s and its own side by side, linking each test in the
+report, and a **Visual review** check a person approves; see
+[Visual review](../CI.md#visual-review). The comment's images are in
+`/reports/{id}/ui/` (the site's only public report path; everything else
+about a report stays for admins).
 
 To show another control, tag its test:
 `test("…", { tag: "@ui" }, async ({ page }) => { … })`. Run only those with

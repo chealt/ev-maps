@@ -49,10 +49,11 @@ availability; the map is [Google Maps](https://developers.google.com/maps).
 
 **Don't write end-to-end tests that check how the UI looks**: alignment,
 sizes, spacing, colors, what lines up with what. No `boundingBox()`,
-`getComputedStyle()` or the like. Tag the tests that exercise a control
-`@ui` and capture it with `captureUi()`: CI attaches those screenshots and
-videos to each pull request, and that evidence is the visual check. End-to-end
-tests are for behavior. See
+`getComputedStyle()` or the like to check them. Tag the tests that exercise a
+control `@ui` and capture it with `captureUi()`: CI compares those screenshots
+with `main`'s, and a pull request whose screenshots changed gets them side by
+side in a comment for a person to approve. That is the visual check.
+End-to-end tests are for behavior. See
 [No Visual Checks](docs/TESTING_GUIDELINES.md#no-visual-checks).
 
 ## Contributing

@@ -316,8 +316,6 @@ jobs:
       a11y-summary: ${{ steps.publish.outputs.a11y-summary }}
       performance-report-url: ${{ steps.publish.outputs.performance-report-url }}
       performance-summary: ${{ steps.publish.outputs.performance-summary }}
-      ui-evidence: ${{ steps.publish.outputs.ui-evidence }}
-      ui-files: ${{ steps.publish.outputs.ui-files }}
       visual-changes: ${{ steps.visual.outputs.visual-changes }}
       visual-report-url: ${{ steps.visual.outputs.visual-report-url }}
     steps:
@@ -427,7 +425,7 @@ jobs:
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || 'preview' }}
       url: ${{ steps.url.outputs.url }}
-    # Where this run was deployed, e.g. for the UI evidence job's embeds.
+    # Where this run was deployed.
     outputs:
       url: ${{ steps.url.outputs.url }}
     steps:
@@ -525,34 +523,6 @@ jobs:
           url=$(printf '%s\n' "$OUTPUT" | sed -n 's/.*Preview Alias URL: \(https:[^ ]*\).*/\1/p' | head -1)
           echo "Shared preview (sign-in works here): $url" >> "$GITHUB_STEP_SUMMARY"
 
-  # The UI evidence of a pull request's @ui tests
-  # (scripts/publish-test-report.js), commented on it: embedded from its own
-  # preview once that's deployed (with the `deploy` label), else from
-  # production, whose /reports/{id}/ui/ serves them too. Forks get no
-  # comment (no published report); their reports are the workflow's artifact.
-  ui-evidence:
-    name: UI evidence
-    needs: [changes, test, deploy]
-    if: ${{ !cancelled() && needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.test.result == 'success' && needs.deploy.result != 'failure' && needs.test.outputs.ui-files != '' && needs.test.outputs.ui-files != '[]' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version-file: package.json
-
-      - name: Comment the UI evidence on the pull request
-        working-directory: packages/app
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PULL_REQUEST: ${{ github.event.pull_request.number }}
-          UI_FILES: ${{ needs.test.outputs.ui-files }}
-          DEPLOY_URL: ${{ needs.deploy.outputs.url || 'https://ev.chealt.com' }}
-          REPORT_URL: ${{ needs.test.outputs.report-url }}
-        run: bun scripts/pr-ui-evidence-comment.js
-
   # A pull request whose UI screenshots changed (the Test job's visual
   # comparison) waits here for a person to look at the changes and approve
   # them: the visual-review environment requires a reviewer. Approved, the
@@ -613,7 +583,6 @@ jobs:
           A11Y_SUMMARY: ${{ needs.test.outputs.a11y-summary }}
           PERFORMANCE_REPORT_URL: ${{ needs.test.outputs.performance-report-url }}
           PERFORMANCE_SUMMARY: ${{ needs.test.outputs.performance-summary }}
-          UI_EVIDENCE: ${{ needs.test.outputs.ui-evidence }}
         run: |
           previous=$(gh release view --json tagName -q .tagName 2>/dev/null || true)
           tag="v$(date -u +%Y.%m.%d-%H%M)"
@@ -623,10 +592,6 @@ jobs:
             printf '\n## Test reports\n\n- [Playwright report](%s): %s\n- [Accessibility report](%s): %s\n- [Performance report](%s): %s\n' \
               "$REPORT_URL" "$SUMMARY" "$A11Y_REPORT_URL" "$A11Y_SUMMARY" \
               "$PERFORMANCE_REPORT_URL" "$PERFORMANCE_SUMMARY" >> notes.md
-          fi
-          # The screenshots and videos of the @ui tests this release passed.
-          if [ -n "$UI_EVIDENCE" ]; then
-            printf '\n## UI changes\n\n%s\n' "$UI_EVIDENCE" >> notes.md
           fi
           if [ -n "$previous" ]; then
             printf '\n**Full changes:** %s/%s/compare/%s...%s\n' \

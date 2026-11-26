@@ -2059,6 +2059,9 @@ class GoogleMapElement extends HTMLElement {
     }
     if (this.activeChargerId !== charger.id) {
       track("charger_opened", charger.source);
+      // Another charger's details start at their top, not where the last
+      // one's were scrolled to.
+      panel.scrollTop = 0;
     }
     this.activeChargerId = charger.id;
     this.activeCharger = charger;
