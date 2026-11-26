@@ -89,17 +89,11 @@ test(
 test("switches the period", async ({ page }) => {
   const requests = await fakeUsageAdminApi(page);
   await page.goto("/en/admin/usage/");
-  await expect(page.getByRole("button", { name: "Last 30 days" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+  await expect(page.getByRole("radio", { name: "Last 30 days" })).toBeChecked();
 
-  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await page.getByText("Last 7 days", { exact: true }).click();
 
-  await expect(page.getByRole("button", { name: "Last 7 days" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+  await expect(page.getByRole("radio", { name: "Last 7 days" })).toBeChecked();
   await expect(
     page.getByRole("list", { name: "Page views per day" }).getByRole("listitem")
   ).toHaveCount(7);

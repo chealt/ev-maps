@@ -170,13 +170,10 @@ test("switches the period, and is in the admin navigation", async ({ page }) => 
   // Loaded, so the page's script is listening.
   await expect(page.getByText("The last 7 days")).toBeVisible();
 
-  await page.getByRole("button", { name: "Last 14 days" }).click();
+  await page.getByText("Last 14 days", { exact: true }).click();
 
   await expect(page.getByText("The last 14 days")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Last 14 days" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
+  await expect(page.getByRole("radio", { name: "Last 14 days" })).toBeChecked();
   expect(requests).toEqual([7, 14]);
 });
 
@@ -194,12 +191,12 @@ test("charts each Web Vital's P75 per day", { tag: "@ui" }, async ({ page }) => 
   // A day's real 0 is a measurement, not a gap.
   await page
     .getByRole("group", { name: "Web Vital to chart" })
-    .getByRole("button", { name: "CLS" })
+    .getByText("CLS", { exact: true })
     .click();
   await expect(chart.getByRole("listitem")).toHaveText([
     "Nov 22: no measurements",
     "Nov 23: 0",
     "Nov 24: no measurements",
   ]);
-  await expect(page.getByRole("button", { name: "CLS", pressed: true })).toBeVisible();
+  await expect(page.getByRole("radio", { name: "CLS" })).toBeChecked();
 });
