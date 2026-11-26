@@ -562,6 +562,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Link directly to the Visual approval job
+        working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
