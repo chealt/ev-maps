@@ -13,13 +13,15 @@
     "./format.js": "./format/format.js",
     "./Badge.astro": "./badge/Badge.astro",
     "./Card.astro": "./card/Card.astro",
-    "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro"
+    "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro",
+    "./fetch-json.js": "./fetch-json/fetch-json.js"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",
     "lint:css": "biome lint --config-path=../dev-config .",
     "format": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore .",
-    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check ."
+    "format:check": "oxfmt -c ../dev-config/.oxfmtrc.json --ignore-path ../../.gitignore --check .",
+    "test": "bun test"
   },
   "devDependencies": {
     "@ev-maps/dev-config": "workspace:*"

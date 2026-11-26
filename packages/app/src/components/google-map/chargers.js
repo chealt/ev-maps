@@ -15,6 +15,7 @@ import {
   tileBounds,
   tilesInBounds,
 } from "@ev-maps/tiles";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 // Tiles are 2 zoom levels larger than the map, so a viewport covers ~2×2 tiles.
 const TILE_ZOOM_OFFSET = 2;
@@ -24,14 +25,6 @@ const MAX_SPLIT_DEPTH = 2;
 const inFlightRequests = new Map();
 
 const tileUrl = ({ x, y, zoom }) => `/api/chargers/${zoom}/${x}/${y}?v=${TILE_FORMAT_VERSION}`;
-
-const fetchJson = async (url) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Charger request failed: ${response.status}`);
-  }
-  return response.json();
-};
 
 // Shares one request between callers asking for the same URL at the same time.
 const fetchJsonOnce = (url) => {

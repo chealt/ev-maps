@@ -1,4 +1,5 @@
 import { message, valueLabel } from "../../lib/messages.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const SUGGESTIONS_URL = "/api/charger-suggestions";
 
@@ -26,17 +27,13 @@ class UserSuggestionsElement extends HTMLElement {
     const params = status ? `?status=${encodeURIComponent(status)}` : "";
     let data;
     try {
-      const response = await fetch(`${SUGGESTIONS_URL}${params}`);
-      if (response.status === 401) {
+      data = await fetchJson(`${SUGGESTIONS_URL}${params}`);
+    } catch (error) {
+      if (error.status === 401) {
         this.summary.textContent = message("signInForMySuggestions");
         this.list.replaceChildren();
         return;
       }
-      if (!response.ok) {
-        throw new Error(`${SUGGESTIONS_URL} failed: ${response.status}`);
-      }
-      data = await response.json();
-    } catch (error) {
       console.error("Could not load user charger suggestions:", error);
       this.summary.textContent = message("mySuggestionsNotLoaded");
       this.list.replaceChildren();

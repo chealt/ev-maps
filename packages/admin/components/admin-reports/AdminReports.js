@@ -1,5 +1,6 @@
 import { get, set } from "idb-keyval";
 import { formatNumber, message } from "@ev-maps/ui/messages.js";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const REPORTS_URL = "/api/admin/test-reports";
 // The branch filter, remembered in this browser (IndexedDB); the default
@@ -62,11 +63,7 @@ class AdminReportsElement extends HTMLElement {
       if (this.branch) {
         params.set("branch", this.branch);
       }
-      const response = await fetch(`${REPORTS_URL}?${params}`);
-      if (!response.ok) {
-        throw new Error(`${REPORTS_URL} failed: ${response.status}`);
-      }
-      data = await response.json();
+      data = await fetchJson(`${REPORTS_URL}?${params}`);
     } catch (error) {
       console.error("Could not load the reports:", error);
       summary.textContent = message("adminReportsNotLoaded");

@@ -6,6 +6,7 @@ import {
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
+import { fetchJson } from "@ev-maps/ui/fetch-json.js";
 
 const AUTH_URL = "/api/auth";
 
@@ -16,14 +17,6 @@ const postJson = (url, body) =>
     body: JSON.stringify(body),
   });
 
-const getJson = async (url) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${url} failed: ${response.status}`);
-  }
-  return response.json();
-};
-
 const supportsPasskeys = () => browserSupportsWebAuthn();
 
 // The person cancelled the browser's passkey dialog (or it timed out).
@@ -32,7 +25,7 @@ const isCancelled = (error) => error?.name === "NotAllowedError" || error?.name 
 // Signs in with a passkey; resolves to "signed-in", "cancelled" or "failed".
 const signInWithPasskey = async () => {
   try {
-    const options = await getJson(`${AUTH_URL}/passkey/generate-authenticate-options`);
+    const options = await fetchJson(`${AUTH_URL}/passkey/generate-authenticate-options`);
     const response = await startAuthentication({ optionsJSON: options });
     const verified = await postJson(`${AUTH_URL}/passkey/verify-authentication`, { response });
     return verified.ok ? "signed-in" : "failed";
@@ -48,7 +41,7 @@ const signInWithPasskey = async () => {
 // Adds a passkey to the signed-in account; "added", "cancelled" or "failed".
 const addPasskey = async () => {
   try {
-    const options = await getJson(`${AUTH_URL}/passkey/generate-register-options`);
+    const options = await fetchJson(`${AUTH_URL}/passkey/generate-register-options`);
     const response = await startRegistration({ optionsJSON: options });
     const verified = await postJson(`${AUTH_URL}/passkey/verify-registration`, { response });
     return verified.ok ? "added" : "failed";
@@ -66,7 +59,7 @@ const addPasskey = async () => {
 // so nobody is pressed to add one twice).
 const hasPasskey = async () => {
   try {
-    const passkeys = await getJson(`${AUTH_URL}/passkey/list-user-passkeys`);
+    const passkeys = await fetchJson(`${AUTH_URL}/passkey/list-user-passkeys`);
     return passkeys.length > 0;
   } catch {
     return true;
