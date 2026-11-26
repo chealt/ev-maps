@@ -1,4 +1,6 @@
 ---
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
+import Card from "@ev-maps/ui/Card.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminDashboard.css";
 
@@ -31,26 +33,26 @@ const charts = [
     </p>
     <div class="charts">
       {charts.map(({ key, title, href, more }) => (
-        <article class="card" data-key={key}>
+        <Card as="article" class="chart" data-key={key}>
           <BarChart title={title} id={`admin-dashboard-${key}`} />
           <p class="footer">
             <span class="total"></span>
             <a href={`/${lang}/admin/${href}/`}>{more}</a>
           </p>
-        </article>
+        </Card>
       ))}
     </div>
-    <article class="card top-pages" aria-labelledby="admin-dashboard-top-pages">
+    <Card as="article" class="top-pages" aria-labelledby="admin-dashboard-top-pages">
       <h3 class="chart-title" id="admin-dashboard-top-pages">
         {page.adminTopPages}
       </h3>
       <!-- The most visited pages, each with a bar as long as its share of the
            first's. -->
       <ol class="pages"></ol>
-      <p class="empty" hidden>
+      <EmptyState class="empty" hidden>
         {page.adminTopPagesNone}
-      </p>
-    </article>
+      </EmptyState>
+    </Card>
   </section>
   <template class="page-template">
     <li class="page">

@@ -42,11 +42,8 @@ class AdminPerformanceElement extends HTMLElement {
   connectedCallback() {
     this.summaryView = this.querySelector(".summary-view");
     this.traceView = this.querySelector(".trace-view");
-    this.querySelector(".periods").addEventListener("click", (event) => {
-      const button = event.target.closest(".period");
-      if (button) {
-        this.go({ trace: null, days: Number(button.dataset.days) });
-      }
+    this.querySelector(".periods").addEventListener("change", (event) => {
+      this.go({ trace: null, days: Number(event.target.value) });
     });
     // Links within the page change the view without reloading it.
     this.addEventListener("click", (event) => {
@@ -56,12 +53,9 @@ class AdminPerformanceElement extends HTMLElement {
         this.go(JSON.parse(link.dataset.view));
       }
     });
-    this.querySelector(".trend-vitals").addEventListener("click", (event) => {
-      const button = event.target.closest(".trend-vital");
-      if (button) {
-        this.trendVital = button.dataset.trend;
-        this.renderTrend();
-      }
+    this.querySelector(".trend-vitals").addEventListener("change", (event) => {
+      this.trendVital = event.target.value;
+      this.renderTrend();
     });
     this.querySelector(".all-performance").dataset.view = JSON.stringify({ trace: null, days: 7 });
     window.addEventListener("popstate", () => this.show(viewOf()));
@@ -97,8 +91,8 @@ class AdminPerformanceElement extends HTMLElement {
   // The chosen vital's P75 per day (LCP until another is picked).
   renderTrend() {
     const vital = this.trendVital ?? "LCP";
-    for (const button of this.querySelectorAll(".trend-vital")) {
-      button.setAttribute("aria-pressed", String(button.dataset.trend === vital));
+    for (const input of this.querySelectorAll(".trend-vitals input")) {
+      input.checked = input.value === vital;
     }
     const { days = [], vitals = {} } = this.vitalsByDay ?? {};
     if (!days.length) {
@@ -120,8 +114,8 @@ class AdminPerformanceElement extends HTMLElement {
   renderSummary(summary) {
     this.vitalsByDay = summary.vitalsByDay;
     this.renderTrend();
-    for (const button of this.querySelectorAll(".period")) {
-      button.setAttribute("aria-pressed", String(Number(button.dataset.days) === summary.days));
+    for (const input of this.querySelectorAll(".periods input")) {
+      input.checked = Number(input.value) === summary.days;
     }
     this.summaryView.querySelector(".summary").textContent = message("adminPerformancePeriod", {
       count: summary.days,

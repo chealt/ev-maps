@@ -57,7 +57,9 @@
     }
   }
 
-  /* The radio itself: only for keyboards and screen readers. */
+  /* The radio itself, and a hidden legend: only for keyboards and screen
+     readers. */
+  .segmented-legend.hidden,
   .segment-input {
     position: absolute;
     width: var(--border-width);

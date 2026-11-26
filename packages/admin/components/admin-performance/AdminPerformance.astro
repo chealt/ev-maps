@@ -1,4 +1,8 @@
 ---
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import Stat from "@ev-maps/ui/Stat.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
@@ -35,44 +39,42 @@ const tables = [
       <h2 class="section-title" id="admin-performance-title">
         {page.adminPerformance}
       </h2>
-      <div class="periods" role="group" aria-label={page.adminPeriod}>
-        {periods.map((days) => (
-          <button type="button" class="period" data-days={days} aria-pressed={String(days === 7)}>
-            {days === 1 ? page.adminLast24Hours : fill(page.adminLastDays, { days })}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        class="periods"
+        legend={page.adminPeriod}
+        legendHidden
+        name="performance-period"
+        options={periods.map((days) => ({
+          value: String(days),
+          label: days === 1 ? page.adminLast24Hours : fill(page.adminLastDays, { days }),
+        }))}
+        value="7"
+      />
     </div>
     <p class="summary" role="status"></p>
 
     <h3 class="subtitle">{page.adminWebVitals}</h3>
     <dl class="vitals">
       {vitals.map((name) => (
-        <div class="vital" data-vital={name}>
-          <dt>
-            <abbr title={page[`adminVital${name}`]}>{name}</abbr>
-          </dt>
-          <dd class="value">–</dd>
+        <Stat class="vital" data-vital={name}>
+          <abbr slot="label" title={page[`adminVital${name}`]}>
+            {name}
+          </abbr>
           <dd class="count"></dd>
-        </div>
+        </Stat>
       ))}
     </dl>
     <p class="hint">{page.adminWebVitalsHint}</p>
 
     <!-- Each vital's P75 per day, the last 14 days whatever the period. -->
     <div class="vital-trend">
-      <div class="trend-vitals" role="group" aria-label={page.adminVitalTrendPick}>
-        {vitals.map((name) => (
-          <button
-            type="button"
-            class="trend-vital"
-            data-trend={name}
-            aria-pressed={String(name === "LCP")}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        class="trend-vitals"
+        legend={page.adminVitalTrendPick}
+        legendHidden
+        name="performance-trend-vital"
+        options={vitals.map((name) => ({ value: name, label: name }))}
+      />
       <BarChart title={page.adminVitalTrend} id="admin-vital-trend-title" />
     </div>
 
@@ -81,34 +83,32 @@ const tables = [
         <h3 class="subtitle" id={`admin-${id}-title`}>
           {title}
         </h3>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">{nameColumn}</th>
-                <th scope="col" class="number">
-                  {page.adminCountColumn}
-                </th>
-                <th scope="col" class="number">
-                  P75
-                </th>
-                <th scope="col" class="number">
-                  P95
-                </th>
-                <th scope="col" class="number">
-                  {page.adminMaxColumn}
-                </th>
-                <th scope="col" class="number">
-                  {page.adminErrorsColumn}
-                </th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="empty" hidden>
+        <Table density="compact">
+          <thead>
+            <tr>
+              <th scope="col">{nameColumn}</th>
+              <th scope="col" class="number">
+                {page.adminCountColumn}
+              </th>
+              <th scope="col" class="number">
+                P75
+              </th>
+              <th scope="col" class="number">
+                P95
+              </th>
+              <th scope="col" class="number">
+                {page.adminMaxColumn}
+              </th>
+              <th scope="col" class="number">
+                {page.adminErrorsColumn}
+              </th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </Table>
+        <EmptyState class="empty" hidden>
           {page.adminNoData}
-        </p>
+        </EmptyState>
       </section>
     ))}
 
@@ -116,24 +116,22 @@ const tables = [
       <h3 class="subtitle" id="admin-slowest-title">
         {page.adminSlowestRequests}
       </h3>
-      <div class="table-wrapper">
-        <table class="slowest">
-          <thead>
-            <tr>
-              <th scope="col">{page.adminRequestColumn}</th>
-              <th scope="col">{page.adminPathColumn}</th>
-              <th scope="col" class="number">
-                {page.adminDurationColumn}
-              </th>
-              <th scope="col">{page.adminWhenColumn}</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="empty" hidden>
+      <Table density="compact" class="slowest">
+        <thead>
+          <tr>
+            <th scope="col">{page.adminRequestColumn}</th>
+            <th scope="col">{page.adminPathColumn}</th>
+            <th scope="col" class="number">
+              {page.adminDurationColumn}
+            </th>
+            <th scope="col">{page.adminWhenColumn}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </Table>
+      <EmptyState class="empty" hidden>
         {page.adminNoData}
-      </p>
+      </EmptyState>
     </section>
   </section>
 
@@ -149,7 +147,9 @@ const tables = [
 
   <template class="timing-row-template">
     <tr>
-      <th scope="row" class="name"></th>
+      <th scope="row">
+        <span class="name"></span>
+      </th>
       <td class="count number"></td>
       <td class="p75 number"></td>
       <td class="p95 number"></td>

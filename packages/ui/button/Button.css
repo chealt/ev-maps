@@ -107,3 +107,9 @@
     border-radius: var(--border-radius-full);
   }
 }
+
+/* As a link (href): no underline, even where links get one on hover. */
+a.button,
+a.button:hover {
+  text-decoration: none;
+}

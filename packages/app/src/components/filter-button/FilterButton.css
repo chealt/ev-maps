@@ -23,7 +23,7 @@ ev-filter-button {
   }
 
   /* The number of active filters, on the icon's top-right corner. */
-  .badge {
+  .filter-count {
     position: absolute;
     top: -0.625rem;
     right: -0.5rem;
@@ -31,14 +31,10 @@ ev-filter-button {
     height: 1.125rem;
     padding: 0 var(--spacing-2xs);
     border: var(--border-width-thick) solid var(--color-surface);
-    border-radius: var(--border-radius-full);
-    background: var(--color-primary);
-    color: var(--color-primary-contrast);
     font-size: var(--font-size-2xs);
     font-weight: var(--font-weight-bold);
     line-height: 0.875rem;
     text-align: center;
-
     &[hidden] {
       display: none;
     }

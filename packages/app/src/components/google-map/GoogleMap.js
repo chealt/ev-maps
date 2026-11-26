@@ -1251,7 +1251,8 @@ class GoogleMapElement extends HTMLElement {
         item.querySelector(".facts").replaceChildren(
           ...facts.map((fact) => {
             const chip = document.createElement("span");
-            chip.className = "fact";
+            chip.className = "badge fact";
+            chip.dataset.tone = "neutral";
             chip.textContent = fact;
             return chip;
           })
@@ -1995,7 +1996,11 @@ class GoogleMapElement extends HTMLElement {
         const card = cardTemplate.content.firstElementChild.cloneNode(true);
         const typeLabel = valueLabel("connectors", connector.type);
         const summary = formatConnector(connector);
-        const tooltip = card.querySelector(".connector-tooltip");
+        // The cards at either end of the row: their tooltip lines up with
+        // the card's end, so it stays inside the panel.
+        const atAnEnd = index === 0 || index === connectors.length - 1;
+        card.querySelector(".connector-info-wrapper").dataset.align = atAnEnd ? "end" : "center";
+        const tooltip = card.querySelector(".tooltip");
         const tooltipId = `connector-tooltip-${index}`;
         tooltip.id = tooltipId;
         tooltip.textContent = typeLabel;

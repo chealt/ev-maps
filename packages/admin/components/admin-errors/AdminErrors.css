@@ -44,29 +44,7 @@
     white-space: nowrap;
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-  }
-
   .groups {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-
-    th,
-    td {
-      padding: var(--spacing-sm);
-      border-bottom: var(--border-width) solid var(--color-border);
-      text-align: start;
-      vertical-align: top;
-    }
-
-    th {
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-muted);
-      white-space: nowrap;
-    }
-
     /* The sortable columns' headers, current one marked with an arrow. */
     .sort {
       display: inline-flex;
@@ -82,11 +60,6 @@
       .sort-arrow {
         color: var(--color-primary);
       }
-    }
-
-    .number {
-      text-align: end;
-      font-variant-numeric: tabular-nums;
     }
 
     /* Wide enough to read; the table scrolls on small screens. */
@@ -121,20 +94,6 @@
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-sm);
-
-    .previous,
-    .next {
-      padding: var(--spacing-xs) var(--spacing-md);
-      border: var(--border-width) solid var(--color-border-strong);
-      border-radius: var(--border-radius-full);
-      background: var(--color-surface);
-      color: var(--color-text);
-      text-decoration: none;
-    }
-
-    [aria-disabled="true"] {
-      opacity: var(--opacity-disabled);
-    }
   }
 
   .all-errors {
@@ -151,12 +110,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
-  }
-
-  .occurrence {
-    padding: var(--spacing-md);
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--border-radius-md);
   }
 
   .facts {

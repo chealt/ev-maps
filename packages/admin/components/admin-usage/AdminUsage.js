@@ -37,18 +37,15 @@ const dimensionLabels = (element) => {
 
 class AdminUsageElement extends HTMLElement {
   connectedCallback() {
-    this.querySelector(".periods").addEventListener("click", (event) => {
-      const button = event.target.closest(".period");
-      if (button) {
-        this.load(Number(button.dataset.days));
-      }
+    this.querySelector(".periods").addEventListener("change", (event) => {
+      this.load(Number(event.target.value));
     });
     this.load(30);
   }
 
   async load(days) {
-    for (const button of this.querySelectorAll(".period")) {
-      button.setAttribute("aria-pressed", String(Number(button.dataset.days) === days));
+    for (const input of this.querySelectorAll(".periods input")) {
+      input.checked = Number(input.value) === days;
     }
     const summary = this.querySelector(".summary");
     let stats;

@@ -1,0 +1,17 @@
+.empty-state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+
+  > .icon {
+    flex: none;
+    /* Level with the first line of the text. */
+    margin-block-start: calc((1lh - var(--icon-size-sm)) / 2);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+}

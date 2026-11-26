@@ -1,4 +1,8 @@
 ---
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import Stat from "@ev-maps/ui/Stat.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import { fill } from "@ev-maps/ui/format.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminUsage.css";
@@ -37,22 +41,23 @@ const {
       <h2 class="section-title" id="admin-usage-title">
         {page.adminUsage}
       </h2>
-      <div class="periods" role="group" aria-label={page.adminPeriod}>
-        {periods.map((days) => (
-          <button type="button" class="period" data-days={days} aria-pressed={String(days === 30)}>
-            {fill(page.adminLastDays, { days })}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        class="periods"
+        legend={page.adminPeriod}
+        legendHidden
+        name="usage-period"
+        options={periods.map((days) => ({
+          value: String(days),
+          label: fill(page.adminLastDays, { days }),
+        }))}
+        value="30"
+      />
     </div>
     <p class="summary" role="status"></p>
 
     <dl class="totals">
       {totals.map((event) => (
-        <div class="total" data-event={event}>
-          <dt>{values.usageEvents[event]}</dt>
-          <dd class="value">–</dd>
-        </div>
+        <Stat class="total" data-event={event} label={values.usageEvents[event]} />
       ))}
     </dl>
 
@@ -64,12 +69,12 @@ const {
           <h3 class="subtitle" id={`admin-breakdown-${event}`}>
             {values.usageEvents[event]}
           </h3>
-          <table>
+          <Table density="compact">
             <tbody></tbody>
-          </table>
-          <p class="empty" hidden>
+          </Table>
+          <EmptyState class="empty" hidden>
             {page.adminNoData}
-          </p>
+          </EmptyState>
         </section>
       ))}
       <!-- Now, not in the period: the host's top items, e.g. favorites. -->
@@ -77,12 +82,12 @@ const {
         <h3 class="subtitle" id="admin-top-items">
           {page.adminTopItems}
         </h3>
-        <table>
+        <Table density="compact">
           <tbody></tbody>
-        </table>
-        <p class="empty" hidden>
+        </Table>
+        <EmptyState class="empty" hidden>
           {page.adminNoData}
-        </p>
+        </EmptyState>
       </section>
     </div>
   </section>

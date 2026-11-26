@@ -1,7 +1,9 @@
 ---
 import { Heart } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./FavoritesDialog.css";
@@ -21,14 +23,13 @@ const { page } = translations(Astro.currentLocale ?? "en");
     <Fragment slot="header">
       <p class="sort-basis">{page.nearestToMapCenter}</p>
     </Fragment>
-    <p class="empty">
-      <Icon icon={Heart} size="sm" />
+    <EmptyState class="empty" icon={Heart}>
       {page.noFavorites}
-    </p>
+    </EmptyState>
     <ol class="items"></ol>
     <Fragment slot="after">
       <template class="item-template">
-        <li class="item">
+        <Card as="li" class="item">
           <button type="button" class="entry">
             <span class="name"></span>
             <span class="distance"></span>
@@ -37,7 +38,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
           <Button variant="ghost" size="icon-only" class="remove">
             <Icon icon={Heart} />
           </Button>
-        </li>
+        </Card>
       </template>
     </Fragment>
   </Dialog>

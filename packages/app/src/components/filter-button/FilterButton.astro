@@ -1,4 +1,5 @@
 ---
+import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import { SlidersHorizontal, X } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
@@ -29,7 +30,7 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <span class="icon-wrapper">
         <Icon icon={SlidersHorizontal} />
         <!-- How many filters are on; screen readers get the description below. -->
-        <span class="badge" aria-hidden="true" hidden></span>
+        <Badge tone="accent" class="filter-count" aria-hidden="true" hidden />
       </span>
       <span class="label">{page.filters}</span>
     </Button>

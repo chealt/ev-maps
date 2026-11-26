@@ -18,6 +18,8 @@ interface Props extends HTMLAttributes<"fieldset"> {
   options: Option[];
   /** The value checked at first; the first option's by default. */
   value?: string;
+  /** The legend only for screen readers, when a heading nearby says it. */
+  legendHidden?: boolean;
 }
 
 const {
@@ -25,13 +27,14 @@ const {
   name,
   options,
   value = options[0]?.value,
+  legendHidden = false,
   class: className,
   ...attrs
 } = Astro.props;
 ---
 
 <fieldset class:list={["segmented-control", className]} {...attrs}>
-  <legend class="segmented-legend">{legend}</legend>
+  <legend class:list={["segmented-legend", legendHidden && "hidden"]}>{legend}</legend>
   <span class="segments">
     {options.map((option) => (
       <label class="segment">

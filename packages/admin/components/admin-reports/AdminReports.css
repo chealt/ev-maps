@@ -17,34 +17,7 @@ ev-admin-reports {
     color: var(--color-text-muted);
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-  }
-
   .reports {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--font-size-sm);
-
-    th,
-    td {
-      padding: var(--spacing-sm);
-      border-bottom: var(--border-width) solid var(--color-border);
-      text-align: start;
-      vertical-align: top;
-    }
-
-    th {
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-muted);
-      white-space: nowrap;
-    }
-
-    .number {
-      text-align: end;
-      font-variant-numeric: tabular-nums;
-    }
-
     .when,
     .duration {
       white-space: nowrap;
