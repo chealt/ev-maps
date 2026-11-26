@@ -8,18 +8,21 @@ const STATUS_MESSAGES = {
   rejected: "suggestionRejected",
 };
 
+// A suggestion's status as its badge's tone.
+const STATUS_TONES = { pending: "warning", approved: "success", rejected: "danger" };
+
 class UserSuggestionsElement extends HTMLElement {
   connectedCallback() {
-    this.statusSelect = this.querySelector(".status-select");
+    this.statusFilter = this.querySelector(".status-filter");
     this.summary = this.querySelector(".summary");
     this.list = this.querySelector(".suggestion-list");
 
-    this.statusSelect.addEventListener("change", () => this.load());
+    this.statusFilter.addEventListener("change", () => this.load());
     this.load();
   }
 
   async load() {
-    const status = this.statusSelect.value;
+    const status = this.statusFilter.querySelector("input:checked")?.value ?? "";
     const params = status ? `?status=${encodeURIComponent(status)}` : "";
     let data;
     try {
@@ -54,7 +57,7 @@ class UserSuggestionsElement extends HTMLElement {
           .filter(Boolean)
           .join(" · ");
         const badge = card.querySelector(".status-badge");
-        badge.dataset.status = suggestion.status;
+        badge.dataset.tone = STATUS_TONES[suggestion.status] ?? "warning";
         badge.textContent = message(STATUS_MESSAGES[suggestion.status] ?? "suggestionPending");
         card.querySelector(".coordinates").textContent =
           `${suggestion.location.lat}, ${suggestion.location.lng}`;

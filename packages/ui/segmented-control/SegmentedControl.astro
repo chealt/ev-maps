@@ -1,0 +1,49 @@
+---
+// One choice of a few, as a row of segments: radio buttons (so keyboards and
+// screen readers know it as one), shown as a segmented toggle. Listen for
+// "change" on it, and read the checked input's value.
+import type { HTMLAttributes } from "astro/types";
+import "./SegmentedControl.css";
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props extends HTMLAttributes<"fieldset"> {
+  /** The group's name, shown before the segments. */
+  legend: string;
+  /** The radios' name. */
+  name: string;
+  options: Option[];
+  /** The value checked at first; the first option's by default. */
+  value?: string;
+}
+
+const {
+  legend,
+  name,
+  options,
+  value = options[0]?.value,
+  class: className,
+  ...attrs
+} = Astro.props;
+---
+
+<fieldset class:list={["segmented-control", className]} {...attrs}>
+  <legend class="segmented-legend">{legend}</legend>
+  <span class="segments">
+    {options.map((option) => (
+      <label class="segment">
+        <input
+          type="radio"
+          class="segment-input"
+          name={name}
+          value={option.value}
+          checked={option.value === value}
+        />
+        {option.label}
+      </label>
+    ))}
+  </span>
+</fieldset>

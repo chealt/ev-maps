@@ -1,5 +1,8 @@
 ---
+import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
 import "./AdminSuggestions.css";
 
 interface Props {
@@ -19,29 +22,30 @@ const { page } = Astro.props;
     <h2 class="section-title" id="admin-suggestions-title">
       {page.adminSuggestions}
     </h2>
-    <label class="status-filter">
-      {page.adminSuggestionStatusFilter}
-      <select class="status-select">
-        <option value="pending" selected>
-          {page.adminSuggestionsPending}
-        </option>
-        <option value="">{page.adminSuggestionsAll}</option>
-        <option value="approved">{page.adminSuggestionsApproved}</option>
-        <option value="rejected">{page.adminSuggestionsRejected}</option>
-      </select>
-    </label>
+    <SegmentedControl
+      class="status-filter"
+      legend={page.adminSuggestionStatusFilter}
+      name="status"
+      value="pending"
+      options={[
+        { value: "pending", label: page.adminSuggestionsPending },
+        { value: "", label: page.adminSuggestionsAll },
+        { value: "approved", label: page.adminSuggestionsApproved },
+        { value: "rejected", label: page.adminSuggestionsRejected },
+      ]}
+    />
     <p class="summary" role="status"></p>
     <div class="suggestion-list"></div>
   </section>
 
   <template class="suggestion-template">
-    <article class="suggestion-card">
+    <Card as="article" class="suggestion-card">
       <div class="card-header">
         <div>
           <h3 class="charger-name"></h3>
           <p class="charger-meta"></p>
         </div>
-        <span class="status-badge"></span>
+        <Badge class="status-badge" />
       </div>
       <div class="card-body">
         <div class="details">
@@ -61,7 +65,7 @@ const { page } = Astro.props;
           <ul class="proof-photos"></ul>
         </div>
       </div>
-    </article>
+    </Card>
   </template>
   <template class="connector-item-template">
     <li class="connector-item"></li>

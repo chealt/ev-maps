@@ -1,4 +1,7 @@
 ---
+import Badge from "@ev-maps/ui/Badge.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
@@ -21,34 +24,37 @@ const { page } = translations(lang);
       </a>
     </nav>
     <header class="header">
-      <h1 class="title">{page.mySuggestedChargers}</h1>
+      <h1 class="title" id="user-suggestions-title">
+        {page.mySuggestedChargers}
+      </h1>
       <p class="subtitle">{page.mySuggestedChargersHint}</p>
     </header>
-    <section aria-labelledby="user-suggestions-filter-label">
-      <label class="status-filter" id="user-suggestions-filter-label">
-        {page.suggestionStatusFilter}
-        <select class="status-select">
-          <option value="" selected>
-            {page.suggestionsAll}
-          </option>
-          <option value="pending">{page.suggestionsPending}</option>
-          <option value="approved">{page.suggestionsApproved}</option>
-          <option value="rejected">{page.suggestionsRejected}</option>
-        </select>
-      </label>
+    <section aria-labelledby="user-suggestions-title">
+      <SegmentedControl
+        class="status-filter"
+        legend={page.suggestionStatusFilter}
+        name="status"
+        value=""
+        options={[
+          { value: "", label: page.suggestionsAll },
+          { value: "pending", label: page.suggestionsPending },
+          { value: "approved", label: page.suggestionsApproved },
+          { value: "rejected", label: page.suggestionsRejected },
+        ]}
+      />
       <p class="summary" role="status"></p>
       <div class="suggestion-list"></div>
     </section>
   </main>
 
   <template class="suggestion-template">
-    <article class="suggestion-card">
+    <Card as="article" class="suggestion-card">
       <div class="card-header">
         <div>
           <h2 class="charger-name"></h2>
           <p class="charger-meta"></p>
         </div>
-        <span class="status-badge"></span>
+        <Badge class="status-badge" />
       </div>
       <div class="card-body">
         <div class="details">
@@ -59,7 +65,7 @@ const { page } = translations(lang);
           <ul class="proof-photos"></ul>
         </div>
       </div>
-    </article>
+    </Card>
   </template>
   <template class="connector-item-template">
     <li class="connector-item"></li>

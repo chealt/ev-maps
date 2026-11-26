@@ -230,8 +230,8 @@ test(
     await expect(harborCard.getByRole("img", { name: "Proof photos" })).toHaveCount(2);
     await captureUi(page, testInfo, "user viewing their suggested chargers (All)");
 
-    const statusSelect = page.getByRole("combobox", { name: "Status" });
-    await statusSelect.selectOption({ label: "Pending" });
+    const statusFilter = page.getByRole("group", { name: "Status" });
+    await statusFilter.getByText("Pending", { exact: true }).click();
     await expect(page.getByText("1 suggested charger")).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })
@@ -240,14 +240,14 @@ test(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
     ).toBeHidden();
 
-    await statusSelect.selectOption({ label: "Approved" });
+    await statusFilter.getByText("Approved", { exact: true }).click();
     await expect(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
     ).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Harbor Charging Hub" })).toBeHidden();
     await captureUi(page, testInfo, "user filtering suggested chargers by Approved");
 
-    await statusSelect.selectOption({ label: "Rejected" });
+    await statusFilter.getByText("Rejected", { exact: true }).click();
     await expect(page.getByRole("heading", { level: 2, name: "Old Mall Charger" })).toBeVisible();
     await expect(
       page.getByRole("heading", { level: 2, name: "Airport Fast Charger" })
