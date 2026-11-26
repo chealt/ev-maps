@@ -36,6 +36,7 @@ describe("selectE2e", () => {
       "navigate",
       "place-search",
       "route-planner",
+      "saved-places",
       "shortcuts",
     ]);
   });

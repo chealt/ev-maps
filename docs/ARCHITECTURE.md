@@ -95,6 +95,8 @@ changes to different features don't touch the same file:
   sources, and showing free points and red pins
 - [Route planner](features/route-planner.md): planning a route and finding the
   chargers along it
+- [Saved places](features/saved-places.md): saved places' pins on the map,
+  their switch in the account menu, and their page
 - [Sign-in](features/sign-in.md): Better Auth, OAuth providers, email links and
   passkeys
 - [Filters and settings](features/filters.md): the Filters dialog, and saving

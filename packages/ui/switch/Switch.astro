@@ -1,0 +1,22 @@
+---
+// An on/off setting: a checkbox shown as a switch (role="switch", so screen
+// readers say on and off), its label the slot, e.g. an icon and text.
+// Listen for "change" on the input, and read its `checked`; extra
+// attributes (a class, `checked`) go on the input.
+import type { HTMLAttributes } from "astro/types";
+import "./Switch.css";
+
+interface Props extends HTMLAttributes<"input"> {
+  /** The label's class, e.g. to place it. */
+  labelClass?: string;
+}
+
+const { labelClass, class: className, ...attrs } = Astro.props;
+---
+
+<label class:list={["switch", labelClass]}>
+  <span class="switch-label">
+    <slot />
+  </span>
+  <input type="checkbox" role="switch" class:list={["switch-input", className]} {...attrs} />
+</label>
