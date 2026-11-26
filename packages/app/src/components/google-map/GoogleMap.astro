@@ -1,6 +1,7 @@
 ---
 import Card from "@ev-maps/ui/Card.astro";
 import Badge from "@ev-maps/ui/Badge.astro";
+import BadgeList from "@ev-maps/ui/BadgeList.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
@@ -397,7 +398,7 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
               <!-- Along a route: from the start, to the end, off the route. -->
               <span class="route-distances" hidden></span>
               <!-- Power and priciness as chips, then the address. -->
-              <span class="facts"></span>
+              <BadgeList as="span" class="facts" />
               <span class="address"></span>
             </Card>
           </li>
@@ -522,7 +523,18 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           <Icon icon={MapPinned} size="sm" />
           {page.nearby}
         </h3>
-        <ul class="nearby-places"></ul>
+        <!-- A pill per kind, with the filter's icon; the script shows the
+             charger's. -->
+        <BadgeList class="nearby-places">
+          {amenities.map(({ id, icon }) => (
+            <li data-amenity={id} hidden>
+              <Badge size="md">
+                <Icon icon={icon} size="sm" />
+                {values.amenities[id]}
+              </Badge>
+            </li>
+          ))}
+        </BadgeList>
       </section>
       <p class="attribution" data-source="ocm" hidden>
         {page.openChargeMapCredit.before}{" "}

@@ -2186,10 +2186,9 @@ class GoogleMapElement extends HTMLElement {
     }
     this.fillList(panel.querySelector(".details"), details);
     const nearby = charger.amenities ?? [];
-    this.fillList(
-      panel.querySelector(".nearby-places"),
-      nearby.map((amenity) => valueLabel("amenities", amenity))
-    );
+    for (const place of panel.querySelectorAll(".nearby-places li")) {
+      place.hidden = !nearby.includes(place.dataset.amenity);
+    }
     panel.querySelector(".nearby").hidden = nearby.length === 0;
     // A charger merged from several sources credits each of them, and
     // OpenStreetMap for the places next to it.
