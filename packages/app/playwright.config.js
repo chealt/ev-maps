@@ -8,6 +8,17 @@ export default defineConfig({
   // The specs of the admin package's components too (packages/admin/components).
   testDir: "../",
   testMatch: "**/*.spec.js",
+  // The @ui tests' screenshots compared with main's (captureUi, #309): the
+  // baselines CI downloads from main's last run (scripts/visual-baseline.js).
+  snapshotPathTemplate: `${import.meta.dirname}/visual-baseline/{arg}{ext}`,
+  expect: {
+    toHaveScreenshot: {
+      // Anti-aliasing and font rendering may move a few pixels: not a change.
+      maxDiffPixelRatio: 0.002,
+      animations: "disabled",
+      caret: "hide",
+    },
+  },
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   // CI runs the tests in shards (.github/workflows/app.yml), each saving a

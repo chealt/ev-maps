@@ -261,15 +261,37 @@ jobs:
         if: github.event_name == 'pull_request'
         run: bun scripts/select-e2e.js "origin/${{ github.base_ref }}"
 
+      # The @ui tests' screenshots are matched against main's with
+      # Playwright's toHaveScreenshot (captureUi, #309, docs/CI.md): a pull
+      # request's shards get main's baselines first (and write none); main's
+      # shards write them, and upload them after their tests.
+      - name: Download main's screenshots
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: bun scripts/visual-baseline.js download
+
       - name: Run tests
         env:
           GREP: ${{ steps.select.outputs.grep }}
+          VISUAL_COMPARE: ${{ ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')) && '1' || '' }}
+          SNAPSHOTS: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && 'all' || 'none' }}
         run: |
           if [ -n "$GREP" ]; then
-            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4 --grep "$GREP" --pass-with-no-tests
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4 --update-snapshots=$SNAPSHOTS --grep "$GREP" --pass-with-no-tests
           else
-            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4
+            bun run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }} --workers=4 --update-snapshots=$SNAPSHOTS
           fi
+
+      - name: Upload the screenshots as main's
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: bun scripts/visual-baseline.js upload
 
       - name: Upload blob report
         uses: actions/upload-artifact@v7
@@ -365,24 +387,18 @@ jobs:
           SITE_URL: https://ev.chealt.com
         run: bun scripts/publish-test-report.js
 
-      # Visual regression of the @ui tests' screenshots (scripts/visual-compare.js):
-      # on main they become the baseline; on a pull request they're compared
-      # with main's, and the "Visual review" status waits for the Visual
-      # approval job while anything changed.
-      - name: Compare the screenshots with main's
+      # The "Visual review" status (scripts/visual-review.js): the @ui
+      # moments that differ from main's (captureUi's annotations), waiting
+      # for the Visual approval job while any did.
+      - name: Review the visual changes
         id: visual
-        if: ${{ needs.changes.outputs.app == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        if: ${{ needs.changes.outputs.app == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           REPORT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
-          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          BRANCH: ${{ github.head_ref || github.ref_name }}
-          PULL_REQUEST: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           SITE_URL: https://ev.chealt.com
-        run: bun scripts/visual-compare.js
+        run: bun scripts/visual-review.js
 
       - name: Check the shards passed
         if: needs.changes.outputs.app == 'true' && needs.test-shard.result != 'success'

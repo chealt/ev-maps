@@ -76,18 +76,23 @@ area with a commit status linking to it; see
 
 ### Visual review
 
-The screenshots the `@ui` tests capture (`captureUi`) are compared with
-`main`'s (`scripts/visual-compare.js`, after the report is published):
+The `@ui` tests' screenshots are matched against `main`'s with Playwright's
+own `toHaveScreenshot`, in the tests themselves: `captureUi`
+(`packages/e2e/src/test.js`) does it for each moment it captures, when
+`VISUAL_COMPARE` is set.
 
-- On `main`, a run whose tests all passed makes its screenshots the
-  baseline: `reports/ui-baseline/main.json` in the reports bucket names that
-  report.
-- On a pull request, each screenshot is compared with the baseline's of the
-  same name, with Playwright's `toMatchSnapshot` (`scripts/visual/`). The
-  comparison's HTML report, with expected, actual and diff images, is
-  published in the report's `visual/` folder, and the **Visual review**
-  commit status links to it: green when nothing changed, pending when a
-  screenshot changed or is new.
+- On `main`, the test shards run with `--update-snapshots=all`, so the
+  screenshots become the baselines, and upload them to the reports bucket
+  (`reports/ui-baseline/main/`, `scripts/visual-baseline.js upload`).
+- A pull request's shards download them first (`… download`, into
+  `packages/app/visual-baseline/`, the config's `snapshotPathTemplate`) and
+  run with `--update-snapshots=none`. A moment that differs from `main`'s, or
+  that `main` doesn't have, doesn't fail its test: `captureUi` marks it with
+  a `visual-change` annotation, and Playwright attaches the expected, actual
+  and diff images to the test in the report.
+- After the report is published, `scripts/visual-review.js` sets the
+  **Visual review** commit status, linking to the report: green when nothing
+  changed, pending when something did.
 - While it's pending, the **Visual approval** job waits on the
   `visual-review` environment, which requires a reviewer. Look at the
   report, then approve the job (**Review deployments** on the run): the
