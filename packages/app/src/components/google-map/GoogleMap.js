@@ -70,10 +70,24 @@ const formatConnector = ({ type, powerKw, quantity }) =>
     power: powerKw,
   });
 
+// The operator's line, its name a button that lists the operator's chargers:
+// "Operator: " and the button, from the message (the name may sit anywhere).
+const operatorLine = (operator) => {
+  const [before, after] = message("operator", { value: "\u0000" }).split("\u0000");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "operator-link";
+  button.dataset.operator = operator;
+  button.setAttribute("aria-haspopup", "dialog");
+  button.setAttribute("aria-label", message("showOperatorChargers", { operator }));
+  button.textContent = operator;
+  return [before, button, after];
+};
+
 const formatDetails = ({ operator, access, usageCost, free, status, numberOfPoints }) => {
   const cost = free ? freeLabel() : usageCost;
   return [
-    operator && message("operator", { value: operator }),
+    operator?.trim() && operatorLine(operator.trim()),
     access && message("access", { value: valueLabel("access", access) }),
     cost && message("cost", { value: cost }),
     status && message("status", { value: valueLabel("status", status) }),
@@ -391,6 +405,12 @@ class GoogleMapElement extends HTMLElement {
     this.chargerList?.addEventListener("cancel", (event) => {
       event.preventDefault();
       this.closeChargerList();
+    });
+    this.detailsPanel?.querySelector(".details")?.addEventListener("click", (event) => {
+      const button = event.target.closest(".operator-link");
+      if (button) {
+        this.openOperatorChargers(button.dataset.operator);
+      }
     });
     this.chargerList?.querySelector(".sort-options")?.addEventListener("change", () => {
       this.renderChargerList();
@@ -1284,13 +1304,20 @@ class GoogleMapElement extends HTMLElement {
             ? charger.route.distanceFromRouteMeters
             : charger.route.distanceFromStartMeters
         : distanceInMeters(origin, charger.location);
-    this.sortedChargers = this.listedChargers
+    // The operator's chargers, of the loaded ones, or the map's.
+    const operator = this.listOperator;
+    const chargers = operator
+      ? (this.loaded?.chargers ?? []).filter((charger) => operatorOf(charger) === operator)
+      : this.listedChargers;
+    this.sortedChargers = chargers
       .map((charger) => ({ charger, meters: keyOf(charger) }))
       .sort((a, b) => a.meters - b.meters);
 
     const list = this.chargerList;
     const count = this.sortedChargers.length;
-    list.querySelector(".title").textContent = message("chargerCount", { count });
+    list.querySelector(".title").textContent = operator
+      ? message("operatorChargers", { count, operator })
+      : message("chargerCount", { count });
     const sortOptions = list.querySelector(".sort-options");
     sortOptions.hidden = !this.route;
     // Along a route, the sort toggle says how the list is sorted.
@@ -1671,6 +1698,7 @@ class GoogleMapElement extends HTMLElement {
     if (!this.chargerList || this.chargerList.open || !this.listedChargers?.length) {
       return;
     }
+    this.listOperator = null;
     track("list_opened");
     this.renderChargerList();
     this.statusButton.classList.add("list-transition");
@@ -1679,6 +1707,18 @@ class GoogleMapElement extends HTMLElement {
       this.chargerList.classList.add("list-transition");
       this.chargerList.showModal();
     }).finally(() => this.chargerList.classList.remove("list-transition"));
+  }
+
+  // The loaded chargers by one operator, from the details' operator: the
+  // list, without the status pill's transition.
+  openOperatorChargers(operator) {
+    if (!this.chargerList || this.chargerList.open) {
+      return;
+    }
+    track("list_opened");
+    this.listOperator = operator;
+    this.renderChargerList();
+    this.chargerList.showModal();
   }
 
   closeChargerList() {
@@ -2042,9 +2082,10 @@ class GoogleMapElement extends HTMLElement {
   fillList(list, items) {
     const template = this.detailsPanel.querySelector(".item-template");
     list.replaceChildren(
-      ...items.map((text) => {
+      ...items.map((content) => {
         const item = template.content.firstElementChild.cloneNode(true);
-        item.textContent = text;
+        // Text, or text and elements, e.g. the operator's button.
+        item.append(...[content].flat());
         return item;
       })
     );
