@@ -106,22 +106,9 @@ const quadrantOf = (cell, index) => {
 const inBox = ({ lat, lng }, { south, north, west, east }) =>
   lat >= south && lat < north && lng >= west && lng < east;
 
-// Looks at a cell's places, a quadrant at a time when it's busy (the
-// mirrors refuse a whole busy cell's query); only chargers whose places
-// changed are written. `job.cursor` says which quadrant is next.
-const runStep = async (env, job) => {
-  const bounds = cellBounds(job.area);
-  const chargers = await chargersInCell(env.DB, bounds);
-  if (!chargers.length) {
-    return { done: true };
-  }
-  const next = Number(job.cursor ?? 0);
-  const split = job.cursor != null || chargers.length >= BUSY_CELL_CHARGERS;
-  if (split && next >= QUADRANTS) {
-    return { done: true };
-  }
-  const box = split ? quadrantOf(bounds, next) : bounds;
-  const targets = split ? chargers.filter((charger) => inBox(charger, box)) : chargers;
+// Looks up a box's places and writes the masks of the chargers in it that
+// changed; returns how many places and changed chargers there were.
+const lookUp = async (env, box, targets) => {
   const places = parsePlaces(await fetchOverpass(amenitiesQuery(box)));
   const masks = amenityMasks(targets, places, (box.south + box.north) / 2);
   const changed = targets
@@ -136,10 +123,72 @@ const runStep = async (env, job) => {
         )
     );
   }
-  console.log(
-    `Amenities: ${job.area}${split ? ` quadrant ${next + 1}/${QUADRANTS}` : ""}: ${places.length} places, ${changed.length} of ${targets.length} chargers changed`
-  );
-  return split ? { done: next + 1 === QUADRANTS, cursor: next + 1 } : { done: true };
+  return { places: places.length, changed: changed.length, of: targets.length };
 };
 
-export { listJobs, QUADRANTS, quadrantOf, runStep, SOURCE };
+// The quadrants a job's cursor says are done: "0,2" (or, from before they
+// ran in parallel, the count of those done in order, e.g. "2").
+const doneQuadrants = (cursor) => {
+  if (cursor == null || cursor === "") {
+    return new Set();
+  }
+  const text = String(cursor);
+  if (text.includes(",") || !Number.isFinite(Number(text))) {
+    return new Set(text.split(",").map(Number).filter(Number.isInteger));
+  }
+  return new Set(Array.from({ length: Math.min(Number(text), QUADRANTS) }, (_, index) => index));
+};
+
+// Looks at a cell's places: a sparse cell in one query; a busy one a quadrant
+// per query (the mirrors refuse a whole busy cell's), all its quadrants at
+// once (#270: the one mirror that answers takes ~10 s each, and as long for
+// four together). Quadrants that fail are kept for the next step, by the
+// cursor; only when none succeeds does the step fail.
+const runStep = async (env, job) => {
+  const bounds = cellBounds(job.area);
+  const chargers = await chargersInCell(env.DB, bounds);
+  if (!chargers.length) {
+    return { done: true };
+  }
+  const split = job.cursor != null || chargers.length >= BUSY_CELL_CHARGERS;
+  if (!split) {
+    const result = await lookUp(env, bounds, chargers);
+    console.log(
+      `Amenities: ${job.area}: ${result.places} places, ${result.changed} of ${result.of} chargers changed`
+    );
+    return { done: true };
+  }
+  const done = doneQuadrants(job.cursor);
+  const remaining = Array.from({ length: QUADRANTS }, (_, index) => index).filter(
+    (index) => !done.has(index)
+  );
+  const results = await Promise.allSettled(
+    remaining.map(async (index) => {
+      const box = quadrantOf(bounds, index);
+      const result = await lookUp(
+        env,
+        box,
+        chargers.filter((charger) => inBox(charger, box))
+      );
+      console.log(
+        `Amenities: ${job.area} quadrant ${index + 1}/${QUADRANTS}: ${result.places} places, ${result.changed} of ${result.of} chargers changed`
+      );
+      return index;
+    })
+  );
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      done.add(result.value);
+    }
+  }
+  const failed = results.find((result) => result.status === "rejected");
+  if (failed && results.every((result) => result.status === "rejected")) {
+    throw failed.reason;
+  }
+  if (done.size >= QUADRANTS) {
+    return { done: true, cursor: null };
+  }
+  return { done: false, cursor: [...done].sort((a, b) => a - b).join(",") };
+};
+
+export { doneQuadrants, listJobs, QUADRANTS, quadrantOf, runStep, SOURCE };
