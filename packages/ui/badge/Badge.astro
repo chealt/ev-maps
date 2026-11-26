@@ -8,11 +8,13 @@ import "./Badge.css";
 
 interface Props extends HTMLAttributes<"span"> {
   tone?: "neutral" | "accent" | "success" | "warning" | "danger";
+  // "md" for a badge read on its own, e.g. with an icon.
+  size?: "sm" | "md";
 }
 
-const { tone = "neutral", class: className, ...attrs } = Astro.props;
+const { tone = "neutral", size = "sm", class: className, ...attrs } = Astro.props;
 ---
 
-<span class:list={["badge", className]} data-tone={tone} {...attrs}>
+<span class:list={["badge", className]} data-tone={tone} data-size={size} {...attrs}>
   <slot />
 </span>

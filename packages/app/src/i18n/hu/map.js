@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    mapMenu: "Útvonal innen vagy ide",
+    routeFromHere: "Útvonal innen",
+    routeToHere: "Útvonal ide",
     mapLabel: "Töltőállomások térképe",
     apiKeyMissing: "Hiányzik a Google Maps API-kulcs. Állítsd be a VITE_GOOGLE_MAPS_API_KEY-t.",
     locate: "Helymeghatározás",
@@ -111,6 +114,17 @@ const map = {
       "A kWh-nkénti ár alapján, az itt lévő töltőkhöz képest. Amíg egy szint be van kapcsolva, az ár nélküli töltők nem látszanak.",
     shortcuts: {
       title: "Billentyűparancsok",
+      groups: {
+        map: "Térkép",
+        route: "Útvonal",
+        filters: "Szűrők",
+        account: "Fiók",
+      },
+      search: "Hely keresése",
+      accountMenu: "Fiókmenü megnyitása vagy bezárása",
+      favorites: "Kedvencek megjelenítése",
+      suggestCharger: "Töltő javaslása",
+      savedPlaces: "Mentett helyek megnyitása",
       help: "Súgó megjelenítése",
       closeDialogs: "Párbeszédablakok és a töltő részleteinek bezárása",
       filters: "Szűrők megjelenítése vagy elrejtése",
@@ -121,7 +135,6 @@ const map = {
     },
   },
   messages: {
-    openInApp: "Megnyitás: {app}",
     power: "{power} kW",
 
     chargersFound: {

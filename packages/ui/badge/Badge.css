@@ -1,5 +1,7 @@
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
   padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--border-radius-full);
   background: var(--color-surface-muted);
@@ -7,6 +9,12 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   white-space: nowrap;
+
+  &[data-size="md"] {
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
 
   /* Solid, to stand out: e.g. a count on an icon. */
   &[data-tone="accent"] {

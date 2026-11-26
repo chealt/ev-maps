@@ -76,7 +76,7 @@ test("remembers the app chosen, opens it at once, and forgets it in the account 
   // Remembered, after a reload too: the button opens it at once.
   await page.reload();
   details = await openDetails(page);
-  const button = details.getByRole("button", { name: "Open in Apple Maps" });
+  const button = details.getByRole("button", { name: "Open map" });
   await expect(button).not.toHaveAttribute("aria-expanded");
   const second = page.context().waitForEvent("page");
   await button.click();
@@ -105,7 +105,9 @@ test("signed in, keeps the choice in the account, the newer one winning", async 
   });
   await page.goto("/");
   let details = await openDetails(page);
-  await expect(details.getByRole("button", { name: "Open in OpenStreetMap" })).toBeVisible();
+  const osm = page.context().waitForEvent("page");
+  await details.getByRole("button", { name: "Open map" }).click();
+  expect((await osm).url()).toBe(OSM);
 
   // Chosen here, in the account menu: saved to the account.
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
@@ -118,5 +120,7 @@ test("signed in, keeps the choice in the account, the newer one winning", async 
     .toEqual(["google"]);
   await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
   details = await openDetails(page);
-  await expect(details.getByRole("button", { name: "Open in Google Maps" })).toBeVisible();
+  const google = page.context().waitForEvent("page");
+  await details.getByRole("button", { name: "Open map" }).click();
+  expect((await google).url()).toBe(GOOGLE);
 });
