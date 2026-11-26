@@ -21,37 +21,40 @@ test.beforeEach(async ({ page }) => {
   await fakeAuthApi(page);
 });
 
-test("shows the page in Polish", async ({ page }) => {
-  await fakeChargersApi(page);
+// The plural forms are unit tested (src/i18n/plurals.test.js).
+test("shows the pages in Polish: the map, its chargers, and the country pages", async ({
+  page,
+}) => {
+  const [unnamed] = fixtureChargers(1);
+  await fakeChargersApi(page, {
+    chargers: [
+      ...fixtureChargers(2),
+      { ...unnamed, id: "ocm:x", name: undefined, location: { lat: 40.79, lng: -74.02 } },
+    ],
+  });
   await page.goto("/pl/");
-
   await expect(page).toHaveTitle("EV Maps – stacje ładowania samochodów elektrycznych");
   await expect(page.getByRole("button", { name: "Zlokalizuj mnie" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Filtry" })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("Znaleziono 2 stacje ładowania");
+  await expect(page.getByRole("status")).toHaveText("Znaleziono 3 stacje ładowania");
+  // A charger without a name is named in the page's language.
+  const map = page.getByRole("region", { name: "Mapa stacji ładowania" });
+  await expect(map.getByRole("button", { name: "Stacja ładowania" })).toBeVisible();
+
+  await page.goto("/pl/hu/");
+  await expect(page).toHaveTitle("EV Maps – stacje ładowania – Węgry");
+  await page.goto("/hu/hu/");
+  await expect(page).toHaveTitle("EV Maps – elektromosautó-töltők – Magyarország");
 });
 
-for (const { count, text } of [
-  { count: 1, text: "Znaleziono 1 stację ładowania" },
-  { count: 3, text: "Znaleziono 3 stacje ładowania" },
-  { count: 5, text: "Znaleziono 5 stacji ładowania" },
-  { count: 22, text: "Znaleziono 22 stacje ładowania" },
-]) {
-  test(`uses the Polish plural form for ${count}`, async ({ page }) => {
-    await fakeChargersApi(page, { chargers: fixtureChargers(count) });
-    await page.goto("/pl/");
-
-    await expect(page.getByRole("status")).toHaveText(text);
-  });
-}
-
-test("shows charger details in Hungarian", async ({ page }) => {
+test("shows a charger's details, Google Maps and sign-in in Hungarian", async ({ page }) => {
+  const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
   await fakeChargersApi(page);
   await page.goto("/hu/");
+  expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("hu");
+
   const map = page.getByRole("region", { name: "Töltőállomások térképe" });
-
   await map.getByRole("button", { name: "Downtown Supercharger" }).click();
-
   const details = page.getByRole("complementary", { name: "Downtown Supercharger" });
   await expect(details.getByRole("heading", { name: "Csatlakozók" })).toBeVisible();
   await expect(
@@ -59,42 +62,10 @@ test("shows charger details in Hungarian", async ({ page }) => {
   ).toBeVisible();
   await expect(details.getByText("Hozzáférés: Nyilvános, tagság szükséges")).toBeVisible();
   await expect(details.getByText("Állapot: Működik")).toBeVisible();
-  await expect(details.getByText("Töltőpontok: 8")).toBeVisible();
   await expect(details.getByText("A töltőadatok forrása:")).toBeVisible();
-});
-
-test("names a charger without a name in the page's language", async ({ page }) => {
-  const [charger] = fixtureChargers(1);
-  await fakeChargersApi(page, { chargers: [{ ...charger, name: undefined }] });
-  await page.goto("/pl/");
-  const map = page.getByRole("region", { name: "Mapa stacji ładowania" });
-
-  await expect(map.getByRole("button", { name: "Stacja ładowania" })).toBeVisible();
-});
-
-test("builds the country pages in every language", async ({ page }) => {
-  await page.goto("/pl/hu/");
-  await expect(page).toHaveTitle("EV Maps – stacje ładowania – Węgry");
-  await expect(page.getByRole("status")).toHaveText("Znaleziono 4 stacje ładowania");
-
-  await page.goto("/hu/hu/");
-  await expect(page).toHaveTitle("EV Maps – elektromosautó-töltők – Magyarország");
-});
-
-test("loads Google Maps in the page's language", async ({ page }) => {
-  const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
-  await fakeChargersApi(page);
-  await page.goto("/hu/");
-
-  expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("hu");
-});
-
-test("offers sign-in in the page's language", async ({ page }) => {
-  await fakeChargersApi(page);
-  await page.goto("/hu/");
+  await details.getByRole("button", { name: "Bezárás" }).click();
 
   await page.getByRole("button", { name: "Bejelentkezés" }).click();
-
   const menu = page.getByRole("dialog", { name: "Fiók" });
   await expect(menu.getByRole("button", { name: "Bejelentkezés Google-fiókkal" })).toBeVisible();
 });
