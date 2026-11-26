@@ -9,8 +9,10 @@ looked up by its place ID when the map shows it.
 
 `saved-places-layer.js` shows each saved place as a round pin with its icon
 (Home, Work, School, Star, Heart or Pin) and its name as the pin's title,
-under the chargers' pins, which stay clickable. The pins follow every change
-to the places (`saved-places-change` on the document) and the session.
+under the chargers' pins, which stay clickable. The pin is `<SavedPlacePin>`
+(`components/saved-place-pin/`), which the My saved places page shows too.
+The pins follow every change to the places (`saved-places-change` on the
+document) and the session.
 
 The account menu's **Show saved places** switch
 (`<ev-saved-places-setting>`, signed in only) turns them off and on; they're

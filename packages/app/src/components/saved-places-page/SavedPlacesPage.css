@@ -70,18 +70,7 @@
 
   /* As the saved place's pin on the map (GoogleMap.css). */
   .place-icon {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: var(--place-icon-size);
-    height: var(--place-icon-size);
-    border: var(--border-width-marker) solid var(--color-secondary);
-    border-radius: 50%;
-    color: var(--color-secondary);
-
-    [hidden] {
-      display: none;
-    }
+    --saved-place-pin-size: var(--place-icon-size);
   }
 
   .place-name {

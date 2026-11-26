@@ -1,0 +1,24 @@
+---
+// A saved place's round pin: on the map (saved-places-layer.js) and on the
+// My saved places page. It has every icon, hidden; a script shows the
+// place's: `pin.querySelector(`[data-icon="${icon}"]`).hidden = false`.
+import Icon from "@ev-maps/ui/Icon.astro";
+import { savedPlaceIcons } from "../route-planner/saved-place-icons.js";
+import "./SavedPlacePin.css";
+
+interface Props {
+  class?: string;
+  /** The icon's size: the map's pins are small. */
+  iconSize?: "sm" | "md";
+}
+
+const { class: className, iconSize = "sm" } = Astro.props;
+---
+
+<span class:list={["saved-place-pin", className]}>
+  {savedPlaceIcons.map(({ id, icon }) => (
+    <span class="pin-icon" data-icon={id} hidden>
+      <Icon icon={icon} size={iconSize} />
+    </span>
+  ))}
+</span>

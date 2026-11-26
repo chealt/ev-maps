@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
 import Card from "@ev-maps/ui/Card.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
+import SavedPlacePin from "../saved-place-pin/SavedPlacePin.astro";
 import { savedPlaceIcons } from "../route-planner/saved-place-icons.js";
 import { translations } from "../../i18n/index.js";
 import "./SavedPlacesPage.css";
@@ -36,13 +37,7 @@ const { page, values } = translations(lang);
   <template class="place-template">
     <Card as="article" class="place-card">
       <div class="card-header">
-        <span class="place-icon">
-          {savedPlaceIcons.map(({ id, icon }) => (
-            <span data-icon={id} hidden>
-              <Icon icon={icon} />
-            </span>
-          ))}
-        </span>
+        <SavedPlacePin class="place-icon" iconSize="md" />
         <div>
           <h2 class="place-name"></h2>
           <p class="place-label"></p>
