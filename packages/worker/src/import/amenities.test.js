@@ -18,7 +18,7 @@ mock.module("./openstreetmap.js", () => ({
   },
 }));
 
-const { doneQuadrants, listJobs, quadrantOf, runStep, SOURCE } = await import("./amenities.js");
+const { doneQuadrants, listJobs, runStep, SOURCE } = await import("./amenities.js");
 
 const db = () => {
   const database = testD1(
