@@ -1,0 +1,72 @@
+/* Full screen on every screen size; the content is a centered column,
+   wider on large screens so their space holds more per row. */
+.dialog {
+  --dialog-content-width: 40rem;
+
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    animation: dialog-open var(--transition-base);
+  }
+
+  .header,
+  .body,
+  .footer {
+    width: 100%;
+    max-width: var(--dialog-content-width);
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+
+    /* The close button stays in the corner, its own size, whatever the
+       page's styles around the dialog say about buttons (#337). */
+    > .close {
+      flex: none;
+      flex-direction: row;
+      margin-inline-start: auto;
+    }
+  }
+
+  .title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    /* Content that loads in above (a list, availability) doesn't scroll the
+       body: it only moves when the user, or a focus, scrolls it. */
+    overflow-anchor: none;
+  }
+}
+
+@media (width >= 64em) {
+  .dialog {
+    --dialog-content-width: 60rem;
+  }
+}
+
+@keyframes dialog-open {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-sm));
+  }
+}

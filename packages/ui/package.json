@@ -15,7 +15,8 @@
     "./Card.astro": "./card/Card.astro",
     "./SegmentedControl.astro": "./segmented-control/SegmentedControl.astro",
     "./fetch-json.js": "./fetch-json/fetch-json.js",
-    "./Switch.astro": "./switch/Switch.astro"
+    "./Switch.astro": "./switch/Switch.astro",
+    "./Dialog.astro": "./dialog/Dialog.astro"
   },
   "scripts": {
     "lint": "oxlint -c ../dev-config/oxlint.json .",
@@ -25,9 +26,11 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@ev-maps/dev-config": "workspace:*"
+    "@ev-maps/dev-config": "workspace:*",
+    "lucide-static": "^1.75.0"
   },
   "peerDependencies": {
-    "astro": "^7.4.12"
+    "astro": "^7.4.12",
+    "lucide-static": "^1.75.0"
   }
 }

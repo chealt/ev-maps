@@ -1,6 +1,7 @@
 ---
-import { Heart, X } from "lucide-static";
+import { Heart } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./FavoritesDialog.css";
@@ -9,40 +10,36 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <!-- The signed-in user's favorite chargers, nearest to the map's center
-     first; opened from the account menu, which morphs into it. Uses the map's
-     full-screen dialog styles (GoogleMap.css). -->
+     first; opened from the account menu, which morphs into it. -->
 <ev-favorites-dialog>
-  <dialog class="fullscreen-dialog favorites-dialog" aria-labelledby="favorites-title">
-    <div class="header">
-      <div>
-        <h2 class="title" id="favorites-title">
-          {page.favorites}
-        </h2>
-        <p class="sort-basis">{page.nearestToMapCenter}</p>
-      </div>
-      <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeFavorites}>
-        <Icon icon={X} />
-      </Button>
-    </div>
-    <div class="body">
-      <p class="empty">
-        <Icon icon={Heart} size="sm" />
-        {page.noFavorites}
-      </p>
-      <ol class="items"></ol>
-    </div>
-    <template class="item-template">
-      <li class="item">
-        <button type="button" class="entry">
-          <span class="name"></span>
-          <span class="distance"></span>
-          <span class="meta"></span>
-        </button>
-        <Button variant="ghost" size="icon-only" class="remove">
-          <Icon icon={Heart} />
-        </Button>
-      </li>
-    </template>
-  </dialog>
+  <Dialog
+    class="favorites-dialog"
+    title={page.favorites}
+    titleId="favorites-title"
+    closeLabel={page.closeFavorites}
+  >
+    <Fragment slot="header">
+      <p class="sort-basis">{page.nearestToMapCenter}</p>
+    </Fragment>
+    <p class="empty">
+      <Icon icon={Heart} size="sm" />
+      {page.noFavorites}
+    </p>
+    <ol class="items"></ol>
+    <Fragment slot="after">
+      <template class="item-template">
+        <li class="item">
+          <button type="button" class="entry">
+            <span class="name"></span>
+            <span class="distance"></span>
+            <span class="meta"></span>
+          </button>
+          <Button variant="ghost" size="icon-only" class="remove">
+            <Icon icon={Heart} />
+          </Button>
+        </li>
+      </template>
+    </Fragment>
+  </Dialog>
   <script src="./FavoritesDialog.js"></script>
 </ev-favorites-dialog>

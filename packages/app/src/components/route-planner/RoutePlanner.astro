@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
@@ -37,233 +38,231 @@ const placePresets = [
 ---
 
 <ev-route-planner>
-  <dialog class="fullscreen-dialog route-planner" id={id} aria-labelledby="route-planner-title">
-    <div class="header">
-      <h2 class="title" id="route-planner-title">
-        {page.routePlanner}
-      </h2>
-      <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeRoutePlanner}>
-        <Icon icon={X} />
+  <Dialog
+    class="route-planner"
+    id={id}
+    title={page.routePlanner}
+    titleId="route-planner-title"
+    closeLabel={page.closeRoutePlanner}
+    bodyAs="form"
+    bodyAttrs={{ id: "route-planner-form", novalidate: true }}
+  >
+    <div class="sign-in-needed" hidden>
+      <p>{page.signInForRoutes}</p>
+      <Button variant="primary" class="sign-in-button">
+        {page.signIn}
       </Button>
     </div>
-    <form class="body" id="route-planner-form" novalidate>
-      <div class="sign-in-needed" hidden>
-        <p>{page.signInForRoutes}</p>
-        <Button variant="primary" class="sign-in-button">
-          {page.signIn}
-        </Button>
-      </div>
-      <PlaceInput
-        id="route-from"
-        label={page.routeFrom}
-        placeholder={page.placeSearch}
-        clearLabel={`${page.clearPlace}: ${page.routeFrom}`}
+    <PlaceInput
+      id="route-from"
+      label={page.routeFrom}
+      placeholder={page.placeSearch}
+      clearLabel={`${page.clearPlace}: ${page.routeFrom}`}
+    >
+      <Button variant="ghost" size="small" class="use-my-location">
+        <Icon icon={LocateFixed} size="sm" />
+        {page.useMyLocation}
+      </Button>
+      <Button
+        variant="ghost"
+        size="small"
+        class="save-place-toggle"
+        data-target="from"
+        aria-expanded="false"
+        aria-label={`${page.savePlace}: ${page.routeFrom}`}
+        hidden
       >
-        <Button variant="ghost" size="small" class="use-my-location">
-          <Icon icon={LocateFixed} size="sm" />
-          {page.useMyLocation}
-        </Button>
-        <Button
-          variant="ghost"
-          size="small"
-          class="save-place-toggle"
-          data-target="from"
-          aria-expanded="false"
-          aria-label={`${page.savePlace}: ${page.routeFrom}`}
-          hidden
-        >
-          <Icon icon={Bookmark} size="sm" />
-          {page.savePlace}
-        </Button>
-        <div
-          slot="after"
-          class="saved-place-chips"
-          data-target="from"
-          role="group"
-          aria-label={`${page.savedPlaces}: ${page.routeFrom}`}
-          hidden
-        ></div>
-      </PlaceInput>
-      <!-- Chargers added as stops along the route; each can be removed. -->
-      <div class="route-stops" role="group" aria-labelledby="route-stops-title" hidden>
-        <!-- The leg from From into the first stop: above the stops' label,
-             between the two inputs. -->
-        <p class="stop-leg first-leg" hidden></p>
-        <span class="label" id="route-stops-title">
-          {page.routeStops}
-        </span>
-        <!-- Each leg's distance sits between the points it joins: before each
-             stop (from the previous point), and after the last (to To). -->
-        <ol class="stop-list"></ol>
-        <p class="stop-leg final-leg" hidden></p>
-        <template class="stop-template">
-          <li class="stop-item">
-            <p class="stop-leg" hidden></p>
-            <span class="stop-chip">
-              <span class="stop-name"></span>
-              <Button variant="ghost" size="icon-only" class="remove-stop">
-                <Icon icon={X} size="sm" />
-              </Button>
-            </span>
-          </li>
-        </template>
-      </div>
-      <PlaceInput
-        id="route-to"
-        label={page.routeTo}
-        placeholder={page.placeSearch}
-        clearLabel={`${page.clearPlace}: ${page.routeTo}`}
-      >
-        <Button
-          variant="ghost"
-          size="small"
-          class="save-place-toggle"
-          data-target="to"
-          aria-expanded="false"
-          aria-label={`${page.savePlace}: ${page.routeTo}`}
-          hidden
-        >
-          <Icon icon={Bookmark} size="sm" />
-          {page.savePlace}
-        </Button>
-        <div
-          slot="after"
-          class="saved-place-chips"
-          data-target="to"
-          role="group"
-          aria-label={`${page.savedPlaces}: ${page.routeTo}`}
-          hidden
-        ></div>
-      </PlaceInput>
-      <!-- Save a chosen place as Home, Work, School or a custom label with
-           an icon from the available selection. -->
-      <div class="save-place-panel" role="group" aria-labelledby="save-place-title" hidden>
-        <div class="save-place-header">
-          <span class="label" id="save-place-title">
-            {page.savePlace}
+        <Icon icon={Bookmark} size="sm" />
+        {page.savePlace}
+      </Button>
+      <div
+        slot="after"
+        class="saved-place-chips"
+        data-target="from"
+        role="group"
+        aria-label={`${page.savedPlaces}: ${page.routeFrom}`}
+        hidden
+      ></div>
+    </PlaceInput>
+    <!-- Chargers added as stops along the route; each can be removed. -->
+    <div class="route-stops" role="group" aria-labelledby="route-stops-title" hidden>
+      <!-- The leg from From into the first stop: above the stops' label,
+           between the two inputs. -->
+      <p class="stop-leg first-leg" hidden></p>
+      <span class="label" id="route-stops-title">
+        {page.routeStops}
+      </span>
+      <!-- Each leg's distance sits between the points it joins: before each
+           stop (from the previous point), and after the last (to To). -->
+      <ol class="stop-list"></ol>
+      <p class="stop-leg final-leg" hidden></p>
+      <template class="stop-template">
+        <li class="stop-item">
+          <p class="stop-leg" hidden></p>
+          <span class="stop-chip">
+            <span class="stop-name"></span>
+            <Button variant="ghost" size="icon-only" class="remove-stop">
+              <Icon icon={X} size="sm" />
+            </Button>
           </span>
-          <span class="save-place-value"></span>
-        </div>
-        <div class="save-place-presets" role="group" aria-label={page.savedPlacePresets}>
-          {placePresets.map(({ label, icon, iconSvg }) => (
+        </li>
+      </template>
+    </div>
+    <PlaceInput
+      id="route-to"
+      label={page.routeTo}
+      placeholder={page.placeSearch}
+      clearLabel={`${page.clearPlace}: ${page.routeTo}`}
+    >
+      <Button
+        variant="ghost"
+        size="small"
+        class="save-place-toggle"
+        data-target="to"
+        aria-expanded="false"
+        aria-label={`${page.savePlace}: ${page.routeTo}`}
+        hidden
+      >
+        <Icon icon={Bookmark} size="sm" />
+        {page.savePlace}
+      </Button>
+      <div
+        slot="after"
+        class="saved-place-chips"
+        data-target="to"
+        role="group"
+        aria-label={`${page.savedPlaces}: ${page.routeTo}`}
+        hidden
+      ></div>
+    </PlaceInput>
+    <!-- Save a chosen place as Home, Work, School or a custom label with
+         an icon from the available selection. -->
+    <div class="save-place-panel" role="group" aria-labelledby="save-place-title" hidden>
+      <div class="save-place-header">
+        <span class="label" id="save-place-title">
+          {page.savePlace}
+        </span>
+        <span class="save-place-value"></span>
+      </div>
+      <div class="save-place-presets" role="group" aria-label={page.savedPlacePresets}>
+        {placePresets.map(({ label, icon, iconSvg }) => (
+          <Button
+            variant="secondary"
+            size="small"
+            class="save-place-preset"
+            data-preset-label={label}
+            data-preset-icon={icon}
+          >
+            <Icon icon={iconSvg} size="sm" />
+            {label}
+          </Button>
+        ))}
+      </div>
+      <label class="save-place-field">
+        <span class="label">{page.savedPlaceLabel}</span>
+        <input
+          type="text"
+          class="field save-place-name"
+          maxlength="60"
+          placeholder={page.savedPlaceLabelPlaceholder}
+        />
+      </label>
+      <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
+        <span class="label" id="save-place-icon-title">
+          {page.savedPlaceIcon}
+        </span>
+        <div class="icon-options">
+          {placeIcons.map(({ id: iconId, icon }, index) => (
             <Button
               variant="secondary"
               size="small"
-              class="save-place-preset"
-              data-preset-label={label}
-              data-preset-icon={icon}
+              class="icon-option"
+              data-icon-value={iconId}
+              aria-pressed={index === 0 ? "true" : "false"}
             >
-              <Icon icon={iconSvg} size="sm" />
-              {label}
+              <Icon icon={icon} size="sm" />
+              {values.placeIcons[iconId]}
             </Button>
           ))}
         </div>
-        <label class="save-place-field">
-          <span class="label">{page.savedPlaceLabel}</span>
-          <input
-            type="text"
-            class="field save-place-name"
-            maxlength="60"
-            placeholder={page.savedPlaceLabelPlaceholder}
-          />
-        </label>
-        <div class="save-place-icons" role="group" aria-labelledby="save-place-icon-title">
-          <span class="label" id="save-place-icon-title">
-            {page.savedPlaceIcon}
-          </span>
-          <div class="icon-options">
-            {placeIcons.map(({ id: iconId, icon }, index) => (
-              <Button
-                variant="secondary"
-                size="small"
-                class="icon-option"
-                data-icon-value={iconId}
-                aria-pressed={index === 0 ? "true" : "false"}
-              >
-                <Icon icon={icon} size="sm" />
-                {values.placeIcons[iconId]}
-              </Button>
-            ))}
-          </div>
-        </div>
-        <div class="save-place-actions">
-          <Button variant="secondary" size="small" class="cancel-save-place">
-            {page.cancelSavePlace}
-          </Button>
-          <Button variant="primary" size="small" class="confirm-save-place">
-            {page.confirmSavePlace}
-          </Button>
-        </div>
       </div>
-      <template class="saved-place-chip-template">
-        <span class="saved-place-item">
-          <button type="button" class="saved-place-chip">
-            {placeIcons.map(({ id: iconId, icon }) => (
-              <span class="chip-icon" data-icon={iconId} hidden>
-                <Icon icon={icon} size="sm" />
-              </span>
-            ))}
-            <span class="chip-name"></span>
-          </button>
-          <Button variant="ghost" size="icon-only" class="remove-saved-place">
-            <Icon icon={X} size="sm" />
-          </Button>
-        </span>
-      </template>
-      <!-- How far from the route chargers are shown; the labels and the hint
-           are in the user's unit once the page runs (DistanceText.js). -->
-      <fieldset class="corridor">
-        <legend class="label">{page.routeCorridorLegend}</legend>
-        <div class="corridor-options">
-          {CORRIDOR_OPTIONS_KM.map((km) => (
-            <label class="corridor-option">
-              <input type="radio" name="corridor-km" value={km} checked={km === CORRIDOR_KM} />
-              <span class="distance-text" data-meters={km * 1000}>
-                {new Intl.NumberFormat(Astro.currentLocale ?? "en", {
-                  style: "unit",
-                  unit: "kilometer",
-                }).format(km)}
-              </span>
-            </label>
+      <div class="save-place-actions">
+        <Button variant="secondary" size="small" class="cancel-save-place">
+          {page.cancelSavePlace}
+        </Button>
+        <Button variant="primary" size="small" class="confirm-save-place">
+          {page.confirmSavePlace}
+        </Button>
+      </div>
+    </div>
+    <template class="saved-place-chip-template">
+      <span class="saved-place-item">
+        <button type="button" class="saved-place-chip">
+          {placeIcons.map(({ id: iconId, icon }) => (
+            <span class="chip-icon" data-icon={iconId} hidden>
+              <Icon icon={icon} size="sm" />
+            </span>
           ))}
-        </div>
-      </fieldset>
-      <DistanceText
-        class="hint corridor-hint"
-        template={page.routeCorridor}
-        meters={CORRIDOR_KM * 1000}
-      />
-      <p class="error" role="alert"></p>
-      <!-- The routes saved as favorites, then the others planned before,
-           each with the filters on then; choosing one plans it again with
-           them, and its heart saves or removes it (route-history.js). -->
-      <section class="recent-routes favorite-routes" aria-labelledby="favorite-routes-title" hidden>
-        <h3 class="subtitle" id="favorite-routes-title">
-          <Icon icon={Heart} size="sm" />
-          {page.favoriteRoutes}
-        </h3>
-        <ol class="recent-route-list"></ol>
-      </section>
-      <section class="recent-routes history" aria-labelledby="recent-routes-title" hidden>
-        <h3 class="subtitle" id="recent-routes-title">
-          <Icon icon={History} size="sm" />
-          {page.recentRoutes}
-        </h3>
-        <ol class="recent-route-list"></ol>
-      </section>
-      <template class="recent-route-template">
-        <li class="route-item">
-          <button type="button" class="recent-route">
-            <span class="route-ends"></span>
-            <span class="route-filters"></span>
-          </button>
-          <Button variant="ghost" size="icon-only" class="favorite-route" aria-pressed="false">
-            <Icon icon={Heart} />
-          </Button>
-        </li>
-      </template>
-    </form>
-    <div class="footer">
+          <span class="chip-name"></span>
+        </button>
+        <Button variant="ghost" size="icon-only" class="remove-saved-place">
+          <Icon icon={X} size="sm" />
+        </Button>
+      </span>
+    </template>
+    <!-- How far from the route chargers are shown; the labels and the hint
+         are in the user's unit once the page runs (DistanceText.js). -->
+    <fieldset class="corridor">
+      <legend class="label">{page.routeCorridorLegend}</legend>
+      <div class="corridor-options">
+        {CORRIDOR_OPTIONS_KM.map((km) => (
+          <label class="corridor-option">
+            <input type="radio" name="corridor-km" value={km} checked={km === CORRIDOR_KM} />
+            <span class="distance-text" data-meters={km * 1000}>
+              {new Intl.NumberFormat(Astro.currentLocale ?? "en", {
+                style: "unit",
+                unit: "kilometer",
+              }).format(km)}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+    <DistanceText
+      class="hint corridor-hint"
+      template={page.routeCorridor}
+      meters={CORRIDOR_KM * 1000}
+    />
+    <p class="error" role="alert"></p>
+    <!-- The routes saved as favorites, then the others planned before,
+         each with the filters on then; choosing one plans it again with
+         them, and its heart saves or removes it (route-history.js). -->
+    <section class="recent-routes favorite-routes" aria-labelledby="favorite-routes-title" hidden>
+      <h3 class="subtitle" id="favorite-routes-title">
+        <Icon icon={Heart} size="sm" />
+        {page.favoriteRoutes}
+      </h3>
+      <ol class="recent-route-list"></ol>
+    </section>
+    <section class="recent-routes history" aria-labelledby="recent-routes-title" hidden>
+      <h3 class="subtitle" id="recent-routes-title">
+        <Icon icon={History} size="sm" />
+        {page.recentRoutes}
+      </h3>
+      <ol class="recent-route-list"></ol>
+    </section>
+    <template class="recent-route-template">
+      <li class="route-item">
+        <button type="button" class="recent-route">
+          <span class="route-ends"></span>
+          <span class="route-filters"></span>
+        </button>
+        <Button variant="ghost" size="icon-only" class="favorite-route" aria-pressed="false">
+          <Icon icon={Heart} />
+        </Button>
+      </li>
+    </template>
+    <Fragment slot="footer">
       <!-- One word shows, so the buttons fit on a phone (#331); the rest of
            their names is there for screen readers. -->
       <Button variant="secondary" size="large" class="clear-route" disabled>
@@ -275,7 +274,7 @@ const placePresets = [
       <Button variant="primary" size="large" type="submit" form="route-planner-form">
         <ShortLabel label={page.showRoute} short={page.showRouteShort} />
       </Button>
-    </div>
-  </dialog>
+    </Fragment>
+  </Dialog>
   <script src="./RoutePlanner.js"></script>
 </ev-route-planner>

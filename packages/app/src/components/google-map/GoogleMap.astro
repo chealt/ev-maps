@@ -1,5 +1,6 @@
 ---
 import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
 import {
   Activity,
   Baby,
@@ -151,190 +152,182 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     <RoutePlanner id="route-planner" />
     <ShortcutsDialog />
 
-    <dialog
-      class="fullscreen-dialog filter-dialog"
+    <Dialog
+      class="filter-dialog"
       id="map-filter-panel"
-      aria-labelledby="filter-panel-title"
+      title={page.filters}
+      titleId="filter-panel-title"
+      closeLabel={page.closeFilters}
     >
-      <div class="header">
-        <h2 class="title" id="filter-panel-title">
-          {page.filters}
-        </h2>
-        <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeFilters}>
-          <Icon icon={X} />
-        </Button>
-      </div>
-      <div class="body">
-        <!-- Two short, single-button groups share one row where there's room. -->
-        <div class="group-row">
-          <div class="group" role="group" aria-labelledby="favorites-filter-title">
-            <h3 class="subtitle" id="favorites-filter-title">
-              {page.favorites}
-            </h3>
-            <div class="options">
-              <Button
-                variant="secondary"
-                size="large"
-                class="favorites-filter"
-                aria-pressed="false"
-                aria-disabled="true"
-                aria-describedby="favorites-filter-hint"
-              >
-                <Icon icon={Heart} size="sm" />
-                {page.onlyFavorites}
-              </Button>
-            </div>
-            <p class="hint" id="favorites-filter-hint">
-              {page.signInForFavorites}
-            </p>
-          </div>
-          <div class="group" role="group" aria-labelledby="availability-filter-title">
-            <h3 class="subtitle" id="availability-filter-title">
-              {page.availability}
-            </h3>
-            <div class="options">
-              <Button
-                variant="secondary"
-                size="large"
-                class="availability-filter"
-                aria-pressed="false"
-                aria-disabled="true"
-                aria-describedby="availability-filter-hint availability-filter-about"
-              >
-                <Icon icon={Activity} size="sm" />
-                {page.hideUnavailable}
-              </Button>
-            </div>
-            <p class="hint" id="availability-filter-hint">
-              {page.signInForAvailability}
-            </p>
-            <p class="hint" id="availability-filter-about">
-              {page.hideUnavailableHint}
-            </p>
-          </div>
-        </div>
-        <div class="group" role="group" aria-labelledby="nearby-filter-title">
-          <h3 class="subtitle" id="nearby-filter-title">
-            {page.nearby}
+      <!-- Two short, single-button groups share one row where there's room. -->
+      <div class="group-row">
+        <div class="group" role="group" aria-labelledby="favorites-filter-title">
+          <h3 class="subtitle" id="favorites-filter-title">
+            {page.favorites}
           </h3>
           <div class="options">
-            {amenities.map(({ id, icon }) => (
-              <Button
-                variant="secondary"
-                size="large"
-                class="nearby-filter"
-                aria-pressed="false"
-                aria-disabled="true"
-                aria-describedby="nearby-filter-hint"
-                data-amenity={id}
-              >
-                <Icon icon={icon} size="sm" />
-                {values.amenities[id]}
-              </Button>
-            ))}
-          </div>
-          <p class="hint" id="nearby-filter-hint">
-            {page.signInForNearby}
-          </p>
-          <DistanceText class="hint" template={page.nearbyFilterHint} meters={NEARBY_METERS} />
-        </div>
-        <div class="group" role="group" aria-labelledby="connector-filter-title">
-          <h3 class="subtitle" id="connector-filter-title">
-            {page.connectorType}
-          </h3>
-          <div class="options">
-            {connectorGroups.map(({ value, label, types }) => (
-              <Button
-                variant="secondary"
-                size="large"
-                class="connector-filter"
-                aria-pressed="false"
-                data-connector-group={value}
-                data-connector-types={types.join(",")}
-              >
-                {label}
-              </Button>
-            ))}
-            <!-- Selects exactly the car's connector groups (the account
-                 menu's car setting); shown only once the car has some. -->
-            <Button variant="secondary" size="large" class="car-filter" aria-pressed="false" hidden>
-              {page.myCarChargers}
+            <Button
+              variant="secondary"
+              size="large"
+              class="favorites-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="favorites-filter-hint"
+            >
+              <Icon icon={Heart} size="sm" />
+              {page.onlyFavorites}
             </Button>
           </div>
-        </div>
-        <div class="group" role="group" aria-labelledby="power-filter-title">
-          <h3 class="subtitle" id="power-filter-title">
-            {page.chargingPower}
-          </h3>
-          <div class="options">
-            {powerRanges.map(({ value, label, minKw, maxKw }) => (
-              <Button
-                variant="secondary"
-                size="large"
-                class="power-filter"
-                aria-pressed="false"
-                data-power-range={value}
-                data-min-kw={minKw}
-                data-max-kw={maxKw}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-        </div>
-        <!-- Where a charger's per-kWh price sits among the chargers here, by
-             thirds (src/lib/priciness.js): with a level on, only chargers at
-             it match, so those without a comparable price don't. -->
-        <div class="group" role="group" aria-labelledby="price-filter-title">
-          <h3 class="subtitle" id="price-filter-title">
-            {page.price}
-          </h3>
-          <div class="options">
-            {[1, 2, 3].map((level) => (
-              <Button
-                variant="secondary"
-                size="large"
-                class="price-filter"
-                aria-pressed="false"
-                aria-describedby="price-filter-hint"
-                data-price-level={level}
-              >
-                <span class="price-scale" aria-hidden="true">
-                  {"$".repeat(level)}
-                </span>
-                {page.priceLevels[level]}
-              </Button>
-            ))}
-          </div>
-          <p class="hint" id="price-filter-hint">
-            {page.priceFilterHint}
+          <p class="hint" id="favorites-filter-hint">
+            {page.signInForFavorites}
           </p>
         </div>
-        <div class="group" role="group" aria-labelledby="operator-filter-title">
-          <div class="group-header">
-            <h3 class="subtitle" id="operator-filter-title">
-              {page.operatorFilter}
-            </h3>
-            <Button variant="ghost" size="small" class="show-all-operators" hidden>
-              {page.showAllOperators}
+        <div class="group" role="group" aria-labelledby="availability-filter-title">
+          <h3 class="subtitle" id="availability-filter-title">
+            {page.availability}
+          </h3>
+          <div class="options">
+            <Button
+              variant="secondary"
+              size="large"
+              class="availability-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="availability-filter-hint availability-filter-about"
+            >
+              <Icon icon={Activity} size="sm" />
+              {page.hideUnavailable}
             </Button>
           </div>
-          <p class="hint">{page.operatorFilterHint}</p>
-          <p class="hint no-operators">{page.noOperators}</p>
-          <!-- The operators of the chargers on the map, from the template below. -->
-          <ul class="operator-options"></ul>
-          <template class="operator-option-template">
-            <li>
-              <label class="operator-option">
-                <input type="checkbox" class="operator-filter" checked />
-                <span class="operator-name"></span>
-                <span class="operator-count"></span>
-              </label>
-            </li>
-          </template>
+          <p class="hint" id="availability-filter-hint">
+            {page.signInForAvailability}
+          </p>
+          <p class="hint" id="availability-filter-about">
+            {page.hideUnavailableHint}
+          </p>
         </div>
       </div>
-      <div class="footer">
+      <div class="group" role="group" aria-labelledby="nearby-filter-title">
+        <h3 class="subtitle" id="nearby-filter-title">
+          {page.nearby}
+        </h3>
+        <div class="options">
+          {amenities.map(({ id, icon }) => (
+            <Button
+              variant="secondary"
+              size="large"
+              class="nearby-filter"
+              aria-pressed="false"
+              aria-disabled="true"
+              aria-describedby="nearby-filter-hint"
+              data-amenity={id}
+            >
+              <Icon icon={icon} size="sm" />
+              {values.amenities[id]}
+            </Button>
+          ))}
+        </div>
+        <p class="hint" id="nearby-filter-hint">
+          {page.signInForNearby}
+        </p>
+        <DistanceText class="hint" template={page.nearbyFilterHint} meters={NEARBY_METERS} />
+      </div>
+      <div class="group" role="group" aria-labelledby="connector-filter-title">
+        <h3 class="subtitle" id="connector-filter-title">
+          {page.connectorType}
+        </h3>
+        <div class="options">
+          {connectorGroups.map(({ value, label, types }) => (
+            <Button
+              variant="secondary"
+              size="large"
+              class="connector-filter"
+              aria-pressed="false"
+              data-connector-group={value}
+              data-connector-types={types.join(",")}
+            >
+              {label}
+            </Button>
+          ))}
+          <!-- Selects exactly the car's connector groups (the account
+               menu's car setting); shown only once the car has some. -->
+          <Button variant="secondary" size="large" class="car-filter" aria-pressed="false" hidden>
+            {page.myCarChargers}
+          </Button>
+        </div>
+      </div>
+      <div class="group" role="group" aria-labelledby="power-filter-title">
+        <h3 class="subtitle" id="power-filter-title">
+          {page.chargingPower}
+        </h3>
+        <div class="options">
+          {powerRanges.map(({ value, label, minKw, maxKw }) => (
+            <Button
+              variant="secondary"
+              size="large"
+              class="power-filter"
+              aria-pressed="false"
+              data-power-range={value}
+              data-min-kw={minKw}
+              data-max-kw={maxKw}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+      <!-- Where a charger's per-kWh price sits among the chargers here, by
+           thirds (src/lib/priciness.js): with a level on, only chargers at
+           it match, so those without a comparable price don't. -->
+      <div class="group" role="group" aria-labelledby="price-filter-title">
+        <h3 class="subtitle" id="price-filter-title">
+          {page.price}
+        </h3>
+        <div class="options">
+          {[1, 2, 3].map((level) => (
+            <Button
+              variant="secondary"
+              size="large"
+              class="price-filter"
+              aria-pressed="false"
+              aria-describedby="price-filter-hint"
+              data-price-level={level}
+            >
+              <span class="price-scale" aria-hidden="true">
+                {"$".repeat(level)}
+              </span>
+              {page.priceLevels[level]}
+            </Button>
+          ))}
+        </div>
+        <p class="hint" id="price-filter-hint">
+          {page.priceFilterHint}
+        </p>
+      </div>
+      <div class="group" role="group" aria-labelledby="operator-filter-title">
+        <div class="group-header">
+          <h3 class="subtitle" id="operator-filter-title">
+            {page.operatorFilter}
+          </h3>
+          <Button variant="ghost" size="small" class="show-all-operators" hidden>
+            {page.showAllOperators}
+          </Button>
+        </div>
+        <p class="hint">{page.operatorFilterHint}</p>
+        <p class="hint no-operators">{page.noOperators}</p>
+        <!-- The operators of the chargers on the map, from the template below. -->
+        <ul class="operator-options"></ul>
+        <template class="operator-option-template">
+          <li>
+            <label class="operator-option">
+              <input type="checkbox" class="operator-filter" checked />
+              <span class="operator-name"></span>
+              <span class="operator-count"></span>
+            </label>
+          </li>
+        </template>
+      </div>
+      <Fragment slot="footer">
         <Button variant="secondary" size="large" class="clear-filters" disabled>
           {page.clearFilters}
         </Button>
@@ -349,63 +342,57 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           </Button>
         </p>
         <p class="save-status" aria-live="polite"></p>
-      </div>
-    </dialog>
+      </Fragment>
+    </Dialog>
 
-    <dialog
-      class="fullscreen-dialog charger-list"
+    <Dialog
+      class="charger-list"
       id="charger-list"
-      aria-labelledby="charger-list-title"
+      title={page.chargerList}
+      titleId="charger-list-title"
+      closeLabel={page.closeList}
     >
-      <div class="header">
-        <div>
-          <h2 class="title" id="charger-list-title">
-            {page.chargerList}
-          </h2>
-          <p class="sort-basis"></p>
-          <!-- Along a route: sort the list by distance from the start, to
-               the end, or off the route. -->
-          <fieldset class="sort-options" hidden>
-            <legend class="sort-legend">{page.sortByDistance}</legend>
-            <!-- A segmented toggle: the radios are only for keyboards and
-                 screen readers; the labels are the segments. -->
-            <span class="segments">
-              {["start", "end", "route"].map((by, index) => (
-                <label class="sort-option">
-                  <input
-                    type="radio"
-                    class="visually-hidden"
-                    name="sort-by"
-                    value={by}
-                    checked={index === 0}
-                  />
-                  {page.sortByOptions[by]}
-                </label>
-              ))}
-            </span>
-          </fieldset>
-        </div>
-        <Button variant="ghost" size="icon-only" class="close" aria-label={page.closeList}>
-          <Icon icon={X} />
-        </Button>
-      </div>
-      <div class="body">
-        <ol class="items"></ol>
-      </div>
-      <template class="item-template">
-        <li class="item">
-          <button type="button" class="entry">
-            <span class="name"></span>
-            <span class="distance"></span>
-            <!-- Along a route: from the start, to the end, off the route. -->
-            <span class="route-distances" hidden></span>
-            <!-- Power and priciness as chips, then the address. -->
-            <span class="facts"></span>
-            <span class="address"></span>
-          </button>
-        </li>
-      </template>
-    </dialog>
+      <Fragment slot="header">
+        <p class="sort-basis"></p>
+        <!-- Along a route: sort the list by distance from the start, to
+             the end, or off the route. -->
+        <fieldset class="sort-options" hidden>
+          <legend class="sort-legend">{page.sortByDistance}</legend>
+          <!-- A segmented toggle: the radios are only for keyboards and
+               screen readers; the labels are the segments. -->
+          <span class="segments">
+            {["start", "end", "route"].map((by, index) => (
+              <label class="sort-option">
+                <input
+                  type="radio"
+                  class="visually-hidden"
+                  name="sort-by"
+                  value={by}
+                  checked={index === 0}
+                />
+                {page.sortByOptions[by]}
+              </label>
+            ))}
+          </span>
+        </fieldset>
+      </Fragment>
+      <ol class="items"></ol>
+      <Fragment slot="after">
+        <template class="item-template">
+          <li class="item">
+            <button type="button" class="entry">
+              <span class="name"></span>
+              <span class="distance"></span>
+              <!-- Along a route: from the start, to the end, off the route. -->
+              <span class="route-distances" hidden></span>
+              <!-- Power and priciness as chips, then the address. -->
+              <span class="facts"></span>
+              <span class="address"></span>
+            </button>
+          </li>
+        </template>
+      </Fragment>
+    </Dialog>
 
     <aside class="charger-details" aria-labelledby="charger-details-name" hidden>
       <div class="header">

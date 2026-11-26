@@ -9,10 +9,16 @@ ev-place-search {
       gap: var(--spacing-md);
     }
 
+    /* Side by side, sharing the width, like the filters' footer; one under
+       the other when their labels don't fit side by side. */
     .actions {
       display: flex;
       flex-wrap: wrap;
       gap: var(--spacing-sm);
+
+      > .button {
+        flex: 1 1 auto;
+      }
     }
   }
 }

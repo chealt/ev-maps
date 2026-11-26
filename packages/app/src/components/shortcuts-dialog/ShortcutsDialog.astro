@@ -1,6 +1,6 @@
 ---
-import { Keyboard, X } from "lucide-static";
-import Button from "@ev-maps/ui/Button.astro";
+import { Keyboard } from "lucide-static";
+import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import { translations } from "../../i18n/index.js";
 import "./ShortcutsDialog.css";
@@ -9,48 +9,46 @@ const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <ev-shortcuts>
-  <dialog class="fullscreen-dialog shortcuts-dialog" aria-labelledby="shortcuts-title">
-    <div class="header">
-      <h2 class="title" id="shortcuts-title">
-        <Icon icon={Keyboard} size="sm" />
-        {page.shortcuts.title}
-      </h2>
-      <Button variant="ghost" size="icon-only" class="close" aria-label={page.close}>
-        <Icon icon={X} />
-      </Button>
-    </div>
-    <div class="body">
-      <ul class="shortcut-list">
-        <li>
-          <kbd>?</kbd>
-          <span>{page.shortcuts.help}</span>
-        </li>
-        <li>
-          <kbd>Esc</kbd>
-          <span>{page.shortcuts.closeDialogs}</span>
-        </li>
-        <li>
-          <kbd>f</kbd>
-          <span>{page.shortcuts.filters}</span>
-        </li>
-        <li>
-          <kbd>c</kbd>
-          <span>{page.shortcuts.clearFilters}</span>
-        </li>
-        <li>
-          <kbd>l</kbd>
-          <span>{page.shortcuts.locate}</span>
-        </li>
-        <li>
-          <kbd>r</kbd>
-          <span>{page.shortcuts.route}</span>
-        </li>
-        <li>
-          <kbd>x</kbd>
-          <span>{page.shortcuts.clearRoute}</span>
-        </li>
-      </ul>
-    </div>
-  </dialog>
+  <Dialog
+    class="shortcuts-dialog"
+    title={page.shortcuts.title}
+    titleId="shortcuts-title"
+    closeLabel={page.close}
+  >
+    <Fragment slot="title">
+      <Icon icon={Keyboard} size="sm" />
+      {page.shortcuts.title}
+    </Fragment>
+    <ul class="shortcut-list">
+      <li>
+        <kbd>?</kbd>
+        <span>{page.shortcuts.help}</span>
+      </li>
+      <li>
+        <kbd>Esc</kbd>
+        <span>{page.shortcuts.closeDialogs}</span>
+      </li>
+      <li>
+        <kbd>f</kbd>
+        <span>{page.shortcuts.filters}</span>
+      </li>
+      <li>
+        <kbd>c</kbd>
+        <span>{page.shortcuts.clearFilters}</span>
+      </li>
+      <li>
+        <kbd>l</kbd>
+        <span>{page.shortcuts.locate}</span>
+      </li>
+      <li>
+        <kbd>r</kbd>
+        <span>{page.shortcuts.route}</span>
+      </li>
+      <li>
+        <kbd>x</kbd>
+        <span>{page.shortcuts.clearRoute}</span>
+      </li>
+    </ul>
+  </Dialog>
   <script src="./ShortcutsDialog.js"></script>
 </ev-shortcuts>
