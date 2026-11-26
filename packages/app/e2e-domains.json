@@ -80,7 +80,8 @@
         "packages/app/src/components/place-search/**",
         "packages/app/src/components/google-map/route.js",
         "packages/app/src/components/google-map/route-cache.js",
-        "packages/app/src/components/google-map/route-history.js"
+        "packages/app/src/components/google-map/route-history.js",
+        "packages/app/src/i18n/*/map.js"
       ],
       "tests": ["route-planner", "favorite-routes", "navigate", "place-search", "saved-places"]
     },
