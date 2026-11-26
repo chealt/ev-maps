@@ -234,22 +234,6 @@
     gap: var(--spacing-xs);
   }
 
-  .save-place-field {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-
-    .field {
-      width: 100%;
-      padding: var(--overlay-gap) var(--spacing-md);
-      border: var(--border-width) solid var(--color-border-strong);
-      border-radius: var(--border-radius-md);
-      background: var(--color-surface);
-      color: var(--color-text);
-      font: inherit;
-    }
-  }
-
   .save-place-icons {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,7 @@
 ---
 import { X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import "./PlaceInput.css";
 
@@ -16,18 +17,15 @@ const listId = `${id}-options`;
 ---
 
 <ev-place-input class="place-input">
-  <div class="label-row">
-    <label class="label" for={id}>
-      {label}
-    </label>
-    <div class="label-actions">
-      <slot />
-    </div>
-  </div>
-  <div class="field-wrapper">
+  <Field label={label} for={id}>
+    {Astro.slots.has("default") && (
+      <Fragment slot="actions">
+        <slot />
+      </Fragment>
+    )}
     <input
       id={id}
-      class="field"
+      class="field-control"
       type="text"
       role="combobox"
       autocomplete="off"
@@ -41,7 +39,7 @@ const listId = `${id}-options`;
         <Icon icon={X} size="sm" />
       </Button>
     )}
-  </div>
+  </Field>
   <slot name="after" />
   <ul class="options" id={listId} role="listbox" aria-label={label} hidden></ul>
   <template class="option-template">

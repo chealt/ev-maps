@@ -1,6 +1,7 @@
 ---
 import { ArrowLeft } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Card from "@ev-maps/ui/Card.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import SavedPlacePin from "../saved-place-pin/SavedPlacePin.astro";
@@ -44,10 +45,9 @@ const { page, values } = translations(lang);
         </div>
       </div>
       <form class="place-form">
-        <label class="field-label">
-          <span class="label">{page.savedPlaceName}</span>
-          <input type="text" class="field name" name="name" maxlength="60" required />
-        </label>
+        <Field label={page.savedPlaceName}>
+          <input type="text" class="field-control name" name="name" maxlength="60" required />
+        </Field>
         <div class="icons" role="group">
           <span class="label">{page.savedPlaceIcon}</span>
           <div class="icon-options">

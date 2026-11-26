@@ -1,6 +1,7 @@
 ---
 import { ImagePlus, MapPin, Plus, Trash2, X } from "lucide-static";
 import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
@@ -62,38 +63,44 @@ const knownOperators = [
 
     <div class="form-section">
       <div class="field-row">
-        <label class="field-group">
-          <span class="label">{page.suggestChargerName}</span>
+        <Field label={page.suggestChargerName} class="field-group">
           <input
             type="text"
-            class="field charger-name"
+            class="field-control charger-name"
             name="name"
             required
             maxlength="200"
             placeholder={page.suggestChargerNamePlaceholder}
           />
-        </label>
-        <div class="field-group">
-          <label class="field-group">
-            <span class="label">{page.suggestChargerOperator}</span>
-            <select class="field charger-operator-select" name="operator">
-              <option value="">{page.suggestChargerOperatorSelect}</option>
-              {knownOperators.map((op) => (
-                <option value={op}>{op}</option>
-              ))}
-              <option value="__other__">{page.suggestChargerOperatorOther}</option>
-            </select>
-          </label>
-          <input
-            type="text"
-            class="field charger-operator-custom"
-            name="operatorCustom"
-            maxlength="200"
-            placeholder={page.suggestChargerOperatorCustomPlaceholder}
-            aria-label={page.suggestChargerOperatorOther}
-            hidden
-          />
-        </div>
+        </Field>
+        <Field
+          label={page.suggestChargerOperator}
+          for="suggest-charger-operator"
+          class="field-group"
+        >
+          <select
+            id="suggest-charger-operator"
+            class="field-control charger-operator-select"
+            name="operator"
+          >
+            <option value="">{page.suggestChargerOperatorSelect}</option>
+            {knownOperators.map((op) => (
+              <option value={op}>{op}</option>
+            ))}
+            <option value="__other__">{page.suggestChargerOperatorOther}</option>
+          </select>
+          <Fragment slot="after">
+            <input
+              type="text"
+              class="field-control charger-operator-custom"
+              name="operatorCustom"
+              maxlength="200"
+              placeholder={page.suggestChargerOperatorCustomPlaceholder}
+              aria-label={page.suggestChargerOperatorOther}
+              hidden
+            />
+          </Fragment>
+        </Field>
       </div>
 
       <PlaceInput
@@ -156,38 +163,35 @@ const knownOperators = [
     <Fragment slot="after">
       <template class="connector-row-template">
         <div class="connector-row" role="group">
-          <label class="field-group connector-type-group">
-            <span class="label">{page.connectorType}</span>
-            <select class="field connector-type">
+          <Field label={page.connectorType} class="field-group connector-type-group">
+            <select class="field-control connector-type">
               {connectorTypes.map((type) => (
                 <option value={type}>{values.connectors[type]}</option>
               ))}
             </select>
-          </label>
-          <label class="field-group connector-power-group">
-            <span class="label">{page.suggestChargerPowerKw}</span>
+          </Field>
+          <Field label={page.suggestChargerPowerKw} class="field-group connector-power-group">
             <input
               type="number"
               min="1"
               max="1000"
               step="any"
               value="50"
-              class="field connector-power"
+              class="field-control connector-power"
               required
             />
-          </label>
-          <label class="field-group connector-qty-group">
-            <span class="label">{page.suggestChargerQuantity}</span>
+          </Field>
+          <Field label={page.suggestChargerQuantity} class="field-group connector-qty-group">
             <input
               type="number"
               min="1"
               max="100"
               step="1"
               value="1"
-              class="field connector-quantity"
+              class="field-control connector-quantity"
               required
             />
-          </label>
+          </Field>
           <Button
             variant="ghost"
             size="icon-only"

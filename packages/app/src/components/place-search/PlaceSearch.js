@@ -24,7 +24,7 @@ class PlaceSearchElement extends HTMLElement {
 
   open() {
     openDialog(this.dialog);
-    this.input.querySelector(".field").focus();
+    this.input.querySelector(".field-control").focus();
   }
 
   // Google's PlaceInput sets `place` once a suggestion is chosen; its

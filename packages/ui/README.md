@@ -13,6 +13,7 @@ right on any of its pages.
 | `@ev-maps/ui/Card.astro`             | A surface for one item: `as`                              |
 | `@ev-maps/ui/SegmentedControl.astro` | One choice of a few: `legend`, `name`, `options`, `value` |
 | `@ev-maps/ui/Dialog.astro`           | A full-screen dialog: `title`, `closeLabel`; slots        |
+| `@ev-maps/ui/Field.astro`            | A label, its control (`.field-control`) and a hint        |
 | `@ev-maps/ui/Switch.astro`           | An on/off setting: its label the slot                     |
 | `@ev-maps/ui/BarChart.astro`         | A bar per day; its `title` and `id`                       |
 | `@ev-maps/ui/bar-chart.js`           | `renderBarChart`, `formatDay`: fill it in                 |

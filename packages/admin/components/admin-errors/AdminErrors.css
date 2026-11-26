@@ -26,64 +26,9 @@
     margin-bottom: var(--spacing-md);
   }
 
-  .filter {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-2xs);
-
-    &.search {
-      flex: 1;
-      min-width: 10rem;
-    }
-  }
-
-  .filter-label {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
-  }
-
-  .select-wrap {
-    position: relative;
-    display: flex;
-  }
-
-  .filters select,
-  .filters input {
-    height: var(--admin-filter-height);
-    padding: 0 var(--spacing-sm);
-    border: var(--border-width) solid transparent;
-    border-radius: var(--border-radius-md);
-    background: var(--color-surface-muted);
-    color: var(--color-text);
-    font: inherit;
-    cursor: pointer;
-    transition:
-      background-color var(--transition-fast),
-      border-color var(--transition-fast);
-
-    &:hover {
-      background-color: var(--color-surface-hover);
-    }
-
-    &:focus-visible {
-      outline: var(--border-width-thick) solid var(--color-primary);
-      outline-offset: var(--border-width);
-    }
-  }
-
-  .filters select {
-    appearance: none;
-    padding-right: 2rem;
-  }
-
-  .chevron {
-    position: absolute;
-    right: var(--spacing-sm);
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-text-muted);
-    pointer-events: none;
+  .search {
+    flex: 1;
+    min-width: 10rem;
   }
 
   .apply,
