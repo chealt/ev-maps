@@ -145,7 +145,10 @@ Component Structure:
 
    - Colors: `--color-primary`, `--color-text`, `--color-background`, etc.
    - Typography: `--font-family`, `--font-size-*`, `--font-weight-*`,
-     `--line-height-*`
+     `--line-height-*`. The font is Inter, served with the site
+     (`@fontsource-variable/inter`, imported and its Latin file preloaded in
+     `Layout.astro`), so text looks the same on every device and in CI's
+     screenshots.
    - Spacing: `--spacing-xs`, `--spacing-sm`, `--spacing-md`, etc.
    - Borders: `--border-radius-*`, `--border-width`
    - Shadows: `--shadow-sm`, `--shadow-md`, `--shadow-lg`
