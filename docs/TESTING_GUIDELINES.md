@@ -269,11 +269,12 @@ matches spec files and tags alike, so the shards stay as they are.
 
 When adding a spec, add it to a domain (a test checks that every spec is
 in one); when adding code to the app, add its path to a domain, or it runs
-everything. On a pull request, the E2E map check (see
-[CI](CI.md)) reads the change and comments when the map needs an update. Tag a test `@regression`
-(`test("…", { tag: "@regression" }, …)`) when it covers a journey every
-change must keep working, such as seeing chargers on the map, opening one,
-planning a route, saving a favorite or signing out; keep the list short.
+everything. On a pull request, the E2E map check (see [CI](CI.md)) reads
+the change and comments when the map needs an update. Tag a test
+`@regression` (`test("…", { tag: "@regression" }, …)`) when it covers a
+journey every change must keep working, such as seeing chargers on the map,
+opening one, planning a route, saving a favorite or signing out; keep the
+list short.
 
 ## Running Tests
 
