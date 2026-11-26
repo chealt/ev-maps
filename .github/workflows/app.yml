@@ -578,7 +578,7 @@ jobs:
           done
           test -n "$job_url"
           gh api --paginate "$repo/issues/$PR_NUMBER/comments" |
-            jq -c --arg run "$run_url" --arg job "$job_url" '
+            jq -c --arg run "$run_url" --arg job "$job_url?pr=$PR_NUMBER" '
               .[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- visual-review -->")))
               | select(.body | contains("[Review and approve the visual changes →](" + $run + ")"))
               | {id, body: (.body | split("[Review and approve the visual changes →](" + $run + ")") | join("[Review and approve the visual changes →](" + $job + ")"))}' |
