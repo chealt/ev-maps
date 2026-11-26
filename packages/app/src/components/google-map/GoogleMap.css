@@ -1401,3 +1401,15 @@ ev-google-map.picking :is(.map-controls, .map-status) {
     background: var(--color-surface-hover);
   }
 }
+
+/* The operator in the details: a link-like button to the operator's
+   chargers. */
+.charger-details .operator-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

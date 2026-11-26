@@ -185,6 +185,13 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Operator: {value}",
+    operatorChargers: {
+      one: "{operator}: {count} stacja ładowania",
+      few: "{operator}: {count} stacje ładowania",
+      many: "{operator}: {count} stacji ładowania",
+      other: "{operator}: {count} stacji ładowania",
+    },
+    showOperatorChargers: "Pokaż stacje ładowania: {operator}",
     access: "Dostęp: {value}",
     cost: "Koszt: {value}",
     status: "Status: {value}",

@@ -180,6 +180,11 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Üzemeltető: {value}",
+    operatorChargers: {
+      one: "{operator}: {count} töltőállomás",
+      other: "{operator}: {count} töltőállomás",
+    },
+    showOperatorChargers: "{operator} töltőállomásainak megjelenítése",
     access: "Hozzáférés: {value}",
     cost: "Díj: {value}",
     status: "Állapot: {value}",

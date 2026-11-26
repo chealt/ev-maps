@@ -177,6 +177,11 @@ const map = {
     connector: "{type}: {quantity}×",
     connectorWithPower: "{type}: {quantity}× · {power} kW",
     operator: "Operator: {value}",
+    operatorChargers: {
+      one: "{count} EV charger by {operator}",
+      other: "{count} EV chargers by {operator}",
+    },
+    showOperatorChargers: "Show the chargers by {operator}",
     access: "Access: {value}",
     cost: "Cost: {value}",
     status: "Status: {value}",
