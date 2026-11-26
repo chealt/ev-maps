@@ -48,7 +48,8 @@
         "priciness",
         "open-in-maps",
         "nearby",
-        "manifest"
+        "manifest",
+        "report-change"
       ]
     },
     "filters": {
@@ -125,9 +126,13 @@
     "suggestions": {
       "paths": [
         "packages/app/src/components/suggest-charger-dialog/**",
-        "packages/app/src/components/user-suggestions/**"
+        "packages/app/src/components/user-suggestions/**",
+        "packages/app/src/components/report-change-dialog/**",
+        "packages/app/src/components/charger-proof-fields/**",
+        "packages/app/src/components/photo-picker/**",
+        "packages/app/src/lib/photos.js"
       ],
-      "tests": ["suggest-charger"]
+      "tests": ["suggest-charger", "report-change", "favorites"]
     },
     "legal": {
       "paths": ["packages/app/src/components/legal-page/**", "packages/app/src/legal/**"],
@@ -166,11 +171,13 @@
     "admin": {
       "paths": [
         "packages/admin/components/admin-*/**",
+        "packages/admin/components/charger-proof/**",
         "packages/app/src/lib/day-count.js",
         "packages/app/src/i18n/*/admin*.js"
       ],
       "tests": [
         "admin",
+        "admin-charger-reports",
         "admin-errors",
         "admin-performance",
         "admin-reports",

@@ -4,6 +4,7 @@ import Button from "@ev-maps/ui/Button.astro";
 import Field from "@ev-maps/ui/Field.astro";
 import Dialog from "@ev-maps/ui/Dialog.astro";
 import Icon from "@ev-maps/ui/Icon.astro";
+import ChargerProofFields from "../charger-proof-fields/ChargerProofFields.astro";
 import PlaceInput from "../place-input/PlaceInput.astro";
 import { translations } from "../../i18n/index.js";
 import "./SuggestChargerDialog.css";
@@ -49,7 +50,8 @@ const knownOperators = [
 
 <!-- Suggest a new charger location using Google Places address lookup,
      known operators dropdown, one or more chargers (connector type, power
-     in kW, quantity) and up to 5 proof photos (max 2 MB each). -->
+     in kW, quantity), up to 5 proof photos (max 2 MB each) and, if the
+     user wants, its availability and price with proof. -->
 <ev-suggest-charger-dialog data-api-key={apiKey}>
   <Dialog
     class="suggest-charger-dialog"
@@ -152,6 +154,13 @@ const knownOperators = [
       </label>
       <ul class="photo-grid" hidden></ul>
     </div>
+
+    <!-- Optional: what it costs and whether it works, with the same proof
+         as a report about a charger. -->
+    <fieldset class="form-section proof-section">
+      <legend class="label">{page.suggestChargerAvailabilityAndPrice}</legend>
+      <ChargerProofFields id="suggest-charger" />
+    </fieldset>
 
     <p class="status" role="status"></p>
     <p class="error" role="alert"></p>

@@ -17,6 +17,7 @@ import {
   Utensils,
   MapPinned,
   Heart,
+  Flag,
   Info,
   List,
   ZoomIn,
@@ -26,7 +27,6 @@ import {
   PlugZap,
   X,
   Zap,
-  Flag,
   Route,
 } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
@@ -548,6 +548,31 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           ))}
         </BadgeList>
       </section>
+      <!-- Any charger, whatever its details: its availability or price
+           changed (ReportChangeDialog). -->
+      <div class="report-change-row">
+        <!-- Signed out: disabled-looking, says to sign in, and opens the
+             sign-in options, like the heart. -->
+        <Tooltip
+          class="report-change-wrapper"
+          id="report-change-sign-in-hint"
+          text={page.signInToReportChange}
+          placement="top"
+          align="start"
+        >
+          <Button
+            variant="secondary"
+            size="small"
+            class="report-change"
+            aria-haspopup="dialog"
+            aria-disabled="true"
+            aria-describedby="report-change-sign-in-hint"
+          >
+            <Icon icon={Flag} size="sm" />
+            {page.reportChange}
+          </Button>
+        </Tooltip>
+      </div>
       <!-- Where the charger's data comes from: a link per source shown (the
            script picks them), each with its full credit as its title. -->
       <p class="sources">

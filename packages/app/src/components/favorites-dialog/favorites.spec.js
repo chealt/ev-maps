@@ -83,7 +83,9 @@ test(
   }
 );
 
-test("asks to sign in for the heart and the favorites filter when signed out", async ({ page }) => {
+test("asks to sign in for the heart, reporting a change and the favorites filter when signed out", async ({
+  page,
+}) => {
   await fakeAuthApi(page);
   const changes = await fakeFavoritesApi(page);
   await page.goto("/");
@@ -93,6 +95,21 @@ test("asks to sign in for the heart and the favorites filter when signed out", a
   await expect(heart).toHaveAccessibleDescription("Sign in to save chargers as favorites.");
   await heart.hover();
   await expect(panel.getByRole("tooltip")).toBeVisible();
+
+  // Reporting a change to the charger asks to sign in too.
+  const report = panel.getByRole("button", { name: "Report a change" });
+  await expect(report).toHaveAttribute("aria-disabled", "true");
+  await expect(report).toHaveAccessibleDescription("Sign in to report a change to this charger.");
+  await report.click({ force: true });
+  await expect(
+    page
+      .getByRole("dialog", { name: "Account" })
+      .getByRole("button", { name: "Sign in with Google" })
+  ).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Report a change" })).toBeHidden();
+  // Escape closes the menu and the charger's details.
+  await page.keyboard.press("Escape");
+  await openCharger(page, "Near charger");
 
   await heart.click({ force: true });
   const menu = page.getByRole("dialog", { name: "Account" });

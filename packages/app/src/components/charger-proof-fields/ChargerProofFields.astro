@@ -1,0 +1,91 @@
+---
+import { LocateFixed } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Field from "@ev-maps/ui/Field.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import PhotoPicker from "../photo-picker/PhotoPicker.astro";
+import { translations } from "../../i18n/index.js";
+import "./ChargerProofFields.css";
+
+interface Props {
+  // Makes the fields' IDs unique on the page.
+  id: string;
+}
+
+const { id } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { page, values } = translations(lang);
+// The statuses a user can report (packages/worker/src/charger-proof.js).
+const availabilities = [
+  "operational",
+  "partly-operational",
+  "temporarily-unavailable",
+  "not-operational",
+  "removed",
+];
+const currencies = ["EUR", "HUF", "PLN", "GBP", "CZK", "RON", "CHF", "SEK", "NOK", "DKK", "USD"];
+const defaultCurrency = { hu: "HUF", pl: "PLN" }[lang] ?? "EUR";
+---
+
+<!-- A charger's availability and price as the user saw them, with proof:
+     where their device is (its GPS, not a place they type) and, for a price,
+     a photo of a receipt, an invoice or a charging app. Its read() gives
+     them for the API (packages/worker/src/charger-proof.js). -->
+<ev-charger-proof-fields>
+  <div class="field-row">
+    <Field label={page.reportAvailability} for={`${id}-availability`} class="field-group">
+      <select id={`${id}-availability`} class="field-control availability">
+        <option value="">{page.reportNoChange}</option>
+        {availabilities.map((status) => (
+          <option value={status}>{values.status[status]}</option>
+        ))}
+      </select>
+    </Field>
+    <Field label={page.reportPrice} for={`${id}-price`} class="field-group">
+      <select id={`${id}-price`} class="field-control price-kind">
+        <option value="">{page.reportNoChange}</option>
+        <option value="free">{page.reportPriceFree}</option>
+        <option value="kwh">{page.reportPricePerKwh}</option>
+        <option value="minute">{page.reportPricePerMinute}</option>
+        <option value="session">{page.reportPricePerSession}</option>
+      </select>
+    </Field>
+  </div>
+  <div class="field-row price-amount" hidden>
+    <Field label={page.reportPriceAmount} for={`${id}-amount`} class="field-group">
+      <input
+        id={`${id}-amount`}
+        type="number"
+        min="0.01"
+        step="any"
+        inputmode="decimal"
+        class="field-control amount"
+      />
+    </Field>
+    <Field label={page.reportCurrency} for={`${id}-currency`} class="field-group">
+      <select id={`${id}-currency`} class="field-control currency">
+        {currencies.map((currency) => (
+          <option value={currency} selected={currency === defaultCurrency}>
+            {currency}
+          </option>
+        ))}
+      </select>
+    </Field>
+  </div>
+  <PhotoPicker
+    class="receipt-photos"
+    label={page.reportReceiptPhotos}
+    hint={page.reportReceiptPhotosHint}
+    removeLabel={page.removeChargerPhoto}
+    max={2}
+  />
+  <div class="device-location">
+    <Button variant="secondary" size="small" class="share-location">
+      <Icon icon={LocateFixed} size="sm" />
+      {page.reportShareLocation}
+    </Button>
+    <p class="location-status" role="status"></p>
+  </div>
+  <p class="location-hint">{page.reportShareLocationHint}</p>
+  <script src="./ChargerProofFields.js"></script>
+</ev-charger-proof-fields>

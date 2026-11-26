@@ -1,0 +1,47 @@
+ev-charger-proof-fields {
+  /* Inputs and selects alike, so labels on one line are level. */
+  --field-min-width: 10rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  /* Side by side where they fit, else one under the other. */
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+
+    > .field-group {
+      flex: 1;
+      min-width: var(--field-min-width);
+    }
+  }
+
+  .field-row[hidden],
+  ev-photo-picker[hidden] {
+    display: none;
+  }
+
+  .device-location {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .location-status {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .location-hint {
+    margin-top: calc(-1 * var(--spacing-sm));
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+}

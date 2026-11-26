@@ -3,6 +3,29 @@
 
 const account = {
   page: {
+    suggestChargerAvailabilityAndPrice: "Dostępność i cena (opcjonalnie)",
+    reportChange: "Zgłoś zmianę",
+    signInToReportChange: "Zaloguj się, aby zgłosić zmianę tej ładowarki.",
+    closeReportChange: "Zamknij zgłaszanie zmiany",
+    reportChangeHint:
+      "Widzisz tu inną dostępność lub cenę? Daj nam znać, z lokalizacją urządzenia przy ładowarce i jej zdjęciem, abyśmy mogli temu zaufać.",
+    reportAvailability: "Dostępność",
+    reportPrice: "Cena",
+    reportNoChange: "Bez zmian",
+    reportPriceFree: "Bezpłatna",
+    reportPricePerKwh: "Za kWh",
+    reportPricePerMinute: "Za minutę",
+    reportPricePerSession: "Za sesję ładowania",
+    reportPriceAmount: "Kwota",
+    reportCurrency: "Waluta",
+    reportReceiptPhotos: "Dodaj zdjęcie paragonu, faktury lub aplikacji do ładowania",
+    reportReceiptPhotosHint: "Takie, na którym widać cenę; do 2 zdjęć",
+    reportChargerPhotos: "Dodaj zdjęcie ładowarki",
+    reportChargerPhotosHint: "Do 3 zdjęć",
+    reportShareLocation: "Udostępnij moją lokalizację",
+    reportShareLocationHint:
+      "Lokalizacja urządzenia pokazuje, że byłeś przy ładowarce; widzą ją tylko administratorzy EV Maps.",
+    submitReportChange: "Wyślij zgłoszenie",
     loadingAccount: "Wczytywanie konta",
     signInWith: "Zaloguj się przez {provider}",
     closeFavorites: "Zamknij ulubione",
@@ -84,6 +107,21 @@ const account = {
     deleteSavedPlace: "Usuń",
   },
   messages: {
+    reportLocating: "Szukanie lokalizacji…",
+    reportLocationShared: "Lokalizacja udostępniona (±{accuracy} m)",
+    reportLocationSharedNoAccuracy: "Lokalizacja udostępniona",
+    reportLocationUnavailable:
+      "Twoja lokalizacja jest niedostępna. Zezwól na nią dla EV Maps i spróbuj ponownie.",
+    reportLocationNeeded: "Udostępnij lokalizację, aby wysłać zgłoszenie.",
+    reportChangeNeeded: "Wybierz, co się zmieniło: dostępność, cena lub obie.",
+    reportPriceNeeded: "Podaj cenę.",
+    reportReceiptNeeded:
+      "Dodaj zdjęcie paragonu, faktury lub aplikacji do ładowania, na którym widać cenę.",
+    reportChargerPhotoNeeded: "Dodaj zdjęcie ładowarki.",
+    reportPhotoLimit: "Nie możesz dodać więcej zdjęć.",
+    reportPhotoUnreadable: "Nie udało się odczytać tego zdjęcia. Spróbuj innego.",
+    reportChangeSubmitted: "Dziękujemy! Twoje zgłoszenie zostało wysłane do weryfikacji.",
+    reportChangeFailed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
     removeFavorite: "Usuń {name} z ulubionych",
     signInLinkSent: "Wysłaliśmy link do logowania na adres {email}. Otwórz go w ciągu 15 minut.",

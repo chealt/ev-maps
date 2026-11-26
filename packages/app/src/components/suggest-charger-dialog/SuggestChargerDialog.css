@@ -42,6 +42,18 @@
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
   }
+  /* A fieldset, for its legend, looking like the other sections. */
+  .proof-section {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    .label {
+      margin-bottom: var(--spacing-sm);
+      padding: 0;
+    }
+  }
 
   .pin-row {
     display: flex;

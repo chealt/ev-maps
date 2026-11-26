@@ -7,6 +7,7 @@ import { setMapCenter } from "../../lib/map-center.js";
 import { track } from "../../lib/usage.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
+import { requestReportChange } from "../report-change-dialog/ReportChangeDialog.js";
 import { chosenCar, onCarChange } from "../../lib/car.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
@@ -520,6 +521,14 @@ class GoogleMapElement extends HTMLElement {
     this.detailsPanel
       ?.querySelector(".favorite-button")
       ?.addEventListener("click", () => this.toggleFavorite());
+    // Report a change to the open charger's availability or price.
+    this.detailsPanel?.querySelector(".report-change")?.addEventListener("click", () => {
+      if (!isSignedIn()) {
+        requestSignIn();
+      } else if (this.activeCharger) {
+        requestReportChange(this.activeCharger);
+      }
+    });
     // Navigate: a route to the open charger, planned here.
     this.detailsPanel?.querySelector(".navigate")?.addEventListener("click", () => {
       const charger = this.activeCharger;
@@ -1769,16 +1778,16 @@ class GoogleMapElement extends HTMLElement {
     return isSignedIn() ? this.pressedAmenities() : [];
   }
 
-  // Signed out, the heart, "Only favorites" and the nearby places look
-  // disabled, say to sign in, and open the sign-in options.
+  // Signed out, the heart, Report a change, "Only favorites" and the nearby
+  // places look disabled, say to sign in, and open the sign-in options.
   showFavoritesSignedIn(signedIn) {
     for (const button of this.querySelectorAll(
-      ".favorite-button, .favorites-filter, .availability-filter, .nearby-filter"
+      ".favorite-button, .report-change, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-disabled", String(!signedIn));
     }
     for (const hint of this.querySelectorAll(
-      "#favorite-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
+      "#favorite-sign-in-hint, #report-change-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
     )) {
       hint.hidden = signedIn;
     }

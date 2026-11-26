@@ -36,13 +36,20 @@ class SuggestChargerDialogElement extends HTMLElement {
     this.photoGrid = this.querySelector(".photo-grid");
     this.statusEl = this.querySelector(".status");
     this.errorEl = this.querySelector(".error");
+    this.proof = this.querySelector("ev-charger-proof-fields");
+    this.addEventListener("photo-limit", () => {
+      this.errorEl.textContent = message("reportPhotoLimit");
+    });
+    this.addEventListener("photo-unreadable", () => {
+      this.errorEl.textContent = message("reportPhotoUnreadable");
+    });
 
     document.addEventListener(SHOW_SUGGEST_CHARGER, () => this.open());
     this.querySelector(".close").addEventListener("click", () => closeDialog(this.dialog));
     // Esc cancels choosing photos (the focus is on the dropzone's file input,
     // e.g. right after its picker closes); it must not close the dialog too.
     this.dialog.addEventListener("cancel", (event) => {
-      if (this.photoInput.matches(":focus")) {
+      if (this.photoInput.matches(":focus") || this.proof.choosingPhotos) {
         event.preventDefault();
         event.stopImmediatePropagation();
       }
@@ -119,6 +126,7 @@ class SuggestChargerDialogElement extends HTMLElement {
     this.operatorCustom.hidden = true;
     this.photosDataUrls = [];
     this.renderPhotos();
+    this.proof.reset();
     this.statusEl.textContent = "";
     this.errorEl.textContent = "";
 
@@ -275,6 +283,12 @@ class SuggestChargerDialogElement extends HTMLElement {
       return;
     }
 
+    const proof = this.proof.read({ needsChange: false, needsLocation: false });
+    if (proof.error) {
+      this.errorEl.textContent = message(proof.error);
+      return;
+    }
+
     try {
       const response = await fetch(SUGGESTIONS_URL, {
         method: "POST",
@@ -287,6 +301,7 @@ class SuggestChargerDialogElement extends HTMLElement {
           connectors,
           photo: this.photosDataUrls[0],
           photos: this.photosDataUrls,
+          ...proof.value,
         }),
       });
       if (!response.ok) {
