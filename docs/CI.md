@@ -40,6 +40,22 @@ components the app's pages use.
 | ------------- | -------------------- | ---------------------------------------------------------- |
 | `refresh.yml` | Mondays at 03:00 UTC | Runs `app.yml` on `main`, which rebuilds the country pages |
 
+`e2e-map-check.yml` runs on pull requests that change `packages/**`. It
+asks an LLM (pi, through Radius, with tools that only read) whether the
+pull request leaves `packages/app/e2e-domains.json` right:
+
+- new app files are in the domain whose specs test them;
+- code that other domains now use is in theirs too;
+- no path is left matching nothing.
+
+The unit tests check the mechanical part: every spec the map names exists,
+and every spec is in a domain. This check covers what needs reading the
+code.
+
+Its report is one comment on the pull request, updated on every push. The
+check fails when the report ends in `VERDICT: UPDATE NEEDED`, and it isn't
+required. The prompt is `.github/e2e-map-check.md`.
+
 A run of `app.yml` started this way, or by hand, checks, builds and deploys
 everything, without change detection. On `main` it deploys to production;
 started on another branch, it doesn't deploy. Its `Build` job exports the
