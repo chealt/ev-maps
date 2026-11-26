@@ -401,6 +401,8 @@ jobs:
           REPORT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
+          # The run, where its Visual approval job is approved.
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SITE_URL: https://ev.chealt.com
         run: bun scripts/visual-review.js
 

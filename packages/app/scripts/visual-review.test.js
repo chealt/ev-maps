@@ -85,10 +85,15 @@ describe("reviewStatus", () => {
 describe("commentMarkdown", () => {
   const images = "https://ev.chealt.com/reports/1-1/ui/";
   const report = "https://ev.chealt.com/en/admin/reports/1-1/";
+  const run = "https://github.com/chealt/ev-maps/actions/runs/1";
 
   test("shows main's and the pull request's screenshots, the diff, and links each test", () => {
-    const body = commentMarkdown(visualChanges(tests), images, report);
+    const body = commentMarkdown(visualChanges(tests), images, report, run);
     expect(body).toStartWith("<!-- visual-review -->");
+    // On top: where to approve them.
+    expect(body.split("\n").slice(0, 4).join("\n")).toContain(
+      `**[Review and approve the visual changes →](${run})**`
+    );
     expect(body).toContain("1 changed, 1 new compared with `main`");
     expect(body).toContain(
       "[google-map.spec.js › shows charger details](https://ev.chealt.com/en/admin/reports/1-1/#?testId=abc)"
@@ -101,7 +106,7 @@ describe("commentMarkdown", () => {
   });
 
   test("says when there are no changes anymore", () => {
-    expect(commentMarkdown([], images, report)).toContain(
+    expect(commentMarkdown([], images, report, run)).toContain(
       "No visual changes compared with `main` anymore."
     );
   });

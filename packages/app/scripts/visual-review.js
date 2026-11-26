@@ -14,7 +14,8 @@
 //   bun scripts/visual-review.js
 //
 // From the environment: report-storage.js's R2 and GitHub settings, and
-// REPORT_ID, COMMIT_SHA, PULL_REQUEST and SITE_URL.
+// REPORT_ID, COMMIT_SHA, PULL_REQUEST, RUN_URL (the run, whose Visual
+// approval job approves the changes) and SITE_URL.
 
 import { appendFile, copyFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -101,9 +102,10 @@ const reviewStatus = (changes) => {
 const imageName = (change, kind) =>
   `visual--${change.screenshot.replace(/\.png$/, "").replace(/[^\w-]/g, "-")}-${kind}.png`;
 
-// The comment: each change with main's screenshot and the pull request's
-// side by side (the diff under them), and a link to its test in the report.
-const commentMarkdown = (changes, imagesUrl, reportUrl) => {
+// The comment: a link to approve the changes on top, then each change with
+// main's screenshot and the pull request's side by side (the diff under
+// them), and a link to its test in the report.
+const commentMarkdown = (changes, imagesUrl, reportUrl, runUrl) => {
   if (!changes.length) {
     return `${MARKER}\n## Visual review\n\nNo visual changes compared with \`main\` anymore.\n`;
   }
@@ -133,7 +135,9 @@ const commentMarkdown = (changes, imagesUrl, reportUrl) => {
     MARKER,
     "## Visual review",
     "",
-    `${reviewStatus(changes).description.split(":")[0]} compared with \`main\`. If they're intended, approve them: **Review deployments** on the run's Visual approval job.`,
+    `**[Review and approve the visual changes →](${runUrl})**`,
+    "",
+    `${reviewStatus(changes).description.split(":")[0]} compared with \`main\`. If they're intended, approve them on the run: **Review deployments**, then **visual-review**.`,
     "",
     ...sections,
   ].join("\n");
@@ -189,7 +193,12 @@ if (import.meta.main) {
     await uploadFolder(IMAGES_DIR, `${env("REPORT_ID")}/ui/`);
   }
   await comment(
-    commentMarkdown(changes, `${env("SITE_URL")}/reports/${env("REPORT_ID")}/ui/`, reportUrl),
+    commentMarkdown(
+      changes,
+      `${env("SITE_URL")}/reports/${env("REPORT_ID")}/ui/`,
+      reportUrl,
+      env("RUN_URL")
+    ),
     changes.length > 0
   );
   for (const { test, change, screenshot } of changes) {
