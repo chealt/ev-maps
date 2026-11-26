@@ -109,13 +109,7 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
 changed can't be merged until a person has approved the changes. A new push
 compares again, so an approval covers only the screenshots it was given for.
 
-It reports on every pull request:
-
-- **No app changes:** the Test job sets it green ("nothing to compare").
-- **Fork pull requests:** App has no write access or report secrets there, so
-  `visual-review-fork.yml` sets it to failed after App runs. A maintainer
-  checks the UI by hand and pushes the branch to this repository to compare
-  it, or sets the status.
+When no app files changed, the Test job sets it green ("nothing to compare").
 
 When nothing the app depends on changed (e.g. a docs-only pull request), the
 checks still run so they report, but skip their steps and pass in seconds, and

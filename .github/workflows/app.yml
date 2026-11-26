@@ -333,7 +333,7 @@ jobs:
         run: echo "No app changes; skipping." >> "$GITHUB_STEP_SUMMARY"
 
       # "Visual review" is required, so a pull request with nothing to compare
-      # still reports it. Fork pull requests get it from visual-review-fork.yml.
+      # still reports it.
       - name: No visual changes to review
         if: ${{ needs.changes.result == 'success' && needs.changes.outputs.app != 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         working-directory: .
