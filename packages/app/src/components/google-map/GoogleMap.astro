@@ -24,6 +24,7 @@ import FilterButton from "../filter-button/FilterButton.astro";
 import PlaceSearch from "../place-search/PlaceSearch.astro";
 import RouteButton from "../route-button/RouteButton.astro";
 import RoutePlanner from "../route-planner/RoutePlanner.astro";
+import { savedPlaceIcons } from "../route-planner/saved-place-icons.js";
 import ShortcutsDialog from "../shortcuts-dialog/ShortcutsDialog.astro";
 import DistanceText from "../distance-text/DistanceText.astro";
 import { translations } from "../../i18n/index.js";
@@ -690,6 +691,17 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     <template class="charger-cluster-template">
       <div class="charger-cluster">
         <span class="count"></span>
+      </div>
+    </template>
+
+    <!-- A saved place's pin (saved-places-layer.js): its icon shows. -->
+    <template class="saved-place-marker-template">
+      <div class="saved-place-marker">
+        {savedPlaceIcons.map(({ id, icon }) => (
+          <span class="marker-icon" data-icon={id} hidden>
+            <Icon icon={icon} size="sm" />
+          </span>
+        ))}
       </div>
     </template>
 

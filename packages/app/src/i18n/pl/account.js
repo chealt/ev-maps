@@ -76,6 +76,13 @@ const account = {
     suggestionsPending: "Oczekujące",
     suggestionsApproved: "Zatwierdzone",
     suggestionsRejected: "Odrzucone",
+    mySavedPlaces: "Moje zapisane miejsca",
+    mySavedPlacesHint:
+      "Miejsca zapisane w planerze tras. Widać je na mapie z ich ikoną, chyba że wyłączysz to w menu konta.",
+    savedPlacesOnMap: "Zapisane miejsca na mapie",
+    savedPlaceName: "Nazwa",
+    saveSavedPlaceChanges: "Zapisz",
+    deleteSavedPlace: "Usuń",
   },
   messages: {
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
@@ -107,6 +114,16 @@ const account = {
     suggestionPending: "Oczekujące",
     suggestionApproved: "Zatwierdzone",
     suggestionRejected: "Odrzucone",
+    signInForMySavedPlaces: "Zaloguj się, aby zobaczyć zapisane miejsca.",
+    noMySavedPlaces: "Nie masz jeszcze zapisanych miejsc. Zapisz je w planerze tras.",
+    mySavedPlaceCount: {
+      one: "{count} zapisane miejsce",
+      few: "{count} zapisane miejsca",
+      many: "{count} zapisanych miejsc",
+      other: "Zapisane miejsca: {count}",
+    },
+    savedPlaceChangesSaved: "Zapisano: {name}",
+    savedPlaceRemoved: "Usunięto: {name}",
   },
   values: {
     mapsApps: {

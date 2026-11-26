@@ -79,7 +79,16 @@
         "packages/app/src/components/google-map/route-cache.js",
         "packages/app/src/components/google-map/route-history.js"
       ],
-      "tests": ["route-planner", "favorite-routes", "navigate", "place-search"]
+      "tests": ["route-planner", "favorite-routes", "navigate", "place-search", "saved-places"]
+    },
+    "saved places": {
+      "paths": [
+        "packages/app/src/components/saved-places-page/**",
+        "packages/app/src/components/saved-places-setting/**",
+        "packages/app/src/components/google-map/saved-places-layer.js",
+        "packages/app/src/lib/saved-places-on-map.js"
+      ],
+      "tests": ["saved-places"]
     },
     "motion": {
       "paths": ["packages/app/src/lib/motion.js", "packages/app/src/components/motion-setting/**"],

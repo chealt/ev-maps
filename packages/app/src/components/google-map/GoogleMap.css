@@ -497,6 +497,25 @@ ev-google-map {
   }
 }
 
+/* A saved place (Home, Work, …): round and light, so it doesn't pass for a
+   charger; it can't be clicked, the chargers' pins over it can. */
+.saved-place-marker {
+  display: grid;
+  place-items: center;
+  width: var(--marker-size);
+  height: var(--marker-size);
+  border: var(--border-width-marker) solid var(--color-secondary);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-secondary);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+
+  .marker-icon:not([hidden]) {
+    display: contents;
+  }
+}
+
 /* Clusters of nearby chargers */
 .charger-cluster {
   display: grid;

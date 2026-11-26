@@ -594,8 +594,20 @@ test(
 
     await expect.poll(() => saves.at(-1)?.savedPlaces?.places.length).toBe(2);
     expect(saves.at(-1).savedPlaces.places).toEqual([
-      { name: "Opera", icon: "star", label: "Vienna, Austria", placeId: "vienna" },
-      { name: "Home", icon: "home", label: "Budapest, Hungary", placeId: "budapest" },
+      {
+        name: "Opera",
+        icon: "star",
+        label: "Vienna, Austria",
+        placeId: "vienna",
+        location: { lat: 48.2082, lng: 16.3738 },
+      },
+      {
+        name: "Home",
+        icon: "home",
+        label: "Budapest, Hungary",
+        placeId: "budapest",
+        location: { lat: 47.4979, lng: 19.0402 },
+      },
     ]);
 
     // Clear both fields and pick the saved places from the chips.

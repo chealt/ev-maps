@@ -1,0 +1,85 @@
+---
+import { ArrowLeft } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import { savedPlaceIcons } from "../route-planner/saved-place-icons.js";
+import { translations } from "../../i18n/index.js";
+import "./SavedPlacesPage.css";
+
+const lang = Astro.currentLocale ?? "en";
+const { page, values } = translations(lang);
+---
+
+<!-- The signed-in user's saved places (the account's `savedPlaces`, saved
+     in the route planner): renamed, given another icon or removed here. -->
+<ev-saved-places-page>
+  <main class="saved-places-page">
+    <nav class="links" aria-label={page.mySavedPlaces}>
+      <a class="back" href={`/${lang}/`}>
+        <Icon icon={ArrowLeft} size="sm" />
+        {page.backToMap}
+      </a>
+    </nav>
+    <header class="header">
+      <h1 class="title" id="saved-places-title">
+        {page.mySavedPlaces}
+      </h1>
+      <p class="subtitle">{page.mySavedPlacesHint}</p>
+    </header>
+    <section aria-labelledby="saved-places-title">
+      <p class="summary" role="status"></p>
+      <div class="place-list"></div>
+    </section>
+  </main>
+
+  <template class="place-template">
+    <Card as="article" class="place-card">
+      <div class="card-header">
+        <span class="place-icon">
+          {savedPlaceIcons.map(({ id, icon }) => (
+            <span data-icon={id} hidden>
+              <Icon icon={icon} />
+            </span>
+          ))}
+        </span>
+        <div>
+          <h2 class="place-name"></h2>
+          <p class="place-label"></p>
+        </div>
+      </div>
+      <form class="place-form">
+        <label class="field-label">
+          <span class="label">{page.savedPlaceName}</span>
+          <input type="text" class="field name" name="name" maxlength="60" required />
+        </label>
+        <div class="icons" role="group">
+          <span class="label">{page.savedPlaceIcon}</span>
+          <div class="icon-options">
+            {savedPlaceIcons.map(({ id, icon }) => (
+              <Button
+                variant="secondary"
+                size="small"
+                class="icon-option"
+                data-icon-value={id}
+                aria-pressed="false"
+              >
+                <Icon icon={icon} size="sm" />
+                {values.placeIcons[id]}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div class="actions">
+          <Button variant="danger" size="small" class="remove">
+            {page.deleteSavedPlace}
+          </Button>
+          <Button variant="primary" size="small" type="submit">
+            {page.saveSavedPlaceChanges}
+          </Button>
+        </div>
+      </form>
+    </Card>
+  </template>
+  <script src="./SavedPlacesPage.js"></script>
+</ev-saved-places-page>
