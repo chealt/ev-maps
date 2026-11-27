@@ -8,6 +8,8 @@ const admin = {
     adminGroupInsights: "Elemzések",
     adminGroupEngineering: "Fejlesztés",
     adminCollapseNav: "Navigáció összecsukása",
+    adminFilterRows: "Sorok szűrése",
+    adminNoMatchingRows: "Nincs egyező sor.",
     adminErrors: "Hibák",
     adminUsage: "Használat",
   },

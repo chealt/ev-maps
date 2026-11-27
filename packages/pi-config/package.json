@@ -22,6 +22,9 @@
     "extensions": [
       "./extensions/*/index.ts"
     ],
+    "prompts": [
+      "./prompts/*.md"
+    ],
     "changelogPath": ""
   }
 }

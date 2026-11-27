@@ -46,3 +46,35 @@ domain. Keep the block when you edit a spec, and add it to every new spec
 (see [Which Tests a Pull Request Runs](docs/TESTING_GUIDELINES.md#which-tests-a-pull-request-runs)).
 When you squash or rebase a branch, check that its diff against `main` is
 only your change: a reset onto a newer `main` reverts what it gained.
+
+## Setup and Expected Noise
+
+- **Bun** may not be on the `PATH`: `export PATH=~/.bun/bin:$PATH`.
+- **Formatting:** `bun run format` (the repository's oxfmt config), not a
+  bare `bunx oxfmt`.
+- **Issue priority:** the Priority is an issue field, not a label, and a
+  `gh` token without `read:project` reads it through the REST
+  `issue_field_values` or GraphQL with the `GraphQL-Features: issue_fields`
+  header (the command is in [Picking Up Issues](CONTRIBUTING.md#picking-up-issues)).
+- **Expected output:** "D1 is down" in the Worker's tests, and
+  `[WebServer]` console errors in specs that test failures, are the tests'
+  own; they don't mean a failure.
+- **New E2E files and UI:** the "Check the E2E map" check fails on a file
+  in no domain of `packages/app/e2e-domains.json`, or new UI without a
+  `@ui` test that calls `captureUi`.
+- **Pull requests are squash-merged:** a branch stacked on a merged one
+  rebases with `git rebase --onto origin/main <old base>`.
+
+## Sessions
+
+Keep a session to one task (an issue or a pull request). When it's done
+and the next one is unrelated, use the `handoff` tool (pi-config's
+`handoff` extension) with a short brief, or ask the user to; this file and
+the docs carry the conventions, so the new session doesn't need the old
+history. The `/resolve-conflicts`, `/ship` and `/next-issue` prompts
+(`packages/pi-config/prompts`) hold the repeated workflows.
+
+Batch two or more independent lookups in one codemode script, and filter
+large output (PR lists, test reports, logs) in the script or the shell
+before it enters the context. Use direct calls for single steps, edits, and
+anything whose result decides the next step.
