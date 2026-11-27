@@ -34,85 +34,90 @@ const openAccountMenu = async (page) => {
 const savedCar = (page) =>
   page.evaluate(async () => (await (await fetch("/api/settings")).json()).settings?.car);
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeAuthApi(page, { signedIn: true });
-  await fakeSettingsApi(page);
-  await fakeChargersApi(page, { chargers });
-});
+test.describe("filters", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeAuthApi(page, { signedIn: true });
+    await fakeSettingsApi(page);
+    await fakeChargersApi(page, { chargers });
+  });
 
-test("filters chargers by the car's connectors when the automatic filter is on", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
+  test("filters chargers by the car's connectors when the automatic filter is on", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
 
-  const menu = await openAccountMenu(page);
-  await menu.getByRole("checkbox", { name: "CCS" }).check();
-  await menu.getByRole("checkbox", { name: "Filter chargers automatically" }).check();
-  await page.keyboard.press("Escape");
+    const menu = await openAccountMenu(page);
+    await menu.getByRole("checkbox", { name: "CCS" }).check();
+    await menu.getByRole("checkbox", { name: "Filter chargers automatically" }).check();
+    await page.keyboard.press("Escape");
 
-  await expect(page.getByRole("status")).toHaveText("1 of 3 EV chargers match the filters");
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await expect(map.getByRole("button", { name: "CCS hub" })).toBeVisible();
-  await expect(map.getByRole("button", { name: "CHAdeMO post" })).toBeHidden();
-  // Saved to the account, for the other devices.
-  expect(await savedCar(page)).toMatchObject({ connectors: ["ccs"], autoFilter: true });
+    await expect(page.getByRole("status")).toHaveText("1 of 3 EV chargers match the filters");
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await expect(map.getByRole("button", { name: "CCS hub" })).toBeVisible();
+    await expect(map.getByRole("button", { name: "CHAdeMO post" })).toBeHidden();
+    // Saved to the account, for the other devices.
+    expect(await savedCar(page)).toMatchObject({ connectors: ["ccs"], autoFilter: true });
 
-  // And after a reload, without touching the filter dialog.
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("1 of 3 EV chargers match the filters");
+    // And after a reload, without touching the filter dialog.
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("1 of 3 EV chargers match the filters");
 
-  // Turning the automatic filter off stops forcing the car's connectors:
-  // the filter the user can then change freely, and it stays changed.
-  const reopened = await openAccountMenu(page);
-  await reopened.getByRole("checkbox", { name: "Filter chargers automatically" }).uncheck();
-  await page.keyboard.press("Escape");
+    // Turning the automatic filter off stops forcing the car's connectors:
+    // the filter the user can then change freely, and it stays changed.
+    const reopened = await openAccountMenu(page);
+    await reopened.getByRole("checkbox", { name: "Filter chargers automatically" }).uncheck();
+    await page.keyboard.press("Escape");
 
-  const dialog = await openFilters(page);
-  await dialog.getByRole("button", { name: "CCS" }).click();
-  await dialog.getByRole("button", { name: "Done" }).click();
-  await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
-});
+    const dialog = await openFilters(page);
+    await dialog.getByRole("button", { name: "CCS" }).click();
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
+  });
 
-test("the filter dialog's My car button selects the car's connectors", async ({ page }) => {
-  await page.goto("/");
-  const menu = await openAccountMenu(page);
-  await menu.getByRole("checkbox", { name: "CCS" }).check();
-  await menu.getByRole("checkbox", { name: "Type 2" }).check();
-  await page.keyboard.press("Escape");
+  test("the filter dialog's My car button selects the car's connectors", async ({ page }) => {
+    await page.goto("/");
+    const menu = await openAccountMenu(page);
+    await menu.getByRole("checkbox", { name: "CCS" }).check();
+    await menu.getByRole("checkbox", { name: "Type 2" }).check();
+    await page.keyboard.press("Escape");
 
-  const dialog = await openFilters(page);
-  const myCar = dialog.getByRole("button", { name: "My car" });
-  await expect(myCar).toBeVisible();
-  await myCar.click();
+    const dialog = await openFilters(page);
+    const myCar = dialog.getByRole("button", { name: "My car" });
+    await expect(myCar).toBeVisible();
+    await myCar.click();
 
-  await expect(page.getByRole("status")).toHaveText("2 of 3 EV chargers match the filters");
-  await expect(dialog.getByRole("button", { name: "CCS" })).toHaveAttribute("aria-pressed", "true");
-  await expect(dialog.getByRole("button", { name: "Type 2" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  );
-  await expect(dialog.getByRole("button", { name: "CHAdeMO" })).toHaveAttribute(
-    "aria-pressed",
-    "false"
-  );
-});
+    await expect(page.getByRole("status")).toHaveText("2 of 3 EV chargers match the filters");
+    await expect(dialog.getByRole("button", { name: "CCS" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await expect(dialog.getByRole("button", { name: "Type 2" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+    await expect(dialog.getByRole("button", { name: "CHAdeMO" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+  });
 
-test("the My car button is hidden until the car has connectors", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
+  test("the My car button is hidden until the car has connectors", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("3 EV chargers found");
 
-  const dialog = await openFilters(page);
-  await expect(dialog.getByRole("button", { name: "My car" })).toBeHidden();
-  await page.keyboard.press("Escape");
+    const dialog = await openFilters(page);
+    await expect(dialog.getByRole("button", { name: "My car" })).toBeHidden();
+    await page.keyboard.press("Escape");
 
-  const menu = await openAccountMenu(page);
-  await menu.getByRole("checkbox", { name: "CHAdeMO" }).check();
-  await page.keyboard.press("Escape");
+    const menu = await openAccountMenu(page);
+    await menu.getByRole("checkbox", { name: "CHAdeMO" }).check();
+    await page.keyboard.press("Escape");
 
-  const reopened = await openFilters(page);
-  await expect(reopened.getByRole("button", { name: "My car" })).toBeVisible();
+    const reopened = await openFilters(page);
+    await expect(reopened.getByRole("button", { name: "My car" })).toBeVisible();
+  });
 });

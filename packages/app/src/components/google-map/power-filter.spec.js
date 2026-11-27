@@ -35,48 +35,50 @@ const togglePowerFilters = async (page, names) => {
   await dialog.getByRole("button", { name: "Done" }).click();
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeAuthApi(page);
-  await fakeChargersApi(page, { chargers });
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
-});
+test.describe("filters", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeAuthApi(page);
+    await fakeChargersApi(page, { chargers });
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
+  });
 
-// Which chargers each range matches (boundaries, combining ranges, chargers
-// without power data) is unit tested in charger-index.test.js; this checks
-// the dialog's choices reach the map, and the ways to undo them.
-test("filters the map by power, clears from the map or the dialog, and keeps them after a reload", async ({
-  page,
-}) => {
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  await map.getByRole("button", { name: "Slow charger" }).click();
-  await expect(page.getByRole("complementary", { name: "Slow charger" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
+  // Which chargers each range matches (boundaries, combining ranges, chargers
+  // without power data) is unit tested in charger-index.test.js; this checks
+  // the dialog's choices reach the map, and the ways to undo them.
+  test("filters the map by power, clears from the map or the dialog, and keeps them after a reload", async ({
+    page,
+  }) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "Slow charger" }).click();
+    await expect(page.getByRole("complementary", { name: "Slow charger" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
 
-  // A charger filtered out closes its details.
-  await togglePowerFilters(page, ["150–300 kW", "300+ kW"]);
-  await expect(page.getByRole("status")).toHaveText("3 of 6 EV chargers match the filters");
-  await expect(map.getByRole("button")).toHaveCount(3);
-  await expect(map.getByRole("button", { name: "Ultra charger" })).toBeVisible();
-  await expect(page.getByRole("complementary")).toBeHidden();
+    // A charger filtered out closes its details.
+    await togglePowerFilters(page, ["150–300 kW", "300+ kW"]);
+    await expect(page.getByRole("status")).toHaveText("3 of 6 EV chargers match the filters");
+    await expect(map.getByRole("button")).toHaveCount(3);
+    await expect(map.getByRole("button", { name: "Ultra charger" })).toBeVisible();
+    await expect(page.getByRole("complementary")).toBeHidden();
 
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("3 of 6 EV chargers match the filters");
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("3 of 6 EV chargers match the filters");
 
-  // Cleared from the map's toolbar…
-  await page.getByRole("button", { name: "Clear filters" }).click();
-  await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
-  await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
+    // Cleared from the map's toolbar…
+    await page.getByRole("button", { name: "Clear filters" }).click();
+    await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
+    await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
 
-  // …or from the dialog.
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "Filters" });
-  await expect(dialog.getByRole("button", { name: "300+ kW", pressed: false })).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Clear filters" })).toBeDisabled();
-  await dialog.getByRole("button", { name: "< 50 kW" }).click();
-  await expect(page.getByRole("status")).toHaveText("1 of 6 EV chargers match the filters");
-  await dialog.getByRole("button", { name: "Clear filters" }).click();
-  await expect(dialog.getByRole("button", { name: "< 50 kW", pressed: false })).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
+    // …or from the dialog.
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Filters" });
+    await expect(dialog.getByRole("button", { name: "300+ kW", pressed: false })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Clear filters" })).toBeDisabled();
+    await dialog.getByRole("button", { name: "< 50 kW" }).click();
+    await expect(page.getByRole("status")).toHaveText("1 of 6 EV chargers match the filters");
+    await dialog.getByRole("button", { name: "Clear filters" }).click();
+    await expect(dialog.getByRole("button", { name: "< 50 kW", pressed: false })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
+  });
 });
