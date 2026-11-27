@@ -24,6 +24,10 @@ const MESSAGES = {
     subject: "Dein Anmeldelink für EV Maps",
     text: "Öffne diesen Link, um dich bei EV Maps anzumelden:\n\n{url}\n\nEr funktioniert einmal, 15 Minuten lang. Wenn du ihn nicht angefordert hast, ignoriere diese E-Mail.",
   },
+  fr: {
+    subject: "Ton lien de connexion à EV Maps",
+    text: "Ouvre ce lien pour te connecter à EV Maps :\n\n{url}\n\nIl fonctionne une seule fois, pendant 15 minutes. Si tu ne l'as pas demandé, ignore cet e-mail.",
+  },
 };
 
 const RESEND_URL = "https://api.resend.com/emails";
