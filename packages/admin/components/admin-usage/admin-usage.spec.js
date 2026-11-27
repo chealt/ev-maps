@@ -46,71 +46,76 @@ const fakeUsageAdminApi = async (page) => {
   return requests;
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
-});
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
 
-test(
-  "shows the totals, page views per day and the breakdowns",
-  { tag: "@performance" },
-  async ({ page }) => {
-    await fakeUsageAdminApi(page);
+  test(
+    "shows the totals, page views per day and the breakdowns",
+    { tag: "@performance" },
+    async ({ page }) => {
+      await fakeUsageAdminApi(page);
+      await page.goto("/en/admin/usage/");
+
+      await expect(page.getByRole("heading", { level: 2, name: "Usage" })).toBeVisible();
+      await expect(page.getByText("Oct 25 – Nov 23")).toBeVisible();
+      const totals = page.locator(".totals");
+      await expect(totals.locator('[data-event="page_view"] .value')).toHaveText("50");
+      await expect(totals.locator('[data-event="sign_in"] .value')).toHaveText("3");
+      await expect(totals.locator('[data-event="route_planned"] .value')).toHaveText("0");
+
+      const chart = page.getByRole("list", { name: "Page views per day" });
+      await expect(chart.getByRole("listitem")).toHaveCount(30);
+      await expect(chart.getByRole("listitem").last()).toHaveText("Nov 23: 40");
+
+      const pages = page.getByRole("region", { name: "Page views" });
+      await expect(pages.getByRole("row")).toHaveText([
+        "Hungarian, country page30",
+        "English, home page20",
+      ]);
+      const countries = page.getByRole("region", { name: "Visitors' countries" });
+      await expect(countries.getByRole("row")).toHaveText(["Hungary45", "Poland5"]);
+      const signIns = page.getByRole("region", { name: "Sign-in attempts" });
+      await expect(signIns.getByRole("row")).toHaveText(["Passkey3", "Google1"]);
+      await expect(
+        page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
+      ).toBeVisible();
+      // Without a saved name, an item shows its ID.
+      const top = page.getByRole("region", { name: "Most favorited chargers, now" });
+      await expect(top.getByRole("row")).toHaveText([
+        "Downtown Supercharger2 users",
+        "eipa:21 user",
+      ]);
+    }
+  );
+
+  test("switches the period", async ({ page }) => {
+    const requests = await fakeUsageAdminApi(page);
     await page.goto("/en/admin/usage/");
+    await expect(page.getByRole("radio", { name: "Last 30 days" })).toBeChecked();
 
-    await expect(page.getByRole("heading", { level: 2, name: "Usage" })).toBeVisible();
-    await expect(page.getByText("Oct 25 – Nov 23")).toBeVisible();
-    const totals = page.locator(".totals");
-    await expect(totals.locator('[data-event="page_view"] .value')).toHaveText("50");
-    await expect(totals.locator('[data-event="sign_in"] .value')).toHaveText("3");
-    await expect(totals.locator('[data-event="route_planned"] .value')).toHaveText("0");
+    await page.getByText("Last 7 days", { exact: true }).click();
 
-    const chart = page.getByRole("list", { name: "Page views per day" });
-    await expect(chart.getByRole("listitem")).toHaveCount(30);
-    await expect(chart.getByRole("listitem").last()).toHaveText("Nov 23: 40");
-
-    const pages = page.getByRole("region", { name: "Page views" });
-    await expect(pages.getByRole("row")).toHaveText([
-      "Hungarian, country page30",
-      "English, home page20",
-    ]);
-    const countries = page.getByRole("region", { name: "Visitors' countries" });
-    await expect(countries.getByRole("row")).toHaveText(["Hungary45", "Poland5"]);
-    const signIns = page.getByRole("region", { name: "Sign-in attempts" });
-    await expect(signIns.getByRole("row")).toHaveText(["Passkey3", "Google1"]);
+    await expect(page.getByRole("radio", { name: "Last 7 days" })).toBeChecked();
     await expect(
-      page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
-    ).toBeVisible();
-    // Without a saved name, an item shows its ID.
-    const top = page.getByRole("region", { name: "Most favorited chargers, now" });
-    await expect(top.getByRole("row")).toHaveText(["Downtown Supercharger2 users", "eipa:21 user"]);
-  }
-);
+      page.getByRole("list", { name: "Page views per day" }).getByRole("listitem")
+    ).toHaveCount(7);
+    expect(requests).toEqual([30, 7]);
+  });
 
-test("switches the period", async ({ page }) => {
-  const requests = await fakeUsageAdminApi(page);
-  await page.goto("/en/admin/usage/");
-  await expect(page.getByRole("radio", { name: "Last 30 days" })).toBeChecked();
+  test("is in the admin navigation and overview", async ({ page }) => {
+    await fakeUsageAdminApi(page);
+    await page.goto("/en/admin/");
 
-  await page.getByText("Last 7 days", { exact: true }).click();
+    await page
+      .getByRole("navigation", { name: "Admin" })
+      .getByRole("link", { name: "Usage" })
+      .click();
 
-  await expect(page.getByRole("radio", { name: "Last 7 days" })).toBeChecked();
-  await expect(
-    page.getByRole("list", { name: "Page views per day" }).getByRole("listitem")
-  ).toHaveCount(7);
-  expect(requests).toEqual([30, 7]);
-});
-
-test("is in the admin navigation and overview", async ({ page }) => {
-  await fakeUsageAdminApi(page);
-  await page.goto("/en/admin/");
-
-  await page
-    .getByRole("navigation", { name: "Admin" })
-    .getByRole("link", { name: "Usage" })
-    .click();
-
-  await expect(page).toHaveURL("/en/admin/usage/");
-  await expect(
-    page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "Usage" })
-  ).toHaveAttribute("aria-current", "page");
+    await expect(page).toHaveURL("/en/admin/usage/");
+    await expect(
+      page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "Usage" })
+    ).toHaveAttribute("aria-current", "page");
+  });
 });

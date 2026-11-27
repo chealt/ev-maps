@@ -23,31 +23,33 @@ const east = charger(2, "East charger", [40.7128, -73.9]);
 
 const center = (page) => page.evaluate(() => window.__fakeMap.getCenter().toJSON());
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeAuthApi(page);
-  await fakeChargersApi(page, { chargers: [west, east] });
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
-});
+test.describe("map", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeAuthApi(page);
+    await fakeChargersApi(page, { chargers: [west, east] });
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+  });
 
-test("moves the map so the details don't cover the charger's pin", async ({ page }) => {
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  const before = await center(page);
+  test("moves the map so the details don't cover the charger's pin", async ({ page }) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    const before = await center(page);
 
-  await map.getByRole("button", { name: "West charger" }).click();
+    await map.getByRole("button", { name: "West charger" }).click();
 
-  await expect(page.getByRole("complementary", { name: "West charger" })).toBeVisible();
-  // The map moved west, towards the charger, so its pin is clear of the panel.
-  await expect.poll(async () => (await center(page)).lng).toBeLessThan(before.lng);
-});
+    await expect(page.getByRole("complementary", { name: "West charger" })).toBeVisible();
+    // The map moved west, towards the charger, so its pin is clear of the panel.
+    await expect.poll(async () => (await center(page)).lng).toBeLessThan(before.lng);
+  });
 
-test("leaves the map as it is when the pin is clear of the details", async ({ page }) => {
-  const map = page.getByRole("region", { name: "EV charging station map" });
-  const before = await center(page);
+  test("leaves the map as it is when the pin is clear of the details", async ({ page }) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    const before = await center(page);
 
-  await map.getByRole("button", { name: "East charger" }).click();
+    await map.getByRole("button", { name: "East charger" }).click();
 
-  await expect(page.getByRole("complementary", { name: "East charger" })).toBeVisible();
-  expect(await center(page)).toEqual(before);
+    await expect(page.getByRole("complementary", { name: "East charger" })).toBeVisible();
+    expect(await center(page)).toEqual(before);
+  });
 });

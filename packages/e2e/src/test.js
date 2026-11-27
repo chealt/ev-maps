@@ -75,7 +75,9 @@ const compareWithMain = async (page, testInfo, caption, scheme) => {
   if (!process.env.VISUAL_COMPARE) {
     return;
   }
-  const title = slug([...testInfo.titlePath.slice(1), caption].filter(Boolean).join(" "));
+  // Named without the file and the spec's domain (its outermost describe,
+  // e2e-domains.json), so a spec moving domains keeps its baselines.
+  const title = slug([...testInfo.titlePath.slice(2), caption].filter(Boolean).join(" "));
   const name = `${[title, scheme].filter(Boolean).join("-")}.png`;
   const isNew = !existsSync(testInfo.snapshotPath(name));
   try {

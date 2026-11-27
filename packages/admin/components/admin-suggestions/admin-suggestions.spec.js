@@ -71,47 +71,51 @@ const fakeSuggestionsApi = async (page) => {
   });
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
+
+  test(
+    "admin reviews suggested chargers and approves one to add it to the database",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeSuggestionsApi(page);
+      await page.goto("/en/admin/suggestions/");
+
+      await expect(
+        page.getByRole("heading", { level: 2, name: "Suggested chargers" })
+      ).toBeVisible();
+      await expect(page.getByText("1 charger suggestion")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
+      ).toBeVisible();
+      await expect(page.getByText("Ionity · 10 Dock Rd")).toBeVisible();
+      await expect(page.getByText("CCS (Type 2): 4× · 350 kW")).toBeVisible();
+      await expect(page.getByText("Type 2: 2× · 22 kW")).toBeVisible();
+      await expect(page.getByRole("img", { name: "Charger proof photo" })).toHaveCount(2);
+      // What it says about the availability and price, and how far to trust it.
+      await expect(
+        page.getByRole("img", { name: "Receipt, invoice or charging app photo" })
+      ).toBeVisible();
+      await expect(page.getByText("30/100")).toBeVisible();
+      await expect(page.getByText("Operational", { exact: true })).toBeVisible();
+      await expect(page.getByText("Free", { exact: true })).toBeVisible();
+      await expect(page.getByText("The device's location wasn't shared")).toBeVisible();
+      await captureUi(page, testInfo, "admin reviewing a charger suggestion");
+
+      await page.getByRole("button", { name: "Approve & add" }).click();
+
+      await expect(page.getByText("No charger suggestions found.")).toBeVisible();
+
+      await page
+        .getByRole("group", { name: "Status" })
+        .getByText("Approved", { exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
+      ).toBeVisible();
+      await captureUi(page, testInfo, "admin viewing approved charger suggestions");
+    }
+  );
 });
-
-test(
-  "admin reviews suggested chargers and approves one to add it to the database",
-  { tag: "@ui" },
-  async ({ page }, testInfo) => {
-    await fakeSuggestionsApi(page);
-    await page.goto("/en/admin/suggestions/");
-
-    await expect(page.getByRole("heading", { level: 2, name: "Suggested chargers" })).toBeVisible();
-    await expect(page.getByText("1 charger suggestion")).toBeVisible();
-    await expect(
-      page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
-    ).toBeVisible();
-    await expect(page.getByText("Ionity · 10 Dock Rd")).toBeVisible();
-    await expect(page.getByText("CCS (Type 2): 4× · 350 kW")).toBeVisible();
-    await expect(page.getByText("Type 2: 2× · 22 kW")).toBeVisible();
-    await expect(page.getByRole("img", { name: "Charger proof photo" })).toHaveCount(2);
-    // What it says about the availability and price, and how far to trust it.
-    await expect(
-      page.getByRole("img", { name: "Receipt, invoice or charging app photo" })
-    ).toBeVisible();
-    await expect(page.getByText("30/100")).toBeVisible();
-    await expect(page.getByText("Operational", { exact: true })).toBeVisible();
-    await expect(page.getByText("Free", { exact: true })).toBeVisible();
-    await expect(page.getByText("The device's location wasn't shared")).toBeVisible();
-    await captureUi(page, testInfo, "admin reviewing a charger suggestion");
-
-    await page.getByRole("button", { name: "Approve & add" }).click();
-
-    await expect(page.getByText("No charger suggestions found.")).toBeVisible();
-
-    await page
-      .getByRole("group", { name: "Status" })
-      .getByText("Approved", { exact: true })
-      .click();
-    await expect(
-      page.getByRole("heading", { level: 3, name: "Harbor Charging Hub" })
-    ).toBeVisible();
-    await captureUi(page, testInfo, "admin viewing approved charger suggestions");
-  }
-);

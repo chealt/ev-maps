@@ -19,56 +19,58 @@ const openHarbor = async (page) => {
   return page.getByRole("complementary", { name: "Harbor charger" });
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeChargersApi(page, { chargers: [charger] });
-  await fakeRouteChargersApi(page);
-});
+test.describe("routes", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeChargersApi(page, { chargers: [charger] });
+    await fakeRouteChargersApi(page);
+  });
 
-test(
-  "plans a route to the charger from where the user is, when they allow it",
-  { tag: "@ui" },
-  async ({ page, context }) => {
-    await context.grantPermissions(["geolocation"]);
-    // Near the charger: allowed, the map opens on the user, close up.
-    await context.setGeolocation({ latitude: 40.715, longitude: -73.905 });
+  test(
+    "plans a route to the charger from where the user is, when they allow it",
+    { tag: "@ui" },
+    async ({ page, context }) => {
+      await context.grantPermissions(["geolocation"]);
+      // Near the charger: allowed, the map opens on the user, close up.
+      await context.setGeolocation({ latitude: 40.715, longitude: -73.905 });
+      await fakeAuthApi(page, { signedIn: true });
+      await page.goto("/");
+      const details = await openHarbor(page);
+
+      await details.getByRole("button", { name: "Navigate" }).click();
+
+      // Planned here, not handed to another app.
+      await expect(page.getByRole("status")).toHaveText(/along the route$/);
+      await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
+      const [request] = await page.evaluate(() => window.__routeRequests);
+      expect(request.origin).toEqual({ lat: 40.715, lng: -73.905 });
+      expect(request.destination).toEqual({ lat: 40.7128, lng: -73.9 });
+    }
+  );
+
+  test("asks where from when the location isn't allowed", async ({ page }) => {
     await fakeAuthApi(page, { signedIn: true });
     await page.goto("/");
     const details = await openHarbor(page);
 
     await details.getByRole("button", { name: "Navigate" }).click();
 
-    // Planned here, not handed to another app.
-    await expect(page.getByRole("status")).toHaveText(/along the route$/);
-    await expect(page.getByRole("button", { name: "Clear route" })).toBeVisible();
-    const [request] = await page.evaluate(() => window.__routeRequests);
-    expect(request.origin).toEqual({ lat: 40.715, lng: -73.905 });
-    expect(request.destination).toEqual({ lat: 40.7128, lng: -73.9 });
-  }
-);
+    const planner = page.getByRole("dialog", { name: "Plan a route" });
+    await expect(planner).toBeVisible();
+    await expect(planner.getByRole("combobox", { name: "To" })).toHaveValue("Harbor charger");
+    await expect(planner.getByRole("combobox", { name: "From" })).toHaveValue("");
+    expect(await page.evaluate(() => window.__routeRequests)).toEqual([]);
+  });
 
-test("asks where from when the location isn't allowed", async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true });
-  await page.goto("/");
-  const details = await openHarbor(page);
+  test("asks to sign in first, as routes need it", async ({ page }) => {
+    await fakeAuthApi(page);
+    await page.goto("/");
+    const details = await openHarbor(page);
 
-  await details.getByRole("button", { name: "Navigate" }).click();
+    await details.getByRole("button", { name: "Navigate" }).click();
 
-  const planner = page.getByRole("dialog", { name: "Plan a route" });
-  await expect(planner).toBeVisible();
-  await expect(planner.getByRole("combobox", { name: "To" })).toHaveValue("Harbor charger");
-  await expect(planner.getByRole("combobox", { name: "From" })).toHaveValue("");
-  expect(await page.evaluate(() => window.__routeRequests)).toEqual([]);
-});
-
-test("asks to sign in first, as routes need it", async ({ page }) => {
-  await fakeAuthApi(page);
-  await page.goto("/");
-  const details = await openHarbor(page);
-
-  await details.getByRole("button", { name: "Navigate" }).click();
-
-  const planner = page.getByRole("dialog", { name: "Plan a route" });
-  await expect(planner.getByRole("button", { name: "Sign in" })).toBeVisible();
-  await expect(planner.getByRole("combobox", { name: "To" })).toHaveValue("Harbor charger");
+    const planner = page.getByRole("dialog", { name: "Plan a route" });
+    await expect(planner.getByRole("button", { name: "Sign in" })).toBeVisible();
+    await expect(planner.getByRole("combobox", { name: "To" })).toHaveValue("Harbor charger");
+  });
 });

@@ -268,8 +268,11 @@ matches spec files and tags alike, so the shards stay as they are.
 - Main and runs started by hand run every test.
 
 When adding a spec, add it to a domain (a test checks that every spec is
-in one); when adding code to the app, add its path to a domain, or it runs
-everything. On a pull request, the E2E map check (see [CI](CI.md)) reads
+in one), and put its tests in one `test.describe` named after that domain,
+or the one whose code it mostly tests when it's in several, so the report
+groups them by domain (`test.describe("routes", () => { … })`; a test checks
+that too). When adding code to the app, add its path to a domain, or it
+runs everything. On a pull request, the E2E map check (see [CI](CI.md)) reads
 the change and comments when the map needs an update. Tag a test
 `@regression` (`test("…", { tag: "@regression" }, …)`) when it covers a
 journey every change must keep working, such as seeing chargers on the map,
