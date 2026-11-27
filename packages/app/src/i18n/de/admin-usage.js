@@ -1,0 +1,112 @@
+// German: the admin area's usage page. See ../index.js for how
+// the sections are put together and which pages get which.
+
+const adminUsage = {
+  page: {
+    adminUsagePages: "Nutzungsseiten",
+    adminUsageActivity: "Aktivität",
+    adminUsageSettings: "Einstellungen",
+    adminUsageFilters: "Filter",
+    adminUsageRoutes: "Routen und Orte",
+    adminYes: "Ja",
+    adminNo: "Nein",
+    adminAskEachTime: "Jedes Mal fragen",
+    adminPreferenceSignIn: "Anmeldemethode",
+    adminPreferenceLanguage: "Sprache",
+    adminPreferenceTheme: "Design",
+    adminPreferenceAnimations: "Animationen",
+    adminPreferenceDistanceUnit: "Entfernungseinheit",
+    adminPreferenceMapsApp: "Karten-App",
+    adminPreferenceSavedPlacesOnMap: "Gespeicherte Orte auf der Karte",
+    adminPreferenceCarConnectors: "Anschlüsse des Autos",
+    adminPreferenceCarAutoFilter: "Automatisch nach dem Auto filtern",
+    adminPreferenceFilterConnectorTypes: "Steckertyp",
+    adminPreferenceFilterPowerRanges: "Ladeleistung",
+    adminPreferenceFilterPriceLevels: "Preis",
+    adminPreferenceFilterNearby: "Orte in der Nähe",
+    adminPreferenceFilterOnlyFavorites: "Nur Favoriten",
+    adminPreferenceFilterHideUnavailable: "Nicht verfügbare ausblenden",
+    adminPreferenceFilterExcludedOperators: "Ausgeblendete Betreiber",
+    adminPreferenceFeatures: "Genutzte Funktionen",
+    adminPreferenceSavedPlaceIcons: "Symbole der gespeicherten Orte",
+    adminPreferencePopularDestinations: "Beliebte Ziele",
+    adminPreferencePopularRoutes: "Beliebte Routen",
+    adminPeriod: "Zeitraum",
+    adminLastDays: "Letzte {days} Tage",
+    adminPageViewsPerDay: "Seitenaufrufe pro Tag",
+    adminNoData: "Noch nichts.",
+    adminTopItems: "Häufigste Favoriten unter den Ladestationen, aktuell",
+  },
+  messages: {
+    adminPreferencesNotLoaded:
+      "Die Einstellungen konnten nicht geladen werden. Versuche es erneut.",
+    adminPreferencesAccounts: {
+      one: "{count} Konto",
+      other: "{count} Konten",
+    },
+    adminPreferenceUsers: "Konten, aktuell",
+    adminPreferencePageViews: "Seitenaufrufe, letzte {days} Tage",
+    adminPreferenceCount: "{count} ({share})",
+    adminUsageNotLoaded:
+      "Die Nutzungsstatistiken konnten nicht geladen werden. Versuche es erneut.",
+    adminUsagePeriod: "{from} – {to}",
+    adminTopCount: {
+      one: "{count} Nutzer",
+      other: "{count} Nutzer",
+    },
+  },
+  values: {
+    animationSettings: {
+      on: "An",
+      off: "Aus",
+      reduced: "Reduzierte Bewegung",
+    },
+    preferenceFeatures: {
+      savedPlaces: "Gespeicherte Orte",
+      favoriteRoutes: "Lieblingsrouten",
+      routeHistory: "Routenverlauf",
+      car: "Auto",
+    },
+    usageEvents: {
+      page_view: "Seitenaufrufe",
+      visitor_country: "Länder der Besucher",
+      charger_opened: "Geöffnete Ladestationen",
+      filter_used: "Genutzte Filter",
+      locate_me: "Mein Standort",
+      list_opened: "Liste der Ladestationen geöffnet",
+      sign_in_started: "Anmeldeversuche",
+      sign_up: "Registrierungen",
+      sign_in: "Anmeldungen",
+      route_planned: "Geplante Routen",
+      favorite_added: "Hinzugefügte Favoriten",
+    },
+    pageKinds: {
+      home: "Startseite",
+      country: "Länderseite",
+      legal: "Rechtliche Seite",
+    },
+    chargerSources: {
+      ocm: "Open Charge Map",
+      osm: "OpenStreetMap",
+      eipa: "EIPA (Polen)",
+      irve: "IRVE (Frankreich)",
+    },
+    filterKinds: {
+      power: "Ladeleistung",
+      connector: "Steckertyp",
+      operator: "Betreiber",
+      favorites: "Nur Favoriten",
+      nearby: "Orte in der Nähe",
+    },
+    signInMethods: {
+      google: "Google",
+      github: "GitHub",
+      microsoft: "Microsoft",
+      apple: "Apple",
+      passkey: "Passkey",
+      email: "E-Mail-Link",
+    },
+  },
+};
+
+export { adminUsage };
