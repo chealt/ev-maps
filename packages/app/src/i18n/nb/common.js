@@ -17,7 +17,8 @@ const common = {
     signInForFavorites: "Logg inn for å lagre ladestasjoner som favoritter.",
     admin: "Admin",
     supportTitle: "Støtt EV Maps",
-    supportHint: "EV Maps er gratis. Hvis det hjelper deg, kan du bidra til serverne og kartdataene.",
+    supportHint:
+      "EV Maps er gratis. Hvis det hjelper deg, kan du bidra til serverne og kartdataene.",
     opensInNewTab: "(åpnes i en ny fane)",
   },
 };
