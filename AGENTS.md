@@ -5,6 +5,13 @@ this repository. Follow [Contributing](CONTRIBUTING.md), the
 [Development Guidelines](docs/DEVELOPMENT_GUIDELINES.md) and the
 [Testing Guidelines](docs/TESTING_GUIDELINES.md) too.
 
+## Pick Up Issues by Priority
+
+When you choose which issue to work on, follow
+[Picking Up Issues](CONTRIBUTING.md#picking-up-issues): the issue's
+Priority field decides the order (Urgent, High, Medium, Low, then none),
+and the oldest goes first within a priority.
+
 ## Test Only What You Changed
 
 Locally, run only the tests for what you changed. **Don't run every test**
