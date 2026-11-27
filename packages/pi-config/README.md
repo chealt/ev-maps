@@ -22,5 +22,20 @@ the chain falls through Radius' routing for each model.
 machine, e.g. to swap one link's provider. Credentials stay in
 `~/.pi/agent/auth.json`, never here.
 
+- **handoff** (`extensions/handoff`): starts a fresh session for the next
+  task. The agent calls its `handoff` tool when a task is done and the next
+  is unrelated, with a brief; once it's idle, pi asks to start the new
+  session (one key) and sends it the brief. `/handoff [brief]` does it by
+  hand. A short session sends less history with each request, so it costs
+  less.
+
 If you had the extension installed personally (`~/.pi/agent/extensions/`),
 remove that copy: both would register `fallback/auto`.
+
+## Prompts
+
+- `/resolve-conflicts <pr>`: rebases a pull request onto `main`, keeps both
+  sides of shared lists, checks the diff, runs the touched tests, pushes.
+- `/ship [issue]`: formats, lints, runs the changed tests, commits, pushes
+  and opens the pull request.
+- `/next-issue`: picks the next issue by priority and starts on it.
