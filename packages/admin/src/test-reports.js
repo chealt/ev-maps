@@ -143,6 +143,13 @@ const createTestReports = ({
   const filePath = new RegExp(`^/(?:${locale})${escapeRegExp(pagePrefix)}/(\\d+-\\d+)/(.*)$`);
   const fileResponse = reportFileResponse(isAdmin, filePath, UI_FILE_PATH);
   const uiResponse = uiFileResponse(UI_FILE_PATH, filePath);
+  // A page of the reports: ?page=, and ?branch=main for one branch; without
+  // it, every branch. For the API and the reports page.
+  const reports = (env, url) => {
+    const page = Math.max(1, Number.parseInt(url.searchParams.get("page"), 10) || 1);
+    const branch = url.searchParams.get("branch")?.slice(0, 200) || null;
+    return listReports(db(env), page, branch);
+  };
   const routes = [
     {
       name: "test reports",
@@ -150,12 +157,7 @@ const createTestReports = ({
       signedIn: true,
       admin: true,
       matches: (request, url) => request.method === "GET" && url.pathname === listPath,
-      handle: async ({ env, url }) => {
-        const page = Math.max(1, Number.parseInt(url.searchParams.get("page"), 10) || 1);
-        // ?branch=main for one branch; without it, every branch.
-        const branch = url.searchParams.get("branch")?.slice(0, 200) || null;
-        return json(await listReports(db(env), page, branch));
-      },
+      handle: async ({ env, url }) => json(await reports(env, url)),
     },
   ];
   const pageRoutes = [
@@ -188,7 +190,14 @@ const createTestReports = ({
       run: (env) => deleteOldReports(db(env)),
     },
   ];
-  return { jobs, pageRoutes, reportFileResponse: fileResponse, routes, uiFileResponse: uiResponse };
+  return {
+    jobs,
+    pageRoutes,
+    reportFileResponse: fileResponse,
+    reports,
+    routes,
+    uiFileResponse: uiResponse,
+  };
 };
 
 export {

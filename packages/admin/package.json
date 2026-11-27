@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "@ev-maps/ui": "workspace:*",
-    "idb-keyval": "^6.3.0",
     "lucide-static": "^1.75.0"
   },
   "devDependencies": {

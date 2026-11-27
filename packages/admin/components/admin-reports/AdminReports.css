@@ -67,24 +67,5 @@ ev-admin-reports {
     gap: var(--spacing-md);
     margin-top: var(--spacing-lg);
     font-size: var(--font-size-sm);
-
-    &[hidden] {
-      display: none;
-    }
-
-    button {
-      padding: var(--spacing-xs) var(--spacing-md);
-      border: var(--border-width) solid var(--color-border-strong);
-      border-radius: var(--border-radius-full);
-      background: var(--color-surface);
-      color: var(--color-text);
-      font: inherit;
-      cursor: pointer;
-
-      &:disabled {
-        opacity: var(--opacity-disabled);
-        cursor: not-allowed;
-      }
-    }
   }
 }

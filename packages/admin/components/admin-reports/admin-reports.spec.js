@@ -1,5 +1,6 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { REPORTS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const RUN = "https://github.com/chealt/ev-maps/actions/runs";
@@ -21,8 +22,10 @@ const report = (index, overrides = {}) => ({
 });
 
 // The Worker's list of reports, `total` of them (the first on main, the rest
-// on a feature branch), 20 a page, filtered by ?branch=; the requests are
-// returned.
+// on a feature branch), 20 a page, of the page's ?branch= (main by default,
+// "all" for every branch): the page is rendered on the server with them (in
+// the tests, passed in a header: src/lib/page-data.js). The page queries
+// asked are returned.
 const fakeReportsApi = async (page, total) => {
   const reports = Array.from({ length: total }, (_, index) =>
     report(
@@ -36,22 +39,22 @@ const fakeReportsApi = async (page, total) => {
     route.fulfill({ json: { admin: true, email: GRACE.email } })
   );
   const requests = [];
-  await page.route("**/api/admin/test-reports?**", (route) => {
-    const params = new URL(route.request().url()).searchParams;
+  await fakePageData(page, REPORTS_PAGE, (url) => {
+    const params = url.searchParams;
     requests.push(Object.fromEntries(params));
-    const pageNumber = Number(params.get("page"));
-    const branch = params.get("branch");
-    const shown = branch ? reports.filter((item) => item.branch === branch) : reports;
-    return route.fulfill({
-      json: {
+    const pageNumber = Number(params.get("page") ?? 1);
+    const branch = params.get("branch") || "main";
+    const shown = branch === "all" ? reports : reports.filter((item) => item.branch === branch);
+    return {
+      data: {
         reports: shown.slice((pageNumber - 1) * 20, pageNumber * 20),
-        branch,
+        branch: branch === "all" ? null : branch,
         branches: [...new Set(reports.map((item) => item.branch))],
         page: pageNumber,
         pages: Math.max(1, Math.ceil(shown.length / 20)),
         total: shown.length,
       },
-    });
+    };
   });
   return requests;
 };
@@ -106,9 +109,9 @@ test.describe("admin", () => {
     await branchFilter(page).selectOption("feat/test-reports");
     await expect(page.getByText("Page 1 of 2")).toBeVisible();
 
-    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("link", { name: "Next" }).click();
 
-    await expect(page).toHaveURL("/en/admin/reports/?page=2");
+    await expect(page).toHaveURL("/en/admin/reports/?branch=feat%2Ftest-reports&page=2");
     // The 24 on the feature branch: 4 on the second page.
     await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
   });
@@ -126,13 +129,15 @@ test.describe("admin", () => {
     await expect(page.getByText("No reports in the last 30 days.")).toBeVisible();
   });
 
-  test("shows the default branch's reports first, and remembers the filter", async ({ page }) => {
+  test("shows the default branch's reports first, and keeps the filter in the URL", async ({
+    page,
+  }) => {
     const requests = await fakeReportsApi(page, 3);
     await page.goto("/en/admin/reports/");
 
     await expect(branchFilter(page)).toHaveValue("main");
     await expect(page.getByText("1 report in the last 30 days")).toBeVisible();
-    expect(requests[0]).toEqual({ page: "1", branch: "main" });
+    expect(requests[0]).toEqual({});
     await expect(branchFilter(page).getByRole("option")).toHaveText([
       "All branches",
       "main",
@@ -140,16 +145,26 @@ test.describe("admin", () => {
     ]);
 
     await branchFilter(page).selectOption("feat/test-reports");
+    await expect(page).toHaveURL("/en/admin/reports/?branch=feat%2Ftest-reports");
     await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
 
-    // Kept in this browser (IndexedDB).
     await page.reload();
     await expect(branchFilter(page)).toHaveValue("feat/test-reports");
     await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
-    expect(requests.at(-1)).toEqual({ page: "1", branch: "feat/test-reports" });
 
     await branchFilter(page).selectOption({ label: "All branches" });
     await expect(page.getByText("3 reports in the last 30 days")).toBeVisible();
-    expect(requests.at(-1)).toEqual({ page: "1" });
+    expect(requests.at(-1)).toEqual({ branch: "all" });
+  });
+
+  test("says when the reports couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, REPORTS_PAGE, { failed: true });
+    await page.goto("/en/admin/reports/");
+
+    await expect(page.getByText("The reports couldn't be loaded. Try again.")).toBeVisible();
+    await expect(page.getByRole("table")).toHaveCount(0);
   });
 });

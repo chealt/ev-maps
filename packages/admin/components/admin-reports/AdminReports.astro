@@ -1,82 +1,190 @@
 ---
 import Table from "@ev-maps/ui/Table.astro";
+import Button from "@ev-maps/ui/Button.astro";
 import Field from "@ev-maps/ui/Field.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminReports.css";
 
+// Rendered on the server: a page of CI's Playwright reports, the latest
+// first, of ?branch= (main by default, "all" for every branch), from the
+// Worker (../../src/test-reports.js).
 interface Props {
-  // The page's strings (the host's translations for this section).
-  page: Record<string, string>;
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
 }
 
-const { page } = Astro.props;
+const { page, messages } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const branch = Astro.url.searchParams.get("branch") || "main";
+
+const formatTime = (timestamp: number) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(timestamp)
+  );
+const formatMinutes = (ms: number) =>
+  formatMessage(lang, messages.adminMinutes, {
+    value: new Intl.NumberFormat(lang, { maximumFractionDigits: 1 }).format(ms / 60000),
+  });
+// The repository's address, from the run's (…/owner/repo/actions/runs/…).
+const repositoryOf = (runUrl?: string) => runUrl?.split("/actions/")[0] ?? null;
+
+// The branches with reports, and the one picked even if it has none.
+const branches: string[] = data?.branches ?? [];
+const branchNames =
+  branch === "all" || branches.includes(branch) ? branches : [branch, ...branches];
+
+// A link to another page of the reports, of the same branch.
+const pageUrl = (number: number) => {
+  const params = new URLSearchParams();
+  if (branch !== "main") {
+    params.set("branch", branch);
+  }
+  if (number > 1) {
+    params.set("page", String(number));
+  }
+  const query = params.toString();
+  return query ? `?${query}` : Astro.url.pathname;
+};
+
+const summary = failed
+  ? messages.adminReportsNotLoaded
+  : data.total === 0
+    ? messages.adminNoReports
+    : formatMessage(lang, messages.adminReportCount, { count: data.total });
 ---
 
-<!-- CI's Playwright reports (GET /api/admin/test-reports), the latest first;
-     each opens from R2 through the Worker, for admins only. -->
+<!-- CI's Playwright reports; each opens from R2 through the Worker, for
+     admins only. Picking a branch shows the page with its ?branch=: the
+     form works without the script, which only sends it on change. -->
 <ev-admin-reports>
   <section aria-labelledby="admin-reports-title">
     <h2 class="section-title" id="admin-reports-title">
       {page.adminReports}
     </h2>
-    <!-- Filled in with the branches that have reports; "main" until then. -->
-    <Field label={page.adminBranchFilter} size="small" class="branch-filter">
-      <select class="field-control branch-select">
-        <option value="">{page.adminAllBranches}</option>
-        <option value="main" selected>
-          main
-        </option>
-      </select>
-    </Field>
-    <p class="summary"></p>
-    <Table class="reports">
-      <thead>
-        <tr>
-          <th scope="col">{page.adminWhenColumn}</th>
-          <th scope="col">{page.adminResultColumn}</th>
-          <th scope="col">{page.adminBranchColumn}</th>
-          <th scope="col">{page.adminCommitColumn}</th>
-          <th scope="col" class="number">
-            {page.adminDurationColumn}
-          </th>
-          <th scope="col">
-            <span class="visually-hidden">{page.adminReportColumn}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </Table>
-    <nav class="pager" aria-label={page.adminPages} hidden>
-      <button type="button" class="previous">
-        {page.adminPreviousPage}
-      </button>
-      <span class="page-of"></span>
-      <button type="button" class="next">
-        {page.adminNextPage}
-      </button>
-    </nav>
+    <form method="get" class="branch-form">
+      <Field label={page.adminBranchFilter} size="small" class="branch-filter">
+        <select class="field-control branch-select" name="branch">
+          <option value="all" selected={branch === "all"}>
+            {page.adminAllBranches}
+          </option>
+          {branchNames.map((name) => (
+            <option value={name} selected={name === branch}>
+              {name}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <noscript>
+        <Button type="submit" variant="secondary" size="small">
+          {page.adminBranchFilter}
+        </Button>
+      </noscript>
+    </form>
+    <p class="summary">{summary}</p>
+    {data?.reports?.length > 0 && (
+      <Table class="reports">
+        <thead>
+          <tr>
+            <th scope="col">{page.adminWhenColumn}</th>
+            <th scope="col">{page.adminResultColumn}</th>
+            <th scope="col">{page.adminBranchColumn}</th>
+            <th scope="col">{page.adminCommitColumn}</th>
+            <th scope="col" class="number">
+              {page.adminDurationColumn}
+            </th>
+            <th scope="col">
+              <span class="visually-hidden">{page.adminReportColumn}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.reports.map((report: any) => {
+            const repository = repositoryOf(report.run_url);
+            return (
+              <tr>
+                <td class="when">{formatTime(report.created_at)}</td>
+                <td class="result">
+                  <span class="status" data-status={report.status}>
+                    {report.status === "passed" ? messages.adminPassed : messages.adminFailed}
+                  </span>
+                  <span class="counts">
+                    {formatMessage(lang, messages.adminTestCounts, {
+                      passed: report.passed,
+                      failed: report.failed,
+                      flaky: report.flaky,
+                    })}
+                  </span>
+                </td>
+                <td class="branch">
+                  <span class="branch-name">{report.branch ?? ""}</span>
+                  {report.pull_request && repository && (
+                    <a
+                      class="pull-request"
+                      target="_blank"
+                      rel="noopener"
+                      href={`${repository}/pull/${report.pull_request}`}
+                    >
+                      #{report.pull_request}
+                    </a>
+                  )}
+                </td>
+                <td>
+                  <a
+                    class="commit"
+                    target="_blank"
+                    rel="noopener"
+                    href={repository ? `${repository}/commit/${report.commit_sha}` : undefined}
+                  >
+                    {report.commit_sha.slice(0, 7)}
+                  </a>
+                </td>
+                <td class="duration number">{formatMinutes(report.duration_ms)}</td>
+                <td>
+                  <a
+                    class="open-report"
+                    target="_blank"
+                    rel="noopener"
+                    href={`/${lang}/admin/reports/${report.id}/`}
+                  >
+                    {page.adminOpenReport}
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </Table>
+    )}
+    {data?.pages > 1 && (
+      <nav class="pager" aria-label={page.adminPages}>
+        {data.page > 1 ? (
+          <Button variant="secondary" size="small" class="previous" href={pageUrl(data.page - 1)}>
+            {page.adminPreviousPage}
+          </Button>
+        ) : (
+          <Button variant="secondary" size="small" class="previous" disabled>
+            {page.adminPreviousPage}
+          </Button>
+        )}
+        <span class="page-of">
+          {formatMessage(lang, messages.adminPageOf, { page: data.page, pages: data.pages })}
+        </span>
+        {data.page < data.pages ? (
+          <Button variant="secondary" size="small" class="next" href={pageUrl(data.page + 1)}>
+            {page.adminNextPage}
+          </Button>
+        ) : (
+          <Button variant="secondary" size="small" class="next" disabled>
+            {page.adminNextPage}
+          </Button>
+        )}
+      </nav>
+    )}
   </section>
-
-  <template class="report-template">
-    <tr>
-      <td class="when"></td>
-      <td class="result">
-        <span class="status"></span>
-        <span class="counts"></span>
-      </td>
-      <td class="branch">
-        <span class="branch-name"></span>
-        <a class="pull-request" target="_blank" rel="noopener" hidden></a>
-      </td>
-      <td>
-        <a class="commit" target="_blank" rel="noopener"></a>
-      </td>
-      <td class="duration number"></td>
-      <td>
-        <a class="open-report" target="_blank" rel="noopener">
-          {page.adminOpenReport}
-        </a>
-      </td>
-    </tr>
-  </template>
   <script src="./AdminReports.js"></script>
 </ev-admin-reports>

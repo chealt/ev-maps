@@ -33,10 +33,15 @@ const SUGGESTIONS_PAGE = /\/admin\/suggestions\/(\?.*)?$/;
 // The admin usage page, /{lang}/admin/usage/ with any query.
 const USAGE_PAGE = /\/admin\/usage\/(\?.*)?$/;
 
+// The admin test reports page, /{lang}/admin/reports/ with any query (not
+// a report's files, under it).
+const REPORTS_PAGE = /\/admin\/reports\/(\?.*)?$/;
+
 export {
   CHARGER_REPORTS_PAGE,
   ERRORS_PAGE,
   OVERVIEW_PAGE,
+  REPORTS_PAGE,
   SUGGESTIONS_PAGE,
   UNAVAILABILITY_PAGE,
   USAGE_PAGE,
