@@ -1,0 +1,6 @@
+# The repository's Sponsor button; the same options as the account menu
+# (packages/app/src/lib/support-links.js).
+github: chealt
+ko_fi: chealt
+custom:
+  - https://buycoffee.to/chealt
