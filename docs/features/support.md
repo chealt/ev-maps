@@ -86,9 +86,9 @@ individuals who file one.
 ## Changing the Platforms
 
 - **Add one:** add an entry to `SUPPORT_LINKS` with `enabled: false` (and
-  `lang` if it's for one language's users), add it to `.github/FUNDING.yml` (as `custom` if GitHub
-  has no key for it, commented out until it's enabled), and add it to the
-  expected order in `support-links.test.js`.
+  `lang` if it's for one language's users), add it to `.github/FUNDING.yml`
+  (as `custom` if GitHub has no key for it, commented out until it's
+  enabled), and add it to the expected order in `support-links.test.js`.
 - **Remove one:** delete it from both files and the tests.
 - **A new language** needs the three texts in its `common.js`. The list
   itself is the same for every language.
