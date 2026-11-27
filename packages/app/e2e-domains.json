@@ -180,6 +180,7 @@
         "packages/admin/components/charger-proof/**",
         "packages/admin/components/review-list/**",
         "packages/app/src/lib/day-count.js",
+        "packages/app/src/lib/usage-sections.js",
         "packages/app/src/i18n/*/admin*.js"
       ],
       "tests": [
@@ -187,6 +188,7 @@
         "admin-charger-reports",
         "admin-errors",
         "admin-performance",
+        "admin-preferences",
         "admin-reports",
         "admin-suggestions",
         "admin-unavailability",
