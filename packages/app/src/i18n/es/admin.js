@@ -8,6 +8,7 @@ const admin = {
     adminGroupInsights: "Análisis",
     adminGroupEngineering: "Ingeniería",
     adminCollapseNav: "Contraer la navegación",
+    adminSignOut: "Cerrar sesión",
     adminFilterRows: "Filtrar las filas",
     adminNoMatchingRows: "Ninguna fila coincide.",
     adminErrors: "Errores",

@@ -28,8 +28,9 @@ import { sections as en } from "./en/index.js";
 import { sections as hu } from "./hu/index.js";
 import { sections as pl } from "./pl/index.js";
 import { sections as es } from "./es/index.js";
+import { sections as de } from "./de/index.js";
 
-const SECTIONS = { en, hu, pl, es };
+const SECTIONS = { en, hu, pl, es, de };
 // Which sections each kind of page's scripts need.
 const PAGE_SECTIONS = {
   map: ["common", "map", "account"],
