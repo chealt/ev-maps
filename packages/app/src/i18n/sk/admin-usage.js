@@ -34,6 +34,8 @@ const adminUsage = {
     adminPeriod: "Obdobie",
     adminLastDays: "Posledných {days} dní",
     adminPageViewsPerDay: "Zobrazenia stránok za deň",
+    adminNameColumn: "Názov",
+    adminUsageCountColumn: "Počet",
     adminNoData: "Zatiaľ nič.",
     adminTopItems: "Najobľúbenejšie nabíjačky, teraz",
   },

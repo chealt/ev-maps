@@ -16,6 +16,10 @@ const common = {
     favorites: "Obľúbené",
     signInForFavorites: "Prihláste sa, aby ste si mohli ukladať obľúbené nabíjačky.",
     admin: "Administrácia",
+    supportTitle: "Podporte EV Maps",
+    supportHint:
+      "EV Maps je zadarmo. Ak vám pomáha, môžete prispieť na jeho servery a mapové dáta.",
+    opensInNewTab: "(otvorí sa na novej karte)",
   },
 };
 

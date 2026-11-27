@@ -8,6 +8,7 @@ const admin = {
     adminGroupInsights: "Štatistiky",
     adminGroupEngineering: "Vývoj",
     adminCollapseNav: "Zbaliť navigáciu",
+    adminSignOut: "Odhlásiť sa",
     adminFilterRows: "Filtrovať riadky",
     adminNoMatchingRows: "Žiadne riadky nevyhovujú.",
     adminErrors: "Chyby",
