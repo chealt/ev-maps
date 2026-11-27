@@ -40,6 +40,10 @@ const MESSAGES = {
     subject: "Innloggingslenken din til EV Maps",
     text: "Åpne denne lenken for å logge inn på EV Maps:\n\n{url}\n\nDen fungerer én gang, innen 15 minutter. Hvis du ikke ba om den, kan du se bort fra denne e-posten.",
   },
+  sv: {
+    subject: "Din inloggningslänk till EV Maps",
+    text: "Öppna den här länken för att logga in på EV Maps:\n\n{url}\n\nDen fungerar en gång, inom 15 minuter. Om du inte bad om den kan du bortse från det här mejlet.",
+  },
 };
 
 const RESEND_URL = "https://api.resend.com/emails";
