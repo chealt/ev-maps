@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi, fakeStatusApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -33,7 +33,7 @@ const status = (available, occupied, outOfService) => ({
 const statuses = {
   "eipa:1": status(0, 2, 0),
   "irve:FR2": status(1, 1, 0),
-  "eipa:3": status(0, 1, 1),
+  "eipa:3": status(0, 0, 2),
 };
 
 test.describe("map", () => {
@@ -42,33 +42,34 @@ test.describe("map", () => {
     await fakeChargersApi(page, { chargers });
   });
 
-  // A pin with no point free says so in its name, which is what screen
-  // readers hear; its red is in the UI evidence.
-  const noneFree = (page, name) =>
+  // A pin with no point free says why in its name, which is what screen
+  // readers hear; its yellow (busy) or red (out of service) is in the UI
+  // evidence.
+  const pin = (page, name) =>
     page
       .getByRole("region", { name: "EV charging station map" })
-      .getByRole("button", { name: `${name}, no points free` });
+      .getByRole("button", { name, exact: true });
 
   test("marks the pins where no point is free, signed in, and not signed out", async ({ page }) => {
     await fakeAuthApi(page);
     const requests = await fakeStatusApi(page, statuses);
     await page.goto("/");
     await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-    await expect(noneFree(page, "Full station")).toHaveCount(0);
+    await expect(pin(page, "Full station")).toBeVisible();
     expect(requests).toHaveLength(0);
 
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.getByRole("button", { name: "Sign in with Google" }).click();
-    await expect(noneFree(page, "Full station")).toBeVisible();
-    await expect(noneFree(page, "Broken station")).toBeVisible();
-    await expect(noneFree(page, "Free station")).toHaveCount(0);
-    await expect(noneFree(page, "Station without statuses")).toHaveCount(0);
+    await expect(pin(page, "Full station, all points busy")).toBeVisible();
+    await expect(pin(page, "Broken station, out of service")).toBeVisible();
+    await expect(pin(page, "Free station")).toBeVisible();
+    await expect(pin(page, "Station without statuses")).toBeVisible();
     // One request for every pin with live statuses, none for the others.
     expect(requests[0].toSorted()).toEqual(["eipa:1", "eipa:3", "irve:FR2"]);
 
     await page.getByRole("button", { name: "Account: Ada Lovelace" }).click();
     await page.getByRole("button", { name: "Sign out" }).click();
-    await expect(noneFree(page, "Full station")).toHaveCount(0);
+    await expect(pin(page, "Full station")).toBeVisible();
   });
 
   test.describe("with the service worker", () => {
@@ -81,7 +82,7 @@ test.describe("map", () => {
       await page.goto("/");
       await page.waitForFunction(() => navigator.serviceWorker.controller);
       await page.reload();
-      await expect(noneFree(page, "Full station")).toBeVisible();
+      await expect(pin(page, "Full station, all points busy")).toBeVisible();
       const afterFirstTab = requests.length;
 
       // A second tab of the same browser, controlled by the same worker.
@@ -89,8 +90,8 @@ test.describe("map", () => {
       await fakeGoogleMaps(second);
       await fakeAuthApi(second, { signedIn: true });
       await second.goto("/");
-      await expect(noneFree(second, "Full station")).toBeVisible();
-      await expect(noneFree(second, "Free station")).toHaveCount(0);
+      await expect(pin(second, "Full station, all points busy")).toBeVisible();
+      await expect(pin(second, "Free station")).toBeVisible();
 
       // Its statuses came from the worker's shared cache, not the Worker.
       expect(requests).toHaveLength(afterFirstTab);
@@ -100,7 +101,7 @@ test.describe("map", () => {
   test(
     "hides the chargers with no point free with the filter, once signed in",
     { tag: "@ui" },
-    async ({ page }) => {
+    async ({ page }, testInfo) => {
       await fakeAuthApi(page);
       await fakeStatusApi(page, statuses);
       await page.goto("/");
@@ -115,7 +116,9 @@ test.describe("map", () => {
 
       await page.getByRole("button", { name: "Sign in" }).click();
       await page.getByRole("button", { name: "Sign in with Google" }).click();
-      await expect(noneFree(page, "Full station")).toBeVisible();
+      await expect(pin(page, "Full station, all points busy")).toBeVisible();
+      await expect(pin(page, "Broken station, out of service")).toBeVisible();
+      await captureUi(page, testInfo, "busy (yellow) and out-of-service (red) pins");
       await page.getByRole("button", { name: "Filters", exact: true }).click();
       await hide.click();
       await filters.getByRole("button", { name: "Done" }).click();

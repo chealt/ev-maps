@@ -211,6 +211,16 @@ const noneFree = (statuses) => {
   return sum("total") > 0 && sum("available") === 0;
 };
 
+// Why none of the points is free, for the pin's color: "busy" if any is
+// occupied, as the details color them, else "out-of-service"; null if one
+// is free or there are no statuses.
+const unavailability = (statuses) => {
+  if (noneFree(statuses) !== true) {
+    return null;
+  }
+  return statuses.some((status) => status.occupied > 0) ? "busy" : "out-of-service";
+};
+
 // The connector IDs of the active connector type buttons.
 const readActiveConnectorTypes = (panel) =>
   new Set(
@@ -1935,24 +1945,21 @@ class GoogleMapElement extends HTMLElement {
     return marker;
   }
 
-  // Red while the charger's live statuses (already loaded) say none of its
-  // points is free; pink with a heart for a favorite; and either in the
-  // pin's name.
+  // While the charger's live statuses (already loaded) say none of its
+  // points is free: yellow if they're busy, red if out of service, like the
+  // points in the details; pink with a heart for a favorite; and all of it
+  // in the pin's name.
   showMarkerAvailability(marker) {
     const charger = this.chargersByMarker.get(marker);
     const ids = liveStatusIds(charger);
-    const full = isSignedIn() && ids.length > 0 && noneFree(this.cachedStatuses(ids)) === true;
+    const state = isSignedIn() && ids.length > 0 ? unavailability(this.cachedStatuses(ids)) : null;
     const favorite = isFavorite(charger.id);
-    marker.content?.classList.toggle("none-free", full);
+    marker.content?.classList.toggle("all-busy", state === "busy");
+    marker.content?.classList.toggle("none-free", state === "out-of-service");
     marker.content?.classList.toggle("favorite", favorite);
     const name = chargerName(charger);
-    const key = favorite
-      ? full
-        ? "chargerFavoriteNoneFree"
-        : "chargerFavorite"
-      : full
-        ? "chargerNoneFree"
-        : null;
+    const suffix = { busy: "AllBusy", "out-of-service": "OutOfService" }[state] ?? "";
+    const key = favorite ? `chargerFavorite${suffix}` : suffix && `charger${suffix}`;
     marker.title = key ? message(key, { name }) : name;
   }
 
