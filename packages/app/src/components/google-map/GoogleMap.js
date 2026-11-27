@@ -30,6 +30,9 @@ import {
   saveRoute,
 } from "./saved-state.js";
 
+// At most this many bars for a connector's points.
+const MAX_POINT_BARS = 12;
+
 // Signed in, filters are saved to the account this long after the last change.
 const ACCOUNT_SAVE_DELAY = 1000;
 
@@ -2142,11 +2145,16 @@ class GoogleMapElement extends HTMLElement {
         card.querySelector(".connector-power").textContent = connector.powerKw
           ? message("power", { power: connector.powerKw })
           : "";
-        card.querySelector(".connector-qty").textContent = `${connector.quantity ?? 1}×`;
+        // The bars show how many points there are; the "N×" only when there
+        // are more than the bars show (#380).
+        const quantity = connector.quantity ?? 1;
+        const qty = card.querySelector(".connector-qty");
+        qty.textContent = `${quantity}×`;
+        qty.hidden = quantity <= MAX_POINT_BARS;
         // Says why the points stay grey until (or unless) live availability
         // colors them: the caption shows only while the card has no live state.
         card.querySelector(".connector-no-status").textContent = message("noLiveStatus");
-        const count = Math.min(Math.max(connector.quantity ?? 1, 1), 12);
+        const count = Math.min(Math.max(quantity, 1), MAX_POINT_BARS);
         card
           .querySelector(".connector-points")
           .replaceChildren(
