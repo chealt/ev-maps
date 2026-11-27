@@ -80,6 +80,47 @@ test.describe("saved places", () => {
     }
   );
 
+  test(
+    "opens a saved place's menu from its pin: a route from or to it, or removing it",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeGoogleMaps(page);
+      await fakeAuthApi(page, { signedIn: true });
+      await fakeChargersApi(page);
+      const saves = await fakeSettingsApi(page, { savedPlaces });
+      await page.goto("/");
+      await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
+
+      const map = page.getByRole("region", { name: "EV charging station map" });
+      const gymPin = map.getByRole("button", { name: "Gym", exact: true });
+      const menu = page.getByRole("menu");
+      // The fake map puts the pin outside the window: clicked where it is.
+      await gymPin.dispatchEvent("click");
+      await expect(menu).toContainText("Gym");
+      await expect(menu.getByRole("menuitem", { name: "Route from here" })).toBeFocused();
+      await expect(gymPin.locator(".saved-place-marker")).toHaveClass(/selected/);
+      await captureUi(page, testInfo, "a saved place's menu");
+
+      // From there: the planner opens with it filled in.
+      await menu.getByRole("menuitem", { name: "Route from here" }).click();
+      const dialog = page.getByRole("dialog", { name: "Plan a route" });
+      await expect(dialog.getByRole("combobox", { name: "From" })).toHaveValue("Gym Street 1");
+      await expect(gymPin.locator(".saved-place-marker")).not.toHaveClass(/selected/);
+      await dialog.getByRole("button", { name: "Close" }).first().click();
+
+      // The map's own menu has no place to remove.
+      await page.locator(".google-map").click({ button: "right" });
+      await expect(menu.getByRole("menuitem", { name: "Remove" })).toBeHidden();
+      await page.keyboard.press("Escape");
+
+      await gymPin.dispatchEvent("click");
+      await menu.getByRole("menuitem", { name: "Remove" }).click();
+      await expect(page.getByRole("status")).toHaveText("Gym removed");
+      await expect(gymPin).toBeHidden();
+      expect(saves.at(-1).savedPlaces.places.map(({ name }) => name)).toEqual(["Home"]);
+    }
+  );
+
   test("asks to sign in for the saved places page", async ({ page }) => {
     await page.route("**/api/settings", (route) => route.fulfill({ status: 401, json: {} }));
     await page.goto("/en/places/");

@@ -1,5 +1,6 @@
 // The signed-in user's saved places (route-history.js) on the map, each a
-// pin with its icon (Home, Work, …) and its name as the pin's title. A place
+// pin with its icon (Home, Work, …) and its name as the pin's title; a
+// click (or Enter) on one selects it (`onSelect`). A place
 // saved before saved places kept their location is looked up by its Google
 // place ID (once per page).
 
@@ -30,10 +31,12 @@ const locate = async (maps, saved) => {
 };
 
 class SavedPlacesLayer {
-  // `pin(icon)`: a new pin's content with that icon.
-  constructor({ maps, pin }) {
+  // `pin(icon)`: a new pin's content with that icon; `onSelect(saved,
+  // location, pinElement)`: a pin was clicked.
+  constructor({ maps, pin, onSelect = () => {} }) {
     this.maps = maps;
     this.pin = pin;
+    this.onSelect = onSelect;
     this.markers = [];
     this.map = null;
     this.shown = 0;
@@ -54,17 +57,20 @@ class SavedPlacesLayer {
     this.map = map;
     this.markers = located
       .filter(({ location }) => location)
-      .map(
-        ({ saved, location }) =>
-          new AdvancedMarkerElement({
-            map,
-            position: location,
-            title: saved.name,
-            content: this.pin(saved.icon),
-            // Below the chargers' pins, which can be clicked.
-            zIndex: -1,
-          })
-      );
+      .map(({ saved, location }) => {
+        const content = this.pin(saved.icon);
+        const marker = new AdvancedMarkerElement({
+          map,
+          position: location,
+          title: saved.name,
+          content,
+          gmpClickable: true,
+          // Below the chargers' pins.
+          zIndex: -1,
+        });
+        marker.addEventListener("gmp-click", () => this.onSelect(saved, location, content));
+        return marker;
+      });
   }
 
   // The map was replaced (a theme change): the pins move to the new one.
