@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { CHARGER_REPORTS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const PHOTO_BUFFER = Buffer.from(
@@ -8,6 +9,9 @@ const PHOTO_BUFFER = Buffer.from(
   "base64"
 );
 
+// The page is rendered on the server with the reports of its ?status=
+// (pending by default; in the tests, passed in a header:
+// src/lib/page-data.js); approving or rejecting one goes to the API.
 const fakeReportsApi = async (page) => {
   const reports = [
     {
@@ -51,10 +55,15 @@ const fakeReportsApi = async (page) => {
       report.status = action[2] === "approve" ? "approved" : "rejected";
       return route.fulfill({ json: { id: report.id, status: report.status } });
     }
-    const status = url.searchParams.get("status");
-    return route.fulfill({
-      json: { reports: status ? reports.filter((report) => report.status === status) : reports },
-    });
+    return route.fulfill({ status: 405, json: { error: "Method not allowed" } });
+  });
+  await fakePageData(page, CHARGER_REPORTS_PAGE, (url) => {
+    const status = url.searchParams.get("status") ?? "pending";
+    return {
+      data: {
+        reports: status === "all" ? reports : reports.filter((report) => report.status === status),
+      },
+    };
   });
 };
 
@@ -105,4 +114,15 @@ test.describe("admin", () => {
       await expect(report.getByText("Approved", { exact: true })).toBeVisible();
     }
   );
+
+  test("says when the reports couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, CHARGER_REPORTS_PAGE, { failed: true });
+    await page.goto("/en/admin/charger-reports/");
+
+    await expect(page.getByText("The reports couldn't be loaded. Try again.")).toBeVisible();
+    await expect(page.getByRole("article")).toHaveCount(0);
+  });
 });

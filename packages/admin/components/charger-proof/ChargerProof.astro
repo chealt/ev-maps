@@ -1,34 +1,96 @@
 ---
 import Badge from "@ev-maps/ui/Badge.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
 import "./ChargerProof.css";
 
 interface Props {
   // The page's strings (the host's translations for this section).
-  page: Record<string, string>;
+  page: Record<string, any>;
+  // The report or suggestion, to render it on the server; without it, a
+  // script fills it in with fillChargerProof (./charger-proof.js).
+  item?: Record<string, any>;
+  // The runtime message templates and value labels, with `item`.
+  messages?: Record<string, any>;
+  values?: Record<string, any>;
 }
 
-const { page } = Astro.props;
+const { page, item, messages = {}, values = {} } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+
+// As ./charger-proof.js shows them, here on the server.
+const trustTone = (score: number) => (score >= 70 ? "success" : score >= 40 ? "warning" : "danger");
+const PRICE_MESSAGES: Record<string, string> = {
+  kwh: "adminPricePerKwh",
+  minute: "adminPricePerMinute",
+  session: "adminPricePerSession",
+};
+const text = (key: string, args = {}) => formatMessage(lang, messages[key], args);
+const label = (table: string, value: string) => values[table]?.[value] ?? value;
+const priceText = (price: any) =>
+  price.free
+    ? text("adminPriceFree")
+    : text(PRICE_MESSAGES[price.unit], {
+        amount: new Intl.NumberFormat(lang, {
+          style: "currency",
+          currency: price.currency,
+          maximumFractionDigits: 4,
+        }).format(price.amount),
+      });
+const changeText = (before: string | undefined, after: string) =>
+  before ? text("adminChange", { before, after }) : after;
+
+const hasTrust = Number.isFinite(item?.trustScore);
+const hasChange = Boolean(item?.availability || item?.price);
+const factors = item ? (item.trustFactors ?? []).filter(({ points }: any) => points !== 0) : [];
+const deviceText = !item
+  ? ""
+  : !Number.isFinite(item.distanceM)
+    ? text("adminNoDeviceLocation")
+    : Number.isFinite(item.deviceLocation?.accuracy)
+      ? text("adminDeviceDistanceAccuracy", {
+          distance: item.distanceM,
+          accuracy: Math.round(item.deviceLocation.accuracy),
+        })
+      : text("adminDeviceDistance", { distance: item.distanceM });
 ---
 
 <!-- What a user said about a charger's availability and price, and how far
      to trust it: the score with its factors, and where their device was.
-     A script fills it in with fillChargerProof (./charger-proof.js); it's
-     hidden when there's nothing to show. -->
-<div class="charger-proof">
-  <p class="trust">
+     It's hidden when there's nothing to show. -->
+<div class="charger-proof" hidden={item ? !hasTrust && !hasChange : undefined}>
+  <p class="trust" hidden={item ? !hasTrust : undefined}>
     <span class="trust-label">{page.adminTrust}</span>
-    <Badge class="trust-score" />
+    <Badge class="trust-score" data-tone={hasTrust ? trustTone(item?.trustScore) : "neutral"}>
+      {hasTrust && text("adminTrustScore", { score: item?.trustScore })}
+    </Badge>
   </p>
-  <ul class="trust-factors" aria-label={page.adminTrustFactors}></ul>
+  <ul class="trust-factors" aria-label={page.adminTrustFactors}>
+    {factors.map(({ id, points }: any) => (
+      <li>
+        {text("adminTrustFactor", {
+          factor: label("trustFactors", id),
+          points: points > 0 ? `+${points}` : `${points}`,
+        })}
+      </li>
+    ))}
+  </ul>
   <dl class="changes">
-    <div class="change availability-change">
+    <div class="change availability-change" hidden={item ? !item.availability : undefined}>
       <dt>{page.adminReportedAvailability}</dt>
-      <dd class="availability"></dd>
+      <dd class="availability">
+        {item?.availability &&
+          changeText(
+            item.currentStatus && label("status", item.currentStatus),
+            label("status", item.availability)
+          )}
+      </dd>
     </div>
-    <div class="change price-change">
+    <div class="change price-change" hidden={item ? !item.price : undefined}>
       <dt>{page.adminReportedPrice}</dt>
-      <dd class="price"></dd>
+      <dd class="price">{item?.price && changeText(item.currentCost, priceText(item.price))}</dd>
     </div>
   </dl>
-  <p class="device-location"></p>
+  <p class="device-location" hidden={item ? !hasTrust : undefined}>
+    {deviceText}
+  </p>
 </div>
