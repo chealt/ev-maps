@@ -1,0 +1,22 @@
+// Czech: used on more than one kind of page, or by the layout. See ../index.js for how
+// the sections are put together and which pages get which.
+
+const common = {
+  languageName: "Čeština",
+  page: {
+    title: "EV Maps - nabíjecí stanice pro elektromobily",
+    countryTitle: "EV Maps - nabíječky pro elektromobily – {country}",
+    description: "Mapa nabíjecích stanic pro elektromobily",
+    subtitle: "Najděte nabíjecí stanice pro elektromobily ve svém okolí",
+    signIn: "Přihlásit se",
+    legal: "Právní informace",
+    backToMap: "Zpět na mapu",
+    privacyPolicy: "Zásady ochrany osobních údajů",
+    termsOfUse: "Podmínky používání",
+    favorites: "Oblíbené",
+    signInForFavorites: "Přihlaste se, abyste si mohli ukládat oblíbené nabíječky.",
+    admin: "Administrace",
+  },
+};
+
+export { common };
