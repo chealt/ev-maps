@@ -60,7 +60,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
           ISSUE: ${{ steps.pick.outputs.number }}
-        run: gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --add-assignee @me
+        # REST, not `gh issue edit --add-assignee`: its GraphQL mutation
+        # (replaceActorsForAssignable) isn't open to fine-grained tokens.
+        run: |
+          login=$(gh api user --jq .login)
+          gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE/assignees" \
+            -f "assignees[]=$login" --silent
 
       - name: No issue to pick up
         if: steps.pick.outputs.number == ''
