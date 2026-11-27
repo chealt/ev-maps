@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { REPORTS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
@@ -103,11 +103,12 @@ test.describe("admin", () => {
     }
   );
 
-  test("pages through many reports", async ({ page }) => {
+  test("pages through many reports", { tag: "@ui" }, async ({ page }, testInfo) => {
     await fakeReportsApi(page, 25);
     await page.goto("/en/admin/reports/");
     await branchFilter(page).selectOption("feat/test-reports");
     await expect(page.getByText("Page 1 of 2")).toBeVisible();
+    await captureUi(page, testInfo, "the test reports, one branch's first page");
 
     await page.getByRole("link", { name: "Next" }).click();
 
