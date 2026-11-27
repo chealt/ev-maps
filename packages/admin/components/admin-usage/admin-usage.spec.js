@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { USAGE_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
@@ -74,25 +74,46 @@ test.describe("admin", () => {
       await expect(chart.getByRole("listitem").last()).toHaveText("Nov 23: 40");
 
       const pages = page.getByRole("region", { name: "Page views" });
-      await expect(pages.getByRole("row")).toHaveText([
+      await expect(pages.locator("tbody tr")).toHaveText([
         "Hungarian, country page30",
         "English, home page20",
       ]);
       const countries = page.getByRole("region", { name: "Visitors' countries" });
-      await expect(countries.getByRole("row")).toHaveText(["Hungary45", "Poland5"]);
+      await expect(countries.locator("tbody tr")).toHaveText(["Hungary45", "Poland5"]);
       const signIns = page.getByRole("region", { name: "Sign-in attempts" });
-      await expect(signIns.getByRole("row")).toHaveText(["Passkey3", "Google1"]);
+      await expect(signIns.locator("tbody tr")).toHaveText(["Passkey3", "Google1"]);
       await expect(
         page.getByRole("region", { name: "Filters used" }).getByText("Nothing yet.")
       ).toBeVisible();
       // Without a saved name, an item shows its ID.
       const top = page.getByRole("region", { name: "Most favorited chargers, now" });
-      await expect(top.getByRole("row")).toHaveText([
+      await expect(top.locator("tbody tr")).toHaveText([
         "Downtown Supercharger2 users",
         "eipa:21 user",
       ]);
     }
   );
+
+  test("sorts and filters the breakdowns' rows", { tag: "@ui" }, async ({ page }, testInfo) => {
+    await fakeUsageAdminApi(page);
+    await page.goto("/en/admin/usage/");
+
+    const countries = page.getByRole("region", { name: "Visitors' countries" });
+    const rows = countries.locator("tbody tr");
+    await expect(rows).toHaveText(["Hungary45", "Poland5"]);
+    await countries.getByRole("button", { name: "Count" }).click();
+    await expect(rows).toHaveText(["Poland5", "Hungary45"]);
+    await countries.getByRole("button", { name: "Name" }).click();
+    await expect(rows).toHaveText(["Hungary45", "Poland5"]);
+
+    const pages = page.getByRole("region", { name: "Page views" });
+    await pages.getByRole("searchbox", { name: "Filter the rows" }).fill("english");
+    await expect(pages.locator("tbody tr:visible")).toHaveText(["English, home page20"]);
+    await pages.getByRole("searchbox", { name: "Filter the rows" }).fill("nothing like it");
+    await expect(pages.getByText("No rows match.")).toBeVisible();
+
+    await captureUi(page, testInfo, "admin usage breakdowns sorted and filtered");
+  });
 
   test("switches the period", async ({ page }) => {
     const requests = await fakeUsageAdminApi(page);

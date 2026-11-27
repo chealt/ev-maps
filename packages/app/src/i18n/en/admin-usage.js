@@ -33,6 +33,8 @@ const adminUsage = {
     adminPeriod: "Period",
     adminLastDays: "Last {days} days",
     adminPageViewsPerDay: "Page views per day",
+    adminNameColumn: "Name",
+    adminUsageCountColumn: "Count",
     adminNoData: "Nothing yet.",
     adminTopItems: "Most favorited chargers, now",
   },

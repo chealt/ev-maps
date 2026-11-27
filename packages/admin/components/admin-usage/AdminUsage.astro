@@ -140,14 +140,29 @@ const top: { id: string; name?: string; count: number }[] = data?.top ?? [];
                 {values.usageEvents[event]}
               </h3>
               {counts.length > 0 ? (
-                <Table density="compact">
+                <Table
+                  density="compact"
+                  sortable
+                  filter={page.adminFilterRows}
+                  noMatches={page.adminNoMatchingRows}
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col">{page.adminNameColumn}</th>
+                      <th scope="col" class="number">
+                        {page.adminUsageCountColumn}
+                      </th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {counts.map(([dimension, count]) => (
                       <tr>
                         <th scope="row" class="name">
                           {dimensionLabel(event, dimension)}
                         </th>
-                        <td class="count">{number(count)}</td>
+                        <td class="count number" data-sort={count}>
+                          {number(count)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -165,14 +180,29 @@ const top: { id: string; name?: string; count: number }[] = data?.top ?? [];
             {page.adminTopItems}
           </h3>
           {top.length > 0 ? (
-            <Table density="compact">
+            <Table
+              density="compact"
+              sortable
+              filter={page.adminFilterRows}
+              noMatches={page.adminNoMatchingRows}
+            >
+              <thead>
+                <tr>
+                  <th scope="col">{page.adminNameColumn}</th>
+                  <th scope="col" class="number">
+                    {page.adminUsageCountColumn}
+                  </th>
+                </tr>
+              </thead>
               <tbody>
                 {top.map(({ id, name, count }) => (
                   <tr>
                     <th scope="row" class="name">
                       {name ?? id}
                     </th>
-                    <td class="count">{formatMessage(lang, messages.adminTopCount, { count })}</td>
+                    <td class="count number" data-sort={count}>
+                      {formatMessage(lang, messages.adminTopCount, { count })}
+                    </td>
                   </tr>
                 ))}
               </tbody>

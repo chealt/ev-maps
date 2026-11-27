@@ -47,7 +47,7 @@ ev-admin-usage {
   }
 
   /* Each row: a name and its count; the names as plain text. */
-  .table th {
+  .table tbody th {
     font-weight: var(--font-weight-normal);
   }
 
