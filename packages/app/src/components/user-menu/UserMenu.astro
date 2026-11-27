@@ -207,24 +207,27 @@ const { page } = translations(lang);
       <Icon icon={ShieldCheck} size="sm" />
       {page.admin}
     </a>
-    <!-- Donations, for everyone (src/lib/support-links.js). -->
-    <section class="support" aria-labelledby="support-title">
-      <h2 class="legend" id="support-title">
-        <Icon icon={Coffee} size="sm" />
-        {page.supportTitle}
-      </h2>
-      <p class="hint">{page.supportHint}</p>
-      <ul class="support-links">
-        {supportLinks(lang).map(({ id, name, url }) => (
-          <li>
-            <a href={url} data-support={id} target="_blank" rel="noopener">
-              {name}
-              <span class="visually-hidden">{page.opensInNewTab}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <!-- Donations, for everyone (src/lib/support-links.js); hidden while no
+         platform is enabled. -->
+    {supportLinks(lang).length > 0 && (
+      <section class="support" aria-labelledby="support-title">
+        <h2 class="legend" id="support-title">
+          <Icon icon={Coffee} size="sm" />
+          {page.supportTitle}
+        </h2>
+        <p class="hint">{page.supportHint}</p>
+        <ul class="support-links">
+          {supportLinks(lang).map(({ id, name, url }) => (
+            <li>
+              <a href={url} data-support={id} target="_blank" rel="noopener">
+                {name}
+                <span class="visually-hidden">{page.opensInNewTab}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
     <nav class="legal" aria-label={page.legal}>
       <a href={`/${lang}/privacy/`}>{page.privacyPolicy}</a>
       <a href={`/${lang}/terms/`}>{page.termsOfUse}</a>
