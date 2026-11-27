@@ -160,4 +160,19 @@ test.describe("account", () => {
     await page.reload();
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
+
+  // On desktop the menu fits the three maps apps in one row of segments,
+  // even with Hungarian's, the longest names (#378).
+  test("fits the maps apps in one row on desktop, in every language", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto("/hu/");
+    await page.getByRole("button", { name: /Ada Lovelace/ }).click();
+    const apps = page.getByRole("group", { name: "Térképalkalmazás" }).locator("label");
+    await expect(apps).toHaveCount(3);
+    const tops = await apps.evaluateAll((labels) =>
+      labels.map((label) => Math.round(label.getBoundingClientRect().top))
+    );
+    expect(new Set(tops).size).toBe(1);
+  });
 });
