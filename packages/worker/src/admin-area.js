@@ -6,6 +6,7 @@
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { dashboard } from "@ev-maps/admin/admin-dashboard.js";
 import { preferenceStats } from "./preference-stats.js";
+import { performancePage } from "@ev-maps/admin/performance-stats.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 import { listAdminFlags } from "./charger-unavailability.js";
@@ -119,6 +120,12 @@ const admin = createAdminArea({
       // server.
       path: "usage/(settings|filters|routes)",
       data: (env) => preferenceStats(env),
+    },
+    {
+      // The summary of ?days=, or a trace's spans (?trace=), rendered on
+      // the server.
+      path: "performance",
+      data: (env, url) => performancePage(env.ADMIN_DB, url),
     },
     {
       // The errors page is rendered on the server, per request.
