@@ -118,7 +118,8 @@
         "packages/app/src/lib/session.js",
         "packages/app/src/lib/support-links.js",
         "packages/app/src/lib/support-links.test.js",
-        "packages/app/src/i18n/*/account.js"
+        "packages/app/src/i18n/*/account.js",
+        "packages/app/src/i18n/*/common.js"
       ],
       "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places"]
     },
