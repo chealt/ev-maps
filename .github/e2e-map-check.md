@@ -38,8 +38,9 @@ repeat that. Check what it can't:
    element doesn't count: the visual review wouldn't show the change.
 
 Judge from the code, not the names: a spec exercises a file when the pages
-it opens run that file, and, for UI, when it captures what the file changes. Don't flag something you're not sure of; say what
-you'd check instead. Only the map is in question, not the code or the
+it opens run that file, and, for UI, when it captures what the file
+changes. Don't flag something you're not sure of; say what you'd check
+instead. Only the map is in question, not the code or the
 tests' quality.
 
 Write your report in Markdown for the pull request's author, short: for each

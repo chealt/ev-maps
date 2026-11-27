@@ -23,9 +23,7 @@ test.describe("account", () => {
       await page.getByRole("button", { name: "Sign in" }).click();
       const menu = page.getByRole("dialog", { name: "Account" });
       for (const provider of ["GitHub", "Microsoft", "Apple"]) {
-        await expect(
-          menu.getByRole("button", { name: `Sign in with ${provider}` }),
-        ).toBeVisible();
+        await expect(menu.getByRole("button", { name: `Sign in with ${provider}` })).toBeVisible();
       }
 
       await menu.getByRole("button", { name: "Sign in with Google" }).click();
@@ -47,30 +45,22 @@ test.describe("account", () => {
       await expect(menu.getByText("Signed in as")).toBeVisible();
       await expect(menu.getByText("Ada Lovelace")).toBeVisible();
       await expect(menu.getByText("ada@example.com")).toBeVisible();
-      await expect(
-        menu.getByRole("button", { name: "Sign in with Google" }),
-      ).toBeHidden();
+      await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
       // The account domain's own picture of the open menu (#378).
       await captureUi(page, testInfo, "account menu signed in");
-    },
+    }
   );
 
-  test("signs in with another provider, coming back to the same page", async ({
-    page,
-  }) => {
+  test("signs in with another provider, coming back to the same page", async ({ page }) => {
     const signInRequests = await fakeAuthApi(page, {
       providers: ["google", "microsoft"],
     });
     await page.goto("/pl/hu/");
     await page.getByRole("button", { name: "Zaloguj się" }).click();
 
-    await page
-      .getByRole("button", { name: "Zaloguj się przez Microsoft" })
-      .click();
+    await page.getByRole("button", { name: "Zaloguj się przez Microsoft" }).click();
 
-    await expect(
-      page.getByRole("button", { name: "Konto: Ada Lovelace" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Konto: Ada Lovelace" })).toBeVisible();
     await expect(page).toHaveURL("/pl/hu/");
     expect(signInRequests[0]).toMatchObject({
       provider: "microsoft",
@@ -85,17 +75,11 @@ test.describe("account", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Sign in" }).click();
     const menu = page.getByRole("dialog", { name: "Account" });
-    await expect(
-      menu.getByRole("button", { name: "Sign in with Google" }),
-    ).toBeVisible();
+    await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
     await expect(menu.getByRole("radio", { name: "System" })).toBeChecked();
-    await expect(
-      menu.getByRole("navigation", { name: "Language" }),
-    ).toBeVisible();
+    await expect(menu.getByRole("navigation", { name: "Language" })).toBeVisible();
     await expect(menu.getByRole("button", { name: "Sign out" })).toBeHidden();
-    await expect(
-      page.getByRole("button", { name: "Sign in", expanded: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in", expanded: true })).toBeVisible();
 
     // None the Worker can sign in with, or none known: no sign-in buttons, the
     // rest of the menu as usual.
@@ -107,9 +91,7 @@ test.describe("account", () => {
       await page.reload();
       await page.getByRole("button", { name: "Sign in" }).click();
       await expect(menu.getByRole("radio", { name: "System" })).toBeVisible();
-      await expect(
-        menu.getByRole("button", { name: /^Sign in with/ }),
-      ).toHaveCount(0);
+      await expect(menu.getByRole("button", { name: /^Sign in with/ })).toHaveCount(0);
       await page.unroute("**/api/sign-in-providers");
     }
   });
@@ -137,42 +119,29 @@ test.describe("account", () => {
 
     // The session can't be loaded (the network, or the Worker): signed out,
     // the map working as usual.
-    for (const fail of [
-      (route) => route.abort(),
-      (route) => route.fulfill({ status: 500 }),
-    ]) {
+    for (const fail of [(route) => route.abort(), (route) => route.fulfill({ status: 500 })]) {
       await page.unroute("**/api/auth/get-session");
       await page.route("**/api/auth/get-session", fail);
       await page.reload();
       await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Loading your account" }),
-      ).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Loading your account" })).toHaveCount(0);
       await expect(page.getByRole("status")).toHaveText("2 EV chargers found");
     }
   });
 
-  test("says when sign-in can't start, or failed at the provider", async ({
-    page,
-  }) => {
+  test("says when sign-in can't start, or failed at the provider", async ({ page }) => {
     await fakeAuthApi(page, { signInStatus: 500 });
     await page.goto("/");
     await page.getByRole("button", { name: "Sign in" }).click();
     await page.getByRole("button", { name: "Sign in with Google" }).click();
-    await expect(page.getByRole("alert")).toHaveText(
-      "Sign-in failed. Please try again.",
-    );
-    await expect(
-      page.getByRole("button", { name: "Sign in", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveText("Sign-in failed. Please try again.");
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
 
     // Back from the provider with an error: said in the open menu, and the
     // error dropped from the address.
     await page.goto("/en/?sign-in-error=");
     const menu = page.getByRole("dialog", { name: "Account" });
-    await expect(menu.getByRole("alert")).toHaveText(
-      "Sign-in failed. Please try again.",
-    );
+    await expect(menu.getByRole("alert")).toHaveText("Sign-in failed. Please try again.");
     await expect(page).toHaveURL("/en/");
   });
 
