@@ -217,6 +217,41 @@ describe("the usage page", () => {
   });
 });
 
+describe("the test reports page", () => {
+  test("is rendered on the server, with main's reports or ?branch='s", async () => {
+    const seen = [];
+    const render = async (renderedRequest, renderEnv, context) => {
+      seen.push(context.props.data);
+      return new Response("");
+    };
+    const db = testD1("../../admin/migrations/admin-migrations/0004_test_reports.sql");
+    for (const [id, branch] of [
+      ["1-1", "main"],
+      ["2-1", "feat/x"],
+    ]) {
+      db.sqlite
+        .prepare(
+          `INSERT INTO test_reports (id, branch, commit_sha, status, passed, failed, flaky,
+             skipped, duration_ms, created_at) VALUES (?, ?, 'abc', 'passed', 1, 0, 0, 0, 1, 1)`
+        )
+        .run(id, branch);
+    }
+    for (const query of ["", "?branch=feat%2Fx", "?branch=all"]) {
+      await adminPageResponse(
+        new Request(`https://ev.chealt.com/en/admin/reports/${query}`),
+        { ...env, ADMIN_DB: db },
+        { id: "1", email: "grace@chealt.com" },
+        { render }
+      );
+    }
+    expect(seen.map(({ branch, total }) => ({ branch, total }))).toEqual([
+      { branch: "main", total: 1 },
+      { branch: "feat/x", total: 1 },
+      { branch: null, total: 2 },
+    ]);
+  });
+});
+
 describe("adminApiResponse", () => {
   test("says who the admin is", async () => {
     const response = await adminApiResponse(

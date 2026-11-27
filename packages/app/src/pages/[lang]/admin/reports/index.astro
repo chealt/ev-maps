@@ -3,16 +3,23 @@ import Layout from "../../../../layouts/Layout.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import AdminReports from "@ev-maps/admin/components/admin-reports/AdminReports.astro";
 import { translations } from "../../../../i18n/index.js";
-import { languages } from "../../../../lib/pages.js";
+import { pageData } from "../../../../lib/page-data.js";
 
-// The Worker only serves this page to admins (packages/admin/src/admin.js).
-export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with a page of the reports as its data (packages/worker/src/admin-area.js).
+export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages } = translations(Astro.currentLocale ?? "en");
+const branch = Astro.url.searchParams.get("branch") || "main";
+const params = new URLSearchParams({ page: Astro.url.searchParams.get("page") ?? "1" });
+if (branch !== "all") {
+  params.set("branch", branch);
+}
+const data = await pageData(Astro, `/api/admin/test-reports?${params}`);
 ---
 
 <Layout title={`EV Maps - ${page.adminReports}`} noindex kind="admin">
   <AdminPage current="reports" page={page}>
-    <AdminReports page={page} />
+    <AdminReports pageData={data} page={page} messages={messages} />
   </AdminPage>
 </Layout>

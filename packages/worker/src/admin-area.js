@@ -34,6 +34,19 @@ const reviewStatusUrl = (url) => {
   return apiUrl;
 };
 
+// The reports page's ?branch= as the reports API takes it: main when there's
+// none, every branch (none) for "all".
+const reportsUrl = (url) => {
+  const branch = url.searchParams.get("branch") || "main";
+  const apiUrl = new URL(url);
+  if (branch === "all") {
+    apiUrl.searchParams.delete("branch");
+  } else {
+    apiUrl.searchParams.set("branch", branch);
+  }
+  return apiUrl;
+};
+
 const usage = createUsage({ events: PAGE_EVENTS });
 
 // The chargers most users have as a favorite now (the main database's
@@ -91,6 +104,12 @@ const admin = createAdminArea({
       // The usage stats of ?days=, rendered on the server.
       path: "usage",
       data: (env, url) => admin.usage(env, url),
+    },
+    {
+      // A page of CI's test reports, of ?branch= (main by default, "all"
+      // for every branch), rendered on the server.
+      path: "reports",
+      data: (env, url) => testReports.reports(env, reportsUrl(url)),
     },
     {
       // The errors page is rendered on the server, per request.
