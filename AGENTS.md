@@ -73,3 +73,8 @@ and the next one is unrelated, use the `handoff` tool (pi-config's
 the docs carry the conventions, so the new session doesn't need the old
 history. The `/resolve-conflicts`, `/ship` and `/next-issue` prompts
 (`packages/pi-config/prompts`) hold the repeated workflows.
+
+Batch two or more independent lookups in one codemode script, and filter
+large output (PR lists, test reports, logs) in the script or the shell
+before it enters the context. Use direct calls for single steps, edits, and
+anything whose result decides the next step.
