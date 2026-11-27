@@ -34,6 +34,8 @@ const adminUsage = {
     adminPeriod: "Zeitraum",
     adminLastDays: "Letzte {days} Tage",
     adminPageViewsPerDay: "Seitenaufrufe pro Tag",
+    adminNameColumn: "Name",
+    adminUsageCountColumn: "Anzahl",
     adminNoData: "Noch nichts.",
     adminTopItems: "Häufigste Favoriten unter den Ladestationen, aktuell",
   },

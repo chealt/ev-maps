@@ -1,0 +1,129 @@
+name: "AI: implement issues"
+
+# Hourly, picks the next issue no one is working on and has pi implement it
+# (#426). The pick is no AI's: scripts/pick-issue.sh takes the open issues
+# without a linked pull request or assignee, by Priority and oldest first,
+# and assigns it to the token's user so other automation leaves it alone. pi then checks the issue fits one run: if it does, it
+# implements it and this opens a pull request; if not, it splits it into
+# sub-issues, which the next runs pick up (the parent waits for them).
+#
+# pi runs with the repository's own setup (--approve: .pi, packages/pi-config,
+# AGENTS.md and the docs), its model through Radius like the other AI actions.
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Issue number (default: the next one by priority)"
+        required: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ai-implement-issues
+  cancel-in-progress: false
+
+env:
+  MODEL: "claude-opus-5-5"
+
+jobs:
+  run:
+    name: Implement the next issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Pick the issue
+        id: pick
+        env:
+          GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          ISSUE: ${{ inputs.issue }}
+        run: |
+          if [ -n "$ISSUE" ]; then
+            echo "number=$ISSUE" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=$(scripts/pick-issue.sh "$GITHUB_REPOSITORY")" >> "$GITHUB_OUTPUT"
+          fi
+
+      # First of all, so no other automation picks it up too.
+      - name: Assign the issue
+        if: steps.pick.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          ISSUE: ${{ steps.pick.outputs.number }}
+        run: gh issue edit "$ISSUE" --repo "$GITHUB_REPOSITORY" --add-assignee @me
+
+      - name: No issue to pick up
+        if: steps.pick.outputs.number == ''
+        run: echo "No open issue is free to pick up." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/setup-node@v7
+        if: steps.pick.outputs.number != ''
+        with:
+          node-version-file: package.json
+
+      - name: Install dependencies
+        if: steps.pick.outputs.number != ''
+        run: bun install --frozen-lockfile
+
+      - name: Install pi
+        if: steps.pick.outputs.number != ''
+        run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+
+      # pi's final message, its report, becomes the pull request's
+      # description (bash: pipefail, so a failing pi still fails the step).
+      # If it split the issue instead, it changed no files and no pull
+      # request is opened.
+      - name: Run pi on the issue
+        if: steps.pick.outputs.number != ''
+        shell: bash
+        env:
+          RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}
+          GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          ISSUE: ${{ steps.pick.outputs.number }}
+        run: |
+          PROMPT="Work on issue #$ISSUE of $GITHUB_REPOSITORY in this checkout. Read it with \`gh issue view $ISSUE --comments\`.
+
+          First decide whether it fits one run of about 5 minutes, as one focused pull request. If it doesn't (several independent parts, or a redesign), don't change any files: split it into smaller issues, each one deliverable on its own, with \`gh issue create\` (a title, a body with what to do and why, and the same labels), and add each as a sub-issue of #$ISSUE with \`gh api -X POST repos/$GITHUB_REPOSITORY/issues/$ISSUE/sub_issues -F sub_issue_id=<the new issue's id, from gh api repos/$GITHUB_REPOSITORY/issues/<number> --jq .id>\`. Then comment on #$ISSUE which sub-issues you made.
+
+          If it fits, implement it following AGENTS.md, CONTRIBUTING.md and the docs: run the lint, the format check and the tests of what you changed. Don't commit, push or open a pull request: this workflow does that with your changes. If its direction is unclear, make the simplest reasonable choice and say so.
+
+          Your final message becomes the pull request's description, so write it in Markdown for its reviewer: what you changed and why, as bullets, what you tested, and anything the reviewer must check or decide. If you split the issue, list the sub-issues."
+          pi --print --no-session --approve \
+            --provider radius --model "$MODEL" \
+            "$PROMPT" | tee "$RUNNER_TEMP/pi-report.md"
+
+      - name: Write the pull request's description
+        if: steps.pick.outputs.number != ''
+        shell: bash
+        env:
+          ISSUE: ${{ steps.pick.outputs.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            printf 'Closes #%s.\n\nMade by pi (radius/%s) in the AI: implement issues workflow.\n\n---\n\n' "$ISSUE" "$MODEL"
+            cat "$RUNNER_TEMP/pi-report.md"
+          } > "$RUNNER_TEMP/pull-request-body.md"
+          gh_title=$(gh issue view "$ISSUE" --json title --jq .title)
+          echo "TITLE=$gh_title" >> "$GITHUB_ENV"
+
+      - name: Open a pull request with the changes
+        if: steps.pick.outputs.number != ''
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          branch: ai/issue-${{ steps.pick.outputs.number }}
+          delete-branch: true
+          title: "${{ env.TITLE }} (#${{ steps.pick.outputs.number }})"
+          commit-message: "feat: ${{ env.TITLE }} (#${{ steps.pick.outputs.number }})"
+          labels: AI
+          body-path: ${{ runner.temp }}/pull-request-body.md
