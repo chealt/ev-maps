@@ -25,6 +25,13 @@ const account = {
     reportShareLocationHint:
       "Lokalizacja urządzenia pokazuje, że byłeś przy ładowarce; widzą ją tylko administratorzy EV Maps.",
     submitReportChange: "Wyślij zgłoszenie",
+    reportUnavailable: "Zgłoś niedostępność",
+    closeReportUnavailable: "Zamknij zgłaszanie niedostępności",
+    reportUnavailableHint:
+      "Nie da się tu naładować? Daj nam znać. Zdjęcie ładowarki pomoże nam szybciej to sprawdzić.",
+    reportUnavailablePhoto: "Dodaj zdjęcie ładowarki (opcjonalnie)",
+    reportUnavailablePhotoHint: "Jedno zdjęcie",
+    submitReportUnavailable: "Wyślij zgłoszenie",
     loadingAccount: "Wczytywanie konta",
     signInWith: "Zaloguj się przez {provider}",
     closeFavorites: "Zamknij ulubione",
@@ -121,6 +128,8 @@ const account = {
     reportPhotoUnreadable: "Nie udało się odczytać tego zdjęcia. Spróbuj innego.",
     reportChangeSubmitted: "Dziękujemy! Twoje zgłoszenie zostało wysłane do weryfikacji.",
     reportChangeFailed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
+    reportUnavailableSubmitted: "Dziękujemy! Twoje zgłoszenie zostało wysłane do weryfikacji.",
+    reportUnavailableFailed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
     signInFailed: "Logowanie nie powiodło się. Spróbuj ponownie.",
     removeFavorite: "Usuń {name} z ulubionych",
     signInLinkSent: "Wysłaliśmy link do logowania na adres {email}. Otwórz go w ciągu 15 minut.",

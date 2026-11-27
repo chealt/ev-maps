@@ -29,3 +29,13 @@ domains it changed plus the `@regression` tests, and `main` runs them all
 Changing something shared (a fixture, the Playwright config, a layout)
 makes CI run every test; locally, run the specs that use it and leave the
 rest to CI. When CI fails, run the failing specs locally, not the suite.
+
+## Each Spec in Its Domain's `test.describe`
+
+Every end-to-end spec belongs to a domain of `packages/app/e2e-domains.json`,
+and all of its tests sit in one `test.describe` named after that domain
+(e.g. `test.describe("admin", () => { … })`), so the report groups them by
+domain. Keep the block when you edit a spec, and add it to every new spec
+(see [Which Tests a Pull Request Runs](docs/TESTING_GUIDELINES.md#which-tests-a-pull-request-runs)).
+When you squash or rebase a branch, check that its diff against `main` is
+only your change: a reset onto a newer `main` reverts what it gained.

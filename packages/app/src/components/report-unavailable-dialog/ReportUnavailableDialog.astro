@@ -1,0 +1,41 @@
+---
+import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
+import PhotoPicker from "../photo-picker/PhotoPicker.astro";
+import { translations } from "../../i18n/index.js";
+import "./ReportUnavailableDialog.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<!-- Flags a charger as unavailable (signed in), optionally with one photo
+     of it as proof (packages/worker/src/charger-unavailability.js, #371).
+     The charger's details open it. -->
+<ev-report-unavailable-dialog>
+  <Dialog
+    class="report-unavailable-dialog"
+    title={page.reportUnavailable}
+    titleId="report-unavailable-title"
+    closeLabel={page.closeReportUnavailable}
+    bodyAs="form"
+    bodyAttrs={{ id: "report-unavailable-form", novalidate: true }}
+  >
+    <p class="charger-name"></p>
+    <p class="hint">{page.reportUnavailableHint}</p>
+    <PhotoPicker
+      class="unavailable-photo"
+      label={page.reportUnavailablePhoto}
+      hint={page.reportUnavailablePhotoHint}
+      removeLabel={page.removeChargerPhoto}
+      max={1}
+    />
+    <p class="status" role="status"></p>
+    <p class="error" role="alert"></p>
+    <Fragment slot="footer">
+      <Button variant="primary" size="large" type="submit" form="report-unavailable-form">
+        {page.submitReportUnavailable}
+      </Button>
+    </Fragment>
+  </Dialog>
+  <script src="./ReportUnavailableDialog.js"></script>
+</ev-report-unavailable-dialog>

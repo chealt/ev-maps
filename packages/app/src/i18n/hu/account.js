@@ -25,6 +25,13 @@ const account = {
     reportShareLocationHint:
       "Az eszközöd helye mutatja, hogy a töltőnél voltál; csak az EV Maps adminjai látják.",
     submitReportChange: "Bejelentés küldése",
+    reportUnavailable: "Nem elérhető bejelentése",
+    closeReportUnavailable: "Nem elérhető bejelentésének bezárása",
+    reportUnavailableHint:
+      "Nem lehet itt tölteni? Szólj nekünk. Egy fénykép a töltőről segít, hogy hamarabb ellenőrizzük.",
+    reportUnavailablePhoto: "Fénykép a töltőről (nem kötelező)",
+    reportUnavailablePhotoHint: "Egy fénykép",
+    submitReportUnavailable: "Bejelentés küldése",
     loadingAccount: "Fiók betöltése",
     signInWith: "Bejelentkezés {provider}-fiókkal",
     closeFavorites: "Kedvencek bezárása",
@@ -123,6 +130,8 @@ const account = {
     reportPhotoUnreadable: "Ezt a fényképet nem sikerült beolvasni. Próbálj egy másikat.",
     reportChangeSubmitted: "Köszönjük! A bejelentésedet elküldtük ellenőrzésre.",
     reportChangeFailed: "Nem sikerült elküldeni a bejelentést. Próbáld újra.",
+    reportUnavailableSubmitted: "Köszönjük! A bejelentésedet elküldtük ellenőrzésre.",
+    reportUnavailableFailed: "Nem sikerült elküldeni a bejelentést. Próbáld újra.",
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
     removeFavorite: "{name} eltávolítása a kedvencek közül",
     signInLinkSent: "Bejelentkezési linket küldtünk a(z) {email} címre. 15 percen belül nyisd meg.",

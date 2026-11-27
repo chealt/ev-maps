@@ -25,6 +25,13 @@ const account = {
     reportShareLocationHint:
       "Your device's location shows you were at the charger; only the EV Maps admins see it.",
     submitReportChange: "Send report",
+    reportUnavailable: "Report unavailable",
+    closeReportUnavailable: "Close report unavailable",
+    reportUnavailableHint:
+      "Can't charge here? Let us know. A photo of the charger helps us check it sooner.",
+    reportUnavailablePhoto: "Add a photo of the charger (optional)",
+    reportUnavailablePhotoHint: "One photo",
+    submitReportUnavailable: "Send report",
     loadingAccount: "Loading your account",
     signInWith: "Sign in with {provider}",
     closeFavorites: "Close favorites",
@@ -119,6 +126,8 @@ const account = {
     reportPhotoUnreadable: "That photo couldn't be read. Try another one.",
     reportChangeSubmitted: "Thank you! Your report has been sent for review.",
     reportChangeFailed: "Your report couldn't be sent. Try again.",
+    reportUnavailableSubmitted: "Thank you! Your report has been sent for review.",
+    reportUnavailableFailed: "Your report couldn't be sent. Try again.",
     signInFailed: "Sign-in failed. Please try again.",
     removeFavorite: "Remove {name} from favorites",
     signInLinkSent: "We've sent a sign-in link to {email}. Open it within 15 minutes.",

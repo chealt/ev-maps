@@ -1,0 +1,105 @@
+---
+import Badge from "@ev-maps/ui/Badge.astro";
+import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
+import "./AdminUnavailability.css";
+
+// Rendered on the server: the chargers signed-in users flagged as
+// unavailable, from the Worker (packages/worker/src/charger-unavailability.js).
+interface Props {
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings, runtime message templates and value labels (the
+  // host's translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
+  values: Record<string, any>;
+}
+
+const { page, messages, values } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const chargers: any[] = data?.chargers ?? [];
+
+const formatTime = (timestamp: number) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(timestamp)
+  );
+
+const summary = failed
+  ? messages.adminUnavailabilityNotLoaded
+  : chargers.length === 0
+    ? messages.adminNoUnavailability
+    : formatMessage(lang, messages.adminUnavailabilityCount, { count: chargers.length });
+---
+
+<!-- Chargers signed-in users flagged as unavailable (#371): those more
+     people flagged first, then those with more photos. Confirming marks the
+     charger temporarily unavailable; dismissing closes its flags. Only the
+     buttons need the script. -->
+<ev-admin-unavailability>
+  <section aria-labelledby="admin-unavailability-title">
+    <h2 class="section-title" id="admin-unavailability-title">
+      {page.adminUnavailability}
+    </h2>
+    <p class="summary" role="status">
+      {summary}
+    </p>
+    <div class="charger-list">
+      {chargers.map((charger) => (
+        <Card as="article" class="charger-card" data-charger-id={charger.chargerId}>
+          <div class="card-header">
+            <div>
+              <h3 class="charger-name">{charger.chargerName || charger.chargerId}</h3>
+              <p class="counts">
+                {formatMessage(lang, messages.adminUnavailabilityReporters, {
+                  count: charger.reporters,
+                })}
+                {" · "}
+                {formatMessage(lang, messages.adminUnavailabilityPhotos, {
+                  count: charger.withPhoto,
+                })}
+              </p>
+            </div>
+            {charger.currentStatus && (
+              <Badge class="current-status" data-tone="neutral">
+                {formatMessage(lang, messages.adminCurrentStatus, {
+                  status: values.status?.[charger.currentStatus] ?? charger.currentStatus,
+                })}
+              </Badge>
+            )}
+          </div>
+          <ul class="flags">
+            {charger.flags.map((flag: any) => (
+              <li>
+                {formatMessage(lang, messages.adminReportedBy, {
+                  email: flag.userEmail ?? "?",
+                  date: formatTime(flag.createdAt),
+                })}
+              </li>
+            ))}
+          </ul>
+          <ul class="proof-photos">
+            {charger.flags
+              .filter((flag: any) => flag.photoUrl)
+              .map((flag: any) => (
+                <li>
+                  <img class="proof-photo" src={flag.photoUrl} alt={messages.adminChargerPhoto} />
+                </li>
+              ))}
+          </ul>
+          <div class="actions">
+            <Button variant="primary" size="small" class="review" data-action="confirm">
+              {page.adminConfirmUnavailable}
+            </Button>
+            <Button variant="danger" size="small" class="review" data-action="dismiss">
+              {page.adminDismissUnavailable}
+            </Button>
+          </div>
+        </Card>
+      ))}
+    </div>
+  </section>
+  <script src="./AdminUnavailability.js"></script>
+</ev-admin-unavailability>

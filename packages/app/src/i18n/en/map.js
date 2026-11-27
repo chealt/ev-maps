@@ -4,6 +4,7 @@
 const map = {
   page: {
     signInToReportChange: "Sign in to report a change to this charger.",
+    signInToReportUnavailable: "Sign in to report that this charger is unavailable.",
     mapMenu: "Route from or to here",
     routeFromHere: "Route from here",
     routeToHere: "Route to here",

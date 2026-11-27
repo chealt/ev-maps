@@ -2,6 +2,7 @@
 import FavoritesDialog from "./favorites-dialog/FavoritesDialog.astro";
 import GoogleMap from "./google-map/GoogleMap.astro";
 import ReportChangeDialog from "./report-change-dialog/ReportChangeDialog.astro";
+import ReportUnavailableDialog from "./report-unavailable-dialog/ReportUnavailableDialog.astro";
 import SuggestChargerDialog from "./suggest-charger-dialog/SuggestChargerDialog.astro";
 import UserMenu from "./user-menu/UserMenu.astro";
 import { appConfig } from "../config/app.config.js";
@@ -37,4 +38,5 @@ const { googleMaps, evChargers } = appConfig;
   <FavoritesDialog />
   <SuggestChargerDialog apiKey={googleMaps.apiKey} />
   <ReportChangeDialog />
+  <ReportUnavailableDialog />
 </main>

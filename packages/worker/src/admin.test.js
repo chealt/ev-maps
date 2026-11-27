@@ -105,6 +105,30 @@ describe("adminPageResponse", () => {
   });
 });
 
+describe("the unavailable chargers page", () => {
+  test("is rendered on the server, with the chargers reported unavailable", async () => {
+    let props;
+    const render = async (renderedRequest, renderEnv, context) => {
+      props = context.props;
+      return new Response("<h1>Unavailable chargers</h1>");
+    };
+    const db = {
+      prepare: () => ({
+        bind: () => ({ all: async () => ({ results: [] }) }),
+        all: async () => ({ results: [] }),
+      }),
+    };
+    const response = await adminPageResponse(
+      new Request("https://ev.chealt.com/en/admin/unavailability/"),
+      { ...env, DB: db },
+      { id: "1", email: "grace@chealt.com" },
+      { render }
+    );
+    expect(await response.text()).toBe("<h1>Unavailable chargers</h1>");
+    expect(props).toEqual({ data: { chargers: [] } });
+  });
+});
+
 describe("adminApiResponse", () => {
   test("says who the admin is", async () => {
     const response = await adminApiResponse(

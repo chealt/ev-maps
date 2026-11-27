@@ -8,6 +8,7 @@ import { track } from "../../lib/usage.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
 import { requestReportChange } from "../report-change-dialog/ReportChangeDialog.js";
+import { requestReportUnavailable } from "../report-unavailable-dialog/ReportUnavailableDialog.js";
 import { chosenCar, onCarChange } from "../../lib/car.js";
 import { fetchAccountSettings, saveAccountSettings } from "../../lib/account-settings.js";
 import { loadGoogleMaps } from "./loader.js";
@@ -540,6 +541,14 @@ class GoogleMapElement extends HTMLElement {
         requestSignIn();
       } else if (this.activeCharger) {
         requestReportChange(this.activeCharger);
+      }
+    });
+    // Flag the open charger as unavailable, optionally with a photo (#371).
+    this.detailsPanel?.querySelector(".report-unavailable")?.addEventListener("click", () => {
+      if (!isSignedIn()) {
+        requestSignIn();
+      } else if (this.activeCharger) {
+        requestReportUnavailable(this.activeCharger);
       }
     });
     // Navigate: a route to the open charger, planned here.
@@ -1791,16 +1800,16 @@ class GoogleMapElement extends HTMLElement {
     return isSignedIn() ? this.pressedAmenities() : [];
   }
 
-  // Signed out, the heart, Report a change, "Only favorites" and the nearby
+  // Signed out, the heart, Report a change, Report unavailable, "Only favorites" and the nearby
   // places look disabled, say to sign in, and open the sign-in options.
   showFavoritesSignedIn(signedIn) {
     for (const button of this.querySelectorAll(
-      ".favorite-button, .report-change, .favorites-filter, .availability-filter, .nearby-filter"
+      ".favorite-button, .report-change, .report-unavailable, .favorites-filter, .availability-filter, .nearby-filter"
     )) {
       button.setAttribute("aria-disabled", String(!signedIn));
     }
     for (const hint of this.querySelectorAll(
-      "#favorite-sign-in-hint, #report-change-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
+      "#favorite-sign-in-hint, #report-change-sign-in-hint, #report-unavailable-sign-in-hint, #favorites-filter-hint, #availability-filter-hint, #nearby-filter-hint"
     )) {
       hint.hidden = signedIn;
     }

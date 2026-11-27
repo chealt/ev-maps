@@ -18,6 +18,7 @@ import {
   MapPinned,
   Heart,
   Flag,
+  Ban,
   Info,
   List,
   ZoomIn,
@@ -549,7 +550,8 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
         </BadgeList>
       </section>
       <!-- Any charger, whatever its details: its availability or price
-           changed (ReportChangeDialog). -->
+           changed (ReportChangeDialog), or it can't be used
+           (ReportUnavailableDialog). -->
       <div class="report-change-row">
         <!-- Signed out: disabled-looking, says to sign in, and opens the
              sign-in options, like the heart. -->
@@ -570,6 +572,25 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
           >
             <Icon icon={Flag} size="sm" />
             {page.reportChange}
+          </Button>
+        </Tooltip>
+        <Tooltip
+          class="report-unavailable-wrapper"
+          id="report-unavailable-sign-in-hint"
+          text={page.signInToReportUnavailable}
+          placement="top"
+          align="start"
+        >
+          <Button
+            variant="secondary"
+            size="small"
+            class="report-unavailable"
+            aria-haspopup="dialog"
+            aria-disabled="true"
+            aria-describedby="report-unavailable-sign-in-hint"
+          >
+            <Icon icon={Ban} size="sm" />
+            {page.reportUnavailable}
           </Button>
         </Tooltip>
       </div>
