@@ -176,6 +176,7 @@
       "paths": [
         "packages/admin/components/admin-*/**",
         "packages/admin/components/charger-proof/**",
+        "packages/admin/components/review-list/**",
         "packages/app/src/lib/day-count.js",
         "packages/app/src/i18n/*/admin*.js"
       ],
