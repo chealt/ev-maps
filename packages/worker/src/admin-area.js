@@ -5,6 +5,7 @@
 
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { dashboard } from "@ev-maps/admin/admin-dashboard.js";
+import { preferenceStats } from "./preference-stats.js";
 import { performancePage } from "@ev-maps/admin/performance-stats.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
@@ -24,6 +25,8 @@ const PAGE_EVENTS = {
   locate_me: /^$/,
   list_opened: /^$/,
   sign_in_started: /^[a-z]{2,12}$/,
+  // The device's own settings on a page view, e.g. "theme:dark" (#373).
+  preference: /^(theme:(system|light|dark)|animations:(on|off|reduced))$/,
 };
 
 // The admin review pages' ?status= as the admin API takes it: pending when
@@ -111,6 +114,12 @@ const admin = createAdminArea({
       // for every branch), rendered on the server.
       path: "reports",
       data: (env, url) => testReports.reports(env, reportsUrl(url)),
+    },
+    {
+      // What users prefer, a page per section (#373), rendered on the
+      // server.
+      path: "usage/(settings|filters|routes)",
+      data: (env) => preferenceStats(env),
     },
     {
       // The summary of ?days=, or a trace's spans (?trace=), rendered on

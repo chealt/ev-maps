@@ -1,0 +1,65 @@
+.admin-preferences {
+  --group-min-width: 18rem;
+  --share-bar-width: 5rem;
+  --share-bar-height: 0.5rem;
+
+  display: block;
+
+  .section-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .summary {
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--group-min-width), 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .subtitle {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .unit {
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+  }
+
+  .table th {
+    font-weight: var(--font-weight-normal);
+  }
+
+  .share {
+    width: var(--share-bar-width);
+  }
+
+  .share-bar {
+    display: block;
+    width: var(--share-bar-width);
+    height: var(--share-bar-height);
+    border-radius: var(--border-radius-full);
+    background: var(--color-surface-hover);
+    overflow: hidden;
+  }
+
+  .share-fill {
+    display: block;
+    width: calc(var(--share) * 100%);
+    height: 100%;
+    background: var(--color-primary);
+  }
+
+  .count {
+    text-align: end;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}

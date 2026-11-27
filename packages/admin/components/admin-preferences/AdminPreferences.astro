@@ -1,0 +1,120 @@
+---
+import Card from "@ev-maps/ui/Card.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
+import "./AdminPreferences.css";
+
+// Rendered on the server: one section of what users prefer, from the
+// Worker's preference stats ({ accounts, pageViewDays, groups }).
+interface Props {
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The section's title, and its groups in order, each with its title.
+  title: string;
+  groups: { id: string; title: string }[];
+  // How each group's values read: { [group]: { [value]: label } }; values
+  // without a label show as they are, languages as their names.
+  labels?: Record<string, Record<string, string>>;
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
+}
+
+const { title, groups, labels = {}, page, messages } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+
+const label = (group: string, value: string) => {
+  if (group === "language") {
+    try {
+      return new Intl.DisplayNames(lang, { type: "language" }).of(value) ?? value;
+    } catch {
+      return value;
+    }
+  }
+  return labels[group]?.[value] ?? value;
+};
+const percent = (share: number) => new Intl.NumberFormat(lang, { style: "percent" }).format(share);
+
+// A group's rows, each with its share of the accounts (or of the page
+// views, which add up to all of them).
+const shown = groups.map(({ id, title: groupTitle }) => {
+  const { unit = "users", rows = [] } = data?.groups?.[id] ?? {};
+  const total =
+    unit === "pageViews"
+      ? rows.reduce((sum: number, { count }: { count: number }) => sum + count, 0)
+      : data?.accounts;
+  return {
+    id,
+    title: groupTitle,
+    unit:
+      unit === "pageViews"
+        ? formatMessage(lang, messages.adminPreferencePageViews, { days: data?.pageViewDays })
+        : messages.adminPreferenceUsers,
+    rows: rows.map(({ value, count }: { value: string; count: number }) => {
+      const share = total > 0 ? count / total : 0;
+      return {
+        name: label(id, value),
+        share,
+        count: formatMessage(lang, messages.adminPreferenceCount, {
+          count,
+          share: percent(share),
+        }),
+      };
+    }),
+  };
+});
+---
+
+<!-- One section of what users prefer: for each setting, how many accounts
+     (or page views) chose each option, with its share. -->
+<section class="admin-preferences" aria-labelledby="admin-preferences-title">
+  <h2 class="section-title" id="admin-preferences-title">
+    {title}
+  </h2>
+  <p class="summary" role="status">
+    {failed
+      ? messages.adminPreferencesNotLoaded
+      : formatMessage(lang, messages.adminPreferencesAccounts, { count: data.accounts })}
+  </p>
+  {data && (
+    <div class="groups">
+      {shown.map((group) => (
+        <Card
+          as="section"
+          class="group"
+          data-group={group.id}
+          aria-labelledby={`admin-group-${group.id}`}
+        >
+          <h3 class="subtitle" id={`admin-group-${group.id}`}>
+            {group.title}
+          </h3>
+          <p class="unit">{group.unit}</p>
+          {group.rows.length > 0 ? (
+            <Table density="compact">
+              <tbody>
+                {group.rows.map((row) => (
+                  <tr>
+                    <th scope="row" class="name">
+                      {row.name}
+                    </th>
+                    <td class="share">
+                      <span class="share-bar" style={`--share: ${row.share}`}>
+                        <span class="share-fill"></span>
+                      </span>
+                    </td>
+                    <td class="count">{row.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <EmptyState class="empty">{page.adminNoData}</EmptyState>
+          )}
+        </Card>
+      ))}
+    </div>
+  )}
+</section>

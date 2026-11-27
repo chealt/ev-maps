@@ -9,7 +9,7 @@ export default defineConfig({
   testDir: "../",
   testMatch: "**/*.spec.js",
   // The @ui tests' screenshots compared with main's (captureUi, #309): the
-  // baselines CI downloads from main's last run (scripts/visual-baseline.js).
+  // baselines of the main commit CI tests on (scripts/visual-baseline.js).
   snapshotPathTemplate: `${import.meta.dirname}/visual-baseline/{arg}{ext}`,
   expect: {
     toHaveScreenshot: {

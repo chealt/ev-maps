@@ -244,6 +244,33 @@ describe("the test reports page", () => {
   });
 });
 
+describe("the preference pages", () => {
+  test("are rendered on the server, with the preference stats", async () => {
+    let props;
+    const render = async (renderedRequest, renderEnv, context) => {
+      props = context.props;
+      return new Response("");
+    };
+    const db = {
+      prepare: () => ({
+        all: async () => ({ results: [] }),
+        first: async () => ({ count: 0 }),
+        bind() {
+          return this;
+        },
+      }),
+    };
+    await adminPageResponse(
+      new Request("https://ev.chealt.com/en/admin/usage/filters/"),
+      { ...env, DB: db, ADMIN_DB: db },
+      { id: "1", email: "grace@chealt.com" },
+      { render }
+    );
+    expect(props.data).toMatchObject({ accounts: 0, pageViewDays: 30 });
+    expect(props.data.groups.filterPowerRanges).toEqual({ unit: "users", rows: [] });
+  });
+});
+
 describe("the performance page", () => {
   test("is rendered on the server, with the summary of ?days= or a trace", async () => {
     const seen = [];

@@ -3,6 +3,34 @@
 
 const adminUsage = {
   page: {
+    adminUsagePages: "Usage pages",
+    adminUsageActivity: "Activity",
+    adminUsageSettings: "Settings",
+    adminUsageFilters: "Filters",
+    adminUsageRoutes: "Routes and places",
+    adminYes: "Yes",
+    adminNo: "No",
+    adminAskEachTime: "Ask each time",
+    adminPreferenceSignIn: "Sign-in method",
+    adminPreferenceLanguage: "Language",
+    adminPreferenceTheme: "Theme",
+    adminPreferenceAnimations: "Animations",
+    adminPreferenceDistanceUnit: "Distance unit",
+    adminPreferenceMapsApp: "Maps app",
+    adminPreferenceSavedPlacesOnMap: "Saved places on the map",
+    adminPreferenceCarConnectors: "Car's connectors",
+    adminPreferenceCarAutoFilter: "Filter by the car automatically",
+    adminPreferenceFilterConnectorTypes: "Connector type",
+    adminPreferenceFilterPowerRanges: "Charging power",
+    adminPreferenceFilterPriceLevels: "Price",
+    adminPreferenceFilterNearby: "Nearby places",
+    adminPreferenceFilterOnlyFavorites: "Only favorites",
+    adminPreferenceFilterHideUnavailable: "Hide unavailable",
+    adminPreferenceFilterExcludedOperators: "Hidden operators",
+    adminPreferenceFeatures: "Features used",
+    adminPreferenceSavedPlaceIcons: "Saved places' icons",
+    adminPreferencePopularDestinations: "Popular destinations",
+    adminPreferencePopularRoutes: "Popular routes",
     adminPeriod: "Period",
     adminLastDays: "Last {days} days",
     adminPageViewsPerDay: "Page views per day",
@@ -10,6 +38,14 @@ const adminUsage = {
     adminTopItems: "Most favorited chargers, now",
   },
   messages: {
+    adminPreferencesNotLoaded: "The preferences couldn't be loaded. Try again.",
+    adminPreferencesAccounts: {
+      one: "{count} account",
+      other: "{count} accounts",
+    },
+    adminPreferenceUsers: "Accounts, now",
+    adminPreferencePageViews: "Page views, last {days} days",
+    adminPreferenceCount: "{count} ({share})",
     adminUsageNotLoaded: "The usage stats couldn't be loaded. Try again.",
     adminUsagePeriod: "{from} – {to}",
     adminTopCount: {
@@ -18,6 +54,17 @@ const adminUsage = {
     },
   },
   values: {
+    animationSettings: {
+      on: "On",
+      off: "Off",
+      reduced: "Reduced motion",
+    },
+    preferenceFeatures: {
+      savedPlaces: "Saved places",
+      favoriteRoutes: "Favorite routes",
+      routeHistory: "Route history",
+      car: "Car",
+    },
     usageEvents: {
       page_view: "Page views",
       visitor_country: "Visitors' countries",

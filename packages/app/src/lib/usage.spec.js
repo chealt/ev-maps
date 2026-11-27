@@ -49,6 +49,9 @@ test.describe("reporting", () => {
         charger_opened: { ocm: 1 },
         filter_used: { connector: 1, power: 1 },
         sign_in_started: { google: 1 },
+        // The device's theme and animations (#373); the tests ask for
+        // reduced motion.
+        preference: { "theme:system": 1, "animations:reduced": 1 },
       },
     });
 
