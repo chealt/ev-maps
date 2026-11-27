@@ -304,6 +304,8 @@ test.describe("map", () => {
       const mixedDetails = page.getByRole("complementary", { name: "Mixed Hub" });
       await expect(mixedDetails.getByText("4 of 8 points free")).toBeVisible();
       const ccsInfo = mixedDetails.getByRole("button", { name: "CCS (Type 2): 3× · 350 kW" });
+      // The bars show how many points there are, without a "3×" too (#380).
+      await expect(mixedDetails.getByText("3×", { exact: true })).toBeHidden();
       // The mouse moved onto it, rather than hover(), whose retries under load
       // scroll the panel by more or less: the details stay at their top, the
       // same every run. It's in view there.

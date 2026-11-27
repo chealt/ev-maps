@@ -1005,6 +1005,10 @@ ev-google-map {
     .connector-qty {
       font-weight: var(--font-weight-semibold);
       color: var(--color-text-muted);
+
+      &[hidden] {
+        display: none;
+      }
     }
 
     .connector-points {
