@@ -4,6 +4,7 @@
 // Everything here is EV Maps; the package itself knows none of it.
 
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
+import { dashboard } from "@ev-maps/admin/admin-dashboard.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 import { listAdminFlags } from "./charger-unavailability.js";
@@ -74,6 +75,11 @@ const admin = createAdminArea({
       // default), approved, rejected or all.
       path: "charger-reports",
       data: (env, url) => listAdminReports(env.DB, reviewStatusUrl(url)),
+    },
+    {
+      // The overview, with its dashboard, rendered on the server.
+      path: new RegExp(`^/(${LOCALES.join("|")})/admin/$`),
+      data: (env) => dashboard(env.ADMIN_DB),
     },
     {
       // The errors page is rendered on the server, per request.
