@@ -66,6 +66,21 @@ test.describe("admin", () => {
     expect(requests).toHaveLength(0);
   });
 
+  test("signs admins out and back to the map", { tag: "@ui" }, async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+    await fakeAdminApi(page, GRACE);
+    await page.goto("/en/admin/");
+    await expect(page.getByRole("status")).toHaveText("Signed in as grace@chealt.com");
+    const signOut = page.getByRole("button", { name: "Sign out" });
+    await expect(signOut).toBeVisible();
+    await captureUi(page, testInfo, "admin sign out");
+
+    await signOut.click();
+
+    await expect(page).toHaveURL("/en/");
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  });
+
   test("asks to sign in as an admin when the API refuses", async ({ page }) => {
     await fakeAuthApi(page, { signedIn: true });
     await fakeAdminApi(page, null);
