@@ -27,9 +27,11 @@ const REPORT_DIR = "playwright-report";
 const RESULTS_FILE = "playwright-results.json";
 const ADMIN_DATABASE = "ev-maps-admin";
 const WRANGLER_TOML = new URL("../../worker/wrangler.toml", import.meta.url);
-const STATUS_CONTEXT = "Playwright report";
-const A11Y_STATUS_CONTEXT = "Accessibility report";
-const PERFORMANCE_STATUS_CONTEXT = "Performance report";
+// Named like the checks of the workflow that made them ("App / Test shard
+// 1/5"), so they sort and read with the end-to-end tests (#376).
+const STATUS_CONTEXT = "App / Playwright report";
+const A11Y_STATUS_CONTEXT = "App / Accessibility report";
+const PERFORMANCE_STATUS_CONTEXT = "App / Performance report";
 
 const cloudflare = async (path, init) => {
   const response = await fetch(

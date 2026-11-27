@@ -25,6 +25,15 @@ ev-google-map {
   --details-panel-width: 22rem;
   --details-sheet-max-height: 60dvh;
 
+  /* Wider details on desktop, where the map has room to spare (#374). */
+  @media (width >= 64em) {
+    --details-panel-width: 26rem;
+  }
+
+  @media (width >= 90em) {
+    --details-panel-width: 30rem;
+  }
+
   /* Route */
   --route-color: var(--color-route);
   --route-casing-color: var(--color-route-casing);
