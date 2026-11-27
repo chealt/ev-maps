@@ -14,6 +14,7 @@
     "packages/app/src/layouts/**",
     "packages/app/src/pages/**",
     "packages/app/src/i18n/index.js",
+    "packages/app/src/i18n/*/common.js",
     "packages/app/src/lib/messages.js",
     "packages/app/src/lib/pages.js",
     "packages/app/src/lib/page-chargers.js",
@@ -118,8 +119,7 @@
         "packages/app/src/lib/session.js",
         "packages/app/src/lib/support-links.js",
         "packages/app/src/lib/support-links.test.js",
-        "packages/app/src/i18n/*/account.js",
-        "packages/app/src/i18n/*/common.js"
+        "packages/app/src/i18n/*/account.js"
       ],
       "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places"]
     },
