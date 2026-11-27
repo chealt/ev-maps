@@ -34,6 +34,8 @@ const adminUsage = {
     adminPeriod: "Periode",
     adminLastDays: "Siste {days} dager",
     adminPageViewsPerDay: "Sidevisninger per dag",
+    adminNameColumn: "Navn",
+    adminUsageCountColumn: "Antall",
     adminNoData: "Ingenting ennå.",
     adminTopItems: "Mest favorittmarkerte ladestasjoner nå",
   },
