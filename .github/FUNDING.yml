@@ -1,6 +1,8 @@
 # The repository's Sponsor button; the same options as the account menu
-# (packages/app/src/lib/support-links.js).
+# (packages/app/src/lib/support-links.js); see docs/features/support.md.
+# Uncomment a platform once its account is set up, as you enable it there;
+# GitHub shows no Sponsor button while every line is commented out.
 github: chealt
 ko_fi: chealt
-custom:
-  - https://buycoffee.to/chealt
+# custom:
+#   - https://buycoffee.to/chealt
