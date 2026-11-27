@@ -101,14 +101,25 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
 `VISUAL_COMPARE` is set.
 
 - On `main`, the test shards run with `--update-snapshots=all`, so the
-  screenshots become the baselines, and upload them to the reports bucket
-  (`reports/ui-baseline/main/`, `scripts/visual-baseline.js upload`).
-- A pull request's shards download them first (`… download`, into
-  `packages/app/visual-baseline/`, the config's `snapshotPathTemplate`) and
-  run with `--update-snapshots=none`. A moment that differs from `main`'s, or
-  that `main` doesn't have, doesn't fail its test: `captureUi` marks it with
-  a `visual-change` annotation, and Playwright attaches the expected, actual
-  and diff images to the test in the report.
+  screenshots become the baselines. Each shard uploads its own to the reports
+  bucket under the commit (`reports/ui-baseline/{sha}/`,
+  `scripts/visual-baseline.js upload`), then a marker that it's done.
+- A pull request compares with the `main` commit it's tested on: the first
+  parent of the merge commit CI checks out. It never uses `main`'s latest
+  run, which can be older than that commit (still running) or newer. Then a
+  change merged to `main` in between would show up as the pull request's
+  (#395).
+  - When every shard of that commit has uploaded, the pull request's shards
+    download its screenshots (`… download`, into
+    `packages/app/visual-baseline/`, the config's `snapshotPathTemplate`).
+  - Otherwise, e.g. while that commit's run is still going, or when a newer
+    push to `main` replaced it, each shard checks out the commit
+    (`git worktree`) and takes the screenshots itself. It runs the selected
+    `@ui` tests there with `--update-snapshots=all`.
+- The pull request's tests run with `--update-snapshots=none`. A moment that
+  differs from `main`'s, or that `main` doesn't have, doesn't fail its test:
+  `captureUi` marks it with a `visual-change` annotation, and Playwright
+  attaches the expected, actual and diff images to the test in the report.
 - After the report is published, `scripts/visual-review.js` sets the
   **Visual review** commit status, linking to the report: green when nothing
   changed, pending when something did. It also **comments the changes on the
