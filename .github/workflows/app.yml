@@ -314,9 +314,16 @@ jobs:
           cd "$RUNNER_TEMP/base/packages/app"
           grep="^(?=.*@ui)"
           if [ -n "$GREP" ]; then grep="$grep(?=.*(?:$GREP))"; fi
-          bun run test -- --workers=4 --update-snapshots=all --grep "$grep" --pass-with-no-tests || true
+          bun run test -- --workers=4 --update-snapshots=all --grep "$grep" --pass-with-no-tests && status=0 || status=$?
           mkdir -p "$GITHUB_WORKSPACE/packages/app/visual-baseline"
           cp -R visual-baseline/. "$GITHUB_WORKSPACE/packages/app/visual-baseline/" 2>/dev/null || true
+          # Failing tests and none at all means main itself is broken (e.g. its
+          # dev server doesn't start): fail, rather than report every moment
+          # as new. No @ui test selected takes none and passes.
+          if [ "$status" -ne 0 ] && [ -z "$(ls -A "$GITHUB_WORKSPACE/packages/app/visual-baseline")" ]; then
+            echo "::error::main's $BASE took no screenshots: its @ui tests fail there, so there's nothing to compare with. Fix main first."
+            exit 1
+          fi
 
       - name: Run tests
         env:
