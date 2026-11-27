@@ -1,4 +1,5 @@
 ---
+import Field from "@ev-maps/ui/Field.astro";
 import { translations } from "../../i18n/index.js";
 import { languages } from "../../lib/pages.js";
 import "./LanguagePicker.css";
@@ -15,27 +16,17 @@ const options = languages().map((language) => ({
 }));
 ---
 
-<ev-language-picker>
-  <nav class="language-picker" aria-labelledby="language-picker-title">
-    <h2 class="legend" id="language-picker-title">
-      {page.language}
-    </h2>
-    <ul class="options">
+<!-- A dropdown, so the account menu stays short however many languages
+     there are. Picking one goes to the same page in it. -->
+<ev-language-picker class="language-picker">
+  <Field label={page.language}>
+    <select class="field-control">
       {options.map(({ language, href, name }) => (
-        <li>
-          <a
-            class="option"
-            href={href}
-            hreflang={language}
-            lang={language}
-            data-language={language}
-            aria-current={language === current ? "page" : undefined}
-          >
-            {name}
-          </a>
-        </li>
+        <option value={language} data-href={href} lang={language} selected={language === current}>
+          {name}
+        </option>
       ))}
-    </ul>
-  </nav>
+    </select>
+  </Field>
   <script src="./LanguagePicker.js"></script>
 </ev-language-picker>

@@ -9,10 +9,11 @@ const saveLanguage = (language) => {
 
 class LanguagePickerElement extends HTMLElement {
   connectedCallback() {
-    this.addEventListener("click", (event) => {
-      const option = event.target.closest("[data-language]");
+    this.addEventListener("change", (event) => {
+      const option = event.target.selectedOptions?.[0];
       if (option) {
-        saveLanguage(option.dataset.language);
+        saveLanguage(option.value);
+        window.location.assign(option.dataset.href);
       }
     });
   }
