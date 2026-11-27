@@ -33,6 +33,8 @@ const adminUsage = {
     adminPeriod: "Okres",
     adminLastDays: "Ostatnie {days} dni",
     adminPageViewsPerDay: "Wyświetlenia stron dziennie",
+    adminNameColumn: "Nazwa",
+    adminUsageCountColumn: "Liczba",
     adminNoData: "Jeszcze nic.",
     adminTopItems: "Najczęściej ulubione stacje, teraz",
   },

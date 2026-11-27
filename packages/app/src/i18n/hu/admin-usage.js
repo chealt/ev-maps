@@ -33,6 +33,8 @@ const adminUsage = {
     adminPeriod: "Időszak",
     adminLastDays: "Elmúlt {days} nap",
     adminPageViewsPerDay: "Oldalmegtekintések naponta",
+    adminNameColumn: "Név",
+    adminUsageCountColumn: "Darab",
     adminNoData: "Még nincs adat.",
     adminTopItems: "A legtöbbször kedvelt töltők, most",
   },
