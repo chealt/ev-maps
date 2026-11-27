@@ -105,135 +105,137 @@ const fakeErrorsData = async (page, groupCount) => {
   await fakePageData(page, ERRORS_PAGE, (url) => ({ data: dataFor(url) }));
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
-});
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
 
-test("lists the errors grouped, the latest first", { tag: "@performance" }, async ({ page }) => {
-  await fakeErrorsData(page, 3);
-  await page.goto("/en/admin/errors/");
+  test("lists the errors grouped, the latest first", { tag: "@performance" }, async ({ page }) => {
+    await fakeErrorsData(page, 3);
+    await page.goto("/en/admin/errors/");
 
-  await expect(page.getByRole("heading", { level: 2, name: "Errors" })).toBeVisible();
-  await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
-  const rows = page.getByRole("table").getByRole("row");
-  await expect(rows).toHaveCount(4);
-  await expect(rows.nth(1)).toContainText("TypeError: Error number 0");
-  await expect(rows.nth(1)).toContainText("Browser");
-  await expect(rows.nth(1)).toContainText("1 minute ago");
-  await expect(rows.nth(2)).toContainText("Server");
-  await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
-});
+    await expect(page.getByRole("heading", { level: 2, name: "Errors" })).toBeVisible();
+    await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(4);
+    await expect(rows.nth(1)).toContainText("TypeError: Error number 0");
+    await expect(rows.nth(1)).toContainText("Browser");
+    await expect(rows.nth(1)).toContainText("1 minute ago");
+    await expect(rows.nth(2)).toContainText("Server");
+    await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
+  });
 
-test("pages through many errors", async ({ page }) => {
-  await fakeErrorsData(page, 30);
-  await page.goto("/en/admin/errors/");
-  const pager = page.getByRole("navigation", { name: "Pages" }).first();
+  test("pages through many errors", async ({ page }) => {
+    await fakeErrorsData(page, 30);
+    await page.goto("/en/admin/errors/");
+    const pager = page.getByRole("navigation", { name: "Pages" }).first();
 
-  await expect(pager.getByText("Page 1 of 2")).toBeVisible();
-  await expect(pager.getByRole("link", { name: "Previous" })).toHaveCount(0);
-  await pager.getByRole("link", { name: "Next" }).click();
+    await expect(pager.getByText("Page 1 of 2")).toBeVisible();
+    await expect(pager.getByRole("link", { name: "Previous" })).toHaveCount(0);
+    await pager.getByRole("link", { name: "Next" }).click();
 
-  await expect(page).toHaveURL("/en/admin/errors/?page=2");
-  await expect(pager.getByText("Page 2 of 2")).toBeVisible();
-  await expect(page.getByRole("table").getByRole("row")).toHaveCount(6);
-  await page.goBack();
-  await expect(pager.getByText("Page 1 of 2")).toBeVisible();
-});
+    await expect(page).toHaveURL("/en/admin/errors/?page=2");
+    await expect(pager.getByText("Page 2 of 2")).toBeVisible();
+    await expect(page.getByRole("table").getByRole("row")).toHaveCount(6);
+    await page.goBack();
+    await expect(pager.getByText("Page 1 of 2")).toBeVisible();
+  });
 
-test("filters the errors and orders them", { tag: "@ui" }, async ({ page }, testInfo) => {
-  await fakeErrorsData(page, 4);
-  await page.goto("/en/admin/errors/");
+  test("filters the errors and orders them", { tag: "@ui" }, async ({ page }, testInfo) => {
+    await fakeErrorsData(page, 4);
+    await page.goto("/en/admin/errors/");
 
-  const filters = page.getByRole("form", { name: "Filter the errors" });
-  await filters.getByLabel("Where").selectOption("worker");
-  await filters.getByRole("button", { name: "Apply" }).click();
+    const filters = page.getByRole("form", { name: "Filter the errors" });
+    await filters.getByLabel("Where").selectOption("worker");
+    await filters.getByRole("button", { name: "Apply" }).click();
 
-  await expect(page).toHaveURL(/source=worker/);
-  const rows = page.getByRole("table").getByRole("row");
-  await expect(rows).toHaveCount(3);
-  await expect(rows.nth(1)).toContainText("Server");
-  await expect(rows.nth(2)).toContainText("Server");
-  await expect(filters.getByLabel("Where")).toHaveValue("worker");
+    await expect(page).toHaveURL(/source=worker/);
+    const rows = page.getByRole("table").getByRole("row");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(1)).toContainText("Server");
+    await expect(rows.nth(2)).toContainText("Server");
+    await expect(filters.getByLabel("Where")).toHaveValue("worker");
 
-  // Ordering by how often they happened, from the Times header: Error
-  // number 3 (4 times) first.
-  await page.getByRole("columnheader", { name: "Times" }).getByRole("link").click();
-  await expect(page).toHaveURL(/sort=count/);
-  await expect(page.getByRole("columnheader", { name: "Times" })).toHaveAttribute(
-    "aria-sort",
-    "descending"
-  );
-  await expect(rows.nth(1)).toContainText("Error number 3");
-  await captureUi(page, testInfo, "the errors filtered to the server, most often first");
+    // Ordering by how often they happened, from the Times header: Error
+    // number 3 (4 times) first.
+    await page.getByRole("columnheader", { name: "Times" }).getByRole("link").click();
+    await expect(page).toHaveURL(/sort=count/);
+    await expect(page.getByRole("columnheader", { name: "Times" })).toHaveAttribute(
+      "aria-sort",
+      "descending"
+    );
+    await expect(rows.nth(1)).toContainText("Error number 3");
+    await captureUi(page, testInfo, "the errors filtered to the server, most often first");
 
-  // Clearing goes back to everything.
-  await page.getByRole("link", { name: "Clear filters" }).click();
-  await expect(page).toHaveURL("/en/admin/errors/");
-  await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
-});
+    // Clearing goes back to everything.
+    await page.getByRole("link", { name: "Clear filters" }).click();
+    await expect(page).toHaveURL("/en/admin/errors/");
+    await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
+  });
 
-test("renders the errors on the server, with no script", async ({ browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  await fakeErrorsData(page, 3);
-  await page.goto("/en/admin/errors/");
+  test("renders the errors on the server, with no script", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await fakeErrorsData(page, 3);
+    await page.goto("/en/admin/errors/");
 
-  await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
-  await expect(page.getByRole("table").getByRole("row")).toHaveCount(4);
-  await page.getByRole("link", { name: "TypeError: Error number 0" }).click();
-  await expect(page.getByText("Happened 2 times in the last 30 days")).toBeVisible();
-  await context.close();
-});
+    await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
+    await expect(page.getByRole("table").getByRole("row")).toHaveCount(4);
+    await page.getByRole("link", { name: "TypeError: Error number 0" }).click();
+    await expect(page.getByText("Happened 2 times in the last 30 days")).toBeVisible();
+    await context.close();
+  });
 
-test("says when the errors couldn't be read", async ({ page }) => {
-  await fakePageData(page, ERRORS_PAGE, { failed: true });
-  await page.goto("/en/admin/errors/");
+  test("says when the errors couldn't be read", async ({ page }) => {
+    await fakePageData(page, ERRORS_PAGE, { failed: true });
+    await page.goto("/en/admin/errors/");
 
-  await expect(page.getByRole("alert")).toHaveText("The errors couldn't be loaded. Try again.");
-});
+    await expect(page.getByRole("alert")).toHaveText("The errors couldn't be loaded. Try again.");
+  });
 
-test("shows an error's occurrences with their details", async ({ page }) => {
-  await fakeErrorsData(page, 3);
-  await page.goto("/en/admin/errors/");
+  test("shows an error's occurrences with their details", async ({ page }) => {
+    await fakeErrorsData(page, 3);
+    await page.goto("/en/admin/errors/");
 
-  await page.getByRole("link", { name: "TypeError: Error number 0" }).click();
+    await page.getByRole("link", { name: "TypeError: Error number 0" }).click();
 
-  await expect(page).toHaveURL("/en/admin/errors/?error=00000000");
-  await expect(
-    page.getByRole("heading", { level: 2, name: "TypeError: Error number 0" })
-  ).toBeVisible();
-  await expect(page.getByText("Happened 2 times in the last 30 days")).toBeVisible();
-  const [first] = await page.getByRole("listitem").filter({ hasText: "Firefox" }).all();
-  await expect(first).toContainText("https://ev.chealt.com/hu/hu/");
-  await expect(first).toContainText("user-1");
-  await expect(first).toContainText("HU");
-  await first.getByText("Stack trace").click();
-  await expect(first.getByText("at show (GoogleMap.js:10:5)")).toBeVisible();
+    await expect(page).toHaveURL("/en/admin/errors/?error=00000000");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "TypeError: Error number 0" })
+    ).toBeVisible();
+    await expect(page.getByText("Happened 2 times in the last 30 days")).toBeVisible();
+    const [first] = await page.getByRole("listitem").filter({ hasText: "Firefox" }).all();
+    await expect(first).toContainText("https://ev.chealt.com/hu/hu/");
+    await expect(first).toContainText("user-1");
+    await expect(first).toContainText("HU");
+    await first.getByText("Stack trace").click();
+    await expect(first.getByText("at show (GoogleMap.js:10:5)")).toBeVisible();
 
-  await page.getByRole("link", { name: "All errors" }).click();
-  await expect(page).toHaveURL("/en/admin/errors/");
-  await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
-});
+    await page.getByRole("link", { name: "All errors" }).click();
+    await expect(page).toHaveURL("/en/admin/errors/");
+    await expect(page.getByText("3 kinds of errors in the last 30 days")).toBeVisible();
+  });
 
-test("says when there are no errors", async ({ page }) => {
-  await fakeErrorsData(page, 0);
-  await page.goto("/en/admin/errors/");
+  test("says when there are no errors", async ({ page }) => {
+    await fakeErrorsData(page, 0);
+    await page.goto("/en/admin/errors/");
 
-  await expect(page.getByText("No errors in the last 30 days.")).toBeVisible();
-});
+    await expect(page.getByText("No errors in the last 30 days.")).toBeVisible();
+  });
 
-test("links the overview to the errors", async ({ page }) => {
-  await fakeErrorsData(page, 0);
-  await page.goto("/en/admin/");
+  test("links the overview to the errors", async ({ page }) => {
+    await fakeErrorsData(page, 0);
+    await page.goto("/en/admin/");
 
-  await page
-    .getByRole("navigation", { name: "Admin" })
-    .getByRole("link", { name: "Errors" })
-    .click();
+    await page
+      .getByRole("navigation", { name: "Admin" })
+      .getByRole("link", { name: "Errors" })
+      .click();
 
-  await expect(page).toHaveURL("/en/admin/errors/");
-  await expect(page.getByRole("link", { name: "Errors" }).first()).toHaveAttribute(
-    "aria-current",
-    "page"
-  );
+    await expect(page).toHaveURL("/en/admin/errors/");
+    await expect(page.getByRole("link", { name: "Errors" }).first()).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+  });
 });

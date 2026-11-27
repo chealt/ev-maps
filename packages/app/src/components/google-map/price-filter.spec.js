@@ -22,41 +22,43 @@ const chargers = [
   charger(4, "Unpriced charger", [40.68, -74.05], "parking fee applies"),
 ];
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeChargersApi(page, { chargers });
-  await page.goto("/");
-  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
-});
+test.describe("filters", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeChargersApi(page, { chargers });
+    await page.goto("/");
+    await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
+  });
 
-const shownChargers = (page) =>
-  page
-    .getByRole("region", { name: "EV charging station map" })
-    .getByRole("button")
-    .evaluateAll((buttons) => buttons.map((button) => button.textContent.trim()).sort());
+  const shownChargers = (page) =>
+    page
+      .getByRole("region", { name: "EV charging station map" })
+      .getByRole("button")
+      .evaluateAll((buttons) => buttons.map((button) => button.textContent.trim()).sort());
 
-test("shows only the chargers at the price levels on", async ({ page }) => {
-  await page.getByRole("button", { name: "Filters", exact: true }).click();
-  const filters = page.getByRole("dialog", { name: "Filters" });
-  const price = filters.getByRole("group", { name: "Price" });
-  await price.getByRole("button", { name: "Cheaper" }).click();
-  await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
-  expect(await shownChargers(page)).toEqual(["Cheap charger"]);
+  test("shows only the chargers at the price levels on", async ({ page }) => {
+    await page.getByRole("button", { name: "Filters", exact: true }).click();
+    const filters = page.getByRole("dialog", { name: "Filters" });
+    const price = filters.getByRole("group", { name: "Price" });
+    await price.getByRole("button", { name: "Cheaper" }).click();
+    await expect(page.getByRole("status")).toHaveText("1 of 4 EV chargers match the filters");
+    expect(await shownChargers(page)).toEqual(["Cheap charger"]);
 
-  // Levels add up; a charger without a comparable price is at none.
-  await price.getByRole("button", { name: "Pricier" }).click();
-  await expect(page.getByRole("status")).toHaveText("2 of 4 EV chargers match the filters");
-  expect(await shownChargers(page)).toEqual(["Cheap charger", "Pricey charger"]);
-  await expect(
-    page.getByRole("button", { name: "Filters", exact: true })
-  ).toHaveAccessibleDescription("2 filters on");
+    // Levels add up; a charger without a comparable price is at none.
+    await price.getByRole("button", { name: "Pricier" }).click();
+    await expect(page.getByRole("status")).toHaveText("2 of 4 EV chargers match the filters");
+    expect(await shownChargers(page)).toEqual(["Cheap charger", "Pricey charger"]);
+    await expect(
+      page.getByRole("button", { name: "Filters", exact: true })
+    ).toHaveAccessibleDescription("2 filters on");
 
-  // Kept after a reload, as the other filters are.
-  await filters.getByRole("button", { name: "Done" }).click();
-  await page.reload();
-  await expect(page.getByRole("status")).toHaveText("2 of 4 EV chargers match the filters");
+    // Kept after a reload, as the other filters are.
+    await filters.getByRole("button", { name: "Done" }).click();
+    await page.reload();
+    await expect(page.getByRole("status")).toHaveText("2 of 4 EV chargers match the filters");
 
-  // Clearing the filters shows them all again.
-  await page.keyboard.press("c");
-  await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
+    // Clearing the filters shows them all again.
+    await page.keyboard.press("c");
+    await expect(page.getByRole("status")).toHaveText("4 EV chargers found");
+  });
 });

@@ -58,96 +58,98 @@ const fakeReportsApi = async (page, total) => {
 
 const branchFilter = (page) => page.getByRole("combobox", { name: "Branch" });
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
-});
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
 
-test(
-  "lists the reports, the latest first, with links to them",
-  { tag: "@performance" },
-  async ({ page }) => {
-    await fakeReportsApi(page, 2);
+  test(
+    "lists the reports, the latest first, with links to them",
+    { tag: "@performance" },
+    async ({ page }) => {
+      await fakeReportsApi(page, 2);
+      await page.goto("/en/admin/reports/");
+      await branchFilter(page).selectOption({ label: "All branches" });
+
+      await expect(page.getByRole("heading", { level: 2, name: "Test reports" })).toBeVisible();
+      await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
+      const rows = page.getByRole("table").getByRole("row");
+      await expect(rows).toHaveCount(3);
+
+      const latest = rows.nth(1);
+      await expect(latest).toContainText("Failed");
+      await expect(latest).toContainText("156 passed, 2 failed, 1 flaky");
+      await expect(latest).toContainText("main");
+      await expect(latest).toContainText("1.4 min");
+      await expect(latest.getByRole("link", { name: "0123456" })).toHaveAttribute(
+        "href",
+        "https://github.com/chealt/ev-maps/commit/0123456789abcdef0123456789abcdef01234567"
+      );
+      await expect(latest.getByRole("link", { name: "Open report" })).toHaveAttribute(
+        "href",
+        "/en/admin/reports/9000-1/"
+      );
+
+      const older = rows.nth(2);
+      await expect(older).toContainText("Passed");
+      await expect(older.getByRole("link", { name: "#91" })).toHaveAttribute(
+        "href",
+        "https://github.com/chealt/ev-maps/pull/91"
+      );
+      await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
+    }
+  );
+
+  test("pages through many reports", async ({ page }) => {
+    await fakeReportsApi(page, 25);
     await page.goto("/en/admin/reports/");
-    await branchFilter(page).selectOption({ label: "All branches" });
+    await branchFilter(page).selectOption("feat/test-reports");
+    await expect(page.getByText("Page 1 of 2")).toBeVisible();
 
-    await expect(page.getByRole("heading", { level: 2, name: "Test reports" })).toBeVisible();
+    await page.getByRole("button", { name: "Next" }).click();
+
+    await expect(page).toHaveURL("/en/admin/reports/?page=2");
+    // The 24 on the feature branch: 4 on the second page.
+    await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
+  });
+
+  test("is in the admin navigation", async ({ page }) => {
+    await fakeReportsApi(page, 0);
+    await page.goto("/en/admin/");
+
+    await page
+      .getByRole("navigation", { name: "Admin" })
+      .getByRole("link", { name: "Test reports" })
+      .click();
+
+    await expect(page).toHaveURL("/en/admin/reports/");
+    await expect(page.getByText("No reports in the last 30 days.")).toBeVisible();
+  });
+
+  test("shows the default branch's reports first, and remembers the filter", async ({ page }) => {
+    const requests = await fakeReportsApi(page, 3);
+    await page.goto("/en/admin/reports/");
+
+    await expect(branchFilter(page)).toHaveValue("main");
+    await expect(page.getByText("1 report in the last 30 days")).toBeVisible();
+    expect(requests[0]).toEqual({ page: "1", branch: "main" });
+    await expect(branchFilter(page).getByRole("option")).toHaveText([
+      "All branches",
+      "main",
+      "feat/test-reports",
+    ]);
+
+    await branchFilter(page).selectOption("feat/test-reports");
     await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
-    const rows = page.getByRole("table").getByRole("row");
-    await expect(rows).toHaveCount(3);
 
-    const latest = rows.nth(1);
-    await expect(latest).toContainText("Failed");
-    await expect(latest).toContainText("156 passed, 2 failed, 1 flaky");
-    await expect(latest).toContainText("main");
-    await expect(latest).toContainText("1.4 min");
-    await expect(latest.getByRole("link", { name: "0123456" })).toHaveAttribute(
-      "href",
-      "https://github.com/chealt/ev-maps/commit/0123456789abcdef0123456789abcdef01234567"
-    );
-    await expect(latest.getByRole("link", { name: "Open report" })).toHaveAttribute(
-      "href",
-      "/en/admin/reports/9000-1/"
-    );
+    // Kept in this browser (IndexedDB).
+    await page.reload();
+    await expect(branchFilter(page)).toHaveValue("feat/test-reports");
+    await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
+    expect(requests.at(-1)).toEqual({ page: "1", branch: "feat/test-reports" });
 
-    const older = rows.nth(2);
-    await expect(older).toContainText("Passed");
-    await expect(older.getByRole("link", { name: "#91" })).toHaveAttribute(
-      "href",
-      "https://github.com/chealt/ev-maps/pull/91"
-    );
-    await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
-  }
-);
-
-test("pages through many reports", async ({ page }) => {
-  await fakeReportsApi(page, 25);
-  await page.goto("/en/admin/reports/");
-  await branchFilter(page).selectOption("feat/test-reports");
-  await expect(page.getByText("Page 1 of 2")).toBeVisible();
-
-  await page.getByRole("button", { name: "Next" }).click();
-
-  await expect(page).toHaveURL("/en/admin/reports/?page=2");
-  // The 24 on the feature branch: 4 on the second page.
-  await expect(page.getByRole("table").getByRole("row")).toHaveCount(5);
-});
-
-test("is in the admin navigation", async ({ page }) => {
-  await fakeReportsApi(page, 0);
-  await page.goto("/en/admin/");
-
-  await page
-    .getByRole("navigation", { name: "Admin" })
-    .getByRole("link", { name: "Test reports" })
-    .click();
-
-  await expect(page).toHaveURL("/en/admin/reports/");
-  await expect(page.getByText("No reports in the last 30 days.")).toBeVisible();
-});
-
-test("shows the default branch's reports first, and remembers the filter", async ({ page }) => {
-  const requests = await fakeReportsApi(page, 3);
-  await page.goto("/en/admin/reports/");
-
-  await expect(branchFilter(page)).toHaveValue("main");
-  await expect(page.getByText("1 report in the last 30 days")).toBeVisible();
-  expect(requests[0]).toEqual({ page: "1", branch: "main" });
-  await expect(branchFilter(page).getByRole("option")).toHaveText([
-    "All branches",
-    "main",
-    "feat/test-reports",
-  ]);
-
-  await branchFilter(page).selectOption("feat/test-reports");
-  await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
-
-  // Kept in this browser (IndexedDB).
-  await page.reload();
-  await expect(branchFilter(page)).toHaveValue("feat/test-reports");
-  await expect(page.getByText("2 reports in the last 30 days")).toBeVisible();
-  expect(requests.at(-1)).toEqual({ page: "1", branch: "feat/test-reports" });
-
-  await branchFilter(page).selectOption({ label: "All branches" });
-  await expect(page.getByText("3 reports in the last 30 days")).toBeVisible();
-  expect(requests.at(-1)).toEqual({ page: "1" });
+    await branchFilter(page).selectOption({ label: "All branches" });
+    await expect(page.getByText("3 reports in the last 30 days")).toBeVisible();
+    expect(requests.at(-1)).toEqual({ page: "1" });
+  });
 });

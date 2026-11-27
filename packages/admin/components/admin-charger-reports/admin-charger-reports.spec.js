@@ -58,44 +58,51 @@ const fakeReportsApi = async (page) => {
   });
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
+
+  test(
+    "admin weighs a reported change by its proof and trust score, and approves it",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeReportsApi(page);
+      await page.goto("/en/admin/");
+      await page.getByRole("link", { name: "Reported changes" }).click();
+
+      await expect(page.getByRole("heading", { level: 2, name: "Reported changes" })).toBeVisible();
+      await expect(page.getByText("1 reported change")).toBeVisible();
+      const report = page.getByRole("article").filter({ hasText: "Harbor Charging Hub" });
+      await expect(report.getByText("Reported by ada@example.com")).toBeVisible();
+      await expect(report.getByText("65/100")).toBeVisible();
+      // The factors that counted, not the ones that gave nothing.
+      await expect(
+        report.getByRole("list", { name: "What the trust is based on" }).getByRole("listitem")
+      ).toHaveText([
+        "Location +30",
+        "Charger photo +15",
+        "Receipt photo +15",
+        "Approved before +5",
+      ]);
+      await expect(report.getByText("Operational → Temporarily unavailable")).toBeVisible();
+      await expect(report.getByText("€0.39/kWh → €0.45/kWh")).toBeVisible();
+      await expect(report.getByText("The device was 30 m from the charger (±12 m)")).toBeVisible();
+      await expect(report.getByRole("img", { name: "Charger photo" })).toBeVisible();
+      await expect(
+        report.getByRole("img", { name: "Receipt, invoice or charging app photo" })
+      ).toBeVisible();
+      await captureUi(page, testInfo, "admin reviewing a reported change");
+
+      await report.getByRole("button", { name: "Approve" }).click();
+      await expect(page.getByText("No reported changes found.")).toBeVisible();
+
+      await page
+        .getByRole("group", { name: "Status" })
+        .getByText("Approved", { exact: true })
+        .click();
+      await expect(report.getByRole("button", { name: "Approve" })).toBeHidden();
+      await expect(report.getByText("Approved", { exact: true })).toBeVisible();
+    }
+  );
 });
-
-test(
-  "admin weighs a reported change by its proof and trust score, and approves it",
-  { tag: "@ui" },
-  async ({ page }, testInfo) => {
-    await fakeReportsApi(page);
-    await page.goto("/en/admin/");
-    await page.getByRole("link", { name: "Reported changes" }).click();
-
-    await expect(page.getByRole("heading", { level: 2, name: "Reported changes" })).toBeVisible();
-    await expect(page.getByText("1 reported change")).toBeVisible();
-    const report = page.getByRole("article").filter({ hasText: "Harbor Charging Hub" });
-    await expect(report.getByText("Reported by ada@example.com")).toBeVisible();
-    await expect(report.getByText("65/100")).toBeVisible();
-    // The factors that counted, not the ones that gave nothing.
-    await expect(
-      report.getByRole("list", { name: "What the trust is based on" }).getByRole("listitem")
-    ).toHaveText(["Location +30", "Charger photo +15", "Receipt photo +15", "Approved before +5"]);
-    await expect(report.getByText("Operational → Temporarily unavailable")).toBeVisible();
-    await expect(report.getByText("€0.39/kWh → €0.45/kWh")).toBeVisible();
-    await expect(report.getByText("The device was 30 m from the charger (±12 m)")).toBeVisible();
-    await expect(report.getByRole("img", { name: "Charger photo" })).toBeVisible();
-    await expect(
-      report.getByRole("img", { name: "Receipt, invoice or charging app photo" })
-    ).toBeVisible();
-    await captureUi(page, testInfo, "admin reviewing a reported change");
-
-    await report.getByRole("button", { name: "Approve" }).click();
-    await expect(page.getByText("No reported changes found.")).toBeVisible();
-
-    await page
-      .getByRole("group", { name: "Status" })
-      .getByText("Approved", { exact: true })
-      .click();
-    await expect(report.getByRole("button", { name: "Approve" })).toBeHidden();
-    await expect(report.getByText("Approved", { exact: true })).toBeVisible();
-  }
-);

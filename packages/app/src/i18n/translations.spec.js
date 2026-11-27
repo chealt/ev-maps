@@ -18,54 +18,56 @@ const watchMissingMessages = (page) => {
   return missing;
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeGoogleMaps(page);
-  await fakeChargersApi(page);
-});
+test.describe("translations", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeGoogleMaps(page);
+    await fakeChargersApi(page);
+  });
 
-test("the map pages have every message their scripts use", async ({ page }) => {
-  const missing = watchMissingMessages(page);
-  await fakeAuthApi(page, { signedIn: true });
-  await page.route("**/api/favorites", (route) => route.fulfill({ json: { favorites: [] } }));
-  await page.goto("/hu/");
-  await expect(page.getByRole("status")).toHaveText("2 töltőállomás található");
+  test("the map pages have every message their scripts use", async ({ page }) => {
+    const missing = watchMissingMessages(page);
+    await fakeAuthApi(page, { signedIn: true });
+    await page.route("**/api/favorites", (route) => route.fulfill({ json: { favorites: [] } }));
+    await page.goto("/hu/");
+    await expect(page.getByRole("status")).toHaveText("2 töltőállomás található");
 
-  await page
-    .getByRole("region", { name: "Töltőállomások térképe" })
-    .getByRole("button", { name: "Downtown Supercharger" })
-    .click();
-  await page.getByRole("button", { name: "Szűrők", exact: true }).click();
-  await page.getByRole("dialog", { name: "Szűrők" }).getByRole("button", { name: "CCS" }).click();
-  await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: /^Fiók: / }).click();
-  await page.getByRole("button", { name: "Kedvencek" }).click();
-  await expect(page.getByRole("dialog", { name: "Kedvencek" })).toBeVisible();
+    await page
+      .getByRole("region", { name: "Töltőállomások térképe" })
+      .getByRole("button", { name: "Downtown Supercharger" })
+      .click();
+    await page.getByRole("button", { name: "Szűrők", exact: true }).click();
+    await page.getByRole("dialog", { name: "Szűrők" }).getByRole("button", { name: "CCS" }).click();
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: /^Fiók: / }).click();
+    await page.getByRole("button", { name: "Kedvencek" }).click();
+    await expect(page.getByRole("dialog", { name: "Kedvencek" })).toBeVisible();
 
-  expect(missing).toEqual([]);
-});
+    expect(missing).toEqual([]);
+  });
 
-test("the legal pages get no messages, and the admin pages only their own", async ({ page }) => {
-  const missing = watchMissingMessages(page);
-  await fakeAuthApi(page, { signedIn: true });
-  await page.route("**/api/admin/me", (route) =>
-    route.fulfill({ json: { admin: true, email: "grace@chealt.com" } })
-  );
-  await fakePageData(page, ERRORS_PAGE, { data: { groups: [], page: 1, pages: 1, total: 0 } });
+  test("the legal pages get no messages, and the admin pages only their own", async ({ page }) => {
+    const missing = watchMissingMessages(page);
+    await fakeAuthApi(page, { signedIn: true });
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: "grace@chealt.com" } })
+    );
+    await fakePageData(page, ERRORS_PAGE, { data: { groups: [], page: 1, pages: 1, total: 0 } });
 
-  await page.goto("/pl/privacy/");
-  // Their scripts show no copy, so they carry none.
-  await expect(page.locator("#messages")).toHaveCount(0);
+    await page.goto("/pl/privacy/");
+    // Their scripts show no copy, so they carry none.
+    await expect(page.locator("#messages")).toHaveCount(0);
 
-  await page.goto("/pl/admin/errors/");
-  await expect(page.getByText("Brak błędów w ostatnich 30 dniach.")).toBeVisible();
-  const adminMessages = await page.evaluate(
-    () => JSON.parse(document.getElementById("messages").textContent).messages
-  );
-  // The errors page's copy is rendered on the server; its scripts (the
-  // admin frame's) get only the admin area's messages.
-  expect(adminMessages).toHaveProperty("adminSignedInAs");
-  expect(adminMessages).not.toHaveProperty("adminNoErrors");
-  expect(adminMessages).not.toHaveProperty("chargerCount");
+    await page.goto("/pl/admin/errors/");
+    await expect(page.getByText("Brak błędów w ostatnich 30 dniach.")).toBeVisible();
+    const adminMessages = await page.evaluate(
+      () => JSON.parse(document.getElementById("messages").textContent).messages
+    );
+    // The errors page's copy is rendered on the server; its scripts (the
+    // admin frame's) get only the admin area's messages.
+    expect(adminMessages).toHaveProperty("adminSignedInAs");
+    expect(adminMessages).not.toHaveProperty("adminNoErrors");
+    expect(adminMessages).not.toHaveProperty("chargerCount");
 
-  expect(missing).toEqual([]);
+    expect(missing).toEqual([]);
+  });
 });

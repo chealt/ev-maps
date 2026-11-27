@@ -92,111 +92,113 @@ const fakePerformanceApi = async (page) => {
   return requests;
 };
 
-test.beforeEach(async ({ page }) => {
-  await fakeAuthApi(page, { signedIn: true, user: GRACE });
-});
+test.describe("admin", () => {
+  test.beforeEach(async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true, user: GRACE });
+  });
 
-test(
-  "shows the Web Vitals' P75s with their rating, and the timings",
-  { tag: "@performance" },
-  async ({ page }) => {
+  test(
+    "shows the Web Vitals' P75s with their rating, and the timings",
+    { tag: "@performance" },
+    async ({ page }) => {
+      await fakePerformanceApi(page);
+      await page.goto("/en/admin/performance/");
+
+      await expect(page.getByRole("heading", { level: 2, name: "Performance" })).toBeVisible();
+      const lcp = page.locator('[data-vital="LCP"]');
+      await expect(lcp.locator(".value")).toHaveText("2.1 s");
+      await expect(lcp).toHaveAttribute("data-rating", "good");
+      await expect(page.locator('[data-vital="INP"] .value')).toHaveText("350 ms");
+      await expect(page.locator('[data-vital="INP"]')).toHaveAttribute(
+        "data-rating",
+        "needs-improvement"
+      );
+      await expect(page.locator('[data-vital="CLS"] .value')).toHaveText("0.31");
+      await expect(page.locator('[data-vital="CLS"]')).toHaveAttribute("data-rating", "poor");
+      await expect(page.locator('[data-vital="TTFB"] .value')).toHaveText("–");
+      await expect(page.getByTitle("Largest Contentful Paint")).toBeVisible();
+
+      const requests = page.getByRole("region", { name: "Requests, in the Worker" });
+      await expect(requests.getByRole("row").nth(1)).toHaveText(
+        /POST route\s*12\s*840 ms\s*1.9 s\s*2.3 s\s*1/
+      );
+      const queries = page.getByRole("region", { name: "Slowest database queries" });
+      await expect(queries.getByRole("row").nth(1)).toContainText(
+        "SELECT * FROM chargers_rtree WHERE ?"
+      );
+      await expect(
+        page
+          .getByRole("region", { name: "API calls, as the page saw them" })
+          .getByText("Nothing yet.")
+      ).toBeVisible();
+    }
+  );
+
+  test("opens a slow request's trace as a waterfall, and goes back", async ({ page }) => {
+    await fakePerformanceApi(page);
+    await page.goto("/en/admin/performance/");
+    const slowest = page.getByRole("region", { name: "Slowest requests" });
+
+    await slowest.getByRole("link", { name: "POST route" }).click();
+
+    await expect(page).toHaveURL(`/en/admin/performance/?trace=${TRACE}`);
+    await expect(
+      page.getByRole("heading", { level: 2, name: "POST /api/chargers/route" })
+    ).toBeVisible();
+    const waterfall = page.getByRole("list", { name: "Spans of the trace" });
+    await expect(waterfall.getByRole("listitem")).toHaveCount(3);
+    const query = waterfall.getByRole("listitem").nth(2);
+    await expect(query).toContainText("d1");
+    await expect(query).toContainText("1.2 s");
+    await expect(query).toContainText("SELECT * FROM chargers_rtree WHERE ?");
+    // Indented by depth: page → worker → d1.
+    await expect(query).toHaveAttribute("style", /--depth: 2/);
+    await expect(query.locator(".bar")).toHaveAttribute("style", /--width: 0\.5/);
+
+    await page.getByRole("link", { name: "All performance" }).click();
+    await expect(page).toHaveURL("/en/admin/performance/");
+    await expect(page.locator('[data-vital="LCP"] .value')).toHaveText("2.1 s");
+  });
+
+  test("switches the period, and is in the admin navigation", async ({ page }) => {
+    const requests = await fakePerformanceApi(page);
+    await page.goto("/en/admin/");
+    await page
+      .getByRole("navigation", { name: "Admin" })
+      .getByRole("link", { name: "Performance" })
+      .click();
+    await expect(page).toHaveURL("/en/admin/performance/");
+    // Loaded, so the page's script is listening.
+    await expect(page.getByText("The last 7 days")).toBeVisible();
+
+    await page.getByText("Last 14 days", { exact: true }).click();
+
+    await expect(page.getByText("The last 14 days")).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Last 14 days" })).toBeChecked();
+    expect(requests).toEqual([7, 14]);
+  });
+
+  test("charts each Web Vital's P75 per day", { tag: "@ui" }, async ({ page }) => {
     await fakePerformanceApi(page);
     await page.goto("/en/admin/performance/");
 
-    await expect(page.getByRole("heading", { level: 2, name: "Performance" })).toBeVisible();
-    const lcp = page.locator('[data-vital="LCP"]');
-    await expect(lcp.locator(".value")).toHaveText("2.1 s");
-    await expect(lcp).toHaveAttribute("data-rating", "good");
-    await expect(page.locator('[data-vital="INP"] .value')).toHaveText("350 ms");
-    await expect(page.locator('[data-vital="INP"]')).toHaveAttribute(
-      "data-rating",
-      "needs-improvement"
-    );
-    await expect(page.locator('[data-vital="CLS"] .value')).toHaveText("0.31");
-    await expect(page.locator('[data-vital="CLS"]')).toHaveAttribute("data-rating", "poor");
-    await expect(page.locator('[data-vital="TTFB"] .value')).toHaveText("–");
-    await expect(page.getByTitle("Largest Contentful Paint")).toBeVisible();
+    const chart = page.getByRole("list", { name: "P75 per day, over 14 days" });
+    await expect(chart.getByRole("listitem")).toHaveText([
+      "Nov 22: 3.2 s",
+      "Nov 23: no measurements",
+      "Nov 24: 2.1 s",
+    ]);
 
-    const requests = page.getByRole("region", { name: "Requests, in the Worker" });
-    await expect(requests.getByRole("row").nth(1)).toHaveText(
-      /POST route\s*12\s*840 ms\s*1.9 s\s*2.3 s\s*1/
-    );
-    const queries = page.getByRole("region", { name: "Slowest database queries" });
-    await expect(queries.getByRole("row").nth(1)).toContainText(
-      "SELECT * FROM chargers_rtree WHERE ?"
-    );
-    await expect(
-      page
-        .getByRole("region", { name: "API calls, as the page saw them" })
-        .getByText("Nothing yet.")
-    ).toBeVisible();
-  }
-);
-
-test("opens a slow request's trace as a waterfall, and goes back", async ({ page }) => {
-  await fakePerformanceApi(page);
-  await page.goto("/en/admin/performance/");
-  const slowest = page.getByRole("region", { name: "Slowest requests" });
-
-  await slowest.getByRole("link", { name: "POST route" }).click();
-
-  await expect(page).toHaveURL(`/en/admin/performance/?trace=${TRACE}`);
-  await expect(
-    page.getByRole("heading", { level: 2, name: "POST /api/chargers/route" })
-  ).toBeVisible();
-  const waterfall = page.getByRole("list", { name: "Spans of the trace" });
-  await expect(waterfall.getByRole("listitem")).toHaveCount(3);
-  const query = waterfall.getByRole("listitem").nth(2);
-  await expect(query).toContainText("d1");
-  await expect(query).toContainText("1.2 s");
-  await expect(query).toContainText("SELECT * FROM chargers_rtree WHERE ?");
-  // Indented by depth: page → worker → d1.
-  await expect(query).toHaveAttribute("style", /--depth: 2/);
-  await expect(query.locator(".bar")).toHaveAttribute("style", /--width: 0\.5/);
-
-  await page.getByRole("link", { name: "All performance" }).click();
-  await expect(page).toHaveURL("/en/admin/performance/");
-  await expect(page.locator('[data-vital="LCP"] .value')).toHaveText("2.1 s");
-});
-
-test("switches the period, and is in the admin navigation", async ({ page }) => {
-  const requests = await fakePerformanceApi(page);
-  await page.goto("/en/admin/");
-  await page
-    .getByRole("navigation", { name: "Admin" })
-    .getByRole("link", { name: "Performance" })
-    .click();
-  await expect(page).toHaveURL("/en/admin/performance/");
-  // Loaded, so the page's script is listening.
-  await expect(page.getByText("The last 7 days")).toBeVisible();
-
-  await page.getByText("Last 14 days", { exact: true }).click();
-
-  await expect(page.getByText("The last 14 days")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Last 14 days" })).toBeChecked();
-  expect(requests).toEqual([7, 14]);
-});
-
-test("charts each Web Vital's P75 per day", { tag: "@ui" }, async ({ page }) => {
-  await fakePerformanceApi(page);
-  await page.goto("/en/admin/performance/");
-
-  const chart = page.getByRole("list", { name: "P75 per day, over 14 days" });
-  await expect(chart.getByRole("listitem")).toHaveText([
-    "Nov 22: 3.2 s",
-    "Nov 23: no measurements",
-    "Nov 24: 2.1 s",
-  ]);
-
-  // A day's real 0 is a measurement, not a gap.
-  await page
-    .getByRole("group", { name: "Web Vital to chart" })
-    .getByText("CLS", { exact: true })
-    .click();
-  await expect(chart.getByRole("listitem")).toHaveText([
-    "Nov 22: no measurements",
-    "Nov 23: 0",
-    "Nov 24: no measurements",
-  ]);
-  await expect(page.getByRole("radio", { name: "CLS" })).toBeChecked();
+    // A day's real 0 is a measurement, not a gap.
+    await page
+      .getByRole("group", { name: "Web Vital to chart" })
+      .getByText("CLS", { exact: true })
+      .click();
+    await expect(chart.getByRole("listitem")).toHaveText([
+      "Nov 22: no measurements",
+      "Nov 23: 0",
+      "Nov 24: no measurements",
+    ]);
+    await expect(page.getByRole("radio", { name: "CLS" })).toBeChecked();
+  });
 });

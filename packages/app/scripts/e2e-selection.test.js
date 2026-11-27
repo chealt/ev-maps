@@ -1,15 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import mapping from "../e2e-domains.json" with { type: "json" };
 import { grepOf, selectE2e } from "./e2e-selection.js";
 
 const specs = [];
+const specSources = {};
 const walk = (url) => {
   for (const entry of readdirSync(url, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       walk(new URL(`${entry.name}/`, url));
     } else if (entry.name.endsWith(".spec.js")) {
-      specs.push(entry.name.slice(0, -".spec.js".length));
+      const name = entry.name.slice(0, -".spec.js".length);
+      specs.push(name);
+      specSources[name] = readFileSync(new URL(entry.name, url), "utf8");
     }
   }
 };
@@ -92,5 +95,21 @@ describe("e2e-domains.json", () => {
     const named = Object.values(mapping.domains).flatMap((domain) => domain.tests);
     expect(named.filter((name) => !specs.includes(name))).toEqual([]);
     expect(specs.filter((name) => !named.includes(name))).toEqual([]);
+  });
+
+  // Their tests are in one describe block, at the top, named after one of
+  // the spec's domains (#367), so the report groups them by domain.
+  test("every spec's tests are in a describe block of one of its domains", () => {
+    const domainsOf = (name) =>
+      Object.entries(mapping.domains)
+        .filter(([, domain]) => domain.tests.includes(name))
+        .map(([domain]) => domain);
+    const misplaced = specs.filter((name) => {
+      const source = specSources[name];
+      const blocks = [...source.matchAll(/^test\.describe\("([^"]+)",/gm)].map((match) => match[1]);
+      const outside = /^test(\(|\.(?!describe\())/m.test(source);
+      return blocks.length !== 1 || outside || !domainsOf(name).includes(blocks[0]);
+    });
+    expect(misplaced).toEqual([]);
   });
 });
