@@ -3,6 +3,15 @@
   --account-menu-width: 17rem;
   --provider-logo-size: 1.125rem;
 
+  /* Wider on desktop, where there's room to spare (#374). */
+  @media (width >= 64em) {
+    --account-menu-width: 20rem;
+  }
+
+  @media (width >= 90em) {
+    --account-menu-width: 23rem;
+  }
+
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
