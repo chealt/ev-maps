@@ -220,9 +220,11 @@ const map = {
     fromStart: "{distance} from the start",
     toEnd: "{distance} to the end",
     offRoute: "{distance} off the route",
-    chargerNoneFree: "{name}, no points free",
+    chargerAllBusy: "{name}, all points busy",
+    chargerOutOfService: "{name}, out of service",
     chargerFavorite: "{name}, favorite",
-    chargerFavoriteNoneFree: "{name}, favorite, no points free",
+    chargerFavoriteAllBusy: "{name}, favorite, all points busy",
+    chargerFavoriteOutOfService: "{name}, favorite, out of service",
     pointsFree: {
       one: "{available} of {count} point free",
       other: "{available} of {count} points free",

@@ -318,14 +318,14 @@ test.describe("map", () => {
       );
 
       // 2. All occupied (yellow).
-      await map.getByRole("button", { name: "Busy Hub, no points free" }).click();
+      await map.getByRole("button", { name: "Busy Hub, all points busy" }).click();
       const busyDetails = page.getByRole("complementary", { name: "Busy Hub" });
       await expect(busyDetails.getByText("0 of 8 points free")).toBeVisible();
       await expect(busyDetails.locator('.connector-point[data-state="occupied"]')).toHaveCount(8);
       await captureUi(page, testInfo, "2. all occupied (yellow)");
 
       // 3. All out-of-service / not working (red).
-      await map.getByRole("button", { name: "Broken Hub, no points free" }).click();
+      await map.getByRole("button", { name: "Broken Hub, out of service" }).click();
       const brokenDetails = page.getByRole("complementary", { name: "Broken Hub" });
       await expect(brokenDetails.getByText("Out of service: 8")).toBeVisible();
       await expect(
