@@ -1,5 +1,6 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { USAGE_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 
@@ -10,21 +11,24 @@ const daysUpTo = (count, last = "2026-11-23") =>
       .slice(0, 10)
   );
 
-// The Worker's usage stats for the asked number of days.
+// The Worker's usage stats for the page's ?days= (30 by default): the page
+// is rendered on the server with them (in the tests, passed in a header:
+// src/lib/page-data.js).
 const fakeUsageAdminApi = async (page) => {
   const requests = [];
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: GRACE.email } })
   );
-  await page.route("**/api/admin/usage?**", (route) => {
-    const days = Number(new URL(route.request().url()).searchParams.get("days"));
+  await fakePageData(page, USAGE_PAGE, (url) => {
+    const days = Number(url.searchParams.get("days") ?? 30);
     requests.push(days);
     const dayList = daysUpTo(days);
     const byDay = Object.fromEntries(dayList.map((day) => [day, 0]));
     byDay[dayList.at(-1)] = 40;
     byDay[dayList.at(-2)] = 10;
-    return route.fulfill({
-      json: {
+    return {
+      data: {
+        period: days,
         days: dayList,
         events: {
           page_view: {
@@ -41,7 +45,7 @@ const fakeUsageAdminApi = async (page) => {
           { id: "eipa:2", name: null, count: 1 },
         ],
       },
-    });
+    };
   });
   return requests;
 };
@@ -102,6 +106,17 @@ test.describe("admin", () => {
       page.getByRole("list", { name: "Page views per day" }).getByRole("listitem")
     ).toHaveCount(7);
     expect(requests).toEqual([30, 7]);
+  });
+
+  test("says when the stats couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, USAGE_PAGE, { failed: true });
+    await page.goto("/en/admin/usage/");
+
+    await expect(page.getByRole("status").filter({ hasText: "couldn't be loaded" })).toBeVisible();
+    await expect(page.locator(".totals")).toHaveCount(0);
   });
 
   test("is in the admin navigation and overview", async ({ page }) => {

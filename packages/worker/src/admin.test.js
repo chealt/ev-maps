@@ -79,13 +79,13 @@ describe("adminPageResponse", () => {
     expect(calls[0].props.data.total).toBe(1);
     expect(calls[0].props.data.occurrences[0].message).toBe("Boom");
     // Static admin pages still come from the assets.
-    const usage = await adminPageResponse(
-      new Request("https://ev.chealt.com/en/admin/usage/"),
+    const performance = await adminPageResponse(
+      new Request("https://ev.chealt.com/en/admin/performance/"),
       env,
       admin,
       { render }
     );
-    expect(await usage.text()).toBe("<h1>Admin</h1>");
+    expect(await performance.text()).toBe("<h1>Admin</h1>");
     expect(calls).toHaveLength(1);
   });
 
@@ -195,6 +195,25 @@ describe("the overview", () => {
     );
     expect(props.data).toMatchObject({ errors: {}, pageViews: {}, signIns: {}, topPages: [] });
     expect(props.data.days).toHaveLength(30);
+  });
+});
+
+describe("the usage page", () => {
+  test("is rendered on the server, with the usage stats of ?days=", async () => {
+    let props;
+    const render = async (renderedRequest, renderEnv, context) => {
+      props = context.props;
+      return new Response("");
+    };
+    const db = testD1("../../admin/migrations/admin-migrations/0002_usage.sql");
+    await adminPageResponse(
+      new Request("https://ev.chealt.com/en/admin/usage/?days=7"),
+      { ...env, ADMIN_DB: db },
+      { id: "1", email: "grace@chealt.com" },
+      { render }
+    );
+    expect(props.data).toMatchObject({ period: 7, events: {}, top: [] });
+    expect(props.data.days).toHaveLength(7);
   });
 });
 

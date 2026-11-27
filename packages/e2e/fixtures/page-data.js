@@ -30,11 +30,15 @@ const OVERVIEW_PAGE = /\/(en|pl|hu)\/admin\/(\?.*)?$/;
 // query.
 const SUGGESTIONS_PAGE = /\/admin\/suggestions\/(\?.*)?$/;
 
+// The admin usage page, /{lang}/admin/usage/ with any query.
+const USAGE_PAGE = /\/admin\/usage\/(\?.*)?$/;
+
 export {
   CHARGER_REPORTS_PAGE,
   ERRORS_PAGE,
   OVERVIEW_PAGE,
   SUGGESTIONS_PAGE,
   UNAVAILABILITY_PAGE,
+  USAGE_PAGE,
   fakePageData,
 };

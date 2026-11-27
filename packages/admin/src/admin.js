@@ -251,6 +251,15 @@ const createAdminArea = ({
 
   const isAdminPage = (pathname) => adminPagePath.test(pathname);
 
+  // The usage stats of ?days= (one of usagePeriods, else the middle one),
+  // plus the host's extra stats: for the usage API and the usage page.
+  const usage = async (env, url) => {
+    const days = Number(url.searchParams.get("days"));
+    const period = usagePeriods.includes(days) ? days : (usagePeriods[1] ?? 30);
+    const [stats, extra] = await Promise.all([usageStats(db(env), period), usageExtraStats(env)]);
+    return { period, ...stats, ...extra };
+  };
+
   // The admin API (the guard has checked the user is an admin):
   // - GET {apiPrefix}me: who the admin is
   // - GET {apiPrefix}errors?page=: errors grouped, most recent first
@@ -268,12 +277,7 @@ const createAdminArea = ({
       return json(await errorGroups(db(env), pageOf(url), errorFilters(url)));
     }
     if (url.pathname === `${apiPrefix}usage`) {
-      const days = Number(url.searchParams.get("days"));
-      const [stats, extra] = await Promise.all([
-        usageStats(db(env), usagePeriods.includes(days) ? days : (usagePeriods[1] ?? 30)),
-        usageExtraStats(env),
-      ]);
-      return json({ ...stats, ...extra });
+      return json(await usage(env, url));
     }
     const fingerprint = url.pathname.match(errorGroupPath)?.[1];
     if (fingerprint) {
@@ -350,6 +354,8 @@ const createAdminArea = ({
     isAdminPage,
     pageRoutes,
     routes,
+    usage,
+    usagePeriods,
     usageStats,
   };
 };

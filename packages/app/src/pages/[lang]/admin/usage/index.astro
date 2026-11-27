@@ -3,12 +3,18 @@ import Layout from "../../../../layouts/Layout.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import AdminUsage from "@ev-maps/admin/components/admin-usage/AdminUsage.astro";
 import { translations } from "../../../../i18n/index.js";
-import { languages } from "../../../../lib/pages.js";
+import { pageData } from "../../../../lib/page-data.js";
 
-// The Worker only serves this page to admins (packages/admin/src/admin.js).
-export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the usage stats of ?days= as its data (packages/worker/src/admin-area.js).
+export const prerender = false;
 
-const { page, values } = translations(Astro.currentLocale ?? "en");
+const { page, messages, values } = translations(Astro.currentLocale ?? "en");
+const days = Astro.url.searchParams.get("days");
+const data = await pageData(
+  Astro,
+  `/api/admin/usage${days ? `?days=${encodeURIComponent(days)}` : ""}`
+);
 
 // The events this site counts: the totals at the top, the breakdowns below,
 // and how each broken-down event's dimension reads (the values table its
@@ -40,7 +46,9 @@ const dimensionLabels = {
 <Layout title={`EV Maps - ${page.adminUsage}`} noindex kind="admin">
   <AdminPage current="usage" page={page}>
     <AdminUsage
+      pageData={data}
       page={page}
+      messages={messages}
       values={values}
       totals={totals}
       breakdowns={breakdowns}
