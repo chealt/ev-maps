@@ -463,10 +463,15 @@ ev-google-map {
 }
 
 /* A saved place (Home, Work, …): round and light, so it doesn't pass for a
-   charger; it can't be clicked, the chargers' pins over it can. */
+   charger. A click opens its menu (#381), ringed while it's open. */
 .saved-place-marker {
   box-shadow: var(--shadow-md);
-  pointer-events: none;
+  cursor: pointer;
+
+  &.selected {
+    outline: var(--border-width-thick) solid var(--color-primary);
+    outline-offset: var(--border-width);
+  }
 }
 
 /* Clusters of nearby chargers */
@@ -1358,6 +1363,14 @@ ev-google-map.picking :is(.map-controls, .map-status) {
   box-shadow: var(--shadow-md);
 }
 
+/* A saved place's name, above its menu's items. */
+.map-menu-title {
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
 .map-menu-item {
   display: flex;
   align-items: center;
@@ -1377,6 +1390,11 @@ ev-google-map.picking :is(.map-controls, .map-status) {
   &:focus {
     outline: none;
     background: var(--color-surface-hover);
+  }
+
+  /* Removing is only for a saved place's menu. */
+  &[hidden] {
+    display: none;
   }
 }
 

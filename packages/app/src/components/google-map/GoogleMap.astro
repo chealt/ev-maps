@@ -29,6 +29,7 @@ import {
   X,
   Zap,
   Route,
+  Trash2,
 } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import FilterButton from "../filter-button/FilterButton.astro";
@@ -168,8 +169,11 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
     <!-- No separate clear or locate buttons here: clearing is part of the
          filter and route buttons (compact halves that appear when active),
          and Locate Me is in the top bar, next to the account menu. -->
-    <!-- Right-click or long press on the map: a route from or to there. -->
+    <!-- Right-click or long press on the map: a route from or to there. A
+         saved place's pin opens it too, titled with the place's name and
+         with a way to remove it (#381). -->
     <div class="map-menu" id="map-menu" popover role="menu" aria-label={page.mapMenu}>
+      <p class="map-menu-title" hidden></p>
       <button type="button" class="map-menu-item" role="menuitem" data-end="from">
         <Icon icon={Route} size="sm" />
         {page.routeFromHere}
@@ -177,6 +181,16 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       <button type="button" class="map-menu-item" role="menuitem" data-end="to">
         <Icon icon={Flag} size="sm" />
         {page.routeToHere}
+      </button>
+      <button
+        type="button"
+        class="map-menu-item remove-saved-place"
+        role="menuitem"
+        data-action="remove"
+        hidden
+      >
+        <Icon icon={Trash2} size="sm" />
+        {page.deleteSavedPlace}
       </button>
     </div>
 

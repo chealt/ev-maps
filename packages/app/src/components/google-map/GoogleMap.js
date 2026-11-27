@@ -16,7 +16,12 @@ import { mapsApp, mapsAppUrl, onMapsAppChange } from "../../lib/maps-app.js";
 import { animateEscape, closeDialog, openDialog, withViewTransition } from "../../lib/motion.js";
 import { ChargerIndexClient } from "./charger-index-client.js";
 import { operatorOf } from "./charger-index.js";
-import { forgetRouteHistory, readSavedPlaces, recordRoute } from "./route-history.js";
+import {
+  forgetRouteHistory,
+  readSavedPlaces,
+  recordRoute,
+  removeSavedPlace,
+} from "./route-history.js";
 import { SavedPlacesLayer } from "./saved-places-layer.js";
 import { onSavedPlacesOnMapChange, savedPlacesOnMap } from "../../lib/saved-places-on-map.js";
 import { CORRIDOR_KM, fetchChargersAlongRoute, pathBounds, toLatLng } from "./route.js";
@@ -378,6 +383,13 @@ class GoogleMapElement extends HTMLElement {
     this.addEventListener("toggle-filters", () => this.toggleFilters());
     this.addEventListener("open-route-planner", () => this.routePlanner?.open());
     const mapMenu = this.querySelector(".map-menu");
+    // Closed: the saved place it was for isn't selected any more.
+    mapMenu?.addEventListener("toggle", (event) => {
+      if (event.newState === "closed") {
+        mapMenu.selection?.pin.classList.remove("selected");
+        mapMenu.selection = null;
+      }
+    });
     mapMenu?.addEventListener("click", (event) => {
       const item = event.target.closest(".map-menu-item");
       if (item) {
@@ -657,6 +669,7 @@ class GoogleMapElement extends HTMLElement {
     this.resolveMapReady();
     this.savedPlacesLayer = new SavedPlacesLayer({
       maps,
+      onSelect: (saved, location, pin) => this.showSavedPlaceMenu(saved, location, pin),
       pin: (icon) => {
         const pin = this.cloneTemplate(".saved-place-marker-template");
         pin.querySelector(`[data-icon="${icon}"]`)?.removeAttribute("hidden");
@@ -702,21 +715,47 @@ class GoogleMapElement extends HTMLElement {
   // The menu where the pointer was, kept inside the window; its first item
   // focused, so a keyboard can pick one.
   showMapMenu({ latLng, domEvent }) {
-    const menu = this.querySelector(".map-menu");
-    if (!menu || !latLng) {
+    if (!latLng) {
       return;
     }
     domEvent?.preventDefault?.();
     const point = domEvent?.changedTouches?.[0] ?? domEvent;
     const location = latLng.toJSON();
-    menu.place = {
-      label: `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`,
-      location,
-    };
+    this.openMapMenu(
+      { label: `${location.lat.toFixed(5)}, ${location.lng.toFixed(5)}`, location },
+      { x: point?.clientX, y: point?.clientY }
+    );
+  }
+
+  // A saved place's pin was clicked: the menu under it, titled with the
+  // place's name, a route from or to it, or removing it (#381).
+  showSavedPlaceMenu(saved, location, pin) {
+    const { left, width, bottom } = pin.getBoundingClientRect();
+    pin.classList.add("selected");
+    this.openMapMenu(
+      { label: saved.label ?? saved.name, location },
+      { x: left + width / 2, y: bottom },
+      { saved, pin }
+    );
+  }
+
+  // `point`: where to put it ({ x, y }, the middle of the window without);
+  // `selection`: the saved place it's for.
+  openMapMenu(place, point, selection = null) {
+    const menu = this.querySelector(".map-menu");
+    if (!menu) {
+      return;
+    }
+    menu.place = place;
+    menu.selection = selection;
+    const title = menu.querySelector(".map-menu-title");
+    title.hidden = !selection;
+    title.textContent = selection?.saved.name ?? "";
+    menu.querySelector(".remove-saved-place").hidden = !selection;
     menu.showPopover();
     const { width, height } = menu.getBoundingClientRect();
-    const x = point?.clientX ?? window.innerWidth / 2;
-    const y = point?.clientY ?? window.innerHeight / 2;
+    const x = point.x ?? window.innerWidth / 2;
+    const y = point.y ?? window.innerHeight / 2;
     menu.style.left = `${Math.max(0, Math.min(x, window.innerWidth - width))}px`;
     menu.style.top = `${Math.max(0, Math.min(y, window.innerHeight - height))}px`;
     menu.querySelector(".map-menu-item")?.focus();
@@ -724,11 +763,25 @@ class GoogleMapElement extends HTMLElement {
 
   pickMapMenuItem(item) {
     const menu = this.querySelector(".map-menu");
+    const { selection } = menu;
     menu.hidePopover();
-    if (item.dataset.end === "from") {
+    if (item.dataset.action === "remove") {
+      this.removeSavedPlace(selection.saved);
+    } else if (item.dataset.end === "from") {
       this.routePlanner?.planFrom(menu.place);
     } else {
       this.routePlanner?.planTo(menu.place);
+    }
+  }
+
+  // Removes the saved place; its pin goes with the change it announces.
+  async removeSavedPlace(saved) {
+    try {
+      await removeSavedPlace(saved);
+      this.setStatus(message("savedPlaceRemoved", { name: saved.name }));
+    } catch (error) {
+      console.error("Could not remove the saved place:", error);
+      this.setStatus(message("savedPlaceNotRemoved", { name: saved.name }), "error");
     }
   }
 

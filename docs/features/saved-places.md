@@ -11,7 +11,10 @@ looked up by its place ID when the map shows it.
 (Home, Work, School, Star, Heart or Pin) and its name as the pin's title,
 under the chargers' pins, which stay clickable. The pin is `<SavedPlacePin>`
 (`components/saved-place-pin/`), which the My saved places page shows too.
-The pins follow every change to the places (`saved-places-change` on the
+Clicking a pin opens the map's menu under it (`showSavedPlaceMenu`,
+`components/google-map/GoogleMap.js`), titled with the place's name: a
+route from or to the place, or removing it (#381). The pin is ringed while
+its menu is open. The pins follow every change to the places (`saved-places-change` on the
 document) and the session.
 
 The account menu's **Show saved places** switch

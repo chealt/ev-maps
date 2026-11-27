@@ -167,6 +167,7 @@ const account = {
     },
     savedPlaceChangesSaved: "{name} mentve",
     savedPlaceRemoved: "{name} törölve",
+    savedPlaceNotRemoved: "{name} nem törölhető. Próbáld újra.",
   },
   values: {
     mapsApps: {
