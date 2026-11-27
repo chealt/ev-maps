@@ -88,6 +88,11 @@ const admin = createAdminArea({
       data: (env, url) => listAdminSuggestions(env.DB, reviewStatusUrl(url)),
     },
     {
+      // The usage stats of ?days=, rendered on the server.
+      path: "usage",
+      data: (env, url) => admin.usage(env, url),
+    },
+    {
       // The errors page is rendered on the server, per request.
       path: "errors",
       data: (env, url) => {

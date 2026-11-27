@@ -3,15 +3,20 @@ import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
 import Stat from "@ev-maps/ui/Stat.astro";
 import Table from "@ev-maps/ui/Table.astro";
 import EmptyState from "@ev-maps/ui/EmptyState.astro";
-import { fill } from "@ev-maps/ui/format.js";
+import { fill, formatMessage } from "@ev-maps/ui/format.js";
 import BarChart from "@ev-maps/ui/BarChart.astro";
 import "./AdminUsage.css";
 
+// Rendered on the server: the usage stats of ?days=, from the Worker
+// (createAdminArea's usage, ../../src/admin.js).
 interface Props {
-  // The page's strings and the labels of the usage events (the host's
-  // translations for this section).
-  page: Record<string, string>;
-  values: { usageEvents: Record<string, string> };
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings, runtime message templates and value labels (the
+  // host's translations), with the usage events' labels in usageEvents.
+  page: Record<string, any>;
+  messages: Record<string, any>;
+  values: Record<string, any>;
   // The events shown as totals at the top, and those broken down by their
   // dimension below.
   totals: string[];
@@ -26,16 +31,57 @@ interface Props {
 
 const {
   page,
+  messages,
   values,
   totals,
   breakdowns,
   periods = [7, 30, 90],
   dimensionLabels = {},
 } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const events: Record<string, any> = data?.events ?? {};
+const period = data?.period ?? periods[1] ?? 30;
+
+const number = (value: number) => new Intl.NumberFormat(lang).format(value);
+const formatDay = (day: string) =>
+  new Intl.DateTimeFormat(lang, { month: "short", day: "numeric", timeZone: "UTC" }).format(
+    new Date(`${day}T00:00:00Z`)
+  );
+const displayName = (type: "language" | "region", code: string) => {
+  try {
+    return new Intl.DisplayNames(lang, { type }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+};
+
+// How each event's dimension reads: "hu:country" → "Hungarian, country
+// page", "HU" → "Hungary", or the label in its values table.
+const dimensionLabel = (event: string, dimension: string) => {
+  if (event === "page_view") {
+    const [language, kind] = dimension.split(":");
+    return `${displayName("language", language)}, ${values.pageKinds?.[kind] ?? kind}`;
+  }
+  if (event === "visitor_country") {
+    return displayName("region", dimension);
+  }
+  const table = dimensionLabels[event];
+  return (table && values[table]?.[dimension]) ?? dimension;
+};
+
+const summary = failed
+  ? messages.adminUsageNotLoaded
+  : formatMessage(lang, messages.adminUsagePeriod, {
+      from: formatDay(data.days[0]),
+      to: formatDay(data.days.at(-1)),
+    });
+const top: { id: string; name?: string; count: number }[] = data?.top ?? [];
 ---
 
-<!-- Usage stats (GET /api/admin/usage): counts per day, no identifiers. -->
-<ev-admin-usage data-dimension-labels={JSON.stringify(dimensionLabels)}>
+<!-- Usage stats: counts per day, no identifiers. Choosing another period
+     shows the page with its ?days=, the only script. -->
+<ev-admin-usage>
   <section class="usage" aria-labelledby="admin-usage-title">
     <div class="usage-header">
       <h2 class="section-title" id="admin-usage-title">
@@ -45,58 +91,98 @@ const {
         class="periods"
         legend={page.adminPeriod}
         legendHidden
-        name="usage-period"
+        name="days"
         options={periods.map((days) => ({
           value: String(days),
           label: fill(page.adminLastDays, { days }),
         }))}
-        value="30"
+        value={String(period)}
       />
     </div>
-    <p class="summary" role="status"></p>
+    <p class="summary" role="status">
+      {summary}
+    </p>
 
-    <dl class="totals">
-      {totals.map((event) => (
-        <Stat class="total" data-event={event} label={values.usageEvents[event]} />
-      ))}
-    </dl>
+    {data && (
+      <dl class="totals">
+        {totals.map((event) => (
+          <Stat
+            class="total"
+            data-event={event}
+            label={values.usageEvents[event]}
+            value={number(events[event]?.total ?? 0)}
+          />
+        ))}
+      </dl>
+    )}
 
-    <BarChart title={page.adminPageViewsPerDay} id="admin-chart-title" />
+    {data && (
+      <BarChart
+        title={page.adminPageViewsPerDay}
+        id="admin-chart-title"
+        days={data.days}
+        byDay={events.page_view?.byDay ?? {}}
+        label={(day, count) => formatMessage(lang, messages.adminDayCount, { day, count })}
+      />
+    )}
 
-    <div class="breakdowns">
-      {breakdowns.map((event) => (
-        <section class="breakdown" data-event={event} aria-labelledby={`admin-breakdown-${event}`}>
-          <h3 class="subtitle" id={`admin-breakdown-${event}`}>
-            {values.usageEvents[event]}
+    {data && (
+      <div class="breakdowns">
+        {breakdowns.map((event) => {
+          const counts = Object.entries(events[event]?.byDimension ?? {}) as [string, number][];
+          return (
+            <section
+              class="breakdown"
+              data-event={event}
+              aria-labelledby={`admin-breakdown-${event}`}
+            >
+              <h3 class="subtitle" id={`admin-breakdown-${event}`}>
+                {values.usageEvents[event]}
+              </h3>
+              {counts.length > 0 ? (
+                <Table density="compact">
+                  <tbody>
+                    {counts.map(([dimension, count]) => (
+                      <tr>
+                        <th scope="row" class="name">
+                          {dimensionLabel(event, dimension)}
+                        </th>
+                        <td class="count">{number(count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <EmptyState class="empty">{page.adminNoData}</EmptyState>
+              )}
+            </section>
+          );
+        })}
+        <!-- Now, not in the period: the host's top items, e.g. favorites;
+             items without a saved name show their ID. -->
+        <section class="breakdown top-items" aria-labelledby="admin-top-items">
+          <h3 class="subtitle" id="admin-top-items">
+            {page.adminTopItems}
           </h3>
-          <Table density="compact">
-            <tbody></tbody>
-          </Table>
-          <EmptyState class="empty" hidden>
-            {page.adminNoData}
-          </EmptyState>
+          {top.length > 0 ? (
+            <Table density="compact">
+              <tbody>
+                {top.map(({ id, name, count }) => (
+                  <tr>
+                    <th scope="row" class="name">
+                      {name ?? id}
+                    </th>
+                    <td class="count">{formatMessage(lang, messages.adminTopCount, { count })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <EmptyState class="empty">{page.adminNoData}</EmptyState>
+          )}
         </section>
-      ))}
-      <!-- Now, not in the period: the host's top items, e.g. favorites. -->
-      <section class="breakdown top-items" aria-labelledby="admin-top-items">
-        <h3 class="subtitle" id="admin-top-items">
-          {page.adminTopItems}
-        </h3>
-        <Table density="compact">
-          <tbody></tbody>
-        </Table>
-        <EmptyState class="empty" hidden>
-          {page.adminNoData}
-        </EmptyState>
-      </section>
-    </div>
+      </div>
+    )}
   </section>
-
-  <template class="row-template">
-    <tr>
-      <th scope="row" class="name"></th>
-      <td class="count"></td>
-    </tr>
-  </template>
   <script src="./AdminUsage.js"></script>
 </ev-admin-usage>
