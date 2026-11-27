@@ -19,6 +19,24 @@ change can be reviewed before it's merged.
 Pull requests from this repository get a preview deployment; see
 [Deployment](docs/DEPLOYMENT.md).
 
+## Picking Up Issues
+
+Pick up open issues in the order of their **Priority** field: Urgent, then
+High, Medium and Low, and last the issues without one. Within a priority,
+take the oldest issue first (the lowest number). Skip an issue that already
+has an open pull request.
+
+Priority is a GitHub issue field, not a label. The REST API returns it in
+`issue_field_values`, so this lists the open issues with theirs:
+
+```sh
+gh api 'repos/chealt/ev-maps/issues?state=open&per_page=100' --jq '.[]
+  | select(.pull_request | not)
+  | "#\(.number) \([.issue_field_values[]?
+      | select(.issue_field_name == "Priority")
+      | .single_select_option.name] | first // "none") \(.title)"'
+```
+
 ## Working with pi
 
 The repository carries its [pi](https://pi.dev) setup: `.pi/settings.json`
