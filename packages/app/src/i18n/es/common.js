@@ -18,7 +18,7 @@ const common = {
     admin: "Administración",
     supportTitle: "Apoya EV Maps",
     supportHint:
-      "EV Maps es gratuito. Si te resulta útil, puedes contribuir a sus servidores y datos del mapa.",
+      "EV Maps es gratis. Si te resulta útil, puedes contribuir a sus servidores y datos de mapas.",
     opensInNewTab: "(se abre en una pestaña nueva)",
   },
 };
