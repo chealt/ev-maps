@@ -279,16 +279,44 @@ jobs:
         run: bun scripts/select-e2e.js "origin/${{ github.base_ref }}"
 
       # The @ui tests' screenshots are matched against main's with
-      # Playwright's toHaveScreenshot (captureUi, #309, docs/CI.md): a pull
-      # request's shards get main's baselines first (and write none); main's
-      # shards write them, and upload them after their tests.
-      - name: Download main's screenshots
+      # Playwright's toHaveScreenshot (captureUi, #309, docs/CI.md): main's
+      # shards write them and upload them per commit, after their tests. A
+      # pull request's shards compare with the main commit they test the
+      # pull request on (the merge commit's first parent), not main's last
+      # run (#395): its baselines when every main shard uploaded them,
+      # otherwise the shard takes them itself, on that commit.
+      - name: Find the main commit to compare with
+        id: base
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: echo "sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+
+      - name: Download main's screenshots
+        id: baseline
+        if: steps.base.outputs.sha
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        run: bun scripts/visual-baseline.js download
+        run: bun scripts/visual-baseline.js download "${{ steps.base.outputs.sha }}" "${{ strategy.job-total }}"
+
+      # Every selected @ui test, not this shard's: main may split them into
+      # shards differently. A test failing on main only leaves its moments
+      # without a baseline.
+      - name: Take main's screenshots
+        if: steps.baseline.outputs.found == 'false'
+        env:
+          GREP: ${{ steps.select.outputs.grep }}
+          VISUAL_COMPARE: "1"
+          BASE: ${{ steps.base.outputs.sha }}
+        run: |
+          git worktree add "$RUNNER_TEMP/base" "$BASE"
+          (cd "$RUNNER_TEMP/base" && bun install --frozen-lockfile)
+          cd "$RUNNER_TEMP/base/packages/app"
+          grep="^(?=.*@ui)"
+          if [ -n "$GREP" ]; then grep="$grep(?=.*(?:$GREP))"; fi
+          bun run test -- --workers=4 --update-snapshots=all --grep "$grep" --pass-with-no-tests || true
+          mkdir -p "$GITHUB_WORKSPACE/packages/app/visual-baseline"
+          cp -R visual-baseline/. "$GITHUB_WORKSPACE/packages/app/visual-baseline/" 2>/dev/null || true
 
       - name: Run tests
         env:
@@ -308,7 +336,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-        run: bun scripts/visual-baseline.js upload
+        run: bun scripts/visual-baseline.js upload "$GITHUB_SHA" "${{ matrix.shard }}"
 
       - name: Upload blob report
         uses: actions/upload-artifact@v7
