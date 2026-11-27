@@ -9,6 +9,7 @@ import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 import { listAdminFlags } from "./charger-unavailability.js";
 import { listAdminReports } from "./charger-reports.js";
+import { listAdminSuggestions } from "./charger-suggestions.js";
 
 const LOCALES = ["en", "pl", "hu"];
 
@@ -80,6 +81,11 @@ const admin = createAdminArea({
       // The overview, with its dashboard, rendered on the server.
       path: new RegExp(`^/(${LOCALES.join("|")})/admin/$`),
       data: (env) => dashboard(env.ADMIN_DB),
+    },
+    {
+      // The charger suggestions, rendered on the server, with ?status= too.
+      path: "suggestions",
+      data: (env, url) => listAdminSuggestions(env.DB, reviewStatusUrl(url)),
     },
     {
       // The errors page is rendered on the server, per request.

@@ -26,4 +26,15 @@ const CHARGER_REPORTS_PAGE = /\/admin\/charger-reports\/(\?.*)?$/;
 // The admin overview, /{lang}/admin/, with its dashboard.
 const OVERVIEW_PAGE = /\/(en|pl|hu)\/admin\/(\?.*)?$/;
 
-export { CHARGER_REPORTS_PAGE, ERRORS_PAGE, OVERVIEW_PAGE, UNAVAILABILITY_PAGE, fakePageData };
+// The admin charger suggestions page, /{lang}/admin/suggestions/ with any
+// query.
+const SUGGESTIONS_PAGE = /\/admin\/suggestions\/(\?.*)?$/;
+
+export {
+  CHARGER_REPORTS_PAGE,
+  ERRORS_PAGE,
+  OVERVIEW_PAGE,
+  SUGGESTIONS_PAGE,
+  UNAVAILABILITY_PAGE,
+  fakePageData,
+};

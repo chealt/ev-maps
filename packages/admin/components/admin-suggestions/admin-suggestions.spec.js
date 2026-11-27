@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { SUGGESTIONS_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const PHOTO_BUFFER = Buffer.from(
@@ -8,6 +9,9 @@ const PHOTO_BUFFER = Buffer.from(
   "base64"
 );
 
+// The page is rendered on the server with the suggestions of its ?status=
+// (pending by default; in the tests, passed in a header:
+// src/lib/page-data.js); approving or rejecting one goes to the API.
 const fakeSuggestionsApi = async (page) => {
   const suggestions = [
     {
@@ -65,9 +69,12 @@ const fakeSuggestionsApi = async (page) => {
       }
       return route.fulfill({ json: { id, status: item?.status } });
     }
-    const status = url.searchParams.get("status");
-    const shown = status ? suggestions.filter((s) => s.status === status) : suggestions;
-    return route.fulfill({ json: { suggestions: shown } });
+    return route.fulfill({ status: 405, json: { error: "Method not allowed" } });
+  });
+  await fakePageData(page, SUGGESTIONS_PAGE, (url) => {
+    const status = url.searchParams.get("status") ?? "pending";
+    const shown = status === "all" ? suggestions : suggestions.filter((s) => s.status === status);
+    return { data: { suggestions: shown } };
   });
 };
 
@@ -118,4 +125,15 @@ test.describe("admin", () => {
       await captureUi(page, testInfo, "admin viewing approved charger suggestions");
     }
   );
+
+  test("says when the suggestions couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, SUGGESTIONS_PAGE, { failed: true });
+    await page.goto("/en/admin/suggestions/");
+
+    await expect(page.getByRole("article")).toHaveCount(0);
+    await expect(page.getByRole("status").filter({ hasText: "couldn't be loaded" })).toBeVisible();
+  });
 });

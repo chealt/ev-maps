@@ -3,22 +3,57 @@ import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Card from "@ev-maps/ui/Card.astro";
 import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
 import ChargerProof from "../charger-proof/ChargerProof.astro";
 import "./AdminSuggestions.css";
 
+// Rendered on the server: the suggestions with ?status= (pending by default,
+// or approved, rejected, all), from the Worker
+// (packages/worker/src/charger-suggestions.js).
 interface Props {
-  // The page's strings (the host's translations for this section).
-  page: Record<string, string>;
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings, runtime message templates and value labels (the
+  // host's translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
+  values: Record<string, any>;
 }
 
-const { page } = Astro.props;
+const { page, messages, values } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const suggestions: any[] = data?.suggestions ?? [];
+const status = Astro.url.searchParams.get("status") ?? "pending";
+
+const STATUS_MESSAGES: Record<string, string> = {
+  pending: "adminSuggestionPending",
+  approved: "adminSuggestionApproved",
+  rejected: "adminSuggestionRejected",
+};
+// A suggestion's status as its badge's tone.
+const STATUS_TONES: Record<string, string> = {
+  pending: "warning",
+  approved: "success",
+  rejected: "danger",
+};
+
+// Its charger photos: older suggestions have one, in photoUrl (or photo).
+const photoUrls = (suggestion: any): string[] =>
+  suggestion.photoUrls ?? [suggestion.photoUrl ?? suggestion.photo].filter(Boolean);
+
+const summary = failed
+  ? messages.adminSuggestionsNotLoaded
+  : suggestions.length === 0
+    ? messages.adminNoSuggestions
+    : formatMessage(lang, messages.adminSuggestionCount, { count: suggestions.length });
 ---
 
-<!-- Charger suggestions submitted by signed-in users
-     (GET /api/admin/charger-suggestions): admins review the location,
-     chargers, proof photos and, when given, the availability and price with
-     their trust score, and approve (adding to the database) or
-     reject each suggestion. -->
+<!-- Charger suggestions submitted by signed-in users: admins review the
+     location, chargers, proof photos and, when given, the availability and
+     price with their trust score, and approve (adding to the database) or
+     reject each suggestion. The status filter and the buttons need the
+     script. -->
 <ev-admin-suggestions>
   <section aria-labelledby="admin-suggestions-title">
     <h2 class="section-title" id="admin-suggestions-title">
@@ -28,60 +63,82 @@ const { page } = Astro.props;
       class="status-filter"
       legend={page.adminSuggestionStatusFilter}
       name="status"
-      value="pending"
+      value={status}
       options={[
         { value: "pending", label: page.adminSuggestionsPending },
-        { value: "", label: page.adminSuggestionsAll },
+        { value: "all", label: page.adminSuggestionsAll },
         { value: "approved", label: page.adminSuggestionsApproved },
         { value: "rejected", label: page.adminSuggestionsRejected },
       ]}
     />
-    <p class="summary" role="status"></p>
-    <div class="suggestion-list"></div>
-  </section>
-
-  <template class="suggestion-template">
-    <Card as="article" class="suggestion-card">
-      <div class="card-header">
-        <div>
-          <h3 class="charger-name"></h3>
-          <p class="charger-meta"></p>
-        </div>
-        <Badge class="status-badge" />
-      </div>
-      <div class="card-body">
-        <div class="details">
-          <p class="coordinates"></p>
-          <p class="submitted-by"></p>
-          <ul class="connectors"></ul>
-          <ChargerProof page={page} />
-          <div class="actions">
-            <Button variant="primary" size="small" class="approve">
-              {page.adminApproveSuggestion}
-            </Button>
-            <Button variant="danger" size="small" class="reject">
-              {page.adminRejectSuggestion}
-            </Button>
+    <p class="summary" role="status">
+      {summary}
+    </p>
+    <div class="suggestion-list">
+      {suggestions.map((suggestion) => (
+        <Card as="article" class="suggestion-card" data-review-id={suggestion.id}>
+          <div class="card-header">
+            <div>
+              <h3 class="charger-name">{suggestion.name}</h3>
+              <p class="charger-meta">
+                {[suggestion.operator, suggestion.address].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            <Badge class="status-badge" data-tone={STATUS_TONES[suggestion.status] ?? "warning"}>
+              {messages[STATUS_MESSAGES[suggestion.status] ?? "adminSuggestionPending"]}
+            </Badge>
           </div>
-        </div>
-        <div class="proof">
-          <ul class="proof-photos"></ul>
-        </div>
-      </div>
-    </Card>
-  </template>
-  <template class="connector-item-template">
-    <li class="connector-item"></li>
-  </template>
-  <template class="photo-item-template">
-    <li>
-      <img class="proof-photo" alt={page.adminProofPhoto} />
-    </li>
-  </template>
-  <template class="receipt-item-template">
-    <li>
-      <img class="proof-photo" alt={page.adminReceiptPhoto} />
-    </li>
-  </template>
+          <div class="card-body">
+            <div class="details">
+              <p class="coordinates">
+                {suggestion.location.lat}, {suggestion.location.lng}
+              </p>
+              {suggestion.userEmail && (
+                <p class="submitted-by">
+                  {formatMessage(lang, messages.adminSuggestedBy, { email: suggestion.userEmail })}
+                </p>
+              )}
+              <ul class="connectors">
+                {(suggestion.connectors ?? []).map(({ type, powerKw, quantity }: any) => (
+                  <li class="connector-item">
+                    {formatMessage(lang, messages.connectorWithPower, {
+                      type: values.connectors?.[type] ?? type,
+                      quantity: quantity ?? 1,
+                      power: powerKw,
+                    })}
+                  </li>
+                ))}
+              </ul>
+              <ChargerProof page={page} item={suggestion} messages={messages} values={values} />
+              {suggestion.status === "pending" && (
+                <div class="actions">
+                  <Button variant="primary" size="small" class="review" data-action="approve">
+                    {page.adminApproveSuggestion}
+                  </Button>
+                  <Button variant="danger" size="small" class="review" data-action="reject">
+                    {page.adminRejectSuggestion}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div class="proof">
+              <ul class="proof-photos">
+                {photoUrls(suggestion).map((url) => (
+                  <li>
+                    <img class="proof-photo" src={url} alt={page.adminProofPhoto} />
+                  </li>
+                ))}
+                {(suggestion.receiptPhotoUrls ?? []).map((url: string) => (
+                  <li>
+                    <img class="proof-photo" src={url} alt={page.adminReceiptPhoto} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  </section>
   <script src="./AdminSuggestions.js"></script>
 </ev-admin-suggestions>
