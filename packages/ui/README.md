@@ -20,7 +20,7 @@ right on any of its pages.
 | `@ev-maps/ui/Stat.astro`             | A figure and its name, in a `dl`: `label`, `value`                                                       |
 | `@ev-maps/ui/Table.astro`            | A data table that scrolls sideways: `density`                                                            |
 | `@ev-maps/ui/Switch.astro`           | An on/off setting: its label the slot                                                                    |
-| `@ev-maps/ui/BarChart.astro`         | A bar per day; its `title` and `id`                                                                      |
+| `@ev-maps/ui/BarChart.astro`         | A bar per day; `title`, `id`; `days`, `byDay`, `label` to draw it on the server                          |
 | `@ev-maps/ui/bar-chart.js`           | `renderBarChart`, `formatDay`: fill it in                                                                |
 
 Treat them like a third-party library's components: generic, with no
