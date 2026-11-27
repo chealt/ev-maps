@@ -1,8 +1,8 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
-import { OVERVIEW_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
+import { ERRORS_PAGE, OVERVIEW_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 
@@ -146,4 +146,47 @@ test.describe("admin", () => {
       "The dashboard couldn't be loaded. Try again."
     );
   });
+
+  test(
+    "navigates by groups of sections, collapsed to the icons and kept so",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeAuthApi(page, { signedIn: true, user: GRACE });
+      await fakeAdminApi(page, GRACE);
+      await fakePageData(page, OVERVIEW_PAGE, { failed: true });
+      await fakePageData(page, ERRORS_PAGE, {
+        data: { groups: [], total: 0, page: 1, pages: 1 },
+      });
+      await page.goto("/en/admin/errors/");
+
+      const nav = page.getByRole("navigation", { name: "Admin" });
+      const engineering = nav.getByRole("region", { name: "Engineering" });
+      await expect(engineering.getByRole("link", { name: "Errors" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      await expect(engineering.getByRole("link", { name: "Test reports" })).toBeVisible();
+      await expect(nav.getByRole("region", { name: "Community" })).toContainText(
+        "Suggested chargers"
+      );
+      await expect(page.locator(".breadcrumb")).toHaveText(/Engineering\s*Errors/);
+      await expect(page.getByRole("status")).toHaveText("Signed in as grace@chealt.com");
+      await captureUi(page, testInfo, "admin navigation");
+
+      // Collapsed, just the icons: the links keep their names.
+      const collapse = page.getByRole("button", { name: "Collapse the navigation" });
+      await collapse.click();
+      await expect(collapse).toHaveAttribute("aria-pressed", "true");
+      await expect(nav.getByText("Test reports")).not.toBeInViewport();
+      await captureUi(page, testInfo, "admin navigation collapsed");
+
+      // And still on the next page.
+      await nav.getByRole("link", { name: "Overview" }).click();
+      await expect(page).toHaveURL("/en/admin/");
+      await expect(collapse).toHaveAttribute("aria-pressed", "true");
+      await expect(page.locator("html")).toHaveAttribute("data-admin-nav", "collapsed");
+      await collapse.click();
+      await expect(page.locator("html")).not.toHaveAttribute("data-admin-nav", "collapsed");
+    }
+  );
 });

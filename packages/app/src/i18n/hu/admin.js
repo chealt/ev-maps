@@ -4,6 +4,10 @@
 const admin = {
   page: {
     adminOverview: "Áttekintés",
+    adminGroupCommunity: "Közösség",
+    adminGroupInsights: "Elemzések",
+    adminGroupEngineering: "Fejlesztés",
+    adminCollapseNav: "Navigáció összecsukása",
     adminErrors: "Hibák",
     adminUsage: "Használat",
   },

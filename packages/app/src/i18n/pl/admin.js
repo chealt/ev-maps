@@ -4,6 +4,10 @@
 const admin = {
   page: {
     adminOverview: "Przegląd",
+    adminGroupCommunity: "Społeczność",
+    adminGroupInsights: "Analizy",
+    adminGroupEngineering: "Inżynieria",
+    adminCollapseNav: "Zwiń nawigację",
     adminErrors: "Błędy",
     adminUsage: "Użycie",
   },
