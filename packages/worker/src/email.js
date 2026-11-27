@@ -52,6 +52,10 @@ const MESSAGES = {
     subject: "Il Suo link di accesso a EV Maps",
     text: "Apra questo link per accedere a EV Maps:\n\n{url}\n\nFunziona una sola volta, entro 15 minuti. Se non l'ha richiesto, ignori questa email.",
   },
+  da: {
+    subject: "Dit loginlink til EV Maps",
+    text: "Åbn dette link for at logge ind på EV Maps:\n\n{url}\n\nDet virker én gang, inden for 15 minutter. Hvis du ikke har bedt om det, kan du se bort fra denne e-mail.",
+  },
 };
 
 const RESEND_URL = "https://api.resend.com/emails";

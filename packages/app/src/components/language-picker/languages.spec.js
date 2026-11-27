@@ -7,7 +7,7 @@ import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 // Spanish (/es/), German (/de/),
 // French (/fr/), Slovak (/sk/), Czech (/cs/), Norwegian Bokmål (/nb/),
 // Swedish (/sv/), Portuguese (/pt/)
-// and Italian (/it/).
+// Italian (/it/) and Danish (/da/).
 
 const fixtureChargers = (count) =>
   Array.from({ length: count }, (_, index) => ({
@@ -176,6 +176,20 @@ test.describe("translations", () => {
 
     await page.goto("/it/hu/");
     await expect(page).toHaveTitle("EV Maps - Colonnine di ricarica – Ungheria");
+  });
+
+  test("shows the map, Google Maps and the country pages in Danish", async ({ page }) => {
+    const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
+    await fakeChargersApi(page, { chargers: fixtureChargers(2) });
+    await page.goto("/da/");
+    expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("da");
+    await expect(page).toHaveTitle("EV Maps - Ladestandere til elbiler");
+    await expect(page.getByRole("button", { name: "Find mig" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Filtre", exact: true })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("2 ladestandere fundet");
+
+    await page.goto("/da/hu/");
+    await expect(page).toHaveTitle("EV Maps - Ladestandere i Ungarn");
   });
 
   test("shows a charger's details, Google Maps and sign-in in Hungarian", async ({ page }) => {
