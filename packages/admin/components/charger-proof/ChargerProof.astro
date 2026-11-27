@@ -59,9 +59,15 @@ const deviceText = !item
 <div class="charger-proof" hidden={!hasTrust && !hasChange}>
   <p class="trust" hidden={!hasTrust}>
     <span class="trust-label">{page.adminTrust}</span>
-    <Badge class="trust-score" data-tone={hasTrust ? trustTone(item.trustScore) : "neutral"}>
+    <Badge class="trust-score" tone={hasTrust ? trustTone(item.trustScore) : "neutral"}>
       {hasTrust && text("adminTrustScore", { score: item.trustScore })}
     </Badge>
+    <span
+      class="trust-bar"
+      aria-hidden="true"
+      data-tone={hasTrust ? trustTone(item.trustScore) : "neutral"}
+      style={`--score: ${hasTrust ? item.trustScore / 100 : 0}`}
+    ></span>
   </p>
   <ul class="trust-factors" aria-label={page.adminTrustFactors}>
     {factors.map(({ id, points }: any) => (
