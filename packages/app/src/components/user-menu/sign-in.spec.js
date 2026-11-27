@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
@@ -12,35 +12,49 @@ test.describe("account", () => {
   // Every provider takes the same path through the page (the Worker starts
   // the provider's flow): one is signed in with end to end in English, another
   // on a sub-page in another language; the rest are only offered.
-  test("signs in with Google and stays signed in after a reload", async ({ page }) => {
-    const signInRequests = await fakeAuthApi(page, {
-      providers: ["google", "github", "microsoft", "apple"],
-    });
-    await page.goto("/");
-    await page.getByRole("button", { name: "Sign in" }).click();
-    const menu = page.getByRole("dialog", { name: "Account" });
-    for (const provider of ["GitHub", "Microsoft", "Apple"]) {
-      await expect(menu.getByRole("button", { name: `Sign in with ${provider}` })).toBeVisible();
+  test(
+    "signs in with Google and stays signed in after a reload",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      const signInRequests = await fakeAuthApi(page, {
+        providers: ["google", "github", "microsoft", "apple"],
+      });
+      await page.goto("/");
+      await page.getByRole("button", { name: "Sign in" }).click();
+      const menu = page.getByRole("dialog", { name: "Account" });
+      for (const provider of ["GitHub", "Microsoft", "Apple"]) {
+        await expect(menu.getByRole("button", { name: `Sign in with ${provider}` })).toBeVisible();
+      }
+
+      await menu.getByRole("button", { name: "Sign in with Google" }).click();
+
+      const accountButton = page.getByRole("button", {
+        name: "Account: Ada Lovelace",
+      });
+      await expect(accountButton).toBeVisible();
+      expect(signInRequests).toEqual([
+        {
+          provider: "google",
+          callbackURL: "/en/",
+          errorCallbackURL: "/en/?sign-in-error=",
+        },
+      ]);
+
+      await page.reload();
+      await accountButton.click();
+      await expect(menu.getByText("Signed in as")).toBeVisible();
+      await expect(menu.getByText("Ada Lovelace")).toBeVisible();
+      await expect(menu.getByText("ada@example.com")).toBeVisible();
+      await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
+      // The account domain's own picture of the open menu (#378).
+      await captureUi(page, testInfo, "account menu signed in");
     }
-
-    await menu.getByRole("button", { name: "Sign in with Google" }).click();
-
-    const accountButton = page.getByRole("button", { name: "Account: Ada Lovelace" });
-    await expect(accountButton).toBeVisible();
-    expect(signInRequests).toEqual([
-      { provider: "google", callbackURL: "/en/", errorCallbackURL: "/en/?sign-in-error=" },
-    ]);
-
-    await page.reload();
-    await accountButton.click();
-    await expect(menu.getByText("Signed in as")).toBeVisible();
-    await expect(menu.getByText("Ada Lovelace")).toBeVisible();
-    await expect(menu.getByText("ada@example.com")).toBeVisible();
-    await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeHidden();
-  });
+  );
 
   test("signs in with another provider, coming back to the same page", async ({ page }) => {
-    const signInRequests = await fakeAuthApi(page, { providers: ["google", "microsoft"] });
+    const signInRequests = await fakeAuthApi(page, {
+      providers: ["google", "microsoft"],
+    });
     await page.goto("/pl/hu/");
     await page.getByRole("button", { name: "Zaloguj się" }).click();
 
@@ -48,7 +62,10 @@ test.describe("account", () => {
 
     await expect(page.getByRole("button", { name: "Konto: Ada Lovelace" })).toBeVisible();
     await expect(page).toHaveURL("/pl/hu/");
-    expect(signInRequests[0]).toMatchObject({ provider: "microsoft", callbackURL: "/pl/hu/" });
+    expect(signInRequests[0]).toMatchObject({
+      provider: "microsoft",
+      callbackURL: "/pl/hu/",
+    });
   });
 
   test("offers signing in with the providers the Worker has, the theme and the language", async ({
@@ -142,5 +159,20 @@ test.describe("account", () => {
     await expect(page.getByRole("dialog", { name: "Account" })).toBeHidden();
     await page.reload();
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  });
+
+  // On desktop the menu fits the three maps apps in one row of segments,
+  // even with Hungarian's, the longest names (#378).
+  test("fits the maps apps in one row on desktop, in every language", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto("/hu/");
+    await page.getByRole("button", { name: /Ada Lovelace/ }).click();
+    const apps = page.getByRole("group", { name: "Térképalkalmazás" }).locator("label");
+    await expect(apps).toHaveCount(3);
+    const tops = await apps.evaluateAll((labels) =>
+      labels.map((label) => Math.round(label.getBoundingClientRect().top))
+    );
+    expect(new Set(tops).size).toBe(1);
   });
 });

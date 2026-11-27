@@ -3,6 +3,17 @@
   --account-menu-width: 17rem;
   --provider-logo-size: 1.125rem;
 
+  /* Wider on desktop, where there's room to spare (#374): wide enough for
+     the three maps apps in one row of segments, in every language
+     (Hungarian's are the longest). */
+  @media (width >= 64em) {
+    --account-menu-width: 25rem;
+  }
+
+  @media (width >= 90em) {
+    --account-menu-width: 27rem;
+  }
+
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
