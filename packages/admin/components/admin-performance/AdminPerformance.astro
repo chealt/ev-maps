@@ -176,7 +176,12 @@ const statementOf = (span: any) =>
           <h3 class="subtitle" id={`admin-${id}-title`}>
             {title}
           </h3>
-          <Table density="compact">
+          <Table
+            density="compact"
+            sortable
+            filter={page.adminFilterRows}
+            noMatches={page.adminNoMatchingRows}
+          >
             <thead>
               <tr>
                 <th scope="col">{nameColumn}</th>
@@ -206,9 +211,15 @@ const statementOf = (span: any) =>
                     </span>
                   </th>
                   <td class="count number">{number(stats.count)}</td>
-                  <td class="p75 number">{formatDuration(stats.p75)}</td>
-                  <td class="p95 number">{formatDuration(stats.p95)}</td>
-                  <td class="max number">{formatDuration(stats.max)}</td>
+                  <td class="p75 number" data-sort={stats.p75}>
+                    {formatDuration(stats.p75)}
+                  </td>
+                  <td class="p95 number" data-sort={stats.p95}>
+                    {formatDuration(stats.p95)}
+                  </td>
+                  <td class="max number" data-sort={stats.max}>
+                    {formatDuration(stats.max)}
+                  </td>
                   <td class="errors number">{number(stats.errors ?? 0)}</td>
                 </tr>
               ))}
@@ -224,7 +235,13 @@ const statementOf = (span: any) =>
         <h3 class="subtitle" id="admin-slowest-title">
           {page.adminSlowestRequests}
         </h3>
-        <Table density="compact" class="slowest">
+        <Table
+          density="compact"
+          class="slowest"
+          sortable
+          filter={page.adminFilterRows}
+          noMatches={page.adminNoMatchingRows}
+        >
           <thead>
             <tr>
               <th scope="col">{page.adminRequestColumn}</th>
@@ -244,8 +261,12 @@ const statementOf = (span: any) =>
                   </a>
                 </th>
                 <td class="path">{request.path ?? ""}</td>
-                <td class="duration number">{formatDuration(request.duration)}</td>
-                <td class="when">{formatTime(request.start_time)}</td>
+                <td class="duration number" data-sort={request.duration}>
+                  {formatDuration(request.duration)}
+                </td>
+                <td class="when" data-sort={request.start_time}>
+                  {formatTime(request.start_time)}
+                </td>
               </tr>
             ))}
           </tbody>
