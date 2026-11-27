@@ -34,7 +34,7 @@ export default defineConfig({
   // Every page is under its language, e.g. /en/ and /pl/hu/; see
   // src/pages/index.astro for /. Each locale needs its copy in src/i18n.
   i18n: {
-    locales: ["en", "pl", "hu", "es", "de", "fr"],
+    locales: ["en", "pl", "hu", "es", "de", "fr", "sk"],
     defaultLocale: "en",
     routing: { prefixDefaultLocale: true },
   },
