@@ -129,6 +129,48 @@ describe("the unavailable chargers page", () => {
   });
 });
 
+describe("the charger reports page", () => {
+  // The SQL the page's data reads, and what it binds.
+  const spyDb = (queries) => ({
+    prepare: (sql) => {
+      const statement = (values) => ({
+        bind: (...bound) => statement(bound),
+        all: async () => {
+          queries.push({ sql, values });
+          return { results: [] };
+        },
+      });
+      return statement([]);
+    },
+  });
+  const render = (seen) => async (renderedRequest, renderEnv, context) => {
+    seen.push(context.props);
+    return new Response("");
+  };
+  const admin = { id: "1", email: "grace@chealt.com" };
+
+  test("is rendered on the server with the pending reports, or ?status='s", async () => {
+    const queries = [];
+    const seen = [];
+    const pageEnv = { ...env, DB: spyDb(queries) };
+    for (const query of ["", "?status=approved", "?status=all"]) {
+      await adminPageResponse(
+        new Request(`https://ev.chealt.com/en/admin/charger-reports/${query}`),
+        pageEnv,
+        admin,
+        { render: render(seen) }
+      );
+    }
+    const reportQueries = queries.filter(({ sql }) => sql.includes("FROM charger_reports"));
+    expect(reportQueries.map(({ values }) => values)).toEqual([["pending"], ["approved"], []]);
+    expect(seen).toEqual([
+      { data: { reports: [] } },
+      { data: { reports: [] } },
+      { data: { reports: [] } },
+    ]);
+  });
+});
+
 describe("adminApiResponse", () => {
   test("says who the admin is", async () => {
     const response = await adminApiResponse(

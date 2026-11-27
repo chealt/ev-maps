@@ -7,6 +7,7 @@ import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 import { listAdminFlags } from "./charger-unavailability.js";
+import { listAdminReports } from "./charger-reports.js";
 
 const LOCALES = ["en", "pl", "hu"];
 
@@ -20,6 +21,15 @@ const PAGE_EVENTS = {
   locate_me: /^$/,
   list_opened: /^$/,
   sign_in_started: /^[a-z]{2,12}$/,
+};
+
+// The admin review pages' ?status= as the admin API takes it: pending when
+// there's none, every status (none) for "all".
+const reviewStatusUrl = (url) => {
+  const status = url.searchParams.get("status") ?? "pending";
+  const apiUrl = new URL(url);
+  apiUrl.search = status === "all" ? "" : `?status=${encodeURIComponent(status)}`;
+  return apiUrl;
 };
 
 const usage = createUsage({ events: PAGE_EVENTS });
@@ -58,6 +68,12 @@ const admin = createAdminArea({
       // The chargers reported unavailable, rendered on the server (#371).
       path: "unavailability",
       data: (env) => listAdminFlags(env.DB),
+    },
+    {
+      // The charger reports, rendered on the server: ?status= pending (the
+      // default), approved, rejected or all.
+      path: "charger-reports",
+      data: (env, url) => listAdminReports(env.DB, reviewStatusUrl(url)),
     },
     {
       // The errors page is rendered on the server, per request.

@@ -19,4 +19,8 @@ const ERRORS_PAGE = /\/admin\/errors\/(\?.*)?$/;
 // The admin unavailable chargers page, /{lang}/admin/unavailability/.
 const UNAVAILABILITY_PAGE = /\/admin\/unavailability\/(\?.*)?$/;
 
-export { ERRORS_PAGE, UNAVAILABILITY_PAGE, fakePageData };
+// The admin charger reports page, /{lang}/admin/charger-reports/ with any
+// query.
+const CHARGER_REPORTS_PAGE = /\/admin\/charger-reports\/(\?.*)?$/;
+
+export { CHARGER_REPORTS_PAGE, ERRORS_PAGE, UNAVAILABILITY_PAGE, fakePageData };

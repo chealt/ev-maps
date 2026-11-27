@@ -320,6 +320,7 @@ const routes = [
 
 export {
   adminReportsResponse,
+  listAdminReports,
   reportsResponse,
   routes,
   setCommunityValues,
