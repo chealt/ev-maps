@@ -34,6 +34,8 @@ const adminUsage = {
     adminPeriod: "Période",
     adminLastDays: "{days} derniers jours",
     adminPageViewsPerDay: "Pages vues par jour",
+    adminNameColumn: "Nom",
+    adminUsageCountColumn: "Nombre",
     adminNoData: "Rien pour l'instant.",
     adminTopItems: "Bornes les plus mises en favoris, actuellement",
   },

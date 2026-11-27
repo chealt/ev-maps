@@ -16,6 +16,10 @@ const common = {
     favorites: "Favoris",
     signInForFavorites: "Connecte-toi pour enregistrer des bornes en favoris.",
     admin: "Admin",
+    supportTitle: "Soutenir EV Maps",
+    supportHint:
+      "EV Maps est gratuit. S'il t'est utile, tu peux participer aux frais de ses serveurs et de ses données cartographiques.",
+    opensInNewTab: "(s'ouvre dans un nouvel onglet)",
   },
 };
 
