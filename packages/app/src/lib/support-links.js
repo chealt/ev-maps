@@ -12,7 +12,7 @@ const SUPPORT_LINKS = [
     id: "github-sponsors",
     name: "GitHub Sponsors",
     url: "https://github.com/sponsors/chealt",
-    enabled: false,
+    enabled: true,
   },
   { id: "ko-fi", name: "Ko-fi", url: "https://ko-fi.com/chealt", enabled: false },
   {
