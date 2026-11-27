@@ -14,7 +14,7 @@ HTML report and a JSON summary (`playwright-results.json`), then runs
 2. records the run in the admin database (`test_reports`): branch, commit,
    pull request, the run's address, the result and its counts, how long it
    took; until a deploy from main has created the table, this only warns;
-3. sets a commit status, "Playwright report", linking to the report, e.g.
+3. sets a commit status, "E2E: Playwright report", linking to the report, e.g.
    "158 passed, 0 failed, 1 flaky".
 
 Pull requests from forks don't get the secrets, so their reports are only the
@@ -44,7 +44,7 @@ publishing the Playwright report, `scripts/a11y-report.js` puts them
 together from `playwright-results.json` into one page: totals, the rules
 violated, the rules to check by hand (where axe couldn't decide), and each
 test's page. It's uploaded next to the report, in `reports/{id}/a11y/`, and
-linked from its own commit status, "Accessibility report" (failure if any
+linked from its own commit status, "E2E: Accessibility report" (failure if any
 rule was violated). Locally, after a run with the JSON reporter:
 `bun scripts/a11y-report.js` in `packages/app`.
 
@@ -57,7 +57,7 @@ end, before axe, the fixture measures the page's load (TTFB, FCP, LCP, CLS,
 thresholds, and attaches them ("web-vitals"). `scripts/performance-report.js`
 puts them together into each page's P75, rated good, needs improvement or
 poor, uploaded in `reports/{id}/performance/` and linked from a
-"Performance report" commit status (failure if any P75 is poor). The tests
+"E2E: Performance report" commit status (failure if any P75 is poor). The tests
 run against the development server with the APIs faked, warmed up first
 (`tests/global-setup.js` loads each measured page once, so no test measures
 Vite compiling it), so the numbers are
