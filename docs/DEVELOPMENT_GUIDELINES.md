@@ -512,8 +512,9 @@ adds **one line** to a list, never code to a shared function.
   `src/i18n/{language}/{section}.js`, e.g. `map`, `account`, and one per
   admin page (`admin-errors`, `admin-usage`); see [Languages](#languages).
 - **Admin pages**: each is its own component and page, and adds one line to
-  `src/components/admin-page/sections.js`, which builds the navigation and
-  the overview.
+  `packages/admin/components/admin-page/sections.js`, in its group of the
+  side navigation (Community, Insights, Engineering), with an icon. A
+  section's sub-pages are its `children`, the navigation's second level.
 - **Docs**: each feature has its own page in `docs/features/`;
   `ARCHITECTURE.md` only links to them.
 - **Tests**: one spec file per feature in `packages/app/tests`, and tests

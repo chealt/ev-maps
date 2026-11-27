@@ -1,50 +1,150 @@
 ---
-import { ArrowLeft } from "lucide-static";
+import * as icons from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
-import { ADMIN_SECTIONS } from "./sections.js";
+import { ADMIN_GROUPS } from "./sections.js";
 import "./AdminPage.css";
 
 interface Props {
   // The section shown, for the navigation: "overview" or a section's ID
   // (./sections.js).
   current?: string;
+  // The sub-page shown, of the current section's `children`.
+  currentChild?: string;
   // The page's strings (the host's translations for this section).
   page: Record<string, string>;
 }
 
-const { page } = Astro.props;
+const { page, current = "overview", currentChild } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
-const { current = "overview" } = Astro.props;
-const sections = [
-  { id: "overview", href: `/${lang}/admin/`, label: page.adminOverview },
-  ...ADMIN_SECTIONS.map(({ id, path, label }) => ({
+const overview = { id: "overview", href: `/${lang}/admin/`, label: page.adminOverview };
+const groups = ADMIN_GROUPS.map((group) => ({
+  ...group,
+  label: page[group.label],
+  sections: group.sections.map(({ id, path, label, icon, children = [] }) => ({
     id,
     href: `/${lang}/admin/${path}/`,
     label: page[label],
+    icon: icons[icon],
+    children: children.map((child) => ({
+      id: child.id,
+      href: `/${lang}/admin/${path}/${child.path ? `${child.path}/` : ""}`,
+      label: page[child.label],
+    })),
   })),
-];
+}));
+const currentGroup = groups.find(({ sections }) => sections.some(({ id }) => id === current));
+const currentSection = currentGroup?.sections.find(({ id }) => id === current);
 ---
 
 <!-- The admin area: the Worker serves it to admins only, and its API checks
-     again on every request. Sections are added below as they come. -->
+     again on every request. A side navigation (collapsible to its icons,
+     AdminPage.js) by groups of sections, with a section's sub-pages under
+     it; a top bar with where the admin is and who they are. -->
 <ev-admin-page>
-  <main class="admin-page">
-    <nav class="links" aria-label={page.admin}>
-      <a class="back" href={`/${lang}/`}>
-        <Icon icon={ArrowLeft} size="sm" />
-        {page.backToMap}
-      </a>
-      {sections.map(({ id, href, label }) => (
-        <a href={href} aria-current={id === current ? "page" : undefined}>
-          {label}
+  <!-- The navigation the admin collapsed stays collapsed, from the first
+       paint on (AdminPage.js saves it). It must stay inline to run before
+       rendering. -->
+  <script is:inline>
+    try {
+      if (localStorage.getItem("ev-maps:admin-nav") === "collapsed") {
+        document.documentElement.dataset.adminNav = "collapsed";
+      }
+    } catch {
+      // Storage can be unavailable; the navigation is expanded.
+    }
+  </script>
+  <div class="admin-shell">
+    <aside class="admin-sidenav">
+      <div class="sidenav-top">
+        <a class="brand" href={overview.href}>
+          <span class="brand-mark" aria-hidden="true">
+            <Icon icon={icons.Zap} size="sm" />
+          </span>
+          <span class="nav-text">{page.admin}</span>
         </a>
-      ))}
-    </nav>
-    <header class="header">
-      <h1 class="title">{page.admin}</h1>
-      <p class="signed-in-as" role="status"></p>
-    </header>
-    <slot />
-  </main>
+        <button
+          type="button"
+          class="collapse-nav"
+          aria-label={page.adminCollapseNav}
+          aria-pressed="false"
+          title={page.adminCollapseNav}
+        >
+          <Icon icon={icons.PanelLeftClose} size="sm" class="when-expanded" />
+          <Icon icon={icons.PanelLeftOpen} size="sm" class="when-collapsed" />
+        </button>
+      </div>
+      <nav class="links" aria-label={page.admin}>
+        <a
+          class="nav-link"
+          href={overview.href}
+          title={overview.label}
+          aria-current={current === "overview" ? "page" : undefined}
+        >
+          <Icon icon={icons.LayoutDashboard} size="sm" />
+          <span class="nav-text">{overview.label}</span>
+        </a>
+        {groups.map((group) => (
+          <section class="nav-group" aria-labelledby={`admin-nav-${group.id}`}>
+            <h2 class="group-label nav-text" id={`admin-nav-${group.id}`}>
+              {group.label}
+            </h2>
+            <ul>
+              {group.sections.map(({ id, href, label, icon, children }) => (
+                <li>
+                  <a
+                    class="nav-link"
+                    href={href}
+                    title={label}
+                    aria-current={id === current && !currentChild ? "page" : undefined}
+                    data-current={id === current ? "" : undefined}
+                  >
+                    <Icon icon={icon} size="sm" />
+                    <span class="nav-text">{label}</span>
+                  </a>
+                  {children.length > 0 && id === current && (
+                    <ul class="sub-links">
+                      {children.map((child) => (
+                        <li>
+                          <a
+                            class="sub-link nav-text"
+                            href={child.href}
+                            aria-current={child.id === currentChild ? "page" : undefined}
+                          >
+                            {child.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </nav>
+      <a class="nav-link back" href={`/${lang}/`} title={page.backToMap}>
+        <Icon icon={icons.ArrowLeft} size="sm" />
+        <span class="nav-text">{page.backToMap}</span>
+      </a>
+    </aside>
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <div class="where">
+          <h1 class="title">{page.admin}</h1>
+          {currentGroup && (
+            <p class="breadcrumb">
+              <span>{currentGroup.label}</span>
+              <Icon icon={icons.ChevronRight} size="sm" />
+              <span>{currentSection?.label}</span>
+            </p>
+          )}
+        </div>
+        <p class="signed-in-as" role="status"></p>
+      </header>
+      <main class="admin-page">
+        <slot />
+      </main>
+    </div>
+  </div>
   <script src="./AdminPage.js"></script>
 </ev-admin-page>

@@ -1,53 +1,281 @@
-.admin-page {
-  --admin-content-width: 64rem;
+/* The admin area's shell: a side navigation and the page beside it. The
+   navigation collapses to its icons (html[data-admin-nav="collapsed"],
+   AdminPage.js), and always is just its icons on narrow screens. */
+.admin-shell {
+  --admin-nav-width: 15rem;
+  --admin-nav-collapsed-width: 3.75rem;
+  --admin-content-width: 72rem;
 
-  max-width: var(--admin-content-width);
-  margin: 0 auto;
-  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-2xl);
+  display: grid;
+  grid-template-columns: var(--admin-nav-width) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-background);
   color: var(--color-text);
   line-height: var(--line-height-base);
+  transition: grid-template-columns var(--transition-base);
+}
+
+.admin-sidenav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--spacing-md) var(--spacing-sm);
+  overflow: hidden auto;
+  border-right: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+
+  .sidenav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--icon-size-lg);
+    height: var(--icon-size-lg);
+    border-radius: var(--border-radius-md);
+    background: var(--gradient-brand);
+    color: var(--color-primary-contrast);
+  }
+
+  .collapse-nav {
+    display: grid;
+    place-items: center;
+    padding: var(--spacing-xs);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    background: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-text);
+    }
+
+    .when-collapsed {
+      display: none;
+    }
+  }
 
   .links {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--spacing-xs) var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-    font-size: var(--font-size-sm);
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
 
-    a {
-      color: var(--color-primary-light-text);
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .group-label {
+    margin: 0 0 var(--spacing-xs);
+    padding: 0 var(--spacing-sm);
+    font-size: var(--font-size-2xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      background var(--transition-fast),
+      color var(--transition-fast);
+
+    &:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-text);
     }
 
-    a[aria-current="page"] {
+    &[aria-current="page"],
+    &[data-current] {
+      background: var(--color-primary-light);
+      color: var(--color-primary-light-text);
+    }
+  }
+
+  /* A section's sub-pages, the navigation's second level. */
+  .sub-links {
+    margin: var(--spacing-2xs) 0 var(--spacing-xs) calc(var(--spacing-sm) * 2 + var(--icon-size-sm));
+    border-left: var(--border-width) solid var(--color-border);
+  }
+
+  .sub-link {
+    display: block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    &[aria-current="page"] {
+      margin-left: calc(-1 * var(--border-width));
+      border-left: var(--border-width-thick) solid var(--color-primary);
       font-weight: var(--font-weight-semibold);
-      text-decoration: none;
       color: var(--color-text);
     }
   }
 
   .back {
-    margin-right: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-weight: var(--font-weight-semibold);
+    margin-top: auto;
+  }
+}
+
+/* Collapsed: just the icons. The labels stay for screen readers, and are
+   the links' titles. Narrow screens always show just the icons, so their
+   collapse button goes. */
+:root[data-admin-nav="collapsed"] .admin-shell {
+  grid-template-columns: var(--admin-nav-collapsed-width) minmax(0, 1fr);
+}
+
+:root[data-admin-nav="collapsed"] .admin-sidenav .collapse-nav {
+  .when-expanded {
+    display: none;
   }
 
-  .header {
-    margin-bottom: var(--spacing-xl);
+  .when-collapsed {
+    display: block;
+  }
+}
+
+@media (width < 48rem) {
+  .admin-shell {
+    grid-template-columns: var(--admin-nav-collapsed-width) minmax(0, 1fr);
+  }
+
+  .admin-sidenav .collapse-nav {
+    display: none;
+  }
+}
+
+:root[data-admin-nav="collapsed"] .admin-sidenav {
+  align-items: center;
+
+  .sidenav-top {
+    flex-direction: column;
+  }
+}
+
+/* What the icon rail hides, collapsed or narrow. */
+:root[data-admin-nav="collapsed"] .admin-sidenav :is(.nav-text, .sub-links) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (width < 48rem) {
+  .admin-sidenav {
+    align-items: center;
+
+    :is(.nav-text, .sub-links) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs) var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: var(--border-width) solid var(--color-border);
+  background: var(--color-surface-glass);
+  backdrop-filter: var(--blur-glass);
+
+  .where {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
   }
 
   .title {
-    font-size: var(--font-size-3xl);
+    margin: 0;
+    font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-tight);
   }
 
+  .breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+
+    span:last-child {
+      color: var(--color-text);
+    }
+  }
+
   .signed-in-as {
+    margin: 0;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
   }
 }
 
-/* The overview's list of sections. */
+.admin-page {
+  width: 100%;
+  max-width: var(--admin-content-width);
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-2xl);
+}
