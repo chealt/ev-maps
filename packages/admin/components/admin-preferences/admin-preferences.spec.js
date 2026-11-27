@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { PREFERENCES_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
@@ -39,42 +39,51 @@ test.describe("admin", () => {
     );
   });
 
-  test("shows what users prefer, a section per page", async ({ page }) => {
-    await fakePageData(page, PREFERENCES_PAGE, { data: STATS });
-    await page.goto("/en/admin/usage/");
+  test(
+    "shows what users prefer, a section per page",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakePageData(page, PREFERENCES_PAGE, { data: STATS });
+      await page.goto("/en/admin/usage/");
 
-    const subnav = page.getByRole("navigation", { name: "Usage pages" });
-    await expect(subnav.getByRole("link", { name: "Activity" })).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
-    await subnav.getByRole("link", { name: "Settings" }).click();
+      const subnav = page.getByRole("navigation", { name: "Usage pages" });
+      await expect(subnav.getByRole("link", { name: "Activity" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      await subnav.getByRole("link", { name: "Settings" }).click();
 
-    await expect(page).toHaveURL("/en/admin/usage/settings/");
-    await expect(page.getByRole("heading", { level: 2, name: "Settings" })).toBeVisible();
-    await expect(page.getByText("4 accounts")).toBeVisible();
-    const signIn = page.getByRole("region", { name: "Sign-in method" });
-    await expect(signIn).toContainText("Accounts, now");
-    await expect(signIn.getByRole("row").first()).toHaveText(/Google\s*3 \(75%\)/);
-    // Shares of the page views, the languages by name.
-    const language = page.getByRole("region", { name: "Language" });
-    await expect(language).toContainText("Page views, last 30 days");
-    await expect(language.getByRole("row").first()).toHaveText(/Hungarian\s*30 \(75%\)/);
-    await expect(
-      page.getByRole("region", { name: "Car's connectors" }).getByRole("row")
-    ).toHaveText([/CCS\s*2 \(50%\)/]);
-    await expect(page.getByRole("region", { name: "Maps app" })).toContainText("Nothing yet.");
+      await expect(page).toHaveURL("/en/admin/usage/settings/");
+      await expect(page.getByRole("heading", { level: 2, name: "Settings" })).toBeVisible();
+      await expect(page.getByText("4 accounts")).toBeVisible();
+      const signIn = page.getByRole("region", { name: "Sign-in method" });
+      await expect(signIn).toContainText("Accounts, now");
+      await expect(signIn.getByRole("row").first()).toHaveText(/Google\s*3 \(75%\)/);
+      // Shares of the page views, the languages by name.
+      const language = page.getByRole("region", { name: "Language" });
+      await expect(language).toContainText("Page views, last 30 days");
+      await expect(language.getByRole("row").first()).toHaveText(/Hungarian\s*30 \(75%\)/);
+      await expect(
+        page.getByRole("region", { name: "Car's connectors" }).getByRole("row")
+      ).toHaveText([/CCS\s*2 \(50%\)/]);
+      await expect(page.getByRole("region", { name: "Maps app" })).toContainText("Nothing yet.");
+      await expect(subnav.getByRole("link", { name: "Settings" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      );
+      await captureUi(page, testInfo, "admin usage settings preferences");
 
-    await subnav.getByRole("link", { name: "Filters" }).click();
-    await expect(page.getByRole("region", { name: "Charging power" }).getByRole("row")).toHaveText([
-      /150–300 kW\s*1 \(25%\)/,
-    ]);
+      await subnav.getByRole("link", { name: "Filters" }).click();
+      await expect(
+        page.getByRole("region", { name: "Charging power" }).getByRole("row")
+      ).toHaveText([/150–300 kW\s*1 \(25%\)/]);
 
-    await subnav.getByRole("link", { name: "Routes and places" }).click();
-    await expect(page.getByRole("region", { name: "Popular routes" })).toContainText(
-      "Nothing yet."
-    );
-  });
+      await subnav.getByRole("link", { name: "Routes and places" }).click();
+      await expect(page.getByRole("region", { name: "Popular routes" })).toContainText(
+        "Nothing yet."
+      );
+    }
+  );
 
   test("says when the preferences couldn't be loaded", async ({ page }) => {
     await fakePageData(page, PREFERENCES_PAGE, { failed: true });
