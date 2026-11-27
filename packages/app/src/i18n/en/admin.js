@@ -4,6 +4,12 @@
 const admin = {
   page: {
     adminOverview: "Overview",
+    adminGroupCommunity: "Community",
+    adminGroupInsights: "Insights",
+    adminGroupEngineering: "Engineering",
+    adminCollapseNav: "Collapse the navigation",
+    adminFilterRows: "Filter the rows",
+    adminNoMatchingRows: "No rows match.",
     adminErrors: "Errors",
     adminUsage: "Usage",
   },

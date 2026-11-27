@@ -3,18 +3,62 @@
 // slot is its content (thead, tbody). Header cells are muted, rows split by
 // a line; a cell with the class "number" lines up its digits on the end.
 // `compact`: less padding, for tables of many short rows.
+//
+// `sortable`: each column header sorts the rows by that column, ascending
+// then descending (a cell's `data-sort` value when its text isn't the
+// value, e.g. "1.2 s"; numbers sort as numbers). `filter`: the label of a
+// search field above it that shows only the rows containing what's typed,
+// and `noMatches` what it says when none do. Both work on the rows the
+// page has (table.js): a table that pages on the server sorts on the
+// server instead.
 import type { HTMLAttributes } from "astro/types";
+import { Search } from "lucide-static";
+import Icon from "../icon/Icon.astro";
 import "./Table.css";
 
 interface Props extends HTMLAttributes<"table"> {
   density?: "default" | "compact";
+  sortable?: boolean;
+  filter?: string;
+  noMatches?: string;
 }
 
-const { density = "default", class: className, ...attrs } = Astro.props;
+const {
+  density = "default",
+  sortable = false,
+  filter,
+  noMatches,
+  class: className,
+  ...attrs
+} = Astro.props;
+const enhanced = sortable || Boolean(filter);
 ---
 
-<div class="table-scroll">
-  <table class:list={["table", density, className]} {...attrs}>
-    <slot />
-  </table>
-</div>
+{enhanced ? (
+  <ev-table data-sortable={sortable ? "" : undefined}>
+    {filter && (
+      <label class="table-filter">
+        <Icon icon={Search} size="sm" />
+        <input type="search" aria-label={filter} placeholder={filter} />
+      </label>
+    )}
+    <div class="table-scroll">
+      <table class:list={["table", density, className]} {...attrs}>
+        <slot />
+      </table>
+    </div>
+    {filter && (
+      <p class="table-no-matches" hidden>
+        {noMatches}
+      </p>
+    )}
+  </ev-table>
+) : (
+  <div class="table-scroll">
+    <table class:list={["table", density, className]} {...attrs}>
+      <slot />
+    </table>
+  </div>
+)}
+
+{enhanced && <script src="./table.js" />}

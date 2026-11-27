@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { PERFORMANCE_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
@@ -134,6 +134,48 @@ test.describe("admin", () => {
           .getByRole("region", { name: "API calls, as the page saw them" })
           .getByText("Nothing yet.")
       ).toBeVisible();
+    }
+  );
+
+  test(
+    "sorts the timings by a column, and filters them",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakePerformanceApi(page);
+      // Playwright takes the route added last: three requests, by name.
+      await fakePageData(page, PERFORMANCE_PAGE, {
+        data: {
+          ...summary(7),
+          requests: [
+            { name: "GET chargers", count: 900, p75: 120, p95: 300, max: 1100, errors: 0 },
+            { name: "POST route", count: 12, p75: 840, p95: 1900, max: 2300, errors: 1 },
+            { name: "GET tiles", count: 4000, p75: 45, p95: 90, max: 400, errors: 0 },
+          ],
+        },
+      });
+      await page.goto("/en/admin/performance/");
+      const requests = page.getByRole("region", { name: "Requests, in the Worker" });
+      const names = requests.locator("tbody th");
+      await expect(names).toHaveText(["GET chargers", "POST route", "GET tiles"]);
+
+      // By the P75 (840 ms sorts after 120 ms, not before: by the value).
+      const p75 = requests.getByRole("columnheader", { name: "P75" });
+      await p75.getByRole("button").click();
+      await expect(p75).toHaveAttribute("aria-sort", "ascending");
+      await expect(names).toHaveText(["GET tiles", "GET chargers", "POST route"]);
+      await p75.getByRole("button").click();
+      await expect(p75).toHaveAttribute("aria-sort", "descending");
+      await expect(names).toHaveText(["POST route", "GET chargers", "GET tiles"]);
+      // By the times, formatted ("4,000").
+      await requests.getByRole("button", { name: "Times" }).click();
+      await expect(names).toHaveText(["POST route", "GET chargers", "GET tiles"]);
+      await expect(p75).not.toHaveAttribute("aria-sort");
+
+      await requests.getByRole("searchbox", { name: "Filter the rows" }).fill("get");
+      await expect(requests.locator("tbody tr:visible")).toHaveCount(2);
+      await captureUi(page, testInfo, "admin performance sorted and filtered");
+      await requests.getByRole("searchbox", { name: "Filter the rows" }).fill("delete");
+      await expect(requests.getByText("No rows match.")).toBeVisible();
     }
   );
 

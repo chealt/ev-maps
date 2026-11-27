@@ -33,3 +33,84 @@
     white-space: nowrap;
   }
 }
+
+ev-table {
+  display: block;
+}
+
+/* The search field above a filterable table. */
+.table-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  max-width: 20rem;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-focus);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-sm);
+  }
+}
+
+.table-no-matches {
+  padding: var(--spacing-md) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* A sortable column's header: a button, with an arrow when sorted. */
+.table .sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &::after {
+    content: "↕";
+    opacity: 0.4;
+  }
+}
+
+.table th[aria-sort="ascending"] .sort::after {
+  content: "↑";
+  opacity: 1;
+}
+
+.table th[aria-sort="descending"] .sort::after {
+  content: "↓";
+  opacity: 1;
+}
+
+.table th.number .sort {
+  flex-direction: row-reverse;
+}
+
+/* Rows light up under the pointer. */
+.table tbody tr:hover {
+  background: var(--color-surface-hover);
+}
