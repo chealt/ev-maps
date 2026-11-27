@@ -28,7 +28,18 @@ const ADMIN_GROUPS = [
     label: "adminGroupInsights",
     sections: [
       { id: "performance", path: "performance", label: "adminPerformance", icon: "Gauge" },
-      { id: "usage", path: "usage", label: "adminUsage", icon: "ChartColumn" },
+      {
+        id: "usage",
+        path: "usage",
+        label: "adminUsage",
+        icon: "ChartColumn",
+        children: [
+          { id: "activity", path: "", label: "adminUsageActivity" },
+          { id: "settings", path: "settings", label: "adminUsageSettings" },
+          { id: "filters", path: "filters", label: "adminUsageFilters" },
+          { id: "routes", path: "routes", label: "adminUsageRoutes" },
+        ],
+      },
     ],
   },
   {

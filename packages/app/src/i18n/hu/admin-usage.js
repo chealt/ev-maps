@@ -3,7 +3,6 @@
 
 const adminUsage = {
   page: {
-    adminUsagePages: "Használati oldalak",
     adminUsageActivity: "Aktivitás",
     adminUsageSettings: "Beállítások",
     adminUsageFilters: "Szűrők",

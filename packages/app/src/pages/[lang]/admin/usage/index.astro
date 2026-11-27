@@ -3,9 +3,7 @@ import Layout from "../../../../layouts/Layout.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import AdminUsage from "@ev-maps/admin/components/admin-usage/AdminUsage.astro";
 import { translations } from "../../../../i18n/index.js";
-import AdminSubnav from "@ev-maps/admin/components/admin-subnav/AdminSubnav.astro";
 import { pageData } from "../../../../lib/page-data.js";
-import { usageNavigation } from "../../../../lib/usage-sections.js";
 
 // Rendered on the server, per request: the Worker only serves it to admins,
 // with the usage stats of ?days= as its data (packages/worker/src/admin-area.js).
@@ -47,12 +45,7 @@ const dimensionLabels = {
 ---
 
 <Layout title={`EV Maps - ${page.adminUsage}`} noindex kind="admin">
-  <AdminPage current="usage" page={page}>
-    <AdminSubnav
-      label={page.adminUsagePages}
-      items={usageNavigation(lang, page)}
-      current="activity"
-    />
+  <AdminPage current="usage" currentChild="activity" page={page}>
     <AdminUsage
       pageData={data}
       page={page}
