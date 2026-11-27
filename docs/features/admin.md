@@ -5,7 +5,9 @@ Users with a verified email at `ADMIN_EMAIL_DOMAIN`
 The Worker runs first for `/{lang}/admin*` and serves those pages only to
 admins (404 for everyone else, never cached), and the admin API
 (`/api/admin/*`, the guard's `admin` policy) answers only them (403
-otherwise). The account menu links admins to `/{lang}/admin/`.
+otherwise). The account menu links admins to `/{lang}/admin/`. The admin navigation's **Sign out**
+signs out as the account menu does (`POST /api/auth/sign-out`) and goes to
+the map, `/{lang}/`.
 
 ## Overview and dashboard
 

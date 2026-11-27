@@ -158,6 +158,14 @@
   .back {
     margin-top: auto;
   }
+
+  .sign-out {
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
 }
 
 /* Collapsed: just the icons. The labels stay for screen readers, and are
