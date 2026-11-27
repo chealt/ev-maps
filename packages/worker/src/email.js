@@ -16,6 +16,10 @@ const MESSAGES = {
     subject: "Az EV Maps bejelentkezési linked",
     text: "Nyisd meg ezt a linket az EV Maps-be való bejelentkezéshez:\n\n{url}\n\nEgyszer használható, 15 percig. Ha nem te kérted, hagyd figyelmen kívül ezt a levelet.",
   },
+  es: {
+    subject: "Tu enlace de inicio de sesión de EV Maps",
+    text: "Abre este enlace para iniciar sesión en EV Maps:\n\n{url}\n\nFunciona una vez, durante 15 minutos. Si no lo has pedido tú, ignora este correo.",
+  },
 };
 
 const RESEND_URL = "https://api.resend.com/emails";
