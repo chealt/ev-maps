@@ -3,7 +3,6 @@
 
 const adminUsage = {
   page: {
-    adminUsagePages: "Usage pages",
     adminUsageActivity: "Activity",
     adminUsageSettings: "Settings",
     adminUsageFilters: "Filters",

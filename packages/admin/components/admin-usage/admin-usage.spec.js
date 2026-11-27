@@ -129,8 +129,12 @@ test.describe("admin", () => {
       .click();
 
     await expect(page).toHaveURL("/en/admin/usage/");
-    await expect(
-      page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "Usage" })
-    ).toHaveAttribute("aria-current", "page");
+    // Its first subsection, Activity, is the current page; Usage is its group.
+    const nav = page.getByRole("navigation", { name: "Admin" });
+    await expect(nav.getByRole("link", { name: "Usage" })).toHaveAttribute("data-current", "");
+    await expect(nav.getByRole("link", { name: "Activity" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
   });
 });

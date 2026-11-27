@@ -46,7 +46,7 @@ test.describe("admin", () => {
       await fakePageData(page, PREFERENCES_PAGE, { data: STATS });
       await page.goto("/en/admin/usage/");
 
-      const subnav = page.getByRole("navigation", { name: "Usage pages" });
+      const subnav = page.getByRole("navigation", { name: "Admin" });
       await expect(subnav.getByRole("link", { name: "Activity" })).toHaveAttribute(
         "aria-current",
         "page"
