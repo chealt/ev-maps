@@ -2,6 +2,7 @@ import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
+import { supportLinks } from "../../lib/support-links.js";
 
 test.describe("account", () => {
   test.beforeEach(async ({ page }) => {
@@ -96,6 +97,8 @@ test.describe("account", () => {
     }
   });
 
+  // Follows the enabled platforms in src/lib/support-links.js, so turning one
+  // on doesn't break it.
   test(
     "links to supporting EV Maps, the language's own option first",
     { tag: "@ui" },
@@ -103,14 +106,21 @@ test.describe("account", () => {
       await fakeAuthApi(page);
       await page.goto("/");
       await page.getByRole("button", { name: "Sign in" }).click();
-      const support = page
-        .getByRole("dialog", { name: "Account" })
-        .getByRole("region", { name: "Support EV Maps" });
+      const menu = page.getByRole("dialog", { name: "Account" });
+      const support = menu.getByRole("region", { name: "Support EV Maps" });
+      const enabled = supportLinks("en");
+      if (enabled.length === 0) {
+        await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
+        await expect(support).toHaveCount(0);
+        return;
+      }
       const links = support.getByRole("link");
-      await expect(links).toHaveText([/^GitHub Sponsors/, /^Ko-fi/, /^buycoffee\.to/]);
-      await expect(links.first()).toHaveAccessibleName("GitHub Sponsors (opens in a new tab)");
+      await expect(links).toHaveText(
+        enabled.map(({ name }) => new RegExp(`^${name.replace(/[.]/g, "\\.")}`))
+      );
+      await expect(links.first()).toHaveAccessibleName(`${enabled[0].name} (opens in a new tab)`);
       await expect(links.first()).toHaveAttribute("target", "_blank");
-      await expect(links.first()).toHaveAttribute("href", "https://github.com/sponsors/chealt");
+      await expect(links.first()).toHaveAttribute("href", enabled[0].url);
       await support.scrollIntoViewIfNeeded();
       await captureUi(page, testInfo, "account menu support links");
 
@@ -118,7 +128,7 @@ test.describe("account", () => {
       await page.getByRole("button", { name: "Zaloguj się" }).click();
       await expect(
         page.getByRole("region", { name: "Wesprzyj EV Maps" }).getByRole("link").first()
-      ).toHaveAttribute("href", "https://buycoffee.to/chealt");
+      ).toHaveAttribute("href", supportLinks("pl")[0].url);
     }
   );
 
