@@ -3,16 +3,26 @@ import Layout from "../../../../layouts/Layout.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import AdminPerformance from "@ev-maps/admin/components/admin-performance/AdminPerformance.astro";
 import { translations } from "../../../../i18n/index.js";
-import { languages } from "../../../../lib/pages.js";
+import { pageData } from "../../../../lib/page-data.js";
 
-// The Worker only serves this page to admins (packages/admin/src/admin.js).
-export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the summary of ?days= or a trace's spans (?trace=) as its data
+// (packages/worker/src/admin-area.js).
+export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages } = translations(Astro.currentLocale ?? "en");
+const trace = Astro.url.searchParams.get("trace");
+const days = Astro.url.searchParams.get("days");
+const data = await pageData(
+  Astro,
+  trace
+    ? `/api/admin/performance/traces/${encodeURIComponent(trace)}`
+    : `/api/admin/performance${days ? `?days=${encodeURIComponent(days)}` : ""}`
+);
 ---
 
 <Layout title={`EV Maps - ${page.adminPerformance}`} noindex kind="admin">
   <AdminPage current="performance" page={page}>
-    <AdminPerformance page={page} />
+    <AdminPerformance pageData={data} page={page} messages={messages} />
   </AdminPage>
 </Layout>

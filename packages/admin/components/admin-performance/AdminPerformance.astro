@@ -6,15 +6,25 @@ import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import { ArrowLeft } from "lucide-static";
 import Icon from "@ev-maps/ui/Icon.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
-import { fill } from "@ev-maps/ui/format.js";
+import { fill, formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminPerformance.css";
 
+// Rendered on the server, from the Worker (../../src/performance-stats.js):
+// the summary of ?days=, or one trace's spans with ?trace={id}.
 interface Props {
-  // The page's strings (the host's translations for this section).
-  page: Record<string, string>;
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
 }
 
-const { page } = Astro.props;
+const { page, messages } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const traceId = Astro.url.searchParams.get("trace");
+const summary = traceId ? null : data;
 
 const periods = [1, 7, 14];
 const vitals = ["LCP", "INP", "CLS", "FCP", "TTFB"];
@@ -28,157 +38,275 @@ const tables = [
   },
   { id: "queries", title: page.adminPerformanceQueries, nameColumn: page.adminQueryColumn },
 ];
+
+const number = (value: number, options?: Intl.NumberFormatOptions) =>
+  new Intl.NumberFormat(lang, options).format(value);
+// Milliseconds as "123 ms" / "1.2 s"; CLS has no unit.
+const formatDuration = (ms: number) =>
+  ms < 1000
+    ? formatMessage(lang, messages.adminMilliseconds, { value: number(Math.round(ms)) })
+    : formatMessage(lang, messages.adminSeconds, {
+        value: number(ms / 1000, { maximumFractionDigits: 1 }),
+      });
+const formatVital = (name: string, value: number) =>
+  name === "CLS" ? number(value, { maximumFractionDigits: 3 }) : formatDuration(value);
+const formatTime = (timestamp: number) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: "short", timeStyle: "medium" }).format(
+    new Date(timestamp)
+  );
+const traceUrl = (trace: string) => `?trace=${trace}`;
+
+// Each vital's P75 per day: a day without measurements says so, rather than
+// showing a P75 of 0 (CLS can be a real 0). The bar's label gets the day
+// formatted, so its measurement is looked up by its position.
+const trendDays: string[] = summary?.vitalsByDay?.days ?? [];
+const trendLabel = (vital: string) => {
+  const measured = summary?.vitalsByDay?.vitals?.[vital] ?? {};
+  let index = 0;
+  return (day: string, p75: number) => {
+    const raw = trendDays[index++];
+    return formatMessage(lang, messages.adminVitalDay, {
+      day,
+      value: raw in measured ? formatVital(vital, p75) : messages.adminNoMeasurements,
+    });
+  };
+};
+
+// The trace's spans as a waterfall: each bar placed by its start and length
+// within the whole trace, indented by its depth.
+const spans: any[] = traceId ? (data?.spans ?? []) : [];
+const traceStart = spans.length ? Math.min(...spans.map((span) => span.start_time)) : 0;
+const traceEnd = spans.length
+  ? Math.max(...spans.map((span) => span.start_time + span.duration))
+  : 0;
+const traceTotal = Math.max(traceEnd - traceStart, 1);
+const byId = new Map(spans.map((span) => [span.span_id, span]));
+const depthOf = (span: any) => {
+  let depth = 0;
+  for (
+    let parent = byId.get(span.parent_span_id);
+    parent;
+    parent = byId.get(parent.parent_span_id)
+  ) {
+    depth++;
+  }
+  return depth;
+};
+const statementOf = (span: any) =>
+  span.attributes?.["db.query.text"] ?? span.attributes?.["url.path"] ?? "";
 ---
 
-<!-- Performance (GET /api/admin/performance): P75s of the Web Vitals and of
-     the requests, the slowest queries and requests, and one trace's spans
-     with ?trace={id}. -->
+<!-- Performance: P75s of the Web Vitals and of the requests, the slowest
+     queries and requests, and one trace's spans with ?trace={id}. The script
+     only shows another period (?days=) and another vital's chart. -->
 <ev-admin-performance>
-  <section class="summary-view" aria-labelledby="admin-performance-title">
-    <div class="performance-header">
-      <h2 class="section-title" id="admin-performance-title">
-        {page.adminPerformance}
-      </h2>
-      <SegmentedControl
-        class="periods"
-        legend={page.adminPeriod}
-        legendHidden
-        name="performance-period"
-        options={periods.map((days) => ({
-          value: String(days),
-          label: days === 1 ? page.adminLast24Hours : fill(page.adminLastDays, { days }),
-        }))}
-        value="7"
-      />
-    </div>
-    <p class="summary" role="status"></p>
+  {!traceId && (
+    <section class="summary-view" aria-labelledby="admin-performance-title">
+      <div class="performance-header">
+        <h2 class="section-title" id="admin-performance-title">
+          {page.adminPerformance}
+        </h2>
+        <SegmentedControl
+          class="periods"
+          legend={page.adminPeriod}
+          legendHidden
+          name="performance-period"
+          options={periods.map((days) => ({
+            value: String(days),
+            label: days === 1 ? page.adminLast24Hours : fill(page.adminLastDays, { days }),
+          }))}
+          value={String(summary?.days ?? 7)}
+        />
+      </div>
+      <p class="summary" role="status">
+        {failed
+          ? messages.adminPerformanceNotLoaded
+          : formatMessage(lang, messages.adminPerformancePeriod, { count: summary.days })}
+      </p>
 
-    <h3 class="subtitle">{page.adminWebVitals}</h3>
-    <dl class="vitals">
-      {vitals.map((name) => (
-        <Stat class="vital" data-vital={name}>
-          <abbr slot="label" title={page[`adminVital${name}`]}>
-            {name}
-          </abbr>
-          <dd class="count"></dd>
-        </Stat>
+      <h3 class="subtitle">{page.adminWebVitals}</h3>
+      <dl class="vitals">
+        {vitals.map((name) => {
+          const stats = summary?.vitals?.find((vital: any) => vital.name === name);
+          return (
+            <Stat
+              class="vital"
+              data-vital={name}
+              data-rating={stats?.rating ?? ""}
+              value={stats ? formatVital(name, stats.p75) : undefined}
+            >
+              <abbr slot="label" title={page[`adminVital${name}`]}>
+                {name}
+              </abbr>
+              <dd class="count">
+                {formatMessage(lang, messages.adminMeasurements, { count: stats?.count ?? 0 })}
+              </dd>
+            </Stat>
+          );
+        })}
+      </dl>
+      <p class="hint">{page.adminWebVitalsHint}</p>
+
+      <!-- Each vital's P75 per day, the last 14 days whatever the period. -->
+      <div class="vital-trend">
+        <SegmentedControl
+          class="trend-vitals"
+          legend={page.adminVitalTrendPick}
+          legendHidden
+          name="performance-trend-vital"
+          options={vitals.map((name) => ({ value: name, label: name }))}
+          value="LCP"
+        />
+        {trendDays.length > 0 &&
+          vitals.map((name) => (
+            <div class="trend-chart" data-trend={name} hidden={name !== "LCP"}>
+              <BarChart
+                title={page.adminVitalTrend}
+                id={`admin-vital-trend-title-${name}`}
+                days={trendDays}
+                byDay={summary.vitalsByDay.vitals?.[name] ?? {}}
+                label={trendLabel(name)}
+              />
+            </div>
+          ))}
+      </div>
+
+      {tables.map(({ id, title, nameColumn }) => (
+        <section class="timings" data-table={id} aria-labelledby={`admin-${id}-title`}>
+          <h3 class="subtitle" id={`admin-${id}-title`}>
+            {title}
+          </h3>
+          <Table density="compact">
+            <thead>
+              <tr>
+                <th scope="col">{nameColumn}</th>
+                <th scope="col" class="number">
+                  {page.adminCountColumn}
+                </th>
+                <th scope="col" class="number">
+                  P75
+                </th>
+                <th scope="col" class="number">
+                  P95
+                </th>
+                <th scope="col" class="number">
+                  {page.adminMaxColumn}
+                </th>
+                <th scope="col" class="number">
+                  {page.adminErrorsColumn}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {(summary?.[id] ?? []).map((stats: any) => (
+                <tr>
+                  <th scope="row">
+                    <span class="name" title={stats.name}>
+                      {stats.name}
+                    </span>
+                  </th>
+                  <td class="count number">{number(stats.count)}</td>
+                  <td class="p75 number">{formatDuration(stats.p75)}</td>
+                  <td class="p95 number">{formatDuration(stats.p95)}</td>
+                  <td class="max number">{formatDuration(stats.max)}</td>
+                  <td class="errors number">{number(stats.errors ?? 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <EmptyState class="empty" hidden={!summary || summary[id]?.length > 0}>
+            {page.adminNoData}
+          </EmptyState>
+        </section>
       ))}
-    </dl>
-    <p class="hint">{page.adminWebVitalsHint}</p>
 
-    <!-- Each vital's P75 per day, the last 14 days whatever the period. -->
-    <div class="vital-trend">
-      <SegmentedControl
-        class="trend-vitals"
-        legend={page.adminVitalTrendPick}
-        legendHidden
-        name="performance-trend-vital"
-        options={vitals.map((name) => ({ value: name, label: name }))}
-      />
-      <BarChart title={page.adminVitalTrend} id="admin-vital-trend-title" />
-    </div>
-
-    {tables.map(({ id, title, nameColumn }) => (
-      <section class="timings" data-table={id} aria-labelledby={`admin-${id}-title`}>
-        <h3 class="subtitle" id={`admin-${id}-title`}>
-          {title}
+      <section class="timings" aria-labelledby="admin-slowest-title">
+        <h3 class="subtitle" id="admin-slowest-title">
+          {page.adminSlowestRequests}
         </h3>
-        <Table density="compact">
+        <Table density="compact" class="slowest">
           <thead>
             <tr>
-              <th scope="col">{nameColumn}</th>
+              <th scope="col">{page.adminRequestColumn}</th>
+              <th scope="col">{page.adminPathColumn}</th>
               <th scope="col" class="number">
-                {page.adminCountColumn}
+                {page.adminDurationColumn}
               </th>
-              <th scope="col" class="number">
-                P75
-              </th>
-              <th scope="col" class="number">
-                P95
-              </th>
-              <th scope="col" class="number">
-                {page.adminMaxColumn}
-              </th>
-              <th scope="col" class="number">
-                {page.adminErrorsColumn}
-              </th>
+              <th scope="col">{page.adminWhenColumn}</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody>
+            {(summary?.slowestRequests ?? []).map((request: any) => (
+              <tr>
+                <th scope="row">
+                  <a class="trace-link" href={traceUrl(request.trace_id)}>
+                    {request.name}
+                  </a>
+                </th>
+                <td class="path">{request.path ?? ""}</td>
+                <td class="duration number">{formatDuration(request.duration)}</td>
+                <td class="when">{formatTime(request.start_time)}</td>
+              </tr>
+            ))}
+          </tbody>
         </Table>
-        <EmptyState class="empty" hidden>
+        <EmptyState class="empty" hidden={!summary || summary.slowestRequests?.length > 0}>
           {page.adminNoData}
         </EmptyState>
       </section>
-    ))}
-
-    <section class="timings" aria-labelledby="admin-slowest-title">
-      <h3 class="subtitle" id="admin-slowest-title">
-        {page.adminSlowestRequests}
-      </h3>
-      <Table density="compact" class="slowest">
-        <thead>
-          <tr>
-            <th scope="col">{page.adminRequestColumn}</th>
-            <th scope="col">{page.adminPathColumn}</th>
-            <th scope="col" class="number">
-              {page.adminDurationColumn}
-            </th>
-            <th scope="col">{page.adminWhenColumn}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </Table>
-      <EmptyState class="empty" hidden>
-        {page.adminNoData}
-      </EmptyState>
     </section>
-  </section>
+  )}
 
-  <section class="trace-view" aria-labelledby="admin-trace-title" hidden>
-    <a class="all-performance" href="?">
-      <Icon icon={ArrowLeft} size="sm" />
-      {page.adminAllPerformance}
-    </a>
-    <h2 class="section-title" id="admin-trace-title"></h2>
-    <p class="summary"></p>
-    <ol class="waterfall" aria-label={page.adminTraceSpans}></ol>
-  </section>
-
-  <template class="timing-row-template">
-    <tr>
-      <th scope="row">
-        <span class="name"></span>
-      </th>
-      <td class="count number"></td>
-      <td class="p75 number"></td>
-      <td class="p95 number"></td>
-      <td class="max number"></td>
-      <td class="errors number"></td>
-    </tr>
-  </template>
-  <template class="slowest-row-template">
-    <tr>
-      <th scope="row">
-        <a class="trace-link"></a>
-      </th>
-      <td class="path"></td>
-      <td class="duration number"></td>
-      <td class="when"></td>
-    </tr>
-  </template>
-  <template class="span-template">
-    <li class="span">
-      <span class="span-label">
-        <span class="service"></span>
-        <span class="span-name"></span>
-      </span>
-      <span class="track">
-        <span class="bar"></span>
-      </span>
-      <span class="span-duration"></span>
-      <code class="statement"></code>
-    </li>
-  </template>
+  {traceId && (
+    <section class="trace-view" aria-labelledby="admin-trace-title">
+      <a class="all-performance" href={Astro.url.pathname}>
+        <Icon icon={ArrowLeft} size="sm" />
+        {page.adminAllPerformance}
+      </a>
+      <h2 class="section-title" id="admin-trace-title">
+        {failed
+          ? page.adminPerformance
+          : spans.length
+            ? spans[0].name
+            : messages.adminTraceNotFound}
+      </h2>
+      <p class="summary">
+        {failed
+          ? messages.adminPerformanceNotLoaded
+          : spans.length
+            ? formatMessage(lang, messages.adminTraceSummary, {
+                duration: formatDuration(traceTotal),
+                count: spans.length,
+                time: formatTime(traceStart),
+              })
+            : ""}
+      </p>
+      <ol class="waterfall" aria-label={page.adminTraceSpans}>
+        {spans.map((span) => (
+          <li
+            class="span"
+            data-service={span.service}
+            data-status={span.status}
+            style={`--depth: ${depthOf(span)}`}
+          >
+            <span class="span-label">
+              <span class="service">{span.service}</span>
+              <span class="span-name">{span.name}</span>
+            </span>
+            <span class="track">
+              <span
+                class="bar"
+                style={`--offset: ${(span.start_time - traceStart) / traceTotal}; --width: ${span.duration / traceTotal}`}
+              ></span>
+            </span>
+            <span class="span-duration">{formatDuration(span.duration)}</span>
+            <code class="statement" title={statementOf(span)}>
+              {statementOf(span)}
+            </code>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
   <script src="./AdminPerformance.js"></script>
 </ev-admin-performance>

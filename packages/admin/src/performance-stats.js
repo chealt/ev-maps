@@ -161,6 +161,20 @@ const performanceResponse = async (request, env) => {
   return json(await performanceSummary(env.ADMIN_DB, PERIODS.includes(days) ? days : 7));
 };
 
+// The performance page's data: one trace's spans with ?trace={id}, else
+// the summary of ?days= (7 by default).
+const performancePage = async (db, url) => {
+  const traceId = url.searchParams.get("trace");
+  if (traceId) {
+    return {
+      traceId,
+      spans: /^[0-9a-f]{32}$/.test(traceId) ? await traceSpans(db, traceId) : [],
+    };
+  }
+  const days = Number(url.searchParams.get("days"));
+  return performanceSummary(db, PERIODS.includes(days) ? days : 7);
+};
+
 // Only admins: the guard checks they are.
 const routes = [
   {
@@ -173,4 +187,12 @@ const routes = [
   },
 ];
 
-export { performanceResponse, performanceSummary, ratingOf, routes, traceSpans, vitalsByDay };
+export {
+  performancePage,
+  performanceResponse,
+  performanceSummary,
+  ratingOf,
+  routes,
+  traceSpans,
+  vitalsByDay,
+};
