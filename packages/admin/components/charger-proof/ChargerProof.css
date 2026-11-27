@@ -1,7 +1,9 @@
 .charger-proof {
+  --trust-bar-width: 8rem;
+
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 
   &[hidden] {
     display: none;
@@ -10,47 +12,95 @@
   .trust {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    font-weight: var(--font-weight-bold);
+    gap: var(--spacing-sm);
+    margin: 0;
+    font-weight: var(--font-weight-semibold);
   }
 
+  /* The score as a bar, colored like its badge. */
+  .trust-bar {
+    position: relative;
+    width: var(--trust-bar-width);
+    height: var(--spacing-xs);
+    overflow: hidden;
+    border-radius: var(--border-radius-full);
+    background: var(--color-surface-muted);
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: calc(var(--score) * 100%);
+      border-radius: inherit;
+      background: var(--color-text-muted);
+    }
+
+    &[data-tone="success"]::after {
+      background: var(--color-success);
+    }
+
+    &[data-tone="warning"]::after {
+      background: var(--color-warning);
+    }
+
+    &[data-tone="danger"]::after {
+      background: var(--color-danger);
+    }
+  }
+
+  /* What the score is made of, as chips. */
   .trust-factors {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-2xs) var(--spacing-sm);
+    gap: var(--spacing-2xs);
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-text-muted);
+
+    li {
+      padding: var(--spacing-2xs) var(--spacing-xs);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--border-radius-full);
+    }
   }
 
+  /* The reported changes: label and value in two columns. */
   .changes {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-2xs);
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--spacing-2xs) var(--spacing-md);
     margin: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface-muted);
   }
 
   .change {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
+    display: contents;
 
     &[hidden] {
       display: none;
     }
 
     dt {
-      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
     }
 
     dd {
       margin: 0;
+      font-weight: var(--font-weight-medium);
     }
   }
 
+  .changes:not(:has(.change:not([hidden]))) {
+    display: none;
+  }
+
   .device-location {
+    margin: 0;
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
 

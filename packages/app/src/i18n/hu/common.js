@@ -16,6 +16,10 @@ const common = {
     favorites: "Kedvencek",
     signInForFavorites: "Jelentkezz be, hogy kedvencként menthess töltőket.",
     admin: "Adminisztráció",
+    supportTitle: "Támogasd az EV Maps-et",
+    supportHint:
+      "Az EV Maps ingyenes. Ha hasznos számodra, hozzájárulhatsz a szerverek és a térképadatok költségeihez.",
+    opensInNewTab: "(új lapon nyílik meg)",
   },
 };
 

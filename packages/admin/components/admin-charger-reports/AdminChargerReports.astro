@@ -1,4 +1,6 @@
 ---
+import { Check, X } from "lucide-static";
+import Icon from "@ev-maps/ui/Icon.astro";
 import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Card from "@ev-maps/ui/Card.astro";
@@ -92,7 +94,7 @@ const summary = failed
                 })}
               </p>
             </div>
-            <Badge class="status-badge" data-tone={STATUS_TONES[report.status] ?? "warning"}>
+            <Badge class="status-badge" tone={STATUS_TONES[report.status] ?? "warning"}>
               {messages[STATUS_MESSAGES[report.status] ?? "adminSuggestionPending"]}
             </Badge>
           </div>
@@ -102,9 +104,11 @@ const summary = failed
               {report.status === "pending" && (
                 <div class="actions">
                   <Button variant="primary" size="small" class="review" data-action="approve">
+                    <Icon icon={Check} size="sm" />
                     {page.adminApproveReport}
                   </Button>
                   <Button variant="danger" size="small" class="review" data-action="reject">
+                    <Icon icon={X} size="sm" />
                     {page.adminRejectSuggestion}
                   </Button>
                 </div>

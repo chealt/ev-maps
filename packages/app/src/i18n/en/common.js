@@ -16,6 +16,9 @@ const common = {
     favorites: "Favorites",
     signInForFavorites: "Sign in to save chargers as favorites.",
     admin: "Admin",
+    supportTitle: "Support EV Maps",
+    supportHint: "EV Maps is free. If it helps you, you can chip in for its servers and map data.",
+    opensInNewTab: "(opens in a new tab)",
   },
 };
 
