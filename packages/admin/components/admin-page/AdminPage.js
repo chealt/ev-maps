@@ -4,13 +4,32 @@ const NAV_KEY = "ev-maps:admin-nav";
 
 // Says which admin is signed in (GET /api/admin/me, which only answers
 // admins), and collapses the side navigation to its icons, or expands it,
-// remembered on this device.
+// remembered on this device. Signs out, back to the map.
 class AdminPageElement extends HTMLElement {
   connectedCallback() {
     this.collapseButton = this.querySelector(".collapse-nav");
     this.collapseButton.setAttribute("aria-pressed", String(this.collapsed));
     this.collapseButton.addEventListener("click", () => this.setCollapsed(!this.collapsed));
+    this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
     this.showAdmin();
+  }
+
+  // Signs out as the app's account menu does, then goes to the map.
+  async signOut() {
+    try {
+      const response = await fetch("/api/auth/sign-out", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Could not sign out:", error);
+      return;
+    }
+    window.location.assign(`/${document.documentElement.lang || "en"}/`);
   }
 
   get collapsed() {

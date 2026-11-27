@@ -126,6 +126,10 @@ const currentSection = currentGroup?.sections.find(({ id }) => id === current);
         <Icon icon={icons.ArrowLeft} size="sm" />
         <span class="nav-text">{page.backToMap}</span>
       </a>
+      <button type="button" class="nav-link sign-out" title={page.adminSignOut}>
+        <Icon icon={icons.LogOut} size="sm" />
+        <span class="nav-text">{page.adminSignOut}</span>
+      </button>
     </aside>
     <div class="admin-main">
       <header class="admin-topbar">
