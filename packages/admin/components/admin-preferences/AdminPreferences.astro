@@ -1,0 +1,56 @@
+---
+import Card from "@ev-maps/ui/Card.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import "./AdminPreferences.css";
+
+interface Props {
+  // The section's title, and its groups in order, each with its title.
+  title: string;
+  groups: { id: string; title: string }[];
+  // How each group's values read: { [group]: { [value]: label } }; values
+  // without a label show as they are.
+  labels?: Record<string, Record<string, string>>;
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { title, groups, labels = {}, page } = Astro.props;
+---
+
+<!-- One section of what users prefer (GET /api/admin/preferences): for each
+     setting, how many accounts (or page views) chose each option, with its
+     share. -->
+<ev-admin-preferences data-labels={JSON.stringify(labels)}>
+  <section aria-labelledby="admin-preferences-title">
+    <h2 class="section-title" id="admin-preferences-title">{title}</h2>
+    <p class="summary" role="status"></p>
+    <div class="groups">
+      {groups.map(({ id, title: groupTitle }) => (
+        <Card as="section" class="group" data-group={id} aria-labelledby={`admin-group-${id}`}>
+          <h3 class="subtitle" id={`admin-group-${id}`}>
+            {groupTitle}
+          </h3>
+          <p class="unit"></p>
+          <Table density="compact">
+            <tbody></tbody>
+          </Table>
+          <EmptyState class="empty" hidden>
+            {page.adminNoData}
+          </EmptyState>
+        </Card>
+      ))}
+    </div>
+  </section>
+
+  <template class="row-template">
+    <tr>
+      <th scope="row" class="name"></th>
+      <td class="share">
+        <span class="share-bar"><span class="share-fill"></span></span>
+      </td>
+      <td class="count"></td>
+    </tr>
+  </template>
+  <script src="./AdminPreferences.js"></script>
+</ev-admin-preferences>

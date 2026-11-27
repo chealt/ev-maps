@@ -1,0 +1,32 @@
+.admin-subnav {
+  margin-bottom: var(--spacing-lg);
+  border-bottom: var(--border-width) solid var(--color-border);
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-bottom: var(--border-width-thick) solid transparent;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    color: var(--color-text-muted);
+
+    &:hover {
+      color: var(--color-text);
+    }
+
+    &[aria-current="page"] {
+      border-bottom-color: var(--color-primary);
+      color: var(--color-text);
+    }
+  }
+}

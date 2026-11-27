@@ -1,0 +1,27 @@
+---
+import "./AdminSubnav.css";
+
+interface Props {
+  // What the navigation is of, for its label, e.g. "Usage".
+  label: string;
+  // Its pages, in order; `current` is the one shown.
+  items: { id: string; href: string; label: string }[];
+  current: string;
+}
+
+const { label, items, current } = Astro.props;
+---
+
+<!-- A section's own pages, under the admin area's navigation (an L2
+     navigation), e.g. the Usage section's activity and preferences. -->
+<nav class="admin-subnav" aria-label={label}>
+  <ul>
+    {items.map(({ id, href, label: itemLabel }) => (
+      <li>
+        <a href={href} aria-current={id === current ? "page" : undefined}>
+          {itemLabel}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

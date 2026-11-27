@@ -42,6 +42,16 @@ const send = () => {
   }).catch(() => {});
 };
 
+// A setting the device keeps, if it's one of `values`, or `fallback`.
+const storedPreference = (key, values, fallback) => {
+  try {
+    const value = localStorage.getItem(key);
+    return values.includes(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 const sendWhenHidden = () => {
   if (document.visibilityState === "hidden") {
     send();
@@ -52,6 +62,17 @@ const kind = pageKind(window.location.pathname);
 if (kind) {
   track("page_view", `${document.documentElement.lang}:${kind}`);
   track("page_path", window.location.pathname);
+  // The device's own settings, for the admins' Usage pages (#373): the theme
+  // and whether it animates ("reduced" when the system asks for less).
+  track("preference", `theme:${storedPreference("ev-maps:theme", ["light", "dark"], "system")}`);
+  track(
+    "preference",
+    `animations:${
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "reduced"
+        : storedPreference("ev-maps:animations", ["off"], "on")
+    }`
+  );
 }
 timer = setInterval(send, SEND_EVERY_MS);
 window.addEventListener("pagehide", send);

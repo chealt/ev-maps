@@ -23,6 +23,8 @@ const PAGE_EVENTS = {
   locate_me: /^$/,
   list_opened: /^$/,
   sign_in_started: /^[a-z]{2,12}$/,
+  // The device's own settings on a page view, e.g. "theme:dark" (#373).
+  preference: /^(theme:(system|light|dark)|animations:(on|off|reduced))$/,
 };
 
 // The admin review pages' ?status= as the admin API takes it: pending when
