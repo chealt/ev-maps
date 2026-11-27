@@ -6,18 +6,17 @@ import "./ChargerProof.css";
 interface Props {
   // The page's strings (the host's translations for this section).
   page: Record<string, any>;
-  // The report or suggestion, to render it on the server; without it, a
-  // script fills it in with fillChargerProof (./charger-proof.js).
-  item?: Record<string, any>;
-  // The runtime message templates and value labels, with `item`.
-  messages?: Record<string, any>;
-  values?: Record<string, any>;
+  // The report or suggestion it's about.
+  item: Record<string, any>;
+  // The runtime message templates and value labels (the host's
+  // translations).
+  messages: Record<string, any>;
+  values: Record<string, any>;
 }
 
-const { page, item, messages = {}, values = {} } = Astro.props;
+const { page, item, messages, values } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
 
-// As ./charger-proof.js shows them, here on the server.
 const trustTone = (score: number) => (score >= 70 ? "success" : score >= 40 ? "warning" : "danger");
 const PRICE_MESSAGES: Record<string, string> = {
   kwh: "adminPricePerKwh",
@@ -39,8 +38,8 @@ const priceText = (price: any) =>
 const changeText = (before: string | undefined, after: string) =>
   before ? text("adminChange", { before, after }) : after;
 
-const hasTrust = Number.isFinite(item?.trustScore);
-const hasChange = Boolean(item?.availability || item?.price);
+const hasTrust = Number.isFinite(item.trustScore);
+const hasChange = Boolean(item.availability || item.price);
 const factors = item ? (item.trustFactors ?? []).filter(({ points }: any) => points !== 0) : [];
 const deviceText = !item
   ? ""
@@ -56,12 +55,12 @@ const deviceText = !item
 
 <!-- What a user said about a charger's availability and price, and how far
      to trust it: the score with its factors, and where their device was.
-     It's hidden when there's nothing to show. -->
-<div class="charger-proof" hidden={item ? !hasTrust && !hasChange : undefined}>
-  <p class="trust" hidden={item ? !hasTrust : undefined}>
+     Rendered on the server; hidden when there's nothing to show. -->
+<div class="charger-proof" hidden={!hasTrust && !hasChange}>
+  <p class="trust" hidden={!hasTrust}>
     <span class="trust-label">{page.adminTrust}</span>
-    <Badge class="trust-score" data-tone={hasTrust ? trustTone(item?.trustScore) : "neutral"}>
-      {hasTrust && text("adminTrustScore", { score: item?.trustScore })}
+    <Badge class="trust-score" data-tone={hasTrust ? trustTone(item.trustScore) : "neutral"}>
+      {hasTrust && text("adminTrustScore", { score: item.trustScore })}
     </Badge>
   </p>
   <ul class="trust-factors" aria-label={page.adminTrustFactors}>
@@ -75,22 +74,22 @@ const deviceText = !item
     ))}
   </ul>
   <dl class="changes">
-    <div class="change availability-change" hidden={item ? !item.availability : undefined}>
+    <div class="change availability-change" hidden={!item.availability}>
       <dt>{page.adminReportedAvailability}</dt>
       <dd class="availability">
-        {item?.availability &&
+        {item.availability &&
           changeText(
             item.currentStatus && label("status", item.currentStatus),
             label("status", item.availability)
           )}
       </dd>
     </div>
-    <div class="change price-change" hidden={item ? !item.price : undefined}>
+    <div class="change price-change" hidden={!item.price}>
       <dt>{page.adminReportedPrice}</dt>
-      <dd class="price">{item?.price && changeText(item.currentCost, priceText(item.price))}</dd>
+      <dd class="price">{item.price && changeText(item.currentCost, priceText(item.price))}</dd>
     </div>
   </dl>
-  <p class="device-location" hidden={item ? !hasTrust : undefined}>
+  <p class="device-location" hidden={!hasTrust}>
     {deviceText}
   </p>
 </div>

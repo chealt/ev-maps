@@ -417,6 +417,7 @@ export {
   ADMIN_SUGGESTIONS_PATH,
   SUGGESTIONS_PATH,
   adminSuggestionsResponse,
+  listAdminSuggestions,
   routes,
   suggestionsResponse,
   validSuggestion,
