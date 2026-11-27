@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
@@ -71,26 +71,28 @@ test.describe("translations", () => {
     await expect(menu.getByRole("button", { name: "Bejelentkezés Google-fiókkal" })).toBeVisible();
   });
 
-  test("switches to another language from the account menu", async ({ page }) => {
-    await fakeChargersApi(page);
-    await page.goto("/en/hu/");
-    await page.getByRole("button", { name: "Sign in" }).click();
-    const languages = page
-      .getByRole("dialog", { name: "Account" })
-      .getByRole("navigation", { name: "Language" });
-    await expect(languages.getByRole("link", { name: "English" })).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
+  test(
+    "switches to another language from the account menu",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeChargersApi(page);
+      await page.goto("/en/hu/");
+      await page.getByRole("button", { name: "Sign in" }).click();
+      const language = page
+        .getByRole("dialog", { name: "Account" })
+        .getByRole("combobox", { name: "Language" });
+      await expect(language).toHaveValue("en");
+      await captureUi(page, testInfo, "the language dropdown in the account menu");
 
-    await languages.getByRole("link", { name: "Polski" }).click();
+      await language.selectOption({ label: "Polski" });
 
-    await expect(page).toHaveURL("/pl/hu/");
-    await expect(page.getByRole("button", { name: "Zlokalizuj mnie" })).toBeVisible();
-    // The Worker redirects / to the picked language (packages/worker).
-    const cookies = await page.context().cookies();
-    expect(cookies).toContainEqual(
-      expect.objectContaining({ name: "ev-maps-language", value: "pl" })
-    );
-  });
+      await expect(page).toHaveURL("/pl/hu/");
+      await expect(page.getByRole("button", { name: "Zlokalizuj mnie" })).toBeVisible();
+      // The Worker redirects / to the picked language (packages/worker).
+      const cookies = await page.context().cookies();
+      expect(cookies).toContainEqual(
+        expect.objectContaining({ name: "ev-maps-language", value: "pl" })
+      );
+    }
+  );
 });

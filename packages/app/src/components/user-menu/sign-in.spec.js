@@ -78,7 +78,7 @@ test.describe("account", () => {
     const menu = page.getByRole("dialog", { name: "Account" });
     await expect(menu.getByRole("button", { name: "Sign in with Google" })).toBeVisible();
     await expect(menu.getByRole("radio", { name: "System" })).toBeChecked();
-    await expect(menu.getByRole("navigation", { name: "Language" })).toBeVisible();
+    await expect(menu.getByRole("combobox", { name: "Language" })).toBeVisible();
     await expect(menu.getByRole("button", { name: "Sign out" })).toBeHidden();
     await expect(page.getByRole("button", { name: "Sign in", expanded: true })).toBeVisible();
 
