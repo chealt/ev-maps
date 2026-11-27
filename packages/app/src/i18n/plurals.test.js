@@ -20,3 +20,12 @@ describe("message's plural forms", () => {
     expect(message("chargersFound", { count: 22 })).toBe("Znaleziono 22 stacje ładowania");
   });
 });
+
+describe("French plural forms", () => {
+  test("treat 0 and 1 as one, and larger counts as other", () => {
+    const rules = new Intl.PluralRules("fr");
+    expect(rules.select(0)).toBe("one");
+    expect(rules.select(1)).toBe("one");
+    expect(rules.select(2)).toBe("other");
+  });
+});
