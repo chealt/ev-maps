@@ -1,4 +1,6 @@
 ---
+import { Check, X } from "lucide-static";
+import Icon from "@ev-maps/ui/Icon.astro";
 import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Card from "@ev-maps/ui/Card.astro";
@@ -63,7 +65,7 @@ const summary = failed
               </p>
             </div>
             {charger.currentStatus && (
-              <Badge class="current-status" data-tone="neutral">
+              <Badge class="current-status" tone="neutral">
                 {formatMessage(lang, messages.adminCurrentStatus, {
                   status: values.status?.[charger.currentStatus] ?? charger.currentStatus,
                 })}
@@ -91,9 +93,11 @@ const summary = failed
           </ul>
           <div class="actions">
             <Button variant="primary" size="small" class="review" data-action="confirm">
+              <Icon icon={Check} size="sm" />
               {page.adminConfirmUnavailable}
             </Button>
             <Button variant="danger" size="small" class="review" data-action="dismiss">
+              <Icon icon={X} size="sm" />
               {page.adminDismissUnavailable}
             </Button>
           </div>

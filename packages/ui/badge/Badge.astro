@@ -12,7 +12,16 @@ interface Props extends HTMLAttributes<"span"> {
   size?: "sm" | "md";
 }
 
-const { tone = "neutral", size = "sm", class: className, ...attrs } = Astro.props;
+const {
+  tone: toneProp = "neutral",
+  size = "sm",
+  class: className,
+  "data-tone": dataTone,
+  ...attrs
+} = Astro.props;
+// A data-tone given as is wins, rather than being a second attribute the
+// browser ignores (it keeps the first).
+const tone = dataTone ?? toneProp;
 ---
 
 <span class:list={["badge", className]} data-tone={tone} data-size={size} {...attrs}>
