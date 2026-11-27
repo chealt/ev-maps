@@ -162,6 +162,7 @@ const account = {
     },
     savedPlaceChangesSaved: "{name} saved",
     savedPlaceRemoved: "{name} removed",
+    savedPlaceNotRemoved: "{name} couldn't be removed. Try again.",
   },
   values: {
     mapsApps: {
