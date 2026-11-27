@@ -1,0 +1,48 @@
+---
+import Layout from "../../../../../layouts/Layout.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
+import AdminSubnav from "@ev-maps/admin/components/admin-subnav/AdminSubnav.astro";
+import AdminPreferences from "@ev-maps/admin/components/admin-preferences/AdminPreferences.astro";
+import { translations } from "../../../../../i18n/index.js";
+import { pageData } from "../../../../../lib/page-data.js";
+import {
+  PREFERENCE_SECTIONS,
+  preferenceLabels,
+  usageNavigation,
+} from "../../../../../lib/usage-sections.js";
+
+// A section of what users prefer (#373), rendered on the server, per
+// request: the Worker only serves it to admins, with the preference stats
+// as its data (packages/worker/src/admin-area.js).
+export const prerender = false;
+
+const lang = Astro.currentLocale ?? "en";
+const section = PREFERENCE_SECTIONS.find(({ id }) => id === Astro.params.section);
+if (!section) {
+  return new Response(null, { status: 404 });
+}
+const { page, messages, values } = translations(lang);
+const data = await pageData(Astro, "/api/admin/preferences");
+const title = page[section.label];
+---
+
+<Layout title={`EV Maps - ${page.adminUsage}: ${title}`} noindex kind="admin">
+  <AdminPage current="usage" page={page}>
+    <AdminSubnav
+      label={page.adminUsagePages}
+      items={usageNavigation(lang, page)}
+      current={section.id}
+    />
+    <AdminPreferences
+      pageData={data}
+      title={title}
+      groups={section.groups.map((id) => ({
+        id,
+        title: page[`adminPreference${id[0].toUpperCase()}${id.slice(1)}`],
+      }))}
+      labels={preferenceLabels(page, values)}
+      page={page}
+      messages={messages}
+    />
+  </AdminPage>
+</Layout>

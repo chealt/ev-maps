@@ -20,6 +20,7 @@ import { routes as chargerUnavailability } from "./charger-unavailability.js";
 import { routes as chargerSuggestions } from "./charger-suggestions.js";
 import { routes as errors } from "@ev-maps/admin/errors.js";
 import { routes as favorites } from "./favorites.js";
+import { routes as preferenceStats } from "./preference-stats.js";
 import { routes as liveStatus } from "./live-status.js";
 import { routes as performance } from "@ev-maps/admin/performance-stats.js";
 import { routes as routeChargers } from "./route-chargers.js";
@@ -36,6 +37,7 @@ const API_ROUTES = [
   ...chargerSuggestions,
   ...errors,
   ...favorites,
+  ...preferenceStats,
   ...liveStatus,
   ...performance,
   ...routeChargers,

@@ -3,6 +3,34 @@
 
 const adminUsage = {
   page: {
+    adminUsagePages: "Használati oldalak",
+    adminUsageActivity: "Aktivitás",
+    adminUsageSettings: "Beállítások",
+    adminUsageFilters: "Szűrők",
+    adminUsageRoutes: "Útvonalak és helyek",
+    adminYes: "Igen",
+    adminNo: "Nem",
+    adminAskEachTime: "Mindig kérdezzen",
+    adminPreferenceSignIn: "Bejelentkezési mód",
+    adminPreferenceLanguage: "Nyelv",
+    adminPreferenceTheme: "Téma",
+    adminPreferenceAnimations: "Animációk",
+    adminPreferenceDistanceUnit: "Távolság mértékegysége",
+    adminPreferenceMapsApp: "Térképalkalmazás",
+    adminPreferenceSavedPlacesOnMap: "Mentett helyek a térképen",
+    adminPreferenceCarConnectors: "Az autó csatlakozói",
+    adminPreferenceCarAutoFilter: "Automatikus szűrés az autó szerint",
+    adminPreferenceFilterConnectorTypes: "Csatlakozótípus",
+    adminPreferenceFilterPowerRanges: "Töltési teljesítmény",
+    adminPreferenceFilterPriceLevels: "Ár",
+    adminPreferenceFilterNearby: "Közeli helyek",
+    adminPreferenceFilterOnlyFavorites: "Csak kedvencek",
+    adminPreferenceFilterHideUnavailable: "Nem elérhetők elrejtése",
+    adminPreferenceFilterExcludedOperators: "Elrejtett üzemeltetők",
+    adminPreferenceFeatures: "Használt funkciók",
+    adminPreferenceSavedPlaceIcons: "Mentett helyek ikonjai",
+    adminPreferencePopularDestinations: "Népszerű úti célok",
+    adminPreferencePopularRoutes: "Népszerű útvonalak",
     adminPeriod: "Időszak",
     adminLastDays: "Elmúlt {days} nap",
     adminPageViewsPerDay: "Oldalmegtekintések naponta",
@@ -10,6 +38,14 @@ const adminUsage = {
     adminTopItems: "A legtöbbször kedvelt töltők, most",
   },
   messages: {
+    adminPreferencesNotLoaded: "A beállítások nem tölthetők be. Próbáld újra.",
+    adminPreferencesAccounts: {
+      one: "{count} fiók",
+      other: "{count} fiók",
+    },
+    adminPreferenceUsers: "Fiókok, most",
+    adminPreferencePageViews: "Oldalmegtekintések, az utolsó {days} nap",
+    adminPreferenceCount: "{count} ({share})",
     adminUsageNotLoaded: "Nem sikerült betölteni a statisztikát. Próbáld újra.",
     adminUsagePeriod: "{from} – {to}",
     adminTopCount: {
@@ -18,6 +54,17 @@ const adminUsage = {
     },
   },
   values: {
+    animationSettings: {
+      on: "Be",
+      off: "Ki",
+      reduced: "Csökkentett mozgás",
+    },
+    preferenceFeatures: {
+      savedPlaces: "Mentett helyek",
+      favoriteRoutes: "Kedvenc útvonalak",
+      routeHistory: "Útvonalelőzmények",
+      car: "Autó",
+    },
     usageEvents: {
       page_view: "Oldalmegtekintések",
       visitor_country: "Látogatók országai",
