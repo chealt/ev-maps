@@ -14,7 +14,7 @@ const SUPPORT_LINKS = [
     url: "https://github.com/sponsors/chealt",
     enabled: true,
   },
-  { id: "ko-fi", name: "Ko-fi", url: "https://ko-fi.com/chealt", enabled: false },
+  { id: "ko-fi", name: "Ko-fi", url: "https://ko-fi.com/chealt", enabled: true },
   {
     id: "buycoffee",
     name: "buycoffee.to",
