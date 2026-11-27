@@ -118,7 +118,7 @@
         "packages/app/src/lib/session.js",
         "packages/app/src/i18n/*/account.js"
       ],
-      "tests": ["sign-in", "passkeys", "theme", "languages"]
+      "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places"]
     },
     "favorites": {
       "paths": [
