@@ -1,0 +1,55 @@
+---
+import Badge from "@ev-maps/ui/Badge.astro";
+import Button from "@ev-maps/ui/Button.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import "./AdminUnavailability.css";
+
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
+---
+
+<!-- Chargers signed-in users flagged as unavailable
+     (GET /api/admin/charger-unavailability, #371): those more people
+     flagged first, then those with more photos. Confirming marks the
+     charger temporarily unavailable; dismissing closes its flags. -->
+<ev-admin-unavailability>
+  <section aria-labelledby="admin-unavailability-title">
+    <h2 class="section-title" id="admin-unavailability-title">
+      {page.adminUnavailability}
+    </h2>
+    <p class="summary" role="status"></p>
+    <div class="charger-list"></div>
+  </section>
+
+  <template class="charger-template">
+    <Card as="article" class="charger-card">
+      <div class="card-header">
+        <div>
+          <h3 class="charger-name"></h3>
+          <p class="counts"></p>
+        </div>
+        <Badge class="current-status" data-tone="neutral" />
+      </div>
+      <ul class="flags"></ul>
+      <ul class="proof-photos"></ul>
+      <div class="actions">
+        <Button variant="primary" size="small" class="confirm">
+          {page.adminConfirmUnavailable}
+        </Button>
+        <Button variant="danger" size="small" class="dismiss">
+          {page.adminDismissUnavailable}
+        </Button>
+      </div>
+    </Card>
+  </template>
+  <template class="photo-item-template">
+    <li>
+      <img class="proof-photo" />
+    </li>
+  </template>
+  <script src="./AdminUnavailability.js"></script>
+</ev-admin-unavailability>

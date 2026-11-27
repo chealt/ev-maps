@@ -15,6 +15,7 @@ const ADMIN_SECTIONS = [
   },
   { id: "reports", path: "reports", label: "adminReports" },
   { id: "suggestions", path: "suggestions", label: "adminSuggestions" },
+  { id: "unavailability", path: "unavailability", label: "adminUnavailability" },
   { id: "usage", path: "usage", label: "adminUsage" },
 ];
 

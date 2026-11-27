@@ -16,6 +16,7 @@ import {
 import { routes as adminDashboard } from "@ev-maps/admin/admin-dashboard.js";
 import { routes as auth } from "./auth.js";
 import { routes as chargerReports } from "./charger-reports.js";
+import { routes as chargerUnavailability } from "./charger-unavailability.js";
 import { routes as chargerSuggestions } from "./charger-suggestions.js";
 import { routes as errors } from "@ev-maps/admin/errors.js";
 import { routes as favorites } from "./favorites.js";
@@ -31,6 +32,7 @@ const API_ROUTES = [
   ...adminDashboard,
   ...auth,
   ...chargerReports,
+  ...chargerUnavailability,
   ...chargerSuggestions,
   ...errors,
   ...favorites,

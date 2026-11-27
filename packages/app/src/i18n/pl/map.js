@@ -4,6 +4,7 @@
 const map = {
   page: {
     signInToReportChange: "Zaloguj się, aby zgłosić zmianę tej ładowarki.",
+    signInToReportUnavailable: "Zaloguj się, aby zgłosić, że ta ładowarka jest niedostępna.",
     mapMenu: "Trasa stąd lub tutaj",
     routeFromHere: "Trasa stąd",
     routeToHere: "Trasa tutaj",

@@ -1,5 +1,5 @@
 {
-  "$comment": "Which end-to-end specs a pull request runs (scripts/select-e2e.js): the specs of every domain whose paths it changed, and the tests tagged @regression. A change to `everything`, or to a file under packages/app that no domain lists, runs them all. Paths are from the repository's root; tests are spec names (the specs live next to what they test (packages/app/src/**, packages/admin/components/**)).",
+  "$comment": "Which end-to-end specs a pull request runs (scripts/select-e2e.js): the specs of every domain whose paths it changed, and the tests tagged @regression. A change to `everything`, or to a file under packages/app that no domain lists, runs them all. Paths are from the repository's root; tests are spec names (the specs live next to what they test (packages/app/src/**, packages/admin/components/**)), each with its tests in one test.describe named after its domain.",
   "everything": [
     "package.json",
     "bun.lock",
@@ -50,6 +50,7 @@
         "nearby",
         "manifest",
         "report-change",
+        "report-unavailable",
         "favorites"
       ]
     },
@@ -129,12 +130,13 @@
         "packages/app/src/components/suggest-charger-dialog/**",
         "packages/app/src/components/user-suggestions/**",
         "packages/app/src/components/report-change-dialog/**",
+        "packages/app/src/components/report-unavailable-dialog/**",
         "packages/app/src/components/charger-proof-fields/**",
         "packages/app/src/components/photo-picker/**",
         "packages/app/src/lib/photos.js",
         "packages/app/src/i18n/*/account.js"
       ],
-      "tests": ["suggest-charger", "report-change"]
+      "tests": ["suggest-charger", "report-change", "report-unavailable"]
     },
     "legal": {
       "paths": ["packages/app/src/components/legal-page/**", "packages/app/src/legal/**"],
@@ -184,6 +186,7 @@
         "admin-performance",
         "admin-reports",
         "admin-suggestions",
+        "admin-unavailability",
         "admin-usage"
       ]
     }

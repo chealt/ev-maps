@@ -4,6 +4,7 @@
 const map = {
   page: {
     signInToReportChange: "Jelentkezz be, hogy bejelenthesd a töltő változását.",
+    signInToReportUnavailable: "Jelentkezz be, hogy bejelenthesd, ha a töltő nem elérhető.",
     mapMenu: "Útvonal innen vagy ide",
     routeFromHere: "Útvonal innen",
     routeToHere: "Útvonal ide",
