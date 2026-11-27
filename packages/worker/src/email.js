@@ -36,6 +36,10 @@ const MESSAGES = {
     subject: "Váš přihlašovací odkaz do EV Maps",
     text: "Otevřete tento odkaz a přihlaste se do EV Maps:\n\n{url}\n\nFunguje jednou, po dobu 15 minut. Pokud jste o něj nežádali, tento e-mail ignorujte.",
   },
+  nb: {
+    subject: "Innloggingslenken din til EV Maps",
+    text: "Åpne denne lenken for å logge inn på EV Maps:\n\n{url}\n\nDen fungerer én gang, innen 15 minutter. Hvis du ikke ba om den, kan du se bort fra denne e-posten.",
+  },
 };
 
 const RESEND_URL = "https://api.resend.com/emails";

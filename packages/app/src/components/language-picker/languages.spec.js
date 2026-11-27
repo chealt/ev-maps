@@ -5,7 +5,7 @@ import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 
 // Every page is built in English (/en/), Polish (/pl/), Hungarian (/hu/),
 // Spanish (/es/), German (/de/),
-// French (/fr/), Slovak (/sk/) and Czech (/cs/).
+// French (/fr/), Slovak (/sk/), Czech (/cs/) and Norwegian Bokmål (/nb/).
 
 const fixtureChargers = (count) =>
   Array.from({ length: count }, (_, index) => ({
@@ -118,6 +118,20 @@ test.describe("translations", () => {
 
     await page.goto("/cs/hu/");
     await expect(page).toHaveTitle("EV Maps - nabíječky pro elektromobily – Maďarsko");
+  });
+
+  test("shows the map, Google Maps and the country pages in Norwegian", async ({ page }) => {
+    const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
+    await fakeChargersApi(page, { chargers: fixtureChargers(2) });
+    await page.goto("/nb/");
+    expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("nb");
+    await expect(page).toHaveTitle("EV Maps - Ladestasjoner for elbiler");
+    await expect(page.getByRole("button", { name: "Finn meg" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Filtre", exact: true })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("2 ladestasjoner funnet");
+
+    await page.goto("/nb/hu/");
+    await expect(page).toHaveTitle("EV Maps - Ladestasjoner i Ungarn");
   });
 
   test("shows a charger's details, Google Maps and sign-in in Hungarian", async ({ page }) => {
