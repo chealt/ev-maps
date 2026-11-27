@@ -96,6 +96,32 @@ test.describe("account", () => {
     }
   });
 
+  test(
+    "links to supporting EV Maps, the language's own option first",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await fakeAuthApi(page);
+      await page.goto("/");
+      await page.getByRole("button", { name: "Sign in" }).click();
+      const support = page
+        .getByRole("dialog", { name: "Account" })
+        .getByRole("region", { name: "Support EV Maps" });
+      const links = support.getByRole("link");
+      await expect(links).toHaveText([/^GitHub Sponsors/, /^Ko-fi/, /^buycoffee\.to/]);
+      await expect(links.first()).toHaveAccessibleName("GitHub Sponsors (opens in a new tab)");
+      await expect(links.first()).toHaveAttribute("target", "_blank");
+      await expect(links.first()).toHaveAttribute("href", "https://github.com/sponsors/chealt");
+      await support.scrollIntoViewIfNeeded();
+      await captureUi(page, testInfo, "account menu support links");
+
+      await page.goto("/pl/");
+      await page.getByRole("button", { name: "Zaloguj się" }).click();
+      await expect(
+        page.getByRole("region", { name: "Wesprzyj EV Maps" }).getByRole("link").first()
+      ).toHaveAttribute("href", "https://buycoffee.to/chealt");
+    }
+  );
+
   test("shows the account loading until the session is known, and Sign in when it can't be", async ({
     page,
   }) => {

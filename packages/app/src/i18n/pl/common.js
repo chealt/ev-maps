@@ -16,6 +16,10 @@ const common = {
     favorites: "Ulubione",
     signInForFavorites: "Zaloguj się, aby zapisywać ulubione stacje.",
     admin: "Administracja",
+    supportTitle: "Wesprzyj EV Maps",
+    supportHint:
+      "EV Maps jest darmowe. Jeśli Ci pomaga, możesz dorzucić się do serwerów i danych mapy.",
+    opensInNewTab: "(otwiera się w nowej karcie)",
   },
 };
 
