@@ -786,6 +786,16 @@ ev-google-map {
     }
   }
 
+  /* Signed out, Report a change looks disabled, like the heart. */
+  .report-change-row {
+    margin-top: var(--spacing-lg);
+
+    .report-change[aria-disabled="true"] {
+      opacity: var(--opacity-disabled);
+      cursor: not-allowed;
+    }
+  }
+
   .section {
     margin-top: var(--spacing-lg);
 

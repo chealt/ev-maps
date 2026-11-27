@@ -1,0 +1,45 @@
+---
+import Button from "@ev-maps/ui/Button.astro";
+import Dialog from "@ev-maps/ui/Dialog.astro";
+import ChargerProofFields from "../charger-proof-fields/ChargerProofFields.astro";
+import PhotoPicker from "../photo-picker/PhotoPicker.astro";
+import { translations } from "../../i18n/index.js";
+import "./ReportChangeDialog.css";
+
+const { page } = translations(Astro.currentLocale ?? "en");
+---
+
+<!-- Reports a change to a charger's availability or price (signed in), with
+     proof: the device's location, a photo of the charger and, for a price,
+     of a receipt, an invoice or a charging app
+     (packages/worker/src/charger-reports.js). The charger's details open
+     it. -->
+<ev-report-change-dialog>
+  <Dialog
+    class="report-change-dialog"
+    title={page.reportChange}
+    titleId="report-change-title"
+    closeLabel={page.closeReportChange}
+    bodyAs="form"
+    bodyAttrs={{ id: "report-change-form", novalidate: true }}
+  >
+    <p class="charger-name"></p>
+    <p class="hint">{page.reportChangeHint}</p>
+    <PhotoPicker
+      class="charger-photos"
+      label={page.reportChargerPhotos}
+      hint={page.reportChargerPhotosHint}
+      removeLabel={page.removeChargerPhoto}
+      max={3}
+    />
+    <ChargerProofFields id="report-change" />
+    <p class="status" role="status"></p>
+    <p class="error" role="alert"></p>
+    <Fragment slot="footer">
+      <Button variant="primary" size="large" type="submit" form="report-change-form">
+        {page.submitReportChange}
+      </Button>
+    </Fragment>
+  </Dialog>
+  <script src="./ReportChangeDialog.js"></script>
+</ev-report-change-dialog>

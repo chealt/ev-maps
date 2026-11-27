@@ -64,6 +64,14 @@ test(
       mimeType: "image/png",
       buffer: PHOTO_BUFFER,
     });
+    // Optional: whether it works and what it costs, with a photo of that.
+    await dialog.getByLabel("Availability").selectOption("operational");
+    await dialog.getByLabel("Price", { exact: true }).selectOption("free");
+    await dialog.locator(".receipt-photos input").setInputFiles({
+      name: "app.png",
+      mimeType: "image/png",
+      buffer: PHOTO_BUFFER,
+    });
     await captureUi(page, testInfo, "suggest a charger form filled in");
 
     await dialog.getByRole("button", { name: "Submit suggestion" }).click();
@@ -85,6 +93,11 @@ test(
     expect(submitted[0].photo).toMatch(/^data:image\/png;base64,/);
     expect(submitted[0].photos).toHaveLength(2);
     expect(submitted[0].photos[0]).toBe(submitted[0].photo);
+    expect(submitted[0]).toMatchObject({ availability: "operational", price: { free: true } });
+    expect(submitted[0].receiptPhotos).toEqual([
+      expect.stringMatching(/^data:image\/jpeg;base64,/),
+    ]);
+    expect(submitted[0].deviceLocation).toBeUndefined();
   }
 );
 

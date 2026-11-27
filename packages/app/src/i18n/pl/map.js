@@ -3,6 +3,7 @@
 
 const map = {
   page: {
+    signInToReportChange: "Zaloguj się, aby zgłosić zmianę tej ładowarki.",
     mapMenu: "Trasa stąd lub tutaj",
     routeFromHere: "Trasa stąd",
     routeToHere: "Trasa tutaj",

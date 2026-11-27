@@ -1,0 +1,82 @@
+ev-photo-picker {
+  --dropzone-border-dash: 2px;
+  --photo-thumb-size: 5rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+
+  .photo-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2xs);
+    padding: var(--spacing-lg) var(--spacing-md);
+    border: var(--dropzone-border-dash) dashed var(--color-border-strong);
+    border-radius: var(--border-radius-md);
+    background: var(--color-surface);
+    text-align: center;
+    cursor: pointer;
+    transition:
+      border-color var(--transition-fast),
+      background-color var(--transition-fast);
+
+    &:hover {
+      border-color: var(--color-primary);
+      background: var(--color-surface-hover);
+    }
+
+    .dropzone-icon {
+      color: var(--color-primary-light-text);
+    }
+
+    .dropzone-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .dropzone-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+  }
+
+  .photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    list-style: none;
+    padding: 0;
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  .photo-item {
+    position: relative;
+    width: var(--photo-thumb-size);
+    height: var(--photo-thumb-size);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+
+    .photo-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-photo {
+      position: absolute;
+      top: var(--spacing-2xs);
+      right: var(--spacing-2xs);
+      padding: var(--spacing-2xs);
+      border-radius: var(--border-radius-full);
+      background: var(--color-surface-glass);
+      backdrop-filter: var(--blur-glass);
+    }
+  }
+}

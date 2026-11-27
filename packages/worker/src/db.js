@@ -79,9 +79,11 @@ const deleteUnseen = async (db, { source, where, params, seenBefore }) => {
 
 // The shape the client uses (see packages/app/src/components/google-map/chargers.js).
 // Access, status and connector types are IDs the app translates; a charger
-// without a name has none, and the app names it.
+// without a name has none, and the app names it. The status and cost of an
+// approved user report (src/charger-reports.js) win over the source's.
 const toClientCharger = (row) => {
-  const free = isFreeCost(row.usage_cost);
+  const cost = row.community_cost ?? row.usage_cost;
+  const free = isFreeCost(cost);
   return {
     id: `${row.source}:${row.source_id}`,
     source: row.source,
@@ -90,9 +92,9 @@ const toClientCharger = (row) => {
     address: row.address ?? "",
     operator: row.operator ?? undefined,
     access: accessId(row.usage_type) ?? undefined,
-    usageCost: free ? undefined : (row.usage_cost ?? undefined),
+    usageCost: free ? undefined : (cost ?? undefined),
     free: free || undefined,
-    status: statusId(row.status) ?? undefined,
+    status: row.community_status ?? statusId(row.status) ?? undefined,
     numberOfPoints: row.number_of_points ?? undefined,
     maxPowerKw: row.max_power_kw ?? null,
     connectors: JSON.parse(row.connectors || "[]").map((connector) => ({

@@ -3,6 +3,7 @@
 
 import { account } from "./account.js";
 import { admin } from "./admin.js";
+import { adminChargerReports } from "./admin-charger-reports.js";
 import { adminDashboard } from "./admin-dashboard.js";
 import { adminErrors } from "./admin-errors.js";
 import { adminPerformance } from "./admin-performance.js";
@@ -19,6 +20,7 @@ const sections = {
   account: account,
   legal: legal,
   admin: admin,
+  "admin-charger-reports": adminChargerReports,
   "admin-dashboard": adminDashboard,
   "admin-errors": adminErrors,
   "admin-performance": adminPerformance,

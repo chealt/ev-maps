@@ -1,5 +1,6 @@
 import { message, valueLabel } from "@ev-maps/ui/messages.js";
 import { fetchJson } from "@ev-maps/ui/fetch-json.js";
+import { fillChargerProof } from "../charger-proof/charger-proof.js";
 
 const SUGGESTIONS_URL = "/api/admin/charger-suggestions";
 
@@ -73,13 +74,19 @@ class AdminSuggestionsElement extends HTMLElement {
         const photoUrls =
           suggestion.photoUrls ?? [suggestion.photoUrl ?? suggestion.photo].filter(Boolean);
         const photoTemplate = this.querySelector(".photo-item-template");
-        card.querySelector(".proof-photos").replaceChildren(
-          ...photoUrls.map((url) => {
-            const item = photoTemplate.content.firstElementChild.cloneNode(true);
-            item.querySelector(".proof-photo").src = url;
-            return item;
-          })
-        );
+        const receiptTemplate = this.querySelector(".receipt-item-template");
+        const photoItem = (itemTemplate, url) => {
+          const item = itemTemplate.content.firstElementChild.cloneNode(true);
+          item.querySelector(".proof-photo").src = url;
+          return item;
+        };
+        card
+          .querySelector(".proof-photos")
+          .replaceChildren(
+            ...photoUrls.map((url) => photoItem(photoTemplate, url)),
+            ...(suggestion.receiptPhotoUrls ?? []).map((url) => photoItem(receiptTemplate, url))
+          );
+        fillChargerProof(card.querySelector(".charger-proof"), suggestion);
         const actions = card.querySelector(".actions");
         actions.hidden = suggestion.status !== "pending";
         card

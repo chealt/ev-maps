@@ -1,0 +1,48 @@
+---
+import { ImagePlus, X } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import "./PhotoPicker.css";
+
+interface Props {
+  // What the photos are of, and a hint under it.
+  label: string;
+  hint?: string;
+  // The remove button's label, for each photo.
+  removeLabel: string;
+  // At most this many photos.
+  max?: number;
+  class?: string;
+}
+
+const { label, hint, removeLabel, max = 3, class: className } = Astro.props;
+---
+
+<!-- Photos the user picks (or takes), scaled down to send (lib/photos.js):
+     its `photos` are data URLs; a "photos-change" event says they changed,
+     and a "photo-limit" or "photo-unreadable" one that a photo was left out. -->
+<ev-photo-picker class={className} data-max={max}>
+  <label class="photo-dropzone">
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp,image/gif"
+      multiple
+      class="visually-hidden photo-input"
+    />
+    <span class="dropzone-icon">
+      <Icon icon={ImagePlus} />
+    </span>
+    <span class="dropzone-title">{label}</span>
+    {hint && <span class="dropzone-hint">{hint}</span>}
+  </label>
+  <ul class="photo-grid" hidden></ul>
+  <template class="photo-item-template">
+    <li class="photo-item">
+      <img class="photo-thumb" alt="" />
+      <Button variant="secondary" size="icon-only" class="remove-photo" aria-label={removeLabel}>
+        <Icon icon={X} size="sm" />
+      </Button>
+    </li>
+  </template>
+  <script src="./PhotoPicker.js"></script>
+</ev-photo-picker>

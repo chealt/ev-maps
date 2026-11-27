@@ -1,0 +1,34 @@
+---
+import Badge from "@ev-maps/ui/Badge.astro";
+import "./ChargerProof.css";
+
+interface Props {
+  // The page's strings (the host's translations for this section).
+  page: Record<string, string>;
+}
+
+const { page } = Astro.props;
+---
+
+<!-- What a user said about a charger's availability and price, and how far
+     to trust it: the score with its factors, and where their device was.
+     A script fills it in with fillChargerProof (./charger-proof.js); it's
+     hidden when there's nothing to show. -->
+<div class="charger-proof">
+  <p class="trust">
+    <span class="trust-label">{page.adminTrust}</span>
+    <Badge class="trust-score" />
+  </p>
+  <ul class="trust-factors" aria-label={page.adminTrustFactors}></ul>
+  <dl class="changes">
+    <div class="change availability-change">
+      <dt>{page.adminReportedAvailability}</dt>
+      <dd class="availability"></dd>
+    </div>
+    <div class="change price-change">
+      <dt>{page.adminReportedPrice}</dt>
+      <dd class="price"></dd>
+    </div>
+  </dl>
+  <p class="device-location"></p>
+</div>

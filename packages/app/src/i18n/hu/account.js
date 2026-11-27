@@ -3,6 +3,28 @@
 
 const account = {
   page: {
+    suggestChargerAvailabilityAndPrice: "Elérhetőség és ár (nem kötelező)",
+    reportChange: "Változás bejelentése",
+    closeReportChange: "Változás bejelentésének bezárása",
+    reportChangeHint:
+      "Mást láttál itt az elérhetőségről vagy az árról? Írd meg, az eszközöd helyével a töltőnél és egy fényképpel róla, hogy megbízhassunk benne.",
+    reportAvailability: "Elérhetőség",
+    reportPrice: "Ár",
+    reportNoChange: "Nincs változás",
+    reportPriceFree: "Ingyenes",
+    reportPricePerKwh: "Kilowattóránként (kWh)",
+    reportPricePerMinute: "Percenként",
+    reportPricePerSession: "Töltésenként",
+    reportPriceAmount: "Összeg",
+    reportCurrency: "Pénznem",
+    reportReceiptPhotos: "Fénykép a nyugtáról, számláról vagy töltőappról",
+    reportReceiptPhotosHint: "Amelyiken látszik az ár; legfeljebb 2 fénykép",
+    reportChargerPhotos: "Fénykép a töltőről",
+    reportChargerPhotosHint: "Legfeljebb 3 fénykép",
+    reportShareLocation: "Helyem megosztása",
+    reportShareLocationHint:
+      "Az eszközöd helye mutatja, hogy a töltőnél voltál; csak az EV Maps adminjai látják.",
+    submitReportChange: "Bejelentés küldése",
     loadingAccount: "Fiók betöltése",
     signInWith: "Bejelentkezés {provider}-fiókkal",
     closeFavorites: "Kedvencek bezárása",
@@ -86,6 +108,21 @@ const account = {
     deleteSavedPlace: "Törlés",
   },
   messages: {
+    reportLocating: "Helyed keresése…",
+    reportLocationShared: "Hely megosztva (±{accuracy} m)",
+    reportLocationSharedNoAccuracy: "Hely megosztva",
+    reportLocationUnavailable:
+      "A helyed nem érhető el. Engedélyezd az EV Maps számára, és próbáld újra.",
+    reportLocationNeeded: "A bejelentéshez oszd meg a helyed.",
+    reportChangeNeeded: "Válaszd ki, mi változott: az elérhetőség, az ár vagy mindkettő.",
+    reportPriceNeeded: "Add meg az árat.",
+    reportReceiptNeeded:
+      "Adj hozzá egy fényképet a nyugtáról, számláról vagy töltőappról, amelyiken látszik az ár.",
+    reportChargerPhotoNeeded: "Adj hozzá egy fényképet a töltőről.",
+    reportPhotoLimit: "Több fényképet nem adhatsz hozzá.",
+    reportPhotoUnreadable: "Ezt a fényképet nem sikerült beolvasni. Próbálj egy másikat.",
+    reportChangeSubmitted: "Köszönjük! A bejelentésedet elküldtük ellenőrzésre.",
+    reportChangeFailed: "Nem sikerült elküldeni a bejelentést. Próbáld újra.",
     signInFailed: "A bejelentkezés nem sikerült. Próbáld újra.",
     removeFavorite: "{name} eltávolítása a kedvencek közül",
     signInLinkSent: "Bejelentkezési linket küldtünk a(z) {email} címre. 15 percen belül nyisd meg.",

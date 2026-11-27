@@ -3,6 +3,7 @@ import Badge from "@ev-maps/ui/Badge.astro";
 import Button from "@ev-maps/ui/Button.astro";
 import Card from "@ev-maps/ui/Card.astro";
 import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import ChargerProof from "../charger-proof/ChargerProof.astro";
 import "./AdminSuggestions.css";
 
 interface Props {
@@ -15,7 +16,8 @@ const { page } = Astro.props;
 
 <!-- Charger suggestions submitted by signed-in users
      (GET /api/admin/charger-suggestions): admins review the location,
-     chargers and proof photo, and approve (adding to the database) or
+     chargers, proof photos and, when given, the availability and price with
+     their trust score, and approve (adding to the database) or
      reject each suggestion. -->
 <ev-admin-suggestions>
   <section aria-labelledby="admin-suggestions-title">
@@ -52,6 +54,7 @@ const { page } = Astro.props;
           <p class="coordinates"></p>
           <p class="submitted-by"></p>
           <ul class="connectors"></ul>
+          <ChargerProof page={page} />
           <div class="actions">
             <Button variant="primary" size="small" class="approve">
               {page.adminApproveSuggestion}
@@ -73,6 +76,11 @@ const { page } = Astro.props;
   <template class="photo-item-template">
     <li>
       <img class="proof-photo" alt={page.adminProofPhoto} />
+    </li>
+  </template>
+  <template class="receipt-item-template">
+    <li>
+      <img class="proof-photo" alt={page.adminReceiptPhoto} />
     </li>
   </template>
   <script src="./AdminSuggestions.js"></script>

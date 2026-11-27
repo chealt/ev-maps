@@ -1,0 +1,61 @@
+.charger-proof {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+
+  &[hidden] {
+    display: none;
+  }
+
+  .trust {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .trust-factors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-2xs) var(--spacing-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+
+  .changes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+    margin: 0;
+  }
+
+  .change {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+
+    &[hidden] {
+      display: none;
+    }
+
+    dt {
+      font-weight: var(--font-weight-bold);
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  .device-location {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+}
