@@ -78,14 +78,6 @@ describe("adminPageResponse", () => {
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(calls[0].props.data.total).toBe(1);
     expect(calls[0].props.data.occurrences[0].message).toBe("Boom");
-    // Static admin pages still come from the assets.
-    const performance = await adminPageResponse(
-      new Request("https://ev.chealt.com/en/admin/performance/"),
-      env,
-      admin,
-      { render }
-    );
-    expect(await performance.text()).toBe("<h1>Admin</h1>");
     expect(calls).toHaveLength(1);
   });
 
@@ -249,6 +241,28 @@ describe("the test reports page", () => {
       { branch: "feat/x", total: 1 },
       { branch: null, total: 2 },
     ]);
+  });
+});
+
+describe("the performance page", () => {
+  test("is rendered on the server, with the summary of ?days= or a trace", async () => {
+    const seen = [];
+    const render = async (renderedRequest, renderEnv, context) => {
+      seen.push(context.props.data);
+      return new Response("");
+    };
+    const db = testD1("../../admin/migrations/admin-migrations/0003_performance.sql");
+    const trace = "4bf92f3577b34da6a3ce929d0e0e4736";
+    for (const query of ["?days=14", `?trace=${trace}`]) {
+      await adminPageResponse(
+        new Request(`https://ev.chealt.com/en/admin/performance/${query}`),
+        { ...env, ADMIN_DB: db },
+        { id: "1", email: "grace@chealt.com" },
+        { render }
+      );
+    }
+    expect(seen[0]).toMatchObject({ days: 14, vitals: [], slowestRequests: [] });
+    expect(seen[1]).toEqual({ traceId: trace, spans: [] });
   });
 });
 

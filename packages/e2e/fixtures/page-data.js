@@ -37,10 +37,14 @@ const USAGE_PAGE = /\/admin\/usage\/(\?.*)?$/;
 // a report's files, under it).
 const REPORTS_PAGE = /\/admin\/reports\/(\?.*)?$/;
 
+// The admin performance page, /{lang}/admin/performance/ with any query.
+const PERFORMANCE_PAGE = /\/admin\/performance\/(\?.*)?$/;
+
 export {
   CHARGER_REPORTS_PAGE,
   ERRORS_PAGE,
   OVERVIEW_PAGE,
+  PERFORMANCE_PAGE,
   REPORTS_PAGE,
   SUGGESTIONS_PAGE,
   UNAVAILABILITY_PAGE,

@@ -1,5 +1,6 @@
 import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { PERFORMANCE_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const TRACE = "4bf92f3577b34da6a3ce929d0e0e4736";
@@ -81,14 +82,16 @@ const fakePerformanceApi = async (page) => {
   await page.route("**/api/admin/me", (route) =>
     route.fulfill({ json: { admin: true, email: GRACE.email } })
   );
-  await page.route("**/api/admin/performance?**", (route) => {
-    const days = Number(new URL(route.request().url()).searchParams.get("days"));
+  // The page is rendered on the server with its data (in the tests, passed
+  // in a header: src/lib/page-data.js).
+  await fakePageData(page, PERFORMANCE_PAGE, (url) => {
+    if (url.searchParams.get("trace") === TRACE) {
+      return { data: { traceId: TRACE, spans } };
+    }
+    const days = Number(url.searchParams.get("days") ?? 7);
     requests.push(days);
-    return route.fulfill({ json: summary(days) });
+    return { data: summary(days) };
   });
-  await page.route(`**/api/admin/performance/traces/${TRACE}`, (route) =>
-    route.fulfill({ json: { traceId: TRACE, spans } })
-  );
   return requests;
 };
 
@@ -168,7 +171,6 @@ test.describe("admin", () => {
       .getByRole("link", { name: "Performance" })
       .click();
     await expect(page).toHaveURL("/en/admin/performance/");
-    // Loaded, so the page's script is listening.
     await expect(page.getByText("The last 7 days")).toBeVisible();
 
     await page.getByText("Last 14 days", { exact: true }).click();
@@ -200,5 +202,16 @@ test.describe("admin", () => {
       "Nov 24: no measurements",
     ]);
     await expect(page.getByRole("radio", { name: "CLS" })).toBeChecked();
+  });
+
+  test("says when the performance couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, PERFORMANCE_PAGE, { failed: true });
+    await page.goto("/en/admin/performance/");
+
+    await expect(page.getByText("The performance couldn't be loaded. Try again.")).toBeVisible();
+    await expect(page.locator('[data-vital="LCP"] .value')).toHaveText("–");
   });
 });
