@@ -25,9 +25,20 @@ repeat that. Check what it can't:
 3. **Added or moved specs:** is each in the domain of the code it tests,
    rather than the domain of the folder it happens to be in?
 4. **Deleted or renamed files:** does a path in the map now match nothing?
+5. **Changed UI (CSS, markup, components):** a path matching isn't enough.
+   Check that a selected spec actually shows the change: it opens the
+   element in the state the change affects (e.g. a menu open, a panel
+   shown), at a viewport the change applies to (the specs run as Playwright's
+   "Desktop Chrome", 1280×720; check the diff's media queries against it),
+   and captures it (`captureUi`, or a `@ui` test ending there). Grep the
+   specs for `captureUi` and the element's role or name to find which do.
+   If the only specs that capture it are in another domain, that's a
+   problem: say which specs to add to the domain's tests, or that one of
+   its own specs should capture it. A spec that only clicks through the
+   element doesn't count: the visual review wouldn't show the change.
 
 Judge from the code, not the names: a spec exercises a file when the pages
-it opens run that file. Don't flag something you're not sure of; say what
+it opens run that file, and, for UI, when it captures what the file changes. Don't flag something you're not sure of; say what
 you'd check instead. Only the map is in question, not the code or the
 tests' quality.
 
