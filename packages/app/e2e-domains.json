@@ -116,6 +116,8 @@
         "packages/app/src/components/maps-app-picker/preference-picker.css",
         "packages/app/src/components/language-picker/**",
         "packages/app/src/lib/session.js",
+        "packages/app/src/lib/support-links.js",
+        "packages/app/src/lib/support-links.test.js",
         "packages/app/src/i18n/*/account.js"
       ],
       "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places"]
