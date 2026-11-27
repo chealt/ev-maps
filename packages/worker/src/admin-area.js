@@ -6,6 +6,7 @@
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
+import { listAdminFlags } from "./charger-unavailability.js";
 
 const LOCALES = ["en", "pl", "hu"];
 
@@ -53,6 +54,11 @@ const admin = createAdminArea({
   locales: LOCALES,
   usageExtraStats: async (env) => ({ top: env.DB ? await mostFavorited(env.DB) : [] }),
   serverPages: [
+    {
+      // The chargers reported unavailable, rendered on the server (#371).
+      path: "unavailability",
+      data: (env) => listAdminFlags(env.DB),
+    },
     {
       // The errors page is rendered on the server, per request.
       path: "errors",

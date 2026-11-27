@@ -9,7 +9,9 @@
 // - GET /api/charger-unavailability/{id}/photo: a flag's photo, only for its
 //   author or an admin (private, no-store)
 // - GET /api/admin/charger-unavailability: the chargers with open flags,
-//   most reporters first, then most photos (admin)
+//   most reporters first, then most photos (admin); the admin page
+//   /{lang}/admin/unavailability/ is rendered on the server with the same
+//   data (listAdminFlags, src/admin-area.js)
 // - POST /api/admin/charger-unavailability/{chargerId}/confirm|dismiss: acts
 //   on all of a charger's open flags (admin)
 
@@ -225,4 +227,4 @@ const routes = [
   },
 ];
 
-export { adminFlagsResponse, flagsResponse, routes, validFlag };
+export { adminFlagsResponse, flagsResponse, listAdminFlags, routes, validFlag };

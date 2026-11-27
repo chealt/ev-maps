@@ -3,16 +3,19 @@ import Layout from "../../../../layouts/Layout.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import AdminUnavailability from "@ev-maps/admin/components/admin-unavailability/AdminUnavailability.astro";
 import { translations } from "../../../../i18n/index.js";
-import { languages } from "../../../../lib/pages.js";
+import { pageData } from "../../../../lib/page-data.js";
 
-// The Worker only serves this page to admins (packages/admin/src/admin.js).
-export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the chargers reported unavailable as its data
+// (packages/worker/src/admin-area.js).
+export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages, values } = translations(Astro.currentLocale ?? "en");
+const data = await pageData(Astro, "/api/admin/charger-unavailability");
 ---
 
 <Layout title={`EV Maps - ${page.adminUnavailability}`} noindex kind="admin">
   <AdminPage current="unavailability" page={page}>
-    <AdminUnavailability page={page} />
+    <AdminUnavailability pageData={data} page={page} messages={messages} values={values} />
   </AdminPage>
 </Layout>

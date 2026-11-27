@@ -16,4 +16,7 @@ const fakePageData = (page, path, props) =>
 // The admin errors page, /{lang}/admin/errors/ with any query.
 const ERRORS_PAGE = /\/admin\/errors\/(\?.*)?$/;
 
-export { ERRORS_PAGE, fakePageData };
+// The admin unavailable chargers page, /{lang}/admin/unavailability/.
+const UNAVAILABILITY_PAGE = /\/admin\/unavailability\/(\?.*)?$/;
+
+export { ERRORS_PAGE, UNAVAILABILITY_PAGE, fakePageData };

@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
+import { UNAVAILABILITY_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 const PHOTO_BUFFER = Buffer.from(
@@ -8,7 +9,9 @@ const PHOTO_BUFFER = Buffer.from(
   "base64"
 );
 
-// As the Worker lists them: most reporters first, then most photos.
+// As the Worker lists them: most reporters first, then most photos. The page
+// is rendered on the server with them (in the tests, passed in a header:
+// src/lib/page-data.js); acting on one takes it off.
 const fakeUnavailabilityApi = async (page) => {
   let chargers = [
     {
@@ -67,8 +70,9 @@ const fakeUnavailabilityApi = async (page) => {
       chargers = chargers.filter((charger) => charger.chargerId !== chargerId);
       return route.fulfill({ json: { chargerId, status: action[2] } });
     }
-    return route.fulfill({ json: { chargers } });
+    return route.fulfill({ status: 405, json: { error: "Method not allowed" } });
   });
+  await fakePageData(page, UNAVAILABILITY_PAGE, () => ({ data: { chargers } }));
   return actions;
 };
 
@@ -115,4 +119,17 @@ test.describe("admin", () => {
       ]);
     }
   );
+
+  test("says when the reports couldn't be loaded", async ({ page }) => {
+    await page.route("**/api/admin/me", (route) =>
+      route.fulfill({ json: { admin: true, email: GRACE.email } })
+    );
+    await fakePageData(page, UNAVAILABILITY_PAGE, { failed: true });
+    await page.goto("/en/admin/unavailability/");
+
+    await expect(
+      page.getByText("The unavailability reports couldn't be loaded. Try again.")
+    ).toBeVisible();
+    await expect(page.getByRole("article")).toHaveCount(0);
+  });
 });
