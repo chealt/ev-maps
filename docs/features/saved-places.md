@@ -14,8 +14,8 @@ under the chargers' pins, which stay clickable. The pin is `<SavedPlacePin>`
 Clicking a pin opens the map's menu under it (`showSavedPlaceMenu`,
 `components/google-map/GoogleMap.js`), titled with the place's name: a
 route from or to the place, or removing it (#381). The pin is ringed while
-its menu is open. The pins follow every change to the places (`saved-places-change` on the
-document) and the session.
+its menu is open. The pins follow every change to the places
+(`saved-places-change` on the document) and the session.
 
 The account menu's **Show saved places** switch
 (`<ev-saved-places-setting>`, signed in only) turns them off and on; they're

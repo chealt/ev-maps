@@ -51,7 +51,9 @@
         "manifest",
         "report-change",
         "report-unavailable",
-        "favorites"
+        "favorites",
+        "saved-places",
+        "route-planner"
       ]
     },
     "filters": {
