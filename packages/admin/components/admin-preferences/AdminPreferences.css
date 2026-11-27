@@ -1,4 +1,4 @@
-ev-admin-preferences {
+.admin-preferences {
   --group-min-width: 18rem;
   --share-bar-width: 5rem;
   --share-bar-height: 0.5rem;
@@ -52,6 +52,7 @@ ev-admin-preferences {
 
   .share-fill {
     display: block;
+    width: calc(var(--share) * 100%);
     height: 100%;
     background: var(--color-primary);
   }

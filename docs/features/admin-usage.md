@@ -25,3 +25,16 @@ share the admin database but count nothing, neither the pages' reports nor
 the Worker's own events (sign-ins, routes, favorites). The request's
 trace carries the decision, so events counted without the request at hand
 (e.g. Better Auth's hooks) follow it too.
+
+## Preferences
+
+What users prefer, under the Usage section's L2 navigation (Activity,
+Settings, Filters, Routes and places): `/{lang}/admin/usage/{section}/`,
+rendered on the server from `GET /api/admin/preferences`
+(`packages/worker/src/preference-stats.js`). Each setting shows how many
+accounts chose each option now (from `user_settings` and the sign-in
+accounts), or for the device's own settings (language, theme, animations)
+how many page views in the last 30 days had it (the `preference` usage
+event). Routes, destinations and hidden operators are only listed when at
+least 3 accounts share one, so nobody's own shows. The sections and their
+groups are in `packages/app/src/lib/usage-sections.js`.

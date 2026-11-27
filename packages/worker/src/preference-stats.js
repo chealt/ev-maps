@@ -102,7 +102,9 @@ const settingsGroups = (settings) => {
       ].filter(Boolean)
     );
     groups.savedPlaceIcons.add(places.map(({ icon }) => icon));
-    groups.popularDestinations.add(routes.map(({ destination }) => placeName(destination)).filter(Boolean));
+    groups.popularDestinations.add(
+      routes.map(({ destination }) => placeName(destination)).filter(Boolean)
+    );
     groups.popularRoutes.add(
       routes
         .map(({ origin, destination }) => [placeName(origin), placeName(destination)])

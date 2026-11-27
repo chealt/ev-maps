@@ -5,6 +5,7 @@
 
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { dashboard } from "@ev-maps/admin/admin-dashboard.js";
+import { preferenceStats } from "./preference-stats.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
 import { listAdminFlags } from "./charger-unavailability.js";
@@ -112,6 +113,12 @@ const admin = createAdminArea({
       // for every branch), rendered on the server.
       path: "reports",
       data: (env, url) => testReports.reports(env, reportsUrl(url)),
+    },
+    {
+      // What users prefer, a page per section (#373), rendered on the
+      // server.
+      path: "usage/(settings|filters|routes)",
+      data: (env) => preferenceStats(env),
     },
     {
       // The errors page is rendered on the server, per request.
