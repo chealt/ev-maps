@@ -116,6 +116,8 @@ own `toHaveScreenshot`, in the tests themselves: `captureUi`
     push to `main` replaced it, each shard checks out the commit
     (`git worktree`) and takes the screenshots itself. It runs the selected
     `@ui` tests there with `--update-snapshots=all`.
+    If its tests fail and take none at all (main's own tests are broken, e.g. its dev server
+    doesn't start), the shard fails instead of reporting every moment as new.
 - The pull request's tests run with `--update-snapshots=none`. A moment that
   differs from `main`'s, or that `main` doesn't have, doesn't fail its test:
   `captureUi` marks it with a `visual-change` annotation, and Playwright
