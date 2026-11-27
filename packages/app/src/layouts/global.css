@@ -40,6 +40,7 @@
   --color-danger-light-text: light-dark(#b91c1c, #fca5a5);
   --color-success: #22c55e;
   --color-warning: #f59e0b;
+  --color-warning-contrast: #0f172a;
   /* Warnings on a light background, e.g. "Zoom in": text on it is AA. */
   --color-warning-light: light-dark(#fef3c7, #451a03);
   --color-warning-light-text: light-dark(#92400e, #fcd34d);

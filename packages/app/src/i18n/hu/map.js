@@ -223,9 +223,11 @@ const map = {
     fromStart: "{distance} az indulástól",
     toEnd: "{distance} a célig",
     offRoute: "{distance} az útvonaltól",
-    chargerNoneFree: "{name}, nincs szabad töltőpont",
+    chargerAllBusy: "{name}, minden töltőpont foglalt",
+    chargerOutOfService: "{name}, nem üzemel",
     chargerFavorite: "{name}, kedvenc",
-    chargerFavoriteNoneFree: "{name}, kedvenc, nincs szabad töltőpont",
+    chargerFavoriteAllBusy: "{name}, kedvenc, minden töltőpont foglalt",
+    chargerFavoriteOutOfService: "{name}, kedvenc, nem üzemel",
     pointsFree: {
       one: "Szabad töltőpontok: {available} / {count}",
       other: "Szabad töltőpontok: {available} / {count}",

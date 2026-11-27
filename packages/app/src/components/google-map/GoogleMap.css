@@ -430,7 +430,13 @@ ev-google-map {
     background: var(--color-favorite);
   }
 
-  /* Signed in: live statuses say none of the charger's points is free. */
+  /* Signed in: live statuses say all of the charger's points are busy (a
+     dark icon, as white is too faint on yellow) or out of service. */
+  &.all-busy {
+    background: var(--color-warning);
+    color: var(--color-warning-contrast);
+  }
+
   &.none-free {
     background: var(--color-danger);
   }
