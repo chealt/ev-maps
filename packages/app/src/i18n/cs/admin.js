@@ -3,6 +3,7 @@
 
 const admin = {
   page: {
+    adminSignOut: "Odhlásit se",
     adminOverview: "Přehled",
     adminGroupCommunity: "Komunita",
     adminGroupInsights: "Statistiky",

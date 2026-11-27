@@ -4,6 +4,10 @@
 const common = {
   languageName: "Čeština",
   page: {
+    supportTitle: "Podpořte EV Maps",
+    supportHint:
+      "EV Maps je zdarma. Pokud vám pomáhá, můžete přispět na jeho servery a mapová data.",
+    opensInNewTab: "(otevře se na nové kartě)",
     title: "EV Maps - nabíjecí stanice pro elektromobily",
     countryTitle: "EV Maps - nabíječky pro elektromobily – {country}",
     description: "Mapa nabíjecích stanic pro elektromobily",

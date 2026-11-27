@@ -3,6 +3,8 @@
 
 const adminUsage = {
   page: {
+    adminNameColumn: "Název",
+    adminUsageCountColumn: "Počet",
     adminUsagePages: "Stránky používání",
     adminUsageActivity: "Aktivita",
     adminUsageSettings: "Nastavení",
