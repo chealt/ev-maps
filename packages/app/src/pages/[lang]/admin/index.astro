@@ -3,16 +3,18 @@ import Layout from "../../../layouts/Layout.astro";
 import AdminDashboard from "@ev-maps/admin/components/admin-dashboard/AdminDashboard.astro";
 import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
 import { translations } from "../../../i18n/index.js";
-import { languages } from "../../../lib/pages.js";
+import { pageData } from "../../../lib/page-data.js";
 
-// The Worker only serves this page to admins (packages/admin/src/admin.js).
-export const getStaticPaths = () => languages().map((lang) => ({ params: { lang } }));
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the dashboard as its data (packages/worker/src/admin-area.js).
+export const prerender = false;
 
-const { page } = translations(Astro.currentLocale ?? "en");
+const { page, messages } = translations(Astro.currentLocale ?? "en");
+const data = await pageData(Astro, "/api/admin/dashboard");
 ---
 
 <Layout title={`EV Maps - ${page.admin}`} noindex kind="admin">
   <AdminPage current="overview" page={page}>
-    <AdminDashboard page={page} />
+    <AdminDashboard pageData={data} page={page} messages={messages} />
   </AdminPage>
 </Layout>

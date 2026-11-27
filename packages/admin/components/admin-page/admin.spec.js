@@ -2,6 +2,7 @@ import { expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
+import { OVERVIEW_PAGE, fakePageData } from "@ev-maps/e2e/fixtures/page-data.js";
 
 const GRACE = { id: "user-2", name: "Grace Hopper", email: "grace@chealt.com", image: null };
 
@@ -83,20 +84,20 @@ test.describe("admin", () => {
       const days = Array.from({ length: 30 }, (_, index) =>
         new Date(Date.UTC(2026, 9, 26 + index)).toISOString().slice(0, 10)
       );
-      await page.route("**/api/admin/dashboard", (route) =>
-        route.fulfill({
-          json: {
-            days,
-            errors: { "2026-11-23": 1, "2026-11-24": 2 },
-            pageViews: { "2026-11-24": 1234 },
-            signIns: {},
-            topPages: [
-              { path: "/hu/hu/", count: 40 },
-              { path: "/en/", count: 10 },
-            ],
-          },
-        })
-      );
+      // Rendered on the server with the dashboard (in the tests, passed in a
+      // header: src/lib/page-data.js).
+      await fakePageData(page, OVERVIEW_PAGE, {
+        data: {
+          days,
+          errors: { "2026-11-23": 1, "2026-11-24": 2 },
+          pageViews: { "2026-11-24": 1234 },
+          signIns: {},
+          topPages: [
+            { path: "/hu/hu/", count: 40 },
+            { path: "/en/", count: 10 },
+          ],
+        },
+      });
 
       await page.goto("/en/admin/");
 
@@ -130,14 +131,14 @@ test.describe("admin", () => {
         "/hu/hu/"
       );
       // Each bar is as long as its share of the most visited page's.
-      await expect(pages.nth(1)).toHaveAttribute("style", "--share: 0.25;");
+      await expect(pages.nth(1)).toHaveAttribute("style", "--share: 0.25");
     }
   );
 
   test("says when the dashboard couldn't be loaded", async ({ page }) => {
     await fakeAuthApi(page, { signedIn: true, user: GRACE });
     await fakeAdminApi(page, GRACE);
-    await page.route("**/api/admin/dashboard", (route) => route.fulfill({ status: 500 }));
+    await fakePageData(page, OVERVIEW_PAGE, { failed: true });
 
     await page.goto("/en/admin/");
 

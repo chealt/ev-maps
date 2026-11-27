@@ -5,26 +5,55 @@ interface Props {
   // The chart's title, and its heading's ID (for aria-labelledby).
   title: string;
   id: string;
+  // To render it on the server: a bar per day in `days` ("2026-11-24"), as
+  // tall as its count in `byDay` ({ day: count }, days without one count 0)
+  // relative to the busiest, with `label(day, count)` as each bar's text
+  // (`day` already formatted, e.g. "Nov 24"). Without them, a script fills
+  // it in with renderBarChart (bar-chart.js).
+  days?: string[];
+  byDay?: Record<string, number>;
+  label?: (day: string, count: number) => string;
 }
 
-const { title, id } = Astro.props;
+const { title, id, days, byDay = {}, label = (day, count) => `${day}: ${count}` } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+
+// As bar-chart.js formats them: "2026-11-24" → "Nov 24".
+const formatDay = (day: string) =>
+  new Intl.DateTimeFormat(lang, { month: "short", day: "numeric", timeZone: "UTC" }).format(
+    new Date(`${day}T00:00:00Z`)
+  );
+const max = days ? Math.max(1, ...days.map((day) => byDay[day] ?? 0)) : 1;
+const bars = (days ?? []).map((day) => {
+  const count = byDay[day] ?? 0;
+  return { share: count / max, text: label(formatDay(day), count) };
+});
 ---
 
-<!-- One bar per day; a script fills it in with renderBarChart (bar-chart.js).
-     Each bar's text, e.g. "Nov 24: 7", is for screen readers and tooltips. -->
+<!-- One bar per day. Each bar's text, e.g. "Nov 24: 7", is for screen
+     readers and tooltips. -->
 <div class="bar-chart">
   <h3 class="chart-title" id={id}>
     {title}
   </h3>
-  <ol class="chart" aria-labelledby={id}></ol>
+  <ol class="chart" aria-labelledby={id}>
+    {bars.map(({ share, text }) => (
+      <li class="bar" style={`--share: ${share}`} title={text}>
+        <span class="fill"></span>
+        <span class="visually-hidden label">{text}</span>
+      </li>
+    ))}
+  </ol>
   <p class="chart-range">
-    <span class="from"></span>
-    <span class="to"></span>
+    <span class="from">{days?.length ? formatDay(days[0]) : ""}</span>
+    <span class="to">{days?.length ? formatDay(days.at(-1) as string) : ""}</span>
   </p>
-  <template class="bar-template">
-    <li class="bar">
-      <span class="fill"></span>
-      <span class="visually-hidden label"></span>
-    </li>
-  </template>
+  {!days && (
+    <template class="bar-template">
+      <li class="bar">
+        <span class="fill"></span>
+        <span class="visually-hidden label"></span>
+      </li>
+    </template>
+  )}
 </div>

@@ -2,66 +2,93 @@
 import EmptyState from "@ev-maps/ui/EmptyState.astro";
 import Card from "@ev-maps/ui/Card.astro";
 import BarChart from "@ev-maps/ui/BarChart.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
 import "./AdminDashboard.css";
 
+// Rendered on the server: errors and usage per day for the last 30 days, and
+// the most visited pages, from the Worker (../../src/admin-dashboard.js).
 interface Props {
-  // The page's strings (the host's translations for this section).
-  page: Record<string, string>;
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
 }
 
-const { page } = Astro.props;
+const { page, messages } = Astro.props;
 const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
 
-// Each chart: what it counts (the field of GET /api/admin/dashboard), its
-// title, and the page with more.
+// Each chart: what it counts (the field of the data), its title, and the
+// page with more.
 const charts = [
   { key: "errors", title: page.adminErrorsPerDay, href: "errors", more: page.adminAllErrors },
   { key: "pageViews", title: page.adminPageViewsChart, href: "usage", more: page.adminAllUsage },
   { key: "signIns", title: page.adminSignInsPerDay, href: "usage", more: page.adminAllUsage },
 ];
+const dayCount = (day: string, count: number) =>
+  formatMessage(lang, messages.adminDayCount, { day, count });
+const total = (byDay: Record<string, number> = {}) =>
+  Object.values(byDay).reduce((sum, count) => sum + count, 0);
+const topPages: { path: string; count: number }[] = data?.topPages ?? [];
+const maxPageViews = Math.max(1, ...topPages.map(({ count }) => count));
 ---
 
-<!-- The overview's charts (GET /api/admin/dashboard): errors and usage per
-     day, the last 30 days. -->
+<!-- The overview's charts. -->
 <ev-admin-dashboard>
   <section class="dashboard" aria-labelledby="admin-dashboard-title">
     <h2 class="section-title" id="admin-dashboard-title">
       {page.adminDashboard}
     </h2>
-    <p class="not-loaded" role="alert" hidden>
-      {page.adminDashboardNotLoaded}
-    </p>
-    <div class="charts">
-      {charts.map(({ key, title, href, more }) => (
-        <Card as="article" class="chart" data-key={key}>
-          <BarChart title={title} id={`admin-dashboard-${key}`} />
-          <p class="footer">
-            <span class="total"></span>
-            <a href={`/${lang}/admin/${href}/`}>{more}</a>
-          </p>
-        </Card>
-      ))}
-    </div>
-    <Card as="article" class="top-pages" aria-labelledby="admin-dashboard-top-pages">
-      <h3 class="chart-title" id="admin-dashboard-top-pages">
-        {page.adminTopPages}
-      </h3>
-      <!-- The most visited pages, each with a bar as long as its share of the
-           first's. -->
-      <ol class="pages"></ol>
-      <EmptyState class="empty" hidden>
-        {page.adminTopPagesNone}
-      </EmptyState>
-    </Card>
+    {failed && (
+      <p class="not-loaded" role="alert">
+        {page.adminDashboardNotLoaded}
+      </p>
+    )}
+    {data && (
+      <div class="charts">
+        {charts.map(({ key, title, href, more }) => (
+          <Card as="article" class="chart" data-key={key}>
+            <BarChart
+              title={title}
+              id={`admin-dashboard-${key}`}
+              days={data.days}
+              byDay={data[key] ?? {}}
+              label={dayCount}
+            />
+            <p class="footer">
+              <span class="total">
+                {formatMessage(lang, messages.adminTotal, { count: total(data[key]) })}
+              </span>
+              <a href={`/${lang}/admin/${href}/`}>{more}</a>
+            </p>
+          </Card>
+        ))}
+      </div>
+    )}
+    {data && (
+      <Card as="article" class="top-pages" aria-labelledby="admin-dashboard-top-pages">
+        <h3 class="chart-title" id="admin-dashboard-top-pages">
+          {page.adminTopPages}
+        </h3>
+        <!-- The most visited pages, each with a bar as long as its share of
+             the first's. -->
+        <ol class="pages">
+          {topPages.map(({ path, count }) => (
+            <li class="page" style={`--share: ${count / maxPageViews}`}>
+              <a class="path" href={path}>
+                {path}
+              </a>
+              <span class="count">{new Intl.NumberFormat(lang).format(count)}</span>
+              <span class="track">
+                <span class="fill"></span>
+              </span>
+            </li>
+          ))}
+        </ol>
+        {topPages.length === 0 && <EmptyState class="empty">{page.adminTopPagesNone}</EmptyState>}
+      </Card>
+    )}
   </section>
-  <template class="page-template">
-    <li class="page">
-      <a class="path"></a>
-      <span class="count"></span>
-      <span class="track">
-        <span class="fill"></span>
-      </span>
-    </li>
-  </template>
-  <script src="./AdminDashboard.js"></script>
 </ev-admin-dashboard>
