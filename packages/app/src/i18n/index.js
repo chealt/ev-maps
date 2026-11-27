@@ -29,6 +29,7 @@ import { sections as en } from "./en/index.js";
 import { sections as hu } from "./hu/index.js";
 import { sections as fr } from "./fr/index.js";
 import { sections as nb } from "./nb/index.js";
+import { sections as it } from "./it/index.js";
 import { sections as pl } from "./pl/index.js";
 import { sections as es } from "./es/index.js";
 import { sections as de } from "./de/index.js";
@@ -36,7 +37,7 @@ import { sections as sk } from "./sk/index.js";
 import { sections as sv } from "./sv/index.js";
 import { sections as pt } from "./pt/index.js";
 
-const SECTIONS = { en, hu, pl, es, de, fr, sk, cs, nb, sv, pt };
+const SECTIONS = { en, hu, pl, es, de, fr, sk, cs, nb, sv, pt, it };
 // Which sections each kind of page's scripts need.
 const PAGE_SECTIONS = {
   map: ["common", "map", "account"],
