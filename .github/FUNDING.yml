@@ -1,5 +1,5 @@
 # The repository's Sponsor button; the same options as the account menu
-# (packages/app/src/lib/support-links.js).
+# (packages/app/src/lib/support-links.js); see docs/features/support.md.
 github: chealt
 ko_fi: chealt
 custom:

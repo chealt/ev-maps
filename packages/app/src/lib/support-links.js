@@ -1,4 +1,5 @@
-// Where people can support EV Maps (monetization suggestion 1, #390):
+// Where people can support EV Maps (monetization suggestion 1, #390; set-up
+// and how to change them: docs/features/support.md):
 // donations through GitHub Sponsors, Ko-fi (international, card or PayPal)
 // and buycoffee.to (Polish: BLIK, PLN). Shown in the account menu, the
 // language's own option first: Polish users get buycoffee.to first.

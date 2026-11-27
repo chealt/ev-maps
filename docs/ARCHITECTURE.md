@@ -105,6 +105,8 @@ changes to different features don't touch the same file:
   the service worker's offline copy
 - [Places next to chargers](features/nearby-places.md): cafés, toilets,
   restaurants and playgrounds near chargers, from OpenStreetMap
+- [Supporting EV Maps](features/support.md): the donation links, and setting
+  up their accounts
 - [Admin area](features/admin.md): the admin area and who can use it
 - [Errors](features/admin-errors.md): collecting errors and the errors page
 - [Usage stats](features/admin-usage.md): collecting usage counts and the usage
