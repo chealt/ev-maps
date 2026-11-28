@@ -204,6 +204,24 @@ class UserMenuElement extends HTMLElement {
     }
   }
 
+  // Sponsors (the Worker decides who: GET /api/sponsor/me) get a badge on
+  // their avatar and a thank-you in the menu.
+  async showSponsor() {
+    let sponsor = false;
+    try {
+      const response = await fetch("/api/sponsor/me");
+      sponsor = response.ok && (await response.json()).sponsor === true;
+    } catch {
+      sponsor = false;
+    }
+    this.setSponsor(sponsor);
+  }
+
+  setSponsor(sponsor) {
+    this.querySelector(".sponsor-badge").hidden = !sponsor;
+    this.querySelector(".sponsor-thanks").hidden = !sponsor;
+  }
+
   // Signed in without a passkey, the profile offers to add one.
   async offerPasskey() {
     const setup = this.querySelector(".passkey-setup");
@@ -268,6 +286,7 @@ class UserMenuElement extends HTMLElement {
     this.setSignedIn(true);
     this.offerPasskey();
     this.showAdminLink();
+    this.showSponsor();
     this.dispatchEvent(
       new CustomEvent("sign-in", { detail: { name, email }, bubbles: true, composed: true })
     );
@@ -276,6 +295,7 @@ class UserMenuElement extends HTMLElement {
   showSignedOut() {
     this.querySelector(".account-name").textContent = "";
     this.querySelector(".admin-link").hidden = true;
+    this.setSponsor(false);
     this.setSignedIn(false);
   }
 

@@ -87,7 +87,9 @@ recorded.
   Anything else stays unlinked, but still counts in the stats. There's no
   claim code.
 - **Who counts as a sponsor** (for the badge): an active monthly
-  sponsorship, or a one-time one in the last 12 months.
+  sponsorship, or a one-time one in the last 12 months. Ko-fi sends no
+  cancellations, so its monthly sponsorship counts while its last payment
+  is under 40 days old.
 - A repeated webhook updates its row. A request with a wrong signature or
   token gets a 401, and without its secret a webhook answers 404.
 
@@ -161,3 +163,12 @@ new sponsor is one whose first sponsorship on the platform is in the period,
 so a monthly Ko-fi sponsor (a row per payment) counts once, as one-time or
 monthly as that first one was. The Worker's `GET /api/admin/sponsors?days=`
 (`packages/worker/src/sponsor-stats.js`) gives the numbers.
+
+## Sponsor Badge
+
+Signed in, the account menu asks `GET /api/sponsor/me`
+(`packages/worker/src/sponsor-status.js`), which answers `{ sponsor }` for
+the user's linked sponsorships. A sponsor gets a heart on the corner of
+their avatar (its label, "Sponsor", is part of the account button's name)
+and "Thank you for supporting EV Maps!" in the menu, under their email
+(#436).

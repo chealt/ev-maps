@@ -20,6 +20,8 @@ const common = {
     supportHint:
       "EV Maps je zadarmo. Ak vám pomáha, môžete prispieť na jeho servery a mapové dáta.",
     opensInNewTab: "(otvorí sa na novej karte)",
+    sponsorBadge: "Sponzor",
+    sponsorThanks: "Ďakujeme, že podporujete EV Maps!",
   },
 };
 

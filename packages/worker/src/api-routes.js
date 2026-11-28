@@ -26,6 +26,7 @@ import { routes as performance } from "@ev-maps/admin/performance-stats.js";
 import { routes as routeChargers } from "./route-chargers.js";
 import { routes as settings } from "./settings.js";
 import { routes as sponsorStats } from "./sponsor-stats.js";
+import { routes as sponsorStatus } from "./sponsor-status.js";
 import { routes as sponsorships } from "./sponsorships.js";
 import { routes as supportClicks } from "./support-clicks.js";
 import { routes as telemetry } from "@ev-maps/admin/telemetry.js";
@@ -46,6 +47,7 @@ const API_ROUTES = [
   ...routeChargers,
   ...settings,
   ...sponsorStats,
+  ...sponsorStatus,
   ...sponsorships,
   ...supportClicks,
   ...telemetry,

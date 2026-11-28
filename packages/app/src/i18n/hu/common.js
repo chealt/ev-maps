@@ -20,6 +20,8 @@ const common = {
     supportHint:
       "Az EV Maps ingyenes. Ha hasznos számodra, hozzájárulhatsz a szerverek és a térképadatok költségeihez.",
     opensInNewTab: "(új lapon nyílik meg)",
+    sponsorBadge: "Támogató",
+    sponsorThanks: "Köszönjük, hogy támogatod az EV Mapset!",
   },
 };
 

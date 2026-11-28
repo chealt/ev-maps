@@ -18,6 +18,8 @@ const common = {
     admin: "Admin",
     supportTitle: "Support EV Maps",
     supportHint: "EV Maps is free. If it helps you, you can chip in for its servers and map data.",
+    sponsorBadge: "Sponsor",
+    sponsorThanks: "Thank you for supporting EV Maps!",
     opensInNewTab: "(opens in a new tab)",
   },
 };
