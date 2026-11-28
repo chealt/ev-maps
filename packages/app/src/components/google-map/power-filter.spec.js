@@ -89,7 +89,7 @@ test.describe("filters", () => {
       await page.getByRole("button", { name: "6 EV chargers found" }).click();
       const list = page.getByRole("dialog", { name: "6 EV chargers" });
       await expect(list.getByRole("listitem")).toHaveCount(6);
-    await captureUi(page, testInfo, "the chargers list, open");
+      await captureUi(page, testInfo, "the chargers list, open");
 
       await list.getByRole("button", { name: "Filters", exact: true }).click();
       const dialog = page.getByRole("dialog", { name: "Filters" });
