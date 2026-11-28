@@ -8,6 +8,7 @@ import {
   listCountries,
   pageChargers,
 } from "../../../lib/pages.js";
+import { countryGraph } from "../../../lib/structured-data.js";
 import { fill, translations } from "../../../i18n/index.js";
 
 export const getStaticPaths = () =>
@@ -30,6 +31,17 @@ const description = fill(page.countryDescription, {
 });
 ---
 
-<Layout title={title} description={description}>
+<Layout
+  title={title}
+  description={description}
+  structuredData={countryGraph({
+    site: Astro.site ?? Astro.url,
+    lang,
+    url: new URL(Astro.url.pathname, Astro.site ?? Astro.url).href,
+    title,
+    description,
+    chargers,
+  })}
+>
   <HomePage {...pageChargers(chargers)} chargerBounds={chargerBounds(chargers)} />
 </Layout>

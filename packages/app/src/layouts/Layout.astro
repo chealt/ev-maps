@@ -8,6 +8,7 @@ import "./global.css";
 import { runtimeTranslations, translations } from "../i18n/index.js";
 import { languages } from "../lib/pages.js";
 import { defaultUrl } from "../lib/sitemap.js";
+import { jsonLd, siteGraph } from "../lib/structured-data.js";
 
 interface Props {
   title?: string;
@@ -15,6 +16,9 @@ interface Props {
   description?: string;
   // Kept out of search engines, e.g. the admin pages.
   noindex?: boolean;
+  // The page's own structured data (src/lib/structured-data.js), after the
+  // site's.
+  structuredData?: object[];
   // The kind of page, for the copy its scripts get: "map", "legal", "admin".
   kind?: string;
 }
@@ -26,6 +30,7 @@ const {
   description = page.description,
   noindex = false,
   kind = "map",
+  structuredData = [],
 } = Astro.props;
 
 // The same page in every language, e.g. /pl/hu/ for /en/hu/.
@@ -88,6 +93,13 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={page.subtitle} />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- What the site and the page are, for search engines. -->
+    {!noindex && (
+      <script
+        type="application/ld+json"
+        set:html={jsonLd([...siteGraph(site, lang), ...structuredData])}
+      />
+    )}
     {hasRuntimeCopy && <script type="application/json" id="messages" set:html={messagesJson} />}
     <!-- Traces the page's API calls and measures its Web Vitals, for the
          admin area; first, so it sees every call. -->

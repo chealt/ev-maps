@@ -18,6 +18,7 @@
     "packages/app/src/lib/messages.js",
     "packages/app/src/lib/pages.js",
     "packages/app/src/lib/sitemap.js",
+    "packages/app/src/lib/structured-data.js",
     "packages/app/src/lib/page-chargers.js",
     "packages/app/src/lib/page-data.js",
     "packages/app/src/components/HomePage.*",
@@ -163,7 +164,8 @@
       "paths": [
         "packages/app/src/lib/page-kind.js",
         "packages/app/tests/fixtures/country-chargers/**",
-        "packages/app/src/lib/sitemap.test.js"
+        "packages/app/src/lib/sitemap.test.js",
+        "packages/app/src/lib/structured-data.test.js"
       ],
       "tests": ["country-page"]
     },
