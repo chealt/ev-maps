@@ -202,6 +202,14 @@
         "admin-unavailability",
         "admin-usage"
       ]
+    },
+    "seo": {
+      "paths": [
+        "packages/app/src/lib/sitemap.js",
+        "packages/app/src/lib/sitemap.test.js",
+        "packages/app/public/robots.txt"
+      ],
+      "tests": ["seo", "legal"]
     }
   }
 }
