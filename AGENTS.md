@@ -56,6 +56,8 @@ only your change: a reset onto a newer `main` reverts what it gained.
   `gh` token without `read:project` reads it through the REST
   `issue_field_values` or GraphQL with the `GraphQL-Features: issue_fields`
   header (the command is in [Picking Up Issues](CONTRIBUTING.md#picking-up-issues)).
+  A sub-issue without a Priority has its parent's; work on a parent's
+  sub-issues, not the parent.
 - **Expected output:** "D1 is down" in the Worker's tests, and
   `[WebServer]` console errors in specs that test failures, are the tests'
   own; they don't mean a failure.
