@@ -36,6 +36,9 @@ test.describe("map", () => {
     return page.getByRole("complementary", { name });
   };
 
+  // Reading the prices (the European way too), comparing them within their
+  // currency, and which side the comparison says ("cheaper than 60%", not
+  // "20% are cheaper") are unit tested in src/lib/priciness.test.js.
   test("shows where a charger's price sits among the loaded ones", async ({ page }) => {
     const pricey = await openDetails(page, "Pricey charger");
     await expect(pricey.getByText("Priciness: $$$")).toBeVisible();
@@ -55,46 +58,6 @@ test.describe("map", () => {
     const unpriced = await openDetails(page, "Unpriced charger");
     await expect(unpriced.getByText("Priciness:")).toBeHidden();
     await expect(unpriced.getByText("Cost: parking fee applies")).toBeVisible();
-  });
-
-  test("reads prices written the European way, each compared within its currency", async ({
-    page,
-  }) => {
-    await fakeChargersApi(page, {
-      chargers: [
-        charger(1, "Euro cheap", [40.71, -74.0], "0,30€/kWh"),
-        charger(2, "Euro pricey", [40.75, -73.95], "0,59 €/kWh Gleichstromaufladen"),
-        charger(3, "Zloty cheap", [40.79, -74.02], "1.19 PLN/kWh"),
-        charger(4, "Zloty pricey", [40.68, -74.05], "PLN 2.49/kWh"),
-      ],
-    });
-    await page.reload();
-
-    // Against the other euro price only, not the złoty ones.
-    const euro = await openDetails(page, "Euro pricey");
-    await expect(
-      euro.getByText("Priciness: $$ (pricier than 50% of the chargers here)")
-    ).toBeVisible();
-    await euro.getByRole("button", { name: "Close" }).click();
-
-    const zloty = await openDetails(page, "Zloty cheap");
-    await expect(zloty.getByText("Priciness: $ (the cheapest of the chargers here)")).toBeVisible();
-  });
-
-  test("says how many it's cheaper than, not how many are cheaper", async ({ page }) => {
-    // One price below the charger's, three above it.
-    await fakeChargersApi(page, {
-      chargers: [
-        charger(1, "Cheapest", [40.71, -74.0], "£0.20/kWh"),
-        charger(2, "Second", [40.75, -73.95], "£0.30/kWh"),
-        charger(3, "Third", [40.79, -74.02], "£0.40/kWh"),
-        charger(4, "Fourth", [40.68, -74.05], "£0.50/kWh"),
-        charger(5, "Fifth", [40.73, -74.1], "£0.60/kWh"),
-      ],
-    });
-    await page.reload();
-    const second = await openDetails(page, "Second");
-    await expect(second.getByText("cheaper than 60% of the chargers here")).toBeVisible();
   });
 
   test("shows each charger's priciness in the list along a route", async ({ page }) => {

@@ -143,4 +143,16 @@ const pricinessAmong = (chargers) => {
 // One charger's priciness among the given ones (see pricinessAmong).
 const priciness = (charger, chargers) => pricinessAmong(chargers)(charger);
 
-export { priciness, pricinessAmong, pricePerKwh };
+// How a priciness compares, as a message and its percent: the larger side,
+// "pricier than 70%" or "cheaper than 80%" (of the chargers here), or "the
+// cheapest" when none is cheaper.
+const pricinessComparison = ({ cheaper, pricier }) => {
+  if (cheaper === 0) {
+    return { key: "cheapestHere" };
+  }
+  return cheaper > pricier
+    ? { key: "pricierThan", percent: Math.round(cheaper * 100) }
+    : { key: "cheaperThan", percent: Math.round(pricier * 100) };
+};
+
+export { priciness, pricinessAmong, pricinessComparison, pricePerKwh };

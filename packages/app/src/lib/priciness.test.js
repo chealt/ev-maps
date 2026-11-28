@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { priciness, pricinessAmong, pricePerKwh } from "./priciness.js";
+import { priciness, pricinessAmong, pricinessComparison, pricePerKwh } from "./priciness.js";
 
 describe("pricePerKwh", () => {
   // Cost texts as the sources write them (from the exported chargers).
@@ -97,15 +97,49 @@ describe("priciness", () => {
     expect(priciness(at("1.19 PLN/kWh"), chargers)).toBeNull();
   });
 
-  test("answers about many chargers quickly, reading them once", () => {
-    const many = Array.from({ length: 4000 }, (_, index) =>
-      at(`${(index % 90) / 100 + 0.1} €/kWh`)
-    );
+  test("reads the chargers once, not again for each one asked about", () => {
+    // Counts the reads of each charger's cost; no clock, so it can't flake.
+    let reads = 0;
+    const many = Array.from({ length: 4000 }, (_, index) => {
+      const usageCost = `${(index % 90) / 100 + 0.1} €/kWh`;
+      return {
+        get usageCost() {
+          reads += 1;
+          return usageCost;
+        },
+      };
+    });
     const of = pricinessAmong(many);
-    const start = performance.now();
+    expect(reads).toBe(4000);
     for (const charger of many) {
       of(charger);
     }
-    expect(performance.now() - start).toBeLessThan(500);
+    // Each one asked about is read once more: its own cost.
+    expect(reads).toBe(8000);
+  });
+});
+
+describe("pricinessComparison", () => {
+  test("is the cheapest when none is cheaper", () => {
+    expect(pricinessComparison({ cheaper: 0, pricier: 2 / 3 })).toEqual({ key: "cheapestHere" });
+  });
+
+  test("says the larger side: how many it's pricier than, or cheaper than", () => {
+    expect(pricinessComparison({ cheaper: 2 / 3, pricier: 0 })).toEqual({
+      key: "pricierThan",
+      percent: 67,
+    });
+    // One price below, three above: cheaper than 60% (the pricier ones), not 20%.
+    expect(pricinessComparison({ cheaper: 1 / 5, pricier: 3 / 5 })).toEqual({
+      key: "cheaperThan",
+      percent: 60,
+    });
+  });
+
+  test("says cheaper than when both sides are equal", () => {
+    expect(pricinessComparison({ cheaper: 1 / 3, pricier: 1 / 3 })).toEqual({
+      key: "cheaperThan",
+      percent: 33,
+    });
   });
 });

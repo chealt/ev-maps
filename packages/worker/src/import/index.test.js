@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, setSystemTime, test } from "bun:test";
 import { testD1 } from "../test-d1.js";
 import { runImport } from "./index.js";
 
@@ -6,6 +6,18 @@ const importDb = () => {
   const db = testD1("../migrations/0001_chargers.sql");
   return { ...db, batch: async (statements) => Promise.all(statements.map((s) => s.all())) };
 };
+
+// The runner's clock is faked: a step moves it on by `stepMs` instead of
+// waiting, so a 400 ms budget runs in a few milliseconds, always the same.
+const START = Date.UTC(2026, 10, 24, 12);
+let now;
+beforeEach(() => {
+  now = START;
+  setSystemTime(new Date(now));
+});
+afterEach(() => {
+  setSystemTime();
+});
 
 // A source whose jobs take `stepMs` a step, finishing in `steps` steps, and
 // which records the areas it worked on.
@@ -17,7 +29,8 @@ const source = (name, { areas, priority, stepMs, steps = 1 }) => {
     listJobs: async () => areas.map((area) => ({ source: name, area, priority })),
     runStep: async (env, job) => {
       worked.push(job.area);
-      await new Promise((resolve) => setTimeout(resolve, stepMs));
+      now += stepMs;
+      setSystemTime(new Date(now));
       // The job table keeps the cursor as text.
       const step = Number(job.cursor ?? 0) + 1;
       return step >= steps ? { done: true } : { done: false, cursor: step };
@@ -40,8 +53,9 @@ describe("runImport", () => {
 
     await runImport(env, { budgetMs: 400, sources: { chargers, amenities }, pauseMs: 0 });
 
+    // The places take 40 ms; the chargers' import the other 360 ms.
     expect(amenities.worked).toEqual(["40,-74", "51,0"]);
-    expect(chargers.worked.length).toBeGreaterThan(0);
+    expect(chargers.worked).toHaveLength(18);
   });
 
   test("gives the rest of the run to the other jobs when the places are done", async () => {
@@ -49,12 +63,11 @@ describe("runImport", () => {
     const amenities = source("amenities", { areas: [], priority: 3, stepMs: 10 });
     const env = { DB: importDb() };
 
-    const started = Date.now();
     await runImport(env, { budgetMs: 300, sources: { chargers, amenities }, pauseMs: 0 });
 
     // Most of the budget, not just its 75%.
-    expect(chargers.worked.length).toBeGreaterThan(15);
-    expect(Date.now() - started).toBeGreaterThanOrEqual(280);
+    expect(chargers.worked).toHaveLength(30);
+    expect(Date.now() - START).toBe(300);
   });
 
   test("keeps the places to their share while charger jobs are due", async () => {
@@ -66,11 +79,8 @@ describe("runImport", () => {
 
     await runImport(env, { budgetMs: 400, sources: { chargers, amenities }, pauseMs: 0 });
 
-    // About 60% of 400 ms of 20 ms steps: 12, give or take one; the
-    // chargers' import gets the rest.
-    expect(amenities.worked.length).toBeGreaterThanOrEqual(11);
-    expect(amenities.worked.length).toBeLessThanOrEqual(13);
-    expect(chargers.worked.length).toBeLessThan(amenities.worked.length);
-    expect(chargers.worked.length).toBeGreaterThan(0);
+    // 60% of 400 ms of 20 ms steps: 12; the chargers' import gets the rest.
+    expect(amenities.worked).toHaveLength(12);
+    expect(chargers.worked).toHaveLength(8);
   });
 });
