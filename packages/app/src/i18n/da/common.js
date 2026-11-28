@@ -16,6 +16,10 @@ const common = {
     favorites: "Favoritter",
     signInForFavorites: "Log ind for at gemme ladestandere som favoritter.",
     admin: "Admin",
+    supportTitle: "Støt EV Maps",
+    supportHint:
+      "EV Maps er gratis. Hvis det hjælper dig, kan du give et bidrag til dets servere og kortdata.",
+    opensInNewTab: "(åbner i en ny fane)",
   },
 };
 
