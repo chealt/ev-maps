@@ -95,6 +95,14 @@ individuals who file one.
 
 ## Privacy
 
-The links are plain links: EV Maps sends the platforms nothing, and nothing
-is tracked when someone clicks one. What someone enters on a platform falls
-under that platform's privacy policy, so the privacy policy needs no change.
+The links are plain links: EV Maps sends the platforms nothing. A click on
+one is counted, for the admin area's sponsor stats (#420): the page sends
+`POST /api/support-clicks` with only the platform's `id`
+(`navigator.sendBeacon`, so the tab opens right away), and the Worker
+(`packages/worker/src/support-clicks.js`) adds one to that platform's count
+for the day in D1's `support_clicks` table (`migrations/0012_support_clicks.sql`).
+No user ID, IP address or cookie is stored, previews aren't counted, and the
+endpoint is rate-limited per IP address (`SUPPORT_LIMITER`). What someone
+enters on a platform falls under that platform's privacy policy. The privacy
+policy's **Usage statistics** (daily totals of how often features are used,
+no identifiers) already covers the counts, so it needs no change.

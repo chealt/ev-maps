@@ -121,6 +121,21 @@ test.describe("account", () => {
       await expect(links.first()).toHaveAccessibleName(`${enabled[0].name} (opens in a new tab)`);
       await expect(links.first()).toHaveAttribute("target", "_blank");
       await expect(links.first()).toHaveAttribute("href", enabled[0].url);
+
+      // A click counts the platform, and nothing else, with a beacon.
+      const clickRequest = page.waitForRequest("**/api/support-clicks");
+      await page.route("**/api/support-clicks", (route) => route.fulfill({ status: 204 }));
+      await page.context().route(enabled[0].url, (route) => route.fulfill({ body: "" }));
+      const [, request] = await Promise.all([
+        page.context().waitForEvent("page"),
+        clickRequest,
+        links.first().click(),
+      ]);
+      expect(request.method()).toBe("POST");
+      expect(request.postDataJSON()).toEqual({ platform: enabled[0].id });
+      for (const other of page.context().pages().slice(1)) {
+        await other.close();
+      }
       await support.scrollIntoViewIfNeeded();
       await captureUi(page, testInfo, "account menu support links");
 
