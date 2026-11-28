@@ -25,48 +25,23 @@ on its schedule and opens a pull request with whatever it changed (branch
   rejected.
 - The file name is the config's name: lowercase letters, digits and dashes.
 
-## Findings as issues
+## One fix a run
 
-A config with `issues` files what pi finds as issues instead of opening a
-pull request, e.g. `configs/testing-audit.json`:
-
-```json
-"issues": { "labels": ["security"], "priority": "High" }
-```
-
-pi is told not to change the files and to write its findings to a JSON
-file, `[{ "title": "…", "body": "…" }]`. `scripts/file-issues.js` then
-opens an issue for each new one, with the labels (created if missing) and
-the Priority issue field. A finding is new if no issue, open or closed,
-has its title, so a daily run doesn't file the same problem again, and one
-closed as not a problem stays closed. Its workflow can read the contents
-and write issues, nothing else; pi's final message goes to the job's
-summary.
-
-## Findings fixed in pull requests
-
-A config with `fixes` has pi fix what it finds, a pull request per
-finding, e.g. `configs/security-audit.json`, the daily security audit:
+A config with `fixes` has pi fix one problem a run, in a pull request of its
+own, e.g. `configs/security-audit.json`, the daily security audit:
 
 ```json
-"fixes": { "labels": ["security"], "prefix": "Security", "limit": 3 }
+"fixes": { "labels": ["security"], "prefix": "Security" }
 ```
 
-pi first audits without changing the files and writes its findings to a
-JSON file, `[{ "id": "…", "title": "…", "body": "…" }]`, the id a slug it
-keeps the same each time it finds the problem. `scripts/fix-findings.js`
-then skips every finding an open pull request fixes already: one on its
-branch, `ai/{config}/{id}`, or titled `{prefix}: {title}`, and then those
-pi, given the rest and the open pull requests (title, branch and the start
-of the description), says fix the same problem, so a finding worded
-differently or fixed by hand isn't fixed twice (if pi fails, the name check
-alone decides). A pull request
-closed without merging doesn't count, so the next run tries again. For each
-of the rest, at most `limit` a run (3 by default), it runs pi on a fresh
-branch from main to fix that finding alone, and when pi changed something,
-commits, pushes and opens the pull request with the labels, its
-description pi's report and the finding. The branches are pushed with the
-`AI_ACTIONS_TOKEN`, so their checks run.
+pi runs once: it looks for the most serious problem the prompt asks about
+that no open pull request fixes yet (it lists and reads them with `gh`),
+fixes it, and runs the tests, the lint and the format check. Its final
+message's first line becomes the pull request's title, after the prefix,
+and the rest its description; the run opens it on its own branch,
+`ai/{config}/{run id}`, with the labels and the `AI_ACTIONS_TOKEN`, so its
+checks run. When pi changes nothing, no pull request is opened. The next
+run takes the next problem.
 
 ## The pull request's description
 

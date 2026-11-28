@@ -3,14 +3,10 @@
 // request with what it changed. scripts/generate-workflows.js writes them.
 //
 // A config: { "cron": "daily", "prompt": "…", "model": "claude-opus-5-5" }.
-// With "issues": { "labels": ["security"], "priority": "High" }, the action
-// files its findings as issues instead of opening a pull request (#427): pi
-// writes them to a JSON file, and scripts/file-issues.js opens an issue for
-// each new one, with the labels and the Priority field.
-// With "fixes": { "labels": ["security"], "prefix": "Security", "limit": 3 },
-// it fixes its findings instead (#450): pi writes them to a JSON file, and
-// scripts/fix-findings.js has pi fix each one no open pull request fixes
-// already, on a branch and in a pull request of its own.
+// With "fixes": { "labels": ["security"], "prefix": "Security" }, each run
+// fixes one problem no open pull request fixes yet (#450): pi finds it,
+// checks the open pull requests itself (gh), fixes it, and the run opens a
+// pull request of its own with the labels; the next run takes another.
 // `cron` is "hourly", "daily", "weekly" or a five-field cron expression
 // (UTC). Every model is used through Radius (#314), the organization's AI
 // gateway, with its budgets, policies and analytics: `model` is a Radius
@@ -23,7 +19,6 @@ const CRON = /^(\S+\s+){4}\S+$/;
 // pi's built-in Radius provider (radius.pi.dev, keys from
 // radius.earendil.com), and the secret its API key comes from.
 const PROVIDER = "radius";
-const PRIORITIES = ["Urgent", "High", "Medium", "Low"];
 const API_KEY = "RADIUS_API_KEY";
 
 // A stable minute per config, so they don't all start at once.
@@ -49,7 +44,7 @@ const configErrors = (name, config) => {
   if (!NAME.test(name)) {
     errors.push(`${name}: the file name must be lowercase letters, digits and dashes`);
   }
-  const { cron, prompt, model, provider, issues, fixes } = config ?? {};
+  const { cron, prompt, model, provider, fixes } = config ?? {};
   if (provider !== undefined && provider !== PROVIDER) {
     errors.push(`${name}: models are used through Radius only; remove "provider"`);
   }
@@ -61,28 +56,13 @@ const configErrors = (name, config) => {
       errors.push(`${name}: ${field} is required`);
     }
   }
-  if (issues !== undefined) {
-    const { labels = [], priority } = issues ?? {};
-    if (!Array.isArray(labels) || labels.some((label) => typeof label !== "string" || !label)) {
-      errors.push(`${name}: issues.labels must be a list of label names`);
-    }
-    if (priority !== undefined && !PRIORITIES.includes(priority)) {
-      errors.push(`${name}: issues.priority must be one of ${PRIORITIES.join(", ")}`);
-    }
-  }
   if (fixes !== undefined) {
-    const { labels = [], prefix, limit } = fixes ?? {};
-    if (issues !== undefined) {
-      errors.push(`${name}: use issues or fixes, not both`);
-    }
+    const { labels = [], prefix } = fixes ?? {};
     if (!Array.isArray(labels) || labels.some((label) => typeof label !== "string" || !label)) {
       errors.push(`${name}: fixes.labels must be a list of label names`);
     }
     if (prefix !== undefined && (typeof prefix !== "string" || !prefix.trim())) {
       errors.push(`${name}: fixes.prefix must be a pull request title prefix`);
-    }
-    if (limit !== undefined && !(Number.isInteger(limit) && limit > 0)) {
-      errors.push(`${name}: fixes.limit must be a positive whole number`);
     }
   }
   return errors;
@@ -96,29 +76,18 @@ const REPORT_INSTRUCTION =
   "each package or tool with the version it went from and to), and what you checked but " +
   "left alone, and why. If you changed nothing, say why.";
 
-// Added to a prompt whose findings become issues: where to write them, and
-// in what shape (scripts/file-issues.js reads them).
-const FINDINGS_INSTRUCTION =
-  "Don't change the repository's files. Write what you found to the JSON file at the path " +
-  'in the FINDINGS environment variable: an array with an object per problem, { "title": ' +
-  '"…", "body": "…" }. The title names the problem in a short sentence, the same each time ' +
-  "you find it: it's how a problem filed already is recognised. The body, in Markdown, says " +
-  "where it is (files and lines), why it's a problem, how it could be exploited or go wrong, " +
-  "and how to fix it. Write an empty array if you found nothing. Your final message is the " +
-  "job's summary: what you checked and what you found.";
-
-// Added to a prompt whose findings get fixed: where to write them, and in
-// what shape (scripts/fix-findings.js reads them).
-const FIX_FINDINGS_INSTRUCTION =
-  "Don't change the repository's files. Write what you found to the JSON file at the path " +
-  "in the FINDINGS environment variable: an array with an object per problem, with the " +
-  "string fields id, title and body. The id is a short slug of lowercase letters, digits and " +
-  "dashes (e.g. cors-wildcard-worker), and the title names the problem in a short sentence; " +
-  "keep both the same each time you find it: they're how a problem being fixed already is " +
-  "recognised. The body, in Markdown, says where it is (files and lines), why it's a " +
-  "problem, how it could be exploited or go wrong, and how to fix it. Write an empty array " +
-  "if you found nothing. Your final message is the job's summary: what you checked and what " +
-  "you found.";
+// Added to a prompt that fixes one problem a run: which one, and the final
+// message's shape (its first line becomes the pull request's title).
+const FIX_INSTRUCTION =
+  "Fix one problem a run, the most serious one that no open pull request fixes yet: before " +
+  "you change anything, list the open pull requests (`gh pr list --state open`) and read " +
+  "any that might fix it (`gh pr view`, `gh pr diff`). Keep the change as small as the fix " +
+  "allows, follow the repository's guidelines, add or update the tests of what you change, " +
+  "and run them, the lint and the format check. Don't commit. If there's nothing left to " +
+  "fix, change nothing. Your final message becomes the pull request: its first line is the " +
+  "title, a short sentence naming the problem, with no prefix; the rest, in Markdown for its " +
+  "reviewer, is the description: where the problem was, why it's a problem, what you " +
+  "changed and how you checked it. If you changed nothing, say why.";
 
 // JSON strings are YAML double-quoted strings, escapes and all.
 const yamlString = (value) => JSON.stringify(value);
@@ -167,78 +136,45 @@ jobs:
         run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 `;
 
-const issuesWorkflowOf = (name, { cron, prompt, model, issues }) =>
-  `${headOf(name, cron, ["contents: read", "issues: write"])}
-      # The model through Radius, with the organization's key, and only the
-      # prompt's model (--no-approve). pi writes its findings to FINDINGS, and
-      # its final message goes to the job's summary.
-      - name: Run the prompt with pi
-        shell: bash
-        env:
-          ${API_KEY}: \${{ secrets.${API_KEY} }}
-          FINDINGS: \${{ runner.temp }}/findings.json
-          PROMPT: ${yamlString(prompt)}
-          FINDINGS_INSTRUCTION: ${yamlString(FINDINGS_INSTRUCTION)}
-        run: >-
-          pi --print --no-session --no-approve
-          --provider ${PROVIDER} --model ${yamlString(model)}
-          "$PROMPT"$'\\n\\n'"$FINDINGS_INSTRUCTION"
-          | tee -a "$GITHUB_STEP_SUMMARY"
-
-      # An issue per new finding; one whose title an issue has, open or
-      # closed, was filed already.
-      - name: File the findings as issues
-        shell: bash
-        env:
-          GH_TOKEN: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
-          LABELS: ${yamlString((issues.labels ?? []).join(","))}
-          PRIORITY: ${yamlString(issues.priority ?? "")}
-        run: >-
-          bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"
-          | tee -a "$GITHUB_STEP_SUMMARY"
-`;
-
-// The checkout's token pushes the fixes' branches: the AI actions token, so
-// their pull requests run the checks (github.token's pushes don't).
-const FIXES_CHECKOUT = `
-        with:
-          token: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}`;
-
+// One fix a run, in a pull request of its own: pi checks the open pull
+// requests itself (GH_TOKEN), and its final message's first line is the
+// title. The AI actions token opens it, so its checks run.
 const fixesWorkflowOf = (name, { cron, prompt, model, fixes }) =>
-  `${headOf(name, cron, ["contents: write", "pull-requests: write"], FIXES_CHECKOUT)}
-      # The model through Radius, with the organization's key, and only the
-      # prompt's model (--no-approve). pi writes its findings to FINDINGS, and
-      # its final message goes to the job's summary.
-      - name: Run the prompt with pi
-        shell: bash
-        env:
-          ${API_KEY}: \${{ secrets.${API_KEY} }}
-          FINDINGS: \${{ runner.temp }}/findings.json
-          PROMPT: ${yamlString(prompt)}
-          FINDINGS_INSTRUCTION: ${yamlString(FIX_FINDINGS_INSTRUCTION)}
-        run: >-
-          pi --print --no-session --no-approve
-          --provider ${PROVIDER} --model ${yamlString(model)}
-          "$PROMPT"$'\\n\\n'"$FINDINGS_INSTRUCTION"
-          | tee -a "$GITHUB_STEP_SUMMARY"
-
-      # A pull request per finding no open one fixes already (its branch,
-      # ai/${name}/{id}, or its title), pi fixing it on a fresh branch.
-      - name: Fix the findings in pull requests
+  `${headOf(name, cron, ["contents: write", "pull-requests: write"])}
+      # The model through Radius, with only the prompt's model (--no-approve).
+      - name: Fix one problem with pi
         shell: bash
         env:
           ${API_KEY}: \${{ secrets.${API_KEY} }}
           GH_TOKEN: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
-          NAME: ${yamlString(name)}
-          PREFIX: ${yamlString(fixes.prefix ?? "AI")}
-          LIMIT: ${yamlString(String(fixes.limit ?? 3))}
-          LABELS: ${yamlString((fixes.labels ?? []).join(","))}
-          PROVIDER: ${yamlString(PROVIDER)}
-          MODEL: ${yamlString(model)}
+          PROMPT: ${yamlString(prompt)}
+          FIX_INSTRUCTION: ${yamlString(FIX_INSTRUCTION)}
+        run: >-
+          pi --print --no-session --no-approve
+          --provider ${PROVIDER} --model ${yamlString(model)}
+          "$PROMPT"$'\\n\\n'"$FIX_INSTRUCTION"
+          | tee "$RUNNER_TEMP/pi-report.md"
+
+      # The report's first line is the title, the rest the description.
+      - name: Write the pull request's title and description
+        id: report
+        shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          bun packages/ai-action-configs/scripts/fix-findings.js "$RUNNER_TEMP/findings.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          title=$(grep -m1 -v '^[[:space:]]*$' "$RUNNER_TEMP/pi-report.md" | sed 's/^#* *//')
+          echo "title=\${title:0:200}" >> "$GITHUB_OUTPUT"
+          awk 'found { print } !found && NF { found = 1 }' "$RUNNER_TEMP/pi-report.md" \\
+            > "$RUNNER_TEMP/pull-request-body.md"
+
+      - name: Open a pull request with the fix
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          branch: ai/${name}/\${{ github.run_id }}
+          delete-branch: true
+          title: ${yamlString(`${fixes.prefix ?? "AI"}: \${{ steps.report.outputs.title }}`)}
+          commit-message: "fix: \${{ steps.report.outputs.title }}"
+          body-path: \${{ runner.temp }}/pull-request-body.md
+          labels: ${yamlString((fixes.labels ?? []).join(","))}
 `;
 
 const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
@@ -286,15 +222,13 @@ const workflowOf = (name, config) => {
   if (config.fixes) {
     return fixesWorkflowOf(name, config);
   }
-  return config.issues ? issuesWorkflowOf(name, config) : pullRequestWorkflowOf(name, config);
+  return pullRequestWorkflowOf(name, config);
 };
 
 export {
   API_KEY,
-  FINDINGS_INSTRUCTION,
-  FIX_FINDINGS_INSTRUCTION,
+  FIX_INSTRUCTION,
   GENERATED_MARKER,
-  PRIORITIES,
   PROVIDER,
   REPORT_INSTRUCTION,
   configErrors,

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
-  FINDINGS_INSTRUCTION,
-  FIX_FINDINGS_INSTRUCTION,
+  FIX_INSTRUCTION,
   REPORT_INSTRUCTION,
   configErrors,
   cronOf,
@@ -45,61 +44,22 @@ describe("configErrors", () => {
   });
 });
 
-describe("configErrors of issues", () => {
-  test("accepts labels and a priority, or neither", () => {
-    const issues = { labels: ["security"], priority: "High" };
-    expect(configErrors("security-audit", { ...config, issues })).toEqual([]);
-    expect(configErrors("security-audit", { ...config, issues: {} })).toEqual([]);
-  });
-
-  test("says what's wrong", () => {
-    expect(
-      configErrors("security-audit", { ...config, issues: { labels: "security", priority: "Top" } })
-    ).toEqual([
-      "security-audit: issues.labels must be a list of label names",
-      "security-audit: issues.priority must be one of Urgent, High, Medium, Low",
-    ]);
-  });
-});
-
-describe("workflowOf with issues", () => {
-  const workflow = workflowOf("security-audit", {
-    ...config,
-    issues: { labels: ["security"], priority: "High" },
-  });
-
-  test("files the findings as issues, without a pull request", () => {
-    expect(workflow).toContain("  contents: read\n  issues: write\n");
-    expect(workflow).not.toContain("create-pull-request");
-    expect(workflow).toContain(`FINDINGS_INSTRUCTION: ${JSON.stringify(FINDINGS_INSTRUCTION)}`);
-    expect(workflow).toContain("FINDINGS: ${{ runner.temp }}/findings.json");
-    expect(workflow).toContain(
-      'bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"'
-    );
-    expect(workflow).toContain('LABELS: "security"');
-    expect(workflow).toContain('PRIORITY: "High"');
-  });
-});
-
 describe("configErrors of fixes", () => {
-  test("accepts labels, a prefix and a limit, all optional", () => {
-    const fixes = { labels: ["security"], prefix: "Security", limit: 3 };
+  test("accepts labels and a prefix, both optional", () => {
+    const fixes = { labels: ["security"], prefix: "Security" };
     expect(configErrors("security-audit", { ...config, fixes })).toEqual([]);
     expect(configErrors("security-audit", { ...config, fixes: {} })).toEqual([]);
   });
 
-  test("rejects bad ones, and fixes with issues", () => {
+  test("rejects bad ones", () => {
     expect(
       configErrors("security-audit", {
         ...config,
-        issues: {},
-        fixes: { labels: "security", prefix: " ", limit: 0 },
+        fixes: { labels: "security", prefix: " " },
       })
     ).toEqual([
-      "security-audit: use issues or fixes, not both",
       "security-audit: fixes.labels must be a list of label names",
       "security-audit: fixes.prefix must be a pull request title prefix",
-      "security-audit: fixes.limit must be a positive whole number",
     ]);
   });
 });
@@ -107,27 +67,25 @@ describe("configErrors of fixes", () => {
 describe("workflowOf with fixes", () => {
   const workflow = workflowOf("security-audit", {
     ...config,
-    fixes: { labels: ["security"], prefix: "Security", limit: 2 },
+    fixes: { labels: ["security"], prefix: "Security" },
   });
 
-  test("fixes the findings in pull requests of their own, without issues", () => {
+  test("has pi fix one problem no open pull request fixes, without a findings file", () => {
     expect(workflow).toContain("  contents: write\n  pull-requests: write\n");
     expect(workflow).not.toContain("issues: write");
-    expect(workflow).not.toContain("create-pull-request");
-    expect(workflow).toContain(`FINDINGS_INSTRUCTION: ${JSON.stringify(FIX_FINDINGS_INSTRUCTION)}`);
-    expect(workflow).toContain(
-      'bun packages/ai-action-configs/scripts/fix-findings.js "$RUNNER_TEMP/findings.json"'
-    );
-    expect(workflow).toContain('PREFIX: "Security"');
-    expect(workflow).toContain('LIMIT: "2"');
-    expect(workflow).toContain('LABELS: "security"');
-    expect(workflow).toContain('MODEL: "claude-opus-5-5"');
+    expect(workflow).not.toContain("FINDINGS");
+    expect(workflow).toContain(`FIX_INSTRUCTION: ${JSON.stringify(FIX_INSTRUCTION)}`);
+    expect(FIX_INSTRUCTION).toContain("gh pr list --state open");
+    // pi lists the open pull requests with the token.
+    expect(workflow).toContain("GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}");
   });
 
-  test("pushes with the AI actions token, so the checks run", () => {
-    expect(workflow).toContain(
-      "uses: actions/checkout@v7\n        with:\n          token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}"
-    );
+  test("opens a pull request a run, titled by pi's first line, with the labels", () => {
+    expect(workflow).toContain("uses: peter-evans/create-pull-request@v8");
+    expect(workflow).toContain("branch: ai/security-audit/${{ github.run_id }}");
+    expect(workflow).toContain('title: "Security: ${{ steps.report.outputs.title }}"');
+    expect(workflow).toContain('labels: "security"');
+    expect(workflow).toContain("token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}");
   });
 });
 
