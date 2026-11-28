@@ -6,6 +6,7 @@
 import { createAdminArea, errorFilters } from "@ev-maps/admin/admin.js";
 import { dashboard } from "@ev-maps/admin/admin-dashboard.js";
 import { preferenceStats } from "./preference-stats.js";
+import { sponsorStats } from "./sponsor-stats.js";
 import { performancePage } from "@ev-maps/admin/performance-stats.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
@@ -108,6 +109,12 @@ const admin = createAdminArea({
       // The usage stats of ?days=, rendered on the server.
       path: "usage",
       data: (env, url) => admin.usage(env, url),
+    },
+    {
+      // The support links' clicks and the new sponsors of ?days= (#435),
+      // rendered on the server.
+      path: "sponsors",
+      data: (env, url) => sponsorStats(env.DB, url),
     },
     {
       // A page of CI's test reports, of ?branch= (main by default, "all"

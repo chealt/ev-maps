@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Nincs egyező sor.",
     adminErrors: "Hibák",
     adminUsage: "Használat",
+    adminSponsors: "Támogatók",
   },
   messages: {
     adminSignedInAs: "Bejelentkezve: {email}",

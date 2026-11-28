@@ -186,6 +186,7 @@
         "packages/admin/components/review-list/**",
         "packages/app/src/lib/day-count.js",
         "packages/app/src/lib/connector-groups.js",
+        "packages/app/src/lib/support-links.js",
         "packages/app/src/lib/usage-sections.js",
         "packages/app/src/i18n/*/admin*.js"
       ],
@@ -196,6 +197,7 @@
         "admin-performance",
         "admin-preferences",
         "admin-reports",
+        "admin-sponsors",
         "admin-suggestions",
         "admin-unavailability",
         "admin-usage"

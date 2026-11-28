@@ -151,3 +151,13 @@ no identifiers) covers the counts. The recorded sponsorships (see
 [Recording Sponsorships](#recording-sponsorships)) are in its **When you
 sponsor EV Maps** section, kept until the account is deleted or the sponsor
 asks.
+
+## Sponsor Stats
+
+The admin area's **Sponsors** page (`/{lang}/admin/sponsors/`, #435) shows,
+for the last 30, 90 or 365 days: each platform's support-link clicks per
+day, its new one-time and monthly sponsors, and new sponsors per click. A
+new sponsor is one whose first sponsorship on the platform is in the period,
+so a monthly Ko-fi sponsor (a row per payment) counts once, as one-time or
+monthly as that first one was. The Worker's `GET /api/admin/sponsors?days=`
+(`packages/worker/src/sponsor-stats.js`) gives the numbers.
