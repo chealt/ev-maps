@@ -13,13 +13,13 @@ import { listAdminFlags } from "./charger-unavailability.js";
 import { listAdminReports } from "./charger-reports.js";
 import { listAdminSuggestions } from "./charger-suggestions.js";
 
-const LOCALES = ["en", "pl", "hu", "es", "de", "fr", "sk", "cs", "nb", "sv"];
+const LOCALES = ["en", "pl", "hu", "es", "de", "fr", "sk", "cs", "nb", "sv", "pt"];
 
 // The events the pages may send, and how their dimension looks.
 const PAGE_EVENTS = {
-  page_view: /^(en|pl|hu|es|de|fr|sk|cs|nb|sv):(home|country|legal)$/,
+  page_view: /^(en|pl|hu|es|de|fr|sk|cs|nb|sv|pt):(home|country|legal)$/,
   // Which page: the site's own (not the admin area), e.g. /hu/hu/.
-  page_path: /^\/(en|pl|hu|es|de|fr|sk|cs|nb|sv)\/([a-z]{2}\/|privacy\/|terms\/)?$/,
+  page_path: /^\/(en|pl|hu|es|de|fr|sk|cs|nb|sv|pt)\/([a-z]{2}\/|privacy\/|terms\/)?$/,
   charger_opened: /^[a-z]{2,10}$/,
   filter_used: /^[a-z-]{2,20}$/,
   locate_me: /^$/,
