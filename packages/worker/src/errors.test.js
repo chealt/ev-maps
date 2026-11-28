@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, setSystemTime, test } from "bun:test";
 import {
   deleteOldErrors,
   errorReportResponse,
@@ -117,9 +117,14 @@ describe("recordWorkerError", () => {
 describe("deleteOldErrors", () => {
   test("deletes errors older than 30 days", async () => {
     const env = { ADMIN_DB: fakeDb() };
-    await deleteOldErrors(env);
+    setSystemTime(new Date(Date.UTC(2026, 10, 24, 12)));
+    try {
+      await deleteOldErrors(env);
+    } finally {
+      setSystemTime();
+    }
     const [{ sql, values }] = env.ADMIN_DB.runs;
     expect(sql).toContain("DELETE FROM errors");
-    expect(Date.now() - values[0]).toBeGreaterThan(29 * 24 * 60 * 60 * 1000);
+    expect(values[0]).toBe(Date.UTC(2026, 9, 25, 12));
   });
 });

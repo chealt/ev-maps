@@ -1,6 +1,6 @@
 import { fetchChargersInBounds } from "./chargers.js";
 import { chargerName } from "../../lib/charger-name.js";
-import { pricinessAmong } from "../../lib/priciness.js";
+import { pricinessAmong, pricinessComparison } from "../../lib/priciness.js";
 import { distanceInMeters, formatDistance } from "../../lib/distance.js";
 import { addFavorite, isFavorite, onFavoritesChange, removeFavorite } from "../../lib/favorites.js";
 import { setMapCenter } from "../../lib/map-center.js";
@@ -111,16 +111,8 @@ const describePriciness = (price) => {
   if (!price) {
     return null;
   }
-  // Whichever side is larger: "pricier than 70%", "cheaper than 80%".
-  return {
-    scale: "$".repeat(price.level),
-    comparison:
-      price.cheaper === 0
-        ? message("cheapestHere")
-        : price.cheaper > price.pricier
-          ? message("pricierThan", { percent: Math.round(price.cheaper * 100) })
-          : message("cheaperThan", { percent: Math.round(price.pricier * 100) }),
-  };
+  const { key, percent } = pricinessComparison(price);
+  return { scale: "$".repeat(price.level), comparison: message(key, { percent }) };
 };
 
 // Sources the Worker has live statuses for (packages/worker/src/live-status.js).

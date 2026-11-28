@@ -1,7 +1,16 @@
-import { beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
-// The page's language, which formatNumber reads.
+// The page's language, which formatNumber reads; put back after, as the
+// other test files share the global.
+const realDocument = globalThis.document;
 globalThis.document ??= { documentElement: { lang: "en" } };
+afterAll(() => {
+  if (realDocument === undefined) {
+    delete globalThis.document;
+  } else {
+    globalThis.document = realDocument;
+  }
+});
 
 let formatDuration;
 beforeAll(async () => {

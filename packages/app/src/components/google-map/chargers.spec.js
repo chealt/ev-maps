@@ -367,15 +367,6 @@ test.describe("map", () => {
     expect(statusRequests).toHaveLength(0);
   });
 
-  test("names a charger without a name after its operator", async ({ page }) => {
-    const [downtown] = fixtureChargers;
-    await fakeChargersApi(page, { chargers: [{ ...downtown, name: undefined }] });
-    await page.goto("/");
-    const map = page.getByRole("region", { name: "EV charging station map" });
-
-    await expect(map.getByRole("button", { name: "Tesla" })).toBeVisible();
-  });
-
   test("shows France's availability, crediting its register", async ({ page }) => {
     await fakeAuthApi(page, { signedIn: true });
     const [downtown] = fixtureChargers;

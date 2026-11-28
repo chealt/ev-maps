@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // IndexedDB through idb-keyval, and localStorage: both in memory.
 const stored = new Map();
@@ -9,6 +9,15 @@ mock.module("idb-keyval", () => ({
   },
 }));
 const legacy = new Map();
+// Put back after, as the other test files share the global.
+const realLocalStorage = globalThis.localStorage;
+afterAll(() => {
+  if (realLocalStorage === undefined) {
+    delete globalThis.localStorage;
+  } else {
+    globalThis.localStorage = realLocalStorage;
+  }
+});
 globalThis.localStorage = {
   getItem: (key) => legacy.get(key) ?? null,
   setItem: (key, value) => legacy.set(key, String(value)),

@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
 import { startTrace, withTrace } from "@ev-maps/admin/tracing.js";
-import { countUsage, dayOf, deleteOldUsage } from "@ev-maps/admin/usage.js";
+import { countUsage, deleteOldUsage } from "@ev-maps/admin/usage.js";
 import { usage } from "./admin-area.js";
 
 const countEvent = usage.countEvent;
@@ -80,12 +80,18 @@ describe("usageReportResponse", () => {
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
 
+  afterEach(() => {
+    setSystemTime();
+  });
+
   test("counts a page's batch", async () => {
+    // Just before midnight: the count is for the day it came in.
+    setSystemTime(new Date(Date.UTC(2026, 10, 23, 23, 59, 59, 999)));
     const env = { ADMIN_DB: adminDb() };
     const response = await report(post({ events: { list_opened: { "": 2 } } }), env);
     expect(response.status).toBe(202);
     expect(rows(env.ADMIN_DB)).toEqual([
-      { day: dayOf(Date.now()), event: "list_opened", dimension: "", count: 2 },
+      { day: "2026-11-23", event: "list_opened", dimension: "", count: 2 },
     ]);
   });
 

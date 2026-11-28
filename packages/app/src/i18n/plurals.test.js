@@ -1,7 +1,9 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { map } from "./pl/map.js";
 
-// The page's language and its messages, as Layout.astro bakes them in.
+// The page's language and its messages, as Layout.astro bakes them in; the
+// other test files share the global, so it's put back after.
+const realDocument = globalThis.document;
 globalThis.document = {
   documentElement: { lang: "pl" },
   getElementById: () => ({ textContent: JSON.stringify({ messages: map.messages }) }),
@@ -9,7 +11,11 @@ globalThis.document = {
 const { message } = await import("../lib/messages.js");
 
 afterAll(() => {
-  delete globalThis.document;
+  if (realDocument === undefined) {
+    delete globalThis.document;
+  } else {
+    globalThis.document = realDocument;
+  }
 });
 
 describe("message's plural forms", () => {
