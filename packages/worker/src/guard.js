@@ -27,11 +27,13 @@ const errorResponse = (status, error, headers = {}) =>
 // { refused: the response refusing the request } or { userId, user } (null
 // when the route doesn't need a signed-in user). `route` is an API route's
 // access (src/api-routes.js): { name, limiter (a ratelimits binding in
-// wrangler.toml), signedIn, admin }. `userOf(request)` resolves to the
+// wrangler.toml), signedIn, admin, webhook }; a webhook route takes
+// requests from servers (e.g. GitHub's or Ko-fi's), so it lets automated
+// user agents in and checks the request's signature itself. `userOf(request)` resolves to the
 // signed-in user, { id, email }, or null; `isAdmin(user)` says if they may
 // use admin routes.
 const guard = async (request, env, route, userOf, isAdmin = () => false) => {
-  if (isBlockedAgent(request)) {
+  if (!route.webhook && isBlockedAgent(request)) {
     return { refused: errorResponse(403, "Automated access isn't allowed; see the terms of use.") };
   }
   let key = `ip:${request.headers.get("cf-connecting-ip") ?? "local"}`;

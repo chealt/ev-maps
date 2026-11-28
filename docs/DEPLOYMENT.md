@@ -81,6 +81,9 @@ bunx wrangler secret put GOOGLE_CLIENT_SECRET
 # Optional: Sign in with GitHub (see GitHub below)
 bunx wrangler secret put GITHUB_CLIENT_ID
 bunx wrangler secret put GITHUB_CLIENT_SECRET
+# Optional: record sponsorships (see docs/features/support.md)
+bunx wrangler secret put GITHUB_SPONSORS_WEBHOOK_SECRET
+bunx wrangler secret put KOFI_VERIFICATION_TOKEN
 # Optional: Sign in with Microsoft (see Microsoft below)
 bunx wrangler secret put MICROSOFT_CLIENT_SECRET
 # Optional: Sign in with Apple (see Apple below)
@@ -155,6 +158,7 @@ asks for sign-in where needed and is rate limited per minute:
 | `POST /api/usage`                   | Everyone  | 60 per IP address  |
 | `POST /api/telemetry`               | Everyone  | 60 per IP address  |
 | `POST /api/support-clicks`          | Everyone  | 20 per IP address  |
+| `POST /api/webhooks/…`              | Webhooks  | 120 per IP address |
 | `/api/chargers/status`              | Signed in | 120 per user       |
 | `POST /api/chargers/route`          | Signed in | 20 per user        |
 | `/api/settings`                     | Signed in | 60 per user        |

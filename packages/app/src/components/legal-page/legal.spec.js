@@ -20,7 +20,7 @@ test.describe("legal", () => {
         {
           path: "/en/privacy/",
           heading: "Privacy policy",
-          updated: "Last updated: November 24, 2026",
+          updated: "Last updated: November 28, 2026",
         },
         { path: "/en/terms/", heading: "Terms of use", updated: "Last updated: November 21, 2026" },
       ]) {

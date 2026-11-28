@@ -1,6 +1,6 @@
 ---
 title: Privacy policy
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, "we") is a map of electric vehicle charging stations.
@@ -61,6 +61,15 @@ and creates your account the first time. If you add a passkey, we store its
 public key, identifier and type (never your fingerprint, face or screen lock,
 which stay on your device).
 
+### When you sponsor EV Maps
+
+When you sponsor EV Maps through GitHub Sponsors or Ko-fi, the platform tells
+us about it: the date, the amount and currency, the tier, whether it's monthly
+or cancelled, and your GitHub username or the email address you gave Ko-fi. We
+store this to count sponsors and, if it matches your account (the same GitHub
+account, or the same verified email address), to thank you in the account menu.
+The payment itself stays with the platform, under its privacy policy.
+
 ## Why we process it
 
 Under the EU General Data Protection Regulation (GDPR):
@@ -101,6 +110,7 @@ clauses.
 - **Sign-in sessions:** until they expire (7 days without use) or you sign out.
 - **Server logs:** a few days at Cloudflare.
 - **Errors:** 30 days.
+- **Sponsorships:** until you delete your account or ask us to delete them.
 - **Usage statistics:** about 13 months.
 - **Performance measurements:** 14 days.
 

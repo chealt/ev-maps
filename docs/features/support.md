@@ -64,6 +64,48 @@ Each platform gives a yearly or monthly payout statement to use for it.
 GitHub also asks for a US tax form, but doesn't withhold US tax from non-US
 individuals who file one.
 
+## Recording Sponsorships
+
+For the admin area's sponsor stats and the sponsor badge (#420, #434), the
+Worker (`packages/worker/src/sponsorships.js`) takes the platforms'
+webhooks and stores each sponsorship in D1's `sponsorships` table
+(`migrations/0013_sponsorships.sql`): the platform, the date, the amount,
+currency and tier, whether it's monthly, whether it's cancelled, and who
+sponsored (the GitHub login or the Ko-fi email). buycoffee.to isn't
+recorded.
+
+- **GitHub Sponsors** (`POST /api/webhooks/github-sponsors`): one row per
+  sponsorship. A tier change updates it, and `cancelled` marks it cancelled
+  (`pending_cancellation` doesn't: they're a sponsor until it ends).
+  Amounts are in USD cents.
+- **Ko-fi** (`POST /api/webhooks/kofi`): one row per payment, monthly ones
+  included. Ko-fi sends no cancellations, so a monthly sponsor is one whose
+  last payment is recent.
+- **Linking to an account:** a GitHub sponsorship links to the account that
+  signs in with the same GitHub account (its user ID, not the login); a
+  Ko-fi payment links to the account with the same verified email address.
+  Anything else stays unlinked, but still counts in the stats. There's no
+  claim code.
+- **Who counts as a sponsor** (for the badge): an active monthly
+  sponsorship, or a one-time one in the last 12 months.
+- A repeated webhook updates its row. A request with a wrong signature or
+  token gets a 401, and without its secret a webhook answers 404.
+
+### Set-Up
+
+1. **GitHub Sponsors:** on the sponsors dashboard, _Webhooks → Add webhook_:
+   payload URL `https://ev.chealt.com/api/webhooks/github-sponsors`, content
+   type `application/json`, and a random secret (`openssl rand -hex 32`). Set
+   the same secret as the Worker's `GITHUB_SPONSORS_WEBHOOK_SECRET`
+   (`bunx wrangler secret put GITHUB_SPONSORS_WEBHOOK_SECRET`). GitHub's
+   ping should get a 204 under _Recent Deliveries_.
+2. **Ko-fi:** _Settings → API → Webhooks_: webhook URL
+   `https://ev.chealt.com/api/webhooks/kofi`. Copy the verification token
+   shown under _Advanced_ into the Worker's `KOFI_VERIFICATION_TOKEN`, then
+   use _Send Single Donation Test_.
+3. Apply the migration (`bunx wrangler d1 migrations apply`), as for every
+   new migration.
+
 ## Where the Links Live
 
 - **`packages/app/src/lib/support-links.js`:** the list the account menu
@@ -105,4 +147,7 @@ No user ID, IP address or cookie is stored, previews aren't counted, and the
 endpoint is rate-limited per IP address (`SUPPORT_LIMITER`). What someone
 enters on a platform falls under that platform's privacy policy. The privacy
 policy's **Usage statistics** (daily totals of how often features are used,
-no identifiers) already covers the counts, so it needs no change.
+no identifiers) covers the counts. The recorded sponsorships (see
+[Recording Sponsorships](#recording-sponsorships)) are in its **When you
+sponsor EV Maps** section, kept until the account is deleted or the sponsor
+asks.

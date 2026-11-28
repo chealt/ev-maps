@@ -1,6 +1,6 @@
 ---
 title: Informativa sulla privacy
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, "noi") è una mappa delle stazioni di ricarica per veicoli
@@ -63,6 +63,16 @@ l'indirizzo e crea il Suo account la prima volta. Se aggiunge una passkey, ne
 conserviamo la chiave pubblica, l'identificativo e il tipo (mai la Sua impronta,
 il volto o il blocco schermo, che restano sul Suo dispositivo).
 
+### Quando sostiene EV Maps
+
+Quando sostiene EV Maps tramite GitHub Sponsors o Ko-fi, la piattaforma ce lo
+comunica: la data, l'importo e la valuta, il livello, se è mensile o annullato,
+e il Suo nome utente GitHub o l'indirizzo email fornito a Ko-fi. Li conserviamo
+per contare i sostenitori e, se corrispondono al Suo account (lo stesso account
+GitHub o lo stesso indirizzo email verificato), per ringraziarLa nel menu
+dell'account. Il pagamento resta presso la piattaforma, secondo la sua
+informativa sulla privacy.
+
 ## Perché li trattiamo
 
 Ai sensi del Regolamento generale sulla protezione dei dati dell'UE (GDPR):
@@ -105,6 +115,7 @@ Commissione europea.
   non esce.
 - **Log del server:** alcuni giorni presso Cloudflare.
 - **Errori:** 30 giorni.
+- **Sostegni:** finché non elimina il Suo account o ci chiede di eliminarli.
 - **Statistiche di utilizzo:** circa 13 mesi.
 - **Misurazioni delle prestazioni:** 14 giorni.
 

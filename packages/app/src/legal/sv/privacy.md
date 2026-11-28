@@ -1,6 +1,6 @@
 ---
 title: Integritetspolicy
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, "vi") är en karta över laddstationer för elbilar. Den här
@@ -61,6 +61,15 @@ adressen och ditt konto skapas första gången. Om du lägger till en nyckel
 (passkey) sparar vi dess publika nyckel, identifierare och typ (aldrig ditt
 fingeravtryck, ansikte eller skärmlås, som stannar på din enhet).
 
+### När du stöttar EV Maps
+
+När du stöttar EV Maps via GitHub Sponsors eller Ko-fi berättar plattformen det
+för oss: datum, belopp och valuta, nivå, om det är månatligt eller avslutat, och
+ditt GitHub-användarnamn eller den e-postadress du gav Ko-fi. Vi sparar det för
+att räkna supportrar och, om det matchar ditt konto (samma GitHub-konto eller
+samma verifierade e-postadress), för att tacka dig i kontomenyn. Själva
+betalningen stannar hos plattformen, enligt dess integritetspolicy.
+
 ## Varför vi behandlar dem
 
 Enligt EU:s dataskyddsförordning (GDPR):
@@ -104,6 +113,7 @@ Europeiska kommissionens standardavtalsklausuler.
   loggar ut.
 - **Serverloggar:** några dagar hos Cloudflare.
 - **Fel:** 30 dagar.
+- **Stöd:** tills du raderar ditt konto eller ber oss radera dem.
 - **Användningsstatistik:** cirka 13 månader.
 - **Prestandamätningar:** 14 dagar.
 

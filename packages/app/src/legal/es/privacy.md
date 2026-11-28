@@ -1,6 +1,6 @@
 ---
 title: Política de privacidad
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, «nosotros») es un mapa de estaciones de carga para
@@ -65,6 +65,16 @@ primera vez. Si añades una llave de acceso, guardamos su clave pública, su
 identificador y su tipo (nunca tu huella, tu cara ni el bloqueo de pantalla, que
 se quedan en tu dispositivo).
 
+### Cuando apoyas EV Maps
+
+Cuando apoyas EV Maps a través de GitHub Sponsors o Ko-fi, la plataforma nos lo
+comunica: la fecha, el importe y la moneda, el nivel, si es mensual o está
+cancelado, y tu nombre de usuario de GitHub o el correo electrónico que diste a
+Ko-fi. Lo guardamos para contar los patrocinadores y, si coincide con tu cuenta
+(la misma cuenta de GitHub o el mismo correo verificado), para darte las gracias
+en el menú de la cuenta. El pago en sí queda en la plataforma, según su política
+de privacidad.
+
 ## Por qué lo tratamos
 
 Según el Reglamento General de Protección de Datos de la UE (RGPD):
@@ -107,6 +117,7 @@ tipo de la Comisión Europea.
 - **Sesiones:** hasta que caducan (7 días sin uso) o cierras sesión.
 - **Registros del servidor:** unos días en Cloudflare.
 - **Errores:** 30 días.
+- **Patrocinios:** hasta que elimines tu cuenta o nos pidas que los eliminemos.
 - **Estadísticas de uso:** unos 13 meses.
 - **Mediciones de rendimiento:** 14 días.
 

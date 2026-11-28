@@ -1,6 +1,6 @@
 ---
 title: Datenschutzerklärung
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, „wir“) ist eine Karte der Ladestationen für
@@ -67,6 +67,16 @@ Passkey hinzufügst, speichern wir seinen öffentlichen Schlüssel, seine Kennun
 und seinen Typ (niemals deinen Fingerabdruck, dein Gesicht oder deine
 Displaysperre, die auf deinem Gerät bleiben).
 
+### Wenn du EV Maps unterstützt
+
+Wenn du EV Maps über GitHub Sponsors oder Ko-fi unterstützt, teilt uns die
+Plattform das mit: das Datum, den Betrag und die Währung, die Stufe, ob es
+monatlich oder gekündigt ist, und deinen GitHub-Benutzernamen oder die
+E-Mail-Adresse, die du bei Ko-fi angegeben hast. Wir speichern das, um
+Unterstützer zu zählen und, wenn es zu deinem Konto passt (dasselbe GitHub-Konto
+oder dieselbe bestätigte E-Mail-Adresse), dir im Kontomenü zu danken. Die
+Zahlung selbst bleibt bei der Plattform, nach deren Datenschutzerklärung.
+
 ## Warum wir sie verarbeiten
 
 Nach der Datenschutz-Grundverordnung der EU (DSGVO):
@@ -110,6 +120,7 @@ Standardvertragsklauseln der Europäischen Kommission.
   abmeldest.
 - **Serverprotokolle:** einige Tage bei Cloudflare.
 - **Fehler:** 30 Tage.
+- **Unterstützungen:** bis du dein Konto löschst oder uns bittest, sie zu löschen.
 - **Nutzungsstatistiken:** etwa 13 Monate.
 - **Performance-Messungen:** 14 Tage.
 

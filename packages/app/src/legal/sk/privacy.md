@@ -1,6 +1,6 @@
 ---
 title: Zásady ochrany osobných údajov
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, „my“) je mapa nabíjacích staníc pre elektromobily.
@@ -62,6 +62,16 @@ pri prvom použití sa vytvorí váš účet. Ak pridáte prístupový kľúč, 
 verejný kľúč, identifikátor a typ (nikdy nie váš odtlačok prsta, tvár ani
 zámku obrazovky, tie zostávajú vo vašom zariadení).
 
+### Keď podporíte EV Maps
+
+Keď podporíte EV Maps cez GitHub Sponsors alebo Ko-fi, platforma nám to oznámi:
+dátum, sumu a menu, úroveň, či ide o mesačnú alebo zrušenú podporu, a vaše
+používateľské meno na GitHube alebo e-mailovú adresu zadanú na Ko-fi. Ukladáme
+ich, aby sme mohli počítať podporovateľov, a ak zodpovedajú vášmu účtu (rovnaký
+účet GitHub alebo rovnaká overená e-mailová adresa), aby sme vám poďakovali v
+ponuke účtu. Samotná platba zostáva na platforme podľa jej zásad ochrany
+súkromia.
+
 ## Prečo ich spracúvame
 
 Podľa všeobecného nariadenia EÚ o ochrane údajov (GDPR):
@@ -103,6 +113,7 @@ doložky Európskej komisie.
   neodhlásite.
 - **Záznamy servera:** niekoľko dní v Cloudflare.
 - **Chyby:** 30 dní.
+- **Podpora:** kým svoj účet nevymažete alebo nás nepožiadate o ich vymazanie.
 - **Štatistiky používania:** približne 13 mesiacov.
 - **Merania výkonu:** 14 dní.
 

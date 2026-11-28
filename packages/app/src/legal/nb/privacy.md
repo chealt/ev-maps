@@ -1,6 +1,6 @@
 ---
 title: Personvernerklæring
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, «vi») er et kart over ladestasjoner for elbiler. Denne
@@ -61,6 +61,15 @@ adressen, og første gang opprettes kontoen din. Hvis du legger til en
 passnøkkel, lagrer vi den offentlige nøkkelen, identifikatoren og typen (aldri
 fingeravtrykket, ansiktet eller skjermlåsen din, som blir på enheten din).
 
+### Når du støtter EV Maps
+
+Når du støtter EV Maps via GitHub Sponsors eller Ko-fi, forteller plattformen oss
+det: datoen, beløpet og valutaen, nivået, om det er månedlig eller avsluttet, og
+GitHub-brukernavnet ditt eller e-postadressen du ga Ko-fi. Vi lagrer dette for å
+telle støttespillere og, hvis det samsvarer med kontoen din (samme GitHub-konto
+eller samme bekreftede e-postadresse), for å takke deg i kontomenyen. Selve
+betalingen blir hos plattformen, etter dens personvernerklæring.
+
 ## Hvorfor vi behandler dem
 
 Etter EUs personvernforordning (GDPR):
@@ -102,6 +111,7 @@ Framework eller EU-kommisjonens standardavtaler.
 - **Innloggingsøkter:** til de utløper (7 dager uten bruk) eller du logger ut.
 - **Serverlogger:** noen dager hos Cloudflare.
 - **Feil:** 30 dager.
+- **Støtte:** til du sletter kontoen din eller ber oss slette dem.
 - **Bruksstatistikk:** omtrent 13 måneder.
 - **Ytelsesmålinger:** 14 dager.
 
