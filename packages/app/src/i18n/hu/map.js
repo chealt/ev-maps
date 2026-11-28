@@ -211,6 +211,8 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "{stop} eltávolítása a megállók közül",
     routeStopDistance: "{distance} az előző ponttól",
+    routeDetails: "Útvonal: {distance}, {duration} autóval",
+    routeDistance: "Útvonal: {distance}",
     saveFavoriteRoute: "{route} mentése kedvencként",
     removeFavoriteRoute: "{route} eltávolítása a kedvencek közül",
     noFiltersOn: "nincsenek szűrők",

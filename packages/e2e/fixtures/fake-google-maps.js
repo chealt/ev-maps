@@ -338,7 +338,10 @@
         const dLng = (to.lng - from.lng) * 111320 * Math.cos((from.lat * Math.PI) / 180);
         return { distanceMeters: Math.hypot(dLat, dLng) };
       });
-      return { routes: [{ path, legs }] };
+      // The whole route's distance, and its driving time at 90 km/h.
+      const distanceMeters = legs.reduce((sum, leg) => sum + leg.distanceMeters, 0);
+      const durationMillis = (distanceMeters / 25) * 1000;
+      return { routes: [{ path, legs, distanceMeters, durationMillis }] };
     },
   };
 

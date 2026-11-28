@@ -1,6 +1,7 @@
 // The From and To of a route. It only collects them: <ev-google-map> plans
 // the route (route-requested) and clears it (route-cleared).
 import { formatDistance } from "../../lib/distance.js";
+import { formatDuration } from "../../lib/duration.js";
 import { message } from "../../lib/messages.js";
 import { animateEscape, closeDialog, openDialog } from "../../lib/motion.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
@@ -330,7 +331,30 @@ class RoutePlannerElement extends HTMLElement {
     this.stops = [...stops];
     // Until a route with these stops is planned, no distances are known.
     this.stopDistances = null;
+    this.setRouteDetails(null);
     this.renderStops();
+  }
+
+  // The planned route's whole distance and driving time, under To; hidden
+  // until a route is planned. A plan saved before these were asked for has
+  // only its legs, so its distance is theirs and its time unknown.
+  setRouteDetails(details) {
+    const element = this.querySelector(".route-details");
+    if (!element) {
+      return;
+    }
+    const meters =
+      details?.distanceMeters ??
+      (this.stopDistances?.length ? this.stopDistances.reduce((sum, leg) => sum + leg, 0) : null);
+    element.hidden = meters == null;
+    if (meters == null) {
+      return;
+    }
+    const distance = formatDistance(meters);
+    element.textContent =
+      details?.durationMillis == null
+        ? message("routeDistance", { distance })
+        : message("routeDetails", { distance, duration: formatDuration(details.durationMillis) });
   }
 
   hasStop(stop) {
@@ -394,10 +418,12 @@ class RoutePlannerElement extends HTMLElement {
 
   // The route shown, for sharing it (a saved shape: placeId or location).
   // `stopDistances` are its legs, in meters: into each stop, then into To;
-  // shown between the points they join.
-  setRoute(route, stopDistances = null) {
+  // shown between the points they join. `details`: its whole distanceMeters
+  // and durationMillis.
+  setRoute(route, stopDistances = null, details = null) {
     this.currentRoute = route;
     this.stopDistances = stopDistances;
+    this.setRouteDetails(details);
     this.renderStops();
   }
 

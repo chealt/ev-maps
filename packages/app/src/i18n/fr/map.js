@@ -213,6 +213,8 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "Retirer {stop} des étapes",
     routeStopDistance: "{distance} depuis le point précédent",
+    routeDetails: "Itinéraire : {distance}, {duration} en voiture",
+    routeDistance: "Itinéraire : {distance}",
     saveFavoriteRoute: "Enregistrer {route} en favori",
     removeFavoriteRoute: "Retirer {route} des favoris",
     noFiltersOn: "aucun filtre",

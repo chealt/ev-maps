@@ -211,6 +211,8 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "{stop} aus den Zwischenstopps entfernen",
     routeStopDistance: "{distance} vom vorherigen Punkt",
+    routeDetails: "Route: {distance}, {duration} mit dem Auto",
+    routeDistance: "Route: {distance}",
     saveFavoriteRoute: "{route} als Favorit speichern",
     removeFavoriteRoute: "{route} aus den Favoriten entfernen",
     noFiltersOn: "keine Filter",
