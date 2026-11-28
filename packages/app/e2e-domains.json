@@ -89,6 +89,8 @@
         "packages/app/src/components/google-map/route-cache.js",
         "packages/app/src/components/google-map/route-history.js",
         "packages/app/src/components/google-map/route-url.js",
+        "packages/app/src/lib/duration.js",
+        "packages/app/src/lib/duration.test.js",
         "packages/app/src/i18n/*/map.js"
       ],
       "tests": ["route-planner", "favorite-routes", "navigate", "place-search", "saved-places"]

@@ -218,6 +218,8 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "Odstranit {stop} ze zastávek",
     routeStopDistance: "{distance} od předchozího bodu",
+    routeDetails: "Trasa: {distance}, {duration} autem",
+    routeDistance: "Trasa: {distance}",
     saveFavoriteRoute: "Uložit {route} mezi oblíbené",
     removeFavoriteRoute: "Odstranit {route} z oblíbených",
     noFiltersOn: "žádné filtry",

@@ -1511,7 +1511,8 @@ class GoogleMapElement extends HTMLElement {
   }
 
   // The route between the ends (as the Routes library takes them), and the
-  // chargers along it: { path, stopDistances, chargers, full, plannedAt }, or
+  // chargers along it: { path, stopDistances, distanceMeters, durationMillis,
+  // chargers, full, plannedAt }, or
   // null when there's no route.
   async planRoute({ origin, destination, stops, corridorKm }) {
     const { Route } = await this.maps.importLibrary("routes");
@@ -1520,8 +1521,9 @@ class GoogleMapElement extends HTMLElement {
       destination: routeEndpoint(destination),
       ...(stops.length ? { intermediates: stops.map(routeEndpoint) } : {}),
       travelMode: "DRIVING",
-      // `legs` for the distance into each stop along the route.
-      fields: ["path", "legs"],
+      // `legs` for the distance into each stop along the route; the whole
+      // route's distance and driving time for its details in the planner.
+      fields: ["path", "legs", "distanceMeters", "durationMillis"],
       language: document.documentElement.lang,
     });
     const path = routes?.[0]?.path?.map(toLatLng);
@@ -1534,6 +1536,8 @@ class GoogleMapElement extends HTMLElement {
       // Leg 0 runs to the first stop, leg 1 to the second, and so on, the
       // last to the destination; the planner shows each between its points.
       stopDistances: (routes[0].legs ?? []).map((leg) => leg.distanceMeters),
+      distanceMeters: routes[0].distanceMeters ?? null,
+      durationMillis: routes[0].durationMillis ?? null,
       chargers,
       full,
       plannedAt: Date.now(),
@@ -1559,7 +1563,8 @@ class GoogleMapElement extends HTMLElement {
     this.showRouteStopState(this.activeCharger);
     this.routePlanner?.setRoute(
       { origin: ends.origin, destination: ends.destination, corridorKm },
-      plan.stopDistances
+      plan.stopDistances,
+      { distanceMeters: plan.distanceMeters, durationMillis: plan.durationMillis }
     );
     if (fit) {
       this.hideChargerDetails();

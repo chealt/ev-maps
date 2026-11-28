@@ -557,6 +557,8 @@ test.describe("routes", () => {
       // The planned route's legs are shown between the points they join: into
       // the stop, and from it into To.
       await expect(stops.getByText(/from the previous point/)).toHaveCount(2);
+      // And the whole route's distance and driving time, under To.
+      await expect(dialog.getByText(/^Route: \d+ km, \d+ hr( \d+ min)? by car$/)).toBeVisible();
       await expect(
         dialog.getByRole("region", { name: "Recent routes" }).getByRole("button", {
           name: /^Budapest, Hungary → Downtown Supercharger → Vienna, Austria/,

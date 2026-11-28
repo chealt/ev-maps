@@ -210,6 +210,8 @@ const map = {
     routeEnds: "{from} → {to}",
     removeRouteStop: "Ta bort {stop} från stoppen",
     routeStopDistance: "{distance} från föregående punkt",
+    routeDetails: "Rutt: {distance}, {duration} med bil",
+    routeDistance: "Rutt: {distance}",
     saveFavoriteRoute: "Spara {route} som favorit",
     removeFavoriteRoute: "Ta bort {route} från favoriter",
     noFiltersOn: "inga filter",

@@ -202,6 +202,11 @@
     }
   }
 
+  .route-details {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+  }
+
   .save-place-header {
     display: flex;
     flex-wrap: wrap;
