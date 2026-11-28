@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { REPORT_INSTRUCTION, configErrors, cronOf, workflowOf } from "./workflows.js";
+import {
+  FINDINGS_INSTRUCTION,
+  REPORT_INSTRUCTION,
+  configErrors,
+  cronOf,
+  workflowOf,
+} from "./workflows.js";
 
 const config = {
   cron: "daily",
@@ -38,6 +44,42 @@ describe("configErrors", () => {
   });
 });
 
+describe("configErrors of issues", () => {
+  test("accepts labels and a priority, or neither", () => {
+    const issues = { labels: ["security"], priority: "High" };
+    expect(configErrors("security-audit", { ...config, issues })).toEqual([]);
+    expect(configErrors("security-audit", { ...config, issues: {} })).toEqual([]);
+  });
+
+  test("says what's wrong", () => {
+    expect(
+      configErrors("security-audit", { ...config, issues: { labels: "security", priority: "Top" } })
+    ).toEqual([
+      "security-audit: issues.labels must be a list of label names",
+      "security-audit: issues.priority must be one of Urgent, High, Medium, Low",
+    ]);
+  });
+});
+
+describe("workflowOf with issues", () => {
+  const workflow = workflowOf("security-audit", {
+    ...config,
+    issues: { labels: ["security"], priority: "High" },
+  });
+
+  test("files the findings as issues, without a pull request", () => {
+    expect(workflow).toContain("  contents: read\n  issues: write\n");
+    expect(workflow).not.toContain("create-pull-request");
+    expect(workflow).toContain(`FINDINGS_INSTRUCTION: ${JSON.stringify(FINDINGS_INSTRUCTION)}`);
+    expect(workflow).toContain("FINDINGS: ${{ runner.temp }}/findings.json");
+    expect(workflow).toContain(
+      'bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"'
+    );
+    expect(workflow).toContain('LABELS: "security"');
+    expect(workflow).toContain('PRIORITY: "High"');
+  });
+});
+
 describe("workflowOf", () => {
   const workflow = workflowOf("upgrade-packages", config);
 
@@ -52,6 +94,7 @@ describe("workflowOf", () => {
   });
 
   test("opens a pull request on a branch of its own", () => {
+    expect(workflow).toContain("  contents: write\n  pull-requests: write\n");
     expect(workflow).toContain("uses: peter-evans/create-pull-request@v8");
     expect(workflow).toContain("branch: ai/upgrade-packages");
   });

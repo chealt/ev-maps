@@ -25,6 +25,24 @@ on its schedule and opens a pull request with whatever it changed (branch
   rejected.
 - The file name is the config's name: lowercase letters, digits and dashes.
 
+## Findings as issues
+
+A config with `issues` files what pi finds as issues instead of opening a
+pull request, e.g. `configs/security-audit.json`, the daily security audit:
+
+```json
+"issues": { "labels": ["security"], "priority": "High" }
+```
+
+pi is told not to change the files and to write its findings to a JSON
+file, `[{ "title": "…", "body": "…" }]`. `scripts/file-issues.js` then
+opens an issue for each new one, with the labels (created if missing) and
+the Priority issue field. A finding is new if no issue, open or closed,
+has its title, so a daily run doesn't file the same problem again, and one
+closed as not a problem stays closed. Its workflow can read the contents
+and write issues, nothing else; pi's final message goes to the job's
+summary.
+
 ## The pull request's description
 
 Every prompt gets one more instruction: pi's final message becomes the

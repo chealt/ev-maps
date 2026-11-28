@@ -3,6 +3,10 @@
 // request with what it changed. scripts/generate-workflows.js writes them.
 //
 // A config: { "cron": "daily", "prompt": "…", "model": "claude-opus-5-5" }.
+// With "issues": { "labels": ["security"], "priority": "High" }, the action
+// files its findings as issues instead of opening a pull request (#427): pi
+// writes them to a JSON file, and scripts/file-issues.js opens an issue for
+// each new one, with the labels and the Priority field.
 // `cron` is "hourly", "daily", "weekly" or a five-field cron expression
 // (UTC). Every model is used through Radius (#314), the organization's AI
 // gateway, with its budgets, policies and analytics: `model` is a Radius
@@ -15,6 +19,7 @@ const CRON = /^(\S+\s+){4}\S+$/;
 // pi's built-in Radius provider (radius.pi.dev, keys from
 // radius.earendil.com), and the secret its API key comes from.
 const PROVIDER = "radius";
+const PRIORITIES = ["Urgent", "High", "Medium", "Low"];
 const API_KEY = "RADIUS_API_KEY";
 
 // A stable minute per config, so they don't all start at once.
@@ -40,7 +45,7 @@ const configErrors = (name, config) => {
   if (!NAME.test(name)) {
     errors.push(`${name}: the file name must be lowercase letters, digits and dashes`);
   }
-  const { cron, prompt, model, provider } = config ?? {};
+  const { cron, prompt, model, provider, issues } = config ?? {};
   if (provider !== undefined && provider !== PROVIDER) {
     errors.push(`${name}: models are used through Radius only; remove "provider"`);
   }
@@ -50,6 +55,15 @@ const configErrors = (name, config) => {
   for (const [field, value] of Object.entries({ prompt, model })) {
     if (typeof value !== "string" || !value.trim()) {
       errors.push(`${name}: ${field} is required`);
+    }
+  }
+  if (issues !== undefined) {
+    const { labels = [], priority } = issues ?? {};
+    if (!Array.isArray(labels) || labels.some((label) => typeof label !== "string" || !label)) {
+      errors.push(`${name}: issues.labels must be a list of label names`);
+    }
+    if (priority !== undefined && !PRIORITIES.includes(priority)) {
+      errors.push(`${name}: issues.priority must be one of ${PRIORITIES.join(", ")}`);
     }
   }
   return errors;
@@ -63,11 +77,21 @@ const REPORT_INSTRUCTION =
   "each package or tool with the version it went from and to), and what you checked but " +
   "left alone, and why. If you changed nothing, say why.";
 
+// Added to a prompt whose findings become issues: where to write them, and
+// in what shape (scripts/file-issues.js reads them).
+const FINDINGS_INSTRUCTION =
+  "Don't change the repository's files. Write what you found to the JSON file at the path " +
+  'in the FINDINGS environment variable: an array with an object per problem, { "title": ' +
+  '"…", "body": "…" }. The title names the problem in a short sentence, the same each time ' +
+  "you find it: it's how a problem filed already is recognised. The body, in Markdown, says " +
+  "where it is (files and lines), why it's a problem, how it could be exploited or go wrong, " +
+  "and how to fix it. Write an empty array if you found nothing. Your final message is the " +
+  "job's summary: what you checked and what you found.";
+
 // JSON strings are YAML double-quoted strings, escapes and all.
 const yamlString = (value) => JSON.stringify(value);
 
-const workflowOf = (name, { cron, prompt, model }) => {
-  return `${GENERATED_MARKER} from configs/${name}.json.
+const headOf = (name, cron, permissions) => `${GENERATED_MARKER} from configs/${name}.json.
 # Edit the config, not this file: the AI actions workflow regenerates it.
 name: ${yamlString(`AI: ${name}`)}
 
@@ -77,8 +101,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+${permissions.map((permission) => `  ${permission}`).join("\n")}
 
 concurrency:
   group: ai-${name}
@@ -105,7 +128,44 @@ jobs:
 
       - name: Install pi
         run: npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+`;
 
+const issuesWorkflowOf = (name, { cron, prompt, model, issues }) =>
+  `${headOf(name, cron, ["contents: read", "issues: write"])}
+      # The model through Radius, with the organization's key, and only the
+      # prompt's model (--no-approve). pi writes its findings to FINDINGS, and
+      # its final message goes to the job's summary.
+      - name: Run the prompt with pi
+        shell: bash
+        env:
+          ${API_KEY}: \${{ secrets.${API_KEY} }}
+          FINDINGS: \${{ runner.temp }}/findings.json
+          PROMPT: ${yamlString(prompt)}
+          FINDINGS_INSTRUCTION: ${yamlString(FINDINGS_INSTRUCTION)}
+        run: >-
+          pi --print --no-session --no-approve
+          --provider ${PROVIDER} --model ${yamlString(model)}
+          "$PROMPT"$'\\n\\n'"$FINDINGS_INSTRUCTION"
+          | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # An issue per new finding; one whose title an issue has, open or
+      # closed, was filed already.
+      - name: File the findings as issues
+        shell: bash
+        env:
+          GH_TOKEN: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          LABELS: ${yamlString((issues.labels ?? []).join(","))}
+          PRIORITY: ${yamlString(issues.priority ?? "")}
+          FOOTER: ${yamlString(
+            `Found by pi (${PROVIDER}/${model}) running packages/ai-action-configs/configs/${name}.json.`
+          )}
+        run: >-
+          bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"
+          | tee -a "$GITHUB_STEP_SUMMARY"
+`;
+
+const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
+  `${headOf(name, cron, ["contents: write", "pull-requests: write"])}
       # The model through Radius, with the organization's key.
       # --no-approve: only the prompt's model, without the repository's own pi
       # setup (.pi), and no session saved on the runner. pi's final message,
@@ -148,11 +208,15 @@ jobs:
           commit-message: ${yamlString(`chore: ${name} (AI action)`)}
           body-path: \${{ runner.temp }}/pull-request-body.md
 `;
-};
+
+const workflowOf = (name, config) =>
+  config.issues ? issuesWorkflowOf(name, config) : pullRequestWorkflowOf(name, config);
 
 export {
   API_KEY,
+  FINDINGS_INSTRUCTION,
   GENERATED_MARKER,
+  PRIORITIES,
   PROVIDER,
   REPORT_INSTRUCTION,
   configErrors,
