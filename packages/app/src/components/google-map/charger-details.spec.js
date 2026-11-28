@@ -52,4 +52,38 @@ test.describe("map", () => {
     await expect(page.getByRole("complementary", { name: "East charger" })).toBeVisible();
     expect(await center(page)).toEqual(before);
   });
+
+  test("a tap on the map closes the charger's details", async ({ page }) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.getByRole("button", { name: "East charger" }).click();
+    const details = page.getByRole("complementary", { name: "East charger" });
+    await expect(details).toBeVisible();
+
+    await map.click({ position: { x: 700, y: 500 } });
+
+    await expect(details).toBeHidden();
+  });
+
+  test("a tap on the map closes the account menu", async ({ page }) => {
+    await page.locator('[popovertarget="account-menu"]').click();
+    const menu = page.getByRole("dialog", { name: "Account" });
+    await expect(menu).toBeVisible();
+
+    await page.getByRole("region", { name: "EV charging station map" }).click({
+      position: { x: 700, y: 500 },
+    });
+
+    await expect(menu).toBeHidden();
+  });
+
+  test("a tap on the map closes the map's menu", async ({ page }) => {
+    const map = page.getByRole("region", { name: "EV charging station map" });
+    await map.click({ button: "right", position: { x: 700, y: 500 } });
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+
+    await map.click({ position: { x: 600, y: 400 } });
+
+    await expect(menu).toBeHidden();
+  });
 });
