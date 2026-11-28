@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - Electric Vehicle Charging Stations",
     countryTitle: "EV Maps - EV chargers in {country}",
+    countryDescription:
+      "EV charging station map – {country}: power, connectors, prices and live availability. Chargers: {count}.",
     description: "Electric Vehicle Charging Station Map",
     subtitle: "Find electric vehicle charging stations near you",
     signIn: "Sign in",

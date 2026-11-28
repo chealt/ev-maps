@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - Bornes de recharge pour véhicules électriques",
     countryTitle: "EV Maps - Bornes de recharge en {country}",
+    countryDescription:
+      "Carte des bornes de recharge pour véhicules électriques – {country} : puissance, prises, prix et disponibilité en temps réel. Bornes : {count}.",
     description: "Carte des bornes de recharge pour véhicules électriques",
     subtitle: "Trouve des bornes de recharge pour véhicules électriques près de chez toi",
     signIn: "Se connecter",

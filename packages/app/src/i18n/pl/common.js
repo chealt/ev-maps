@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps – stacje ładowania samochodów elektrycznych",
     countryTitle: "EV Maps – stacje ładowania – {country}",
+    countryDescription:
+      "Mapa stacji ładowania samochodów elektrycznych – {country}: moc, złącza, ceny i dostępność na żywo. Stacje: {count}.",
     description: "Mapa stacji ładowania samochodów elektrycznych",
     subtitle: "Znajdź stacje ładowania samochodów elektrycznych w pobliżu",
     signIn: "Zaloguj się",

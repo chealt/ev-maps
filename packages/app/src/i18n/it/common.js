@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - Stazioni di ricarica per veicoli elettrici",
     countryTitle: "EV Maps - Colonnine di ricarica – {country}",
+    countryDescription:
+      "Mappa delle stazioni di ricarica per veicoli elettrici – {country}: potenza, connettori, prezzi e disponibilità in tempo reale. Colonnine: {count}.",
     description: "Mappa delle stazioni di ricarica per veicoli elettrici",
     subtitle: "Trovi le stazioni di ricarica per veicoli elettrici vicino a Lei",
     signIn: "Accedi",

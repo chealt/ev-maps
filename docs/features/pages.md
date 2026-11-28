@@ -41,3 +41,10 @@ page has a canonical link to its own address without query strings, and its
 `x-default` alternate is the English page (`/` for the home page, which the
 Worker sends to the visitor's language and country). Pages with `noindex`
 (admin, saved places, suggestions) are left out of both.
+
+Country pages describe themselves for search results with the country and
+the number of chargers (`countryDescription` in each language's
+`common.js`); the other pages use the site's description. Every page has
+Open Graph tags (title, description, address, language and
+`public/og-image.png`, 1200×630, which `bun run icons` renders from the
+logo) and a large-image card for X, so a shared link shows a preview.

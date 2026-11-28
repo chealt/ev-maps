@@ -20,9 +20,16 @@ export const getStaticPaths = () =>
 
 const { lang, country } = Astro.params;
 const chargers = await Astro.props.loadChargers();
-const title = fill(translations(lang).page.countryTitle, { country: countryName(country, lang) });
+const { page } = translations(lang);
+const name = countryName(country, lang);
+const title = fill(page.countryTitle, { country: name });
+// For search results and link previews: the country and how many chargers.
+const description = fill(page.countryDescription, {
+  country: name,
+  count: new Intl.NumberFormat(lang).format(chargers.length),
+});
 ---
 
-<Layout title={title}>
+<Layout title={title} description={description}>
   <HomePage {...pageChargers(chargers)} chargerBounds={chargerBounds(chargers)} />
 </Layout>
