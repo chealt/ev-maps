@@ -425,7 +425,16 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
       closeLabel={page.closeList}
     >
       <Fragment slot="header">
-        <p class="sort-basis"></p>
+        <!-- The same filters as the map's: they open over the list, and
+             the list follows them. -->
+        <div class="list-toolbar">
+          <p class="sort-basis"></p>
+          <FilterButton
+            class="list-filters"
+            controls="map-filter-panel"
+            countId="list-active-filter-count"
+          />
+        </div>
         <!-- Along a route: sort the list by distance from the start, to
              the end, or off the route. -->
         <SegmentedControl

@@ -13,7 +13,7 @@ class FilterButtonElement extends HTMLElement {
     const badge = this.querySelector(".filter-count");
     badge.hidden = count === 0;
     badge.textContent = count === 0 ? "" : formatNumber(count);
-    this.querySelector("#active-filter-count").textContent =
+    this.querySelector(".visually-hidden").textContent =
       count === 0 ? "" : message("activeFilters", { count });
   }
 }
