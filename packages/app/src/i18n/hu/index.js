@@ -8,6 +8,7 @@ import { adminDashboard } from "./admin-dashboard.js";
 import { adminErrors } from "./admin-errors.js";
 import { adminPerformance } from "./admin-performance.js";
 import { adminReports } from "./admin-reports.js";
+import { adminSponsors } from "./admin-sponsors.js";
 import { adminSuggestions } from "./admin-suggestions.js";
 import { adminUnavailability } from "./admin-unavailability.js";
 import { adminUsage } from "./admin-usage.js";
@@ -26,6 +27,7 @@ const sections = {
   "admin-errors": adminErrors,
   "admin-performance": adminPerformance,
   "admin-reports": adminReports,
+  "admin-sponsors": adminSponsors,
   "admin-suggestions": adminSuggestions,
   "admin-unavailability": adminUnavailability,
   "admin-usage": adminUsage,

@@ -1,0 +1,27 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
+import AdminSponsors from "@ev-maps/admin/components/admin-sponsors/AdminSponsors.astro";
+import { translations } from "../../../../i18n/index.js";
+import { pageData } from "../../../../lib/page-data.js";
+import { SUPPORT_LINKS } from "../../../../lib/support-links.js";
+
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the sponsor stats of ?days= as its data (packages/worker/src/admin-area.js).
+export const prerender = false;
+
+const lang = Astro.currentLocale ?? "en";
+const { page, messages } = translations(lang);
+const days = Astro.url.searchParams.get("days");
+const data = await pageData(
+  Astro,
+  `/api/admin/sponsors${days ? `?days=${encodeURIComponent(days)}` : ""}`
+);
+const platformNames = Object.fromEntries(SUPPORT_LINKS.map(({ id, name }) => [id, name]));
+---
+
+<Layout title={`EV Maps - ${page.adminSponsors}`} noindex kind="admin">
+  <AdminPage current="sponsors" page={page}>
+    <AdminSponsors pageData={data} platformNames={platformNames} page={page} messages={messages} />
+  </AdminPage>
+</Layout>

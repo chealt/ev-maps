@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Ingen rækker passer.",
     adminErrors: "Fejl",
     adminUsage: "Brug",
+    adminSponsors: "Sponsorer",
   },
   messages: {
     adminSignedInAs: "Logget ind som {email}",

@@ -1,0 +1,157 @@
+---
+import BarChart from "@ev-maps/ui/BarChart.astro";
+import Card from "@ev-maps/ui/Card.astro";
+import SegmentedControl from "@ev-maps/ui/SegmentedControl.astro";
+import Stat from "@ev-maps/ui/Stat.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import { fill, formatMessage } from "@ev-maps/ui/format.js";
+import "./AdminSponsors.css";
+
+// Rendered on the server: the support links' clicks and the new sponsors of
+// ?days=, from the host's sponsor stats ({ period, days, platforms, totals },
+// e.g. packages/worker/src/sponsor-stats.js).
+interface Props {
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The platforms' names by id; a platform without one shows its id.
+  platformNames?: Record<string, string>;
+  // The ?days= periods the API answers, the middle one the default.
+  periods?: number[];
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
+}
+
+const { platformNames = {}, periods = [30, 90, 365], page, messages } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const period = data?.period ?? periods[1];
+const platforms: any[] = data?.platforms ?? [];
+
+const number = (value: number) => new Intl.NumberFormat(lang).format(value);
+const ratio = (value: number | null) =>
+  value === null
+    ? "–"
+    : new Intl.NumberFormat(lang, { style: "percent", maximumFractionDigits: 1 }).format(value);
+const formatDay = (day: string) =>
+  new Intl.DateTimeFormat(lang, { month: "short", day: "numeric", timeZone: "UTC" }).format(
+    new Date(`${day}T00:00:00Z`)
+  );
+const nameOf = (id: string) => platformNames[id] ?? id;
+const summary = failed
+  ? messages.adminSponsorsNotLoaded
+  : formatMessage(lang, messages.adminSponsorsPeriod, {
+      from: formatDay(data.days[0]),
+      to: formatDay(data.days.at(-1)),
+    });
+---
+
+<!-- Sponsor stats: clicks per platform and day, new sponsors, and how many
+     sponsors a click brings. Choosing another period shows the page with
+     its ?days=, the only script. -->
+<ev-admin-sponsors>
+  <section class="sponsors" aria-labelledby="admin-sponsors-title">
+    <div class="sponsors-header">
+      <h2 class="section-title" id="admin-sponsors-title">
+        {page.adminSponsors}
+      </h2>
+      <SegmentedControl
+        class="periods"
+        legend={page.adminPeriod}
+        legendHidden
+        name="days"
+        options={periods.map((days) => ({
+          value: String(days),
+          label: fill(page.adminLastDays, { days }),
+        }))}
+        value={String(period)}
+      />
+    </div>
+    <p class="summary" role="status">
+      {summary}
+    </p>
+
+    {data && (
+      <dl class="totals">
+        <Stat
+          class="total"
+          data-total="clicks"
+          label={page.adminSponsorsClicks}
+          value={number(data.totals.clicks)}
+        />
+        <Stat
+          class="total"
+          data-total="oneTime"
+          label={page.adminSponsorsOneTime}
+          value={number(data.totals.oneTime)}
+        />
+        <Stat
+          class="total"
+          data-total="monthly"
+          label={page.adminSponsorsMonthly}
+          value={number(data.totals.monthly)}
+        />
+        <Stat
+          class="total"
+          data-total="ratio"
+          label={page.adminSponsorsRatio}
+          value={ratio(data.totals.ratio)}
+        />
+      </dl>
+    )}
+
+    {data && (
+      <Table density="compact" class="per-platform">
+        <caption class="subtitle">{page.adminSponsorsPerPlatform}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{page.adminSponsorsPlatform}</th>
+            <th scope="col" class="number">
+              {page.adminSponsorsClicks}
+            </th>
+            <th scope="col" class="number">
+              {page.adminSponsorsOneTime}
+            </th>
+            <th scope="col" class="number">
+              {page.adminSponsorsMonthly}
+            </th>
+            <th scope="col" class="number">
+              {page.adminSponsorsRatio}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {platforms.map((platform) => (
+            <tr data-platform={platform.id}>
+              <th scope="row" class="name">
+                {nameOf(platform.id)}
+              </th>
+              <td class="number">{number(platform.clicks)}</td>
+              <td class="number">{number(platform.oneTime)}</td>
+              <td class="number">{number(platform.monthly)}</td>
+              <td class="number">{ratio(platform.ratio)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    )}
+
+    {data && (
+      <div class="charts">
+        {platforms.map((platform) => (
+          <Card as="article" class="chart" data-platform={platform.id}>
+            <BarChart
+              title={fill(page.adminSponsorsClicksPerDay, { platform: nameOf(platform.id) })}
+              id={`admin-sponsors-clicks-${platform.id}`}
+              days={data.days}
+              byDay={platform.byDay}
+              label={(day, count) => formatMessage(lang, messages.adminDayCount, { day, count })}
+            />
+          </Card>
+        ))}
+      </div>
+    )}
+  </section>
+  <script src="./AdminSponsors.js"></script>
+</ev-admin-sponsors>

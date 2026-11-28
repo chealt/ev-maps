@@ -40,6 +40,9 @@ const REPORTS_PAGE = /\/admin\/reports\/(\?.*)?$/;
 // The admin Usage section's preference pages, /{lang}/admin/usage/{section}/.
 const PREFERENCES_PAGE = /\/admin\/usage\/(settings|filters|routes)\/$/;
 
+// The admin sponsor stats page, /{lang}/admin/sponsors/ with any query.
+const SPONSORS_PAGE = /\/admin\/sponsors\/(\?.*)?$/;
+
 // The admin performance page, /{lang}/admin/performance/ with any query.
 const PERFORMANCE_PAGE = /\/admin\/performance\/(\?.*)?$/;
 
@@ -50,6 +53,7 @@ export {
   PREFERENCES_PAGE,
   PERFORMANCE_PAGE,
   REPORTS_PAGE,
+  SPONSORS_PAGE,
   SUGGESTIONS_PAGE,
   UNAVAILABILITY_PAGE,
   USAGE_PAGE,
