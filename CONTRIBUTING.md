@@ -26,6 +26,12 @@ High, Medium and Low, and last the issues without one. Within a priority,
 take the oldest issue first (the lowest number). Skip an issue that already
 has an open pull request.
 
+A parent issue waits for its sub-issues: skip it while any is open, and
+pick up its sub-issues instead. A sub-issue without a Priority of its own
+takes its parent's, so the sub-issues of a High parent go before Medium
+issues, even when the parent is assigned (the REST API gives a sub-issue's
+`parent_issue_url`).
+
 Priority is a GitHub issue field, not a label. The REST API returns it in
 `issue_field_values`, so this lists the open issues with theirs:
 
