@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
-  FINDINGS_INSTRUCTION,
+  FIX_INSTRUCTION,
   REPORT_INSTRUCTION,
   configErrors,
   cronOf,
@@ -44,39 +44,48 @@ describe("configErrors", () => {
   });
 });
 
-describe("configErrors of issues", () => {
-  test("accepts labels and a priority, or neither", () => {
-    const issues = { labels: ["security"], priority: "High" };
-    expect(configErrors("security-audit", { ...config, issues })).toEqual([]);
-    expect(configErrors("security-audit", { ...config, issues: {} })).toEqual([]);
+describe("configErrors of fixes", () => {
+  test("accepts labels and a prefix, both optional", () => {
+    const fixes = { labels: ["security"], prefix: "Security" };
+    expect(configErrors("security-audit", { ...config, fixes })).toEqual([]);
+    expect(configErrors("security-audit", { ...config, fixes: {} })).toEqual([]);
   });
 
-  test("says what's wrong", () => {
+  test("rejects bad ones", () => {
     expect(
-      configErrors("security-audit", { ...config, issues: { labels: "security", priority: "Top" } })
+      configErrors("security-audit", {
+        ...config,
+        fixes: { labels: "security", prefix: " " },
+      })
     ).toEqual([
-      "security-audit: issues.labels must be a list of label names",
-      "security-audit: issues.priority must be one of Urgent, High, Medium, Low",
+      "security-audit: fixes.labels must be a list of label names",
+      "security-audit: fixes.prefix must be a pull request title prefix",
     ]);
   });
 });
 
-describe("workflowOf with issues", () => {
+describe("workflowOf with fixes", () => {
   const workflow = workflowOf("security-audit", {
     ...config,
-    issues: { labels: ["security"], priority: "High" },
+    fixes: { labels: ["security"], prefix: "Security" },
   });
 
-  test("files the findings as issues, without a pull request", () => {
-    expect(workflow).toContain("  contents: read\n  issues: write\n");
-    expect(workflow).not.toContain("create-pull-request");
-    expect(workflow).toContain(`FINDINGS_INSTRUCTION: ${JSON.stringify(FINDINGS_INSTRUCTION)}`);
-    expect(workflow).toContain("FINDINGS: ${{ runner.temp }}/findings.json");
-    expect(workflow).toContain(
-      'bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"'
-    );
-    expect(workflow).toContain('LABELS: "security"');
-    expect(workflow).toContain('PRIORITY: "High"');
+  test("has pi fix one problem no open pull request fixes, without a findings file", () => {
+    expect(workflow).toContain("  contents: write\n  pull-requests: write\n");
+    expect(workflow).not.toContain("issues: write");
+    expect(workflow).not.toContain("FINDINGS");
+    expect(workflow).toContain(`FIX_INSTRUCTION: ${JSON.stringify(FIX_INSTRUCTION)}`);
+    expect(FIX_INSTRUCTION).toContain("gh pr list --state open");
+    // pi lists the open pull requests with the token.
+    expect(workflow).toContain("GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}");
+  });
+
+  test("opens a pull request a run, titled by pi's first line, with the labels", () => {
+    expect(workflow).toContain("uses: peter-evans/create-pull-request@v8");
+    expect(workflow).toContain("branch: ai/security-audit/${{ github.run_id }}");
+    expect(workflow).toContain('title: "Security: ${{ steps.report.outputs.title }}"');
+    expect(workflow).toContain('labels: "security"');
+    expect(workflow).toContain("token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}");
   });
 });
 
@@ -105,7 +114,10 @@ describe("workflowOf", () => {
     expect(workflow).toContain(`"$PROMPT"$'\\n\\n'"$REPORT_INSTRUCTION"`);
     expect(workflow).toContain('| tee "$RUNNER_TEMP/pi-report.md"');
     expect(workflow).toContain("shell: bash");
-    // The description: the header, the prompt quoted, then the report.
+    // The description: the prompt quoted, then the report; no "made by"
+    // line, the AI label says it.
+    expect(workflow).not.toContain("Made by");
+    expect(workflow).not.toContain("(AI action)");
     expect(workflow).toContain('cat "$RUNNER_TEMP/pi-report.md"');
     expect(workflow).toContain("body-path: ${{ runner.temp }}/pull-request-body.md");
     expect(workflow).not.toContain("body: ");

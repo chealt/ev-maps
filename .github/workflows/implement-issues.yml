@@ -118,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
-            printf 'Closes #%s.\n\nMade by pi (radius/%s) in the AI: implement issues workflow.\n\n---\n\n' "$ISSUE" "$MODEL"
+            printf 'Closes #%s.\n\n---\n\n' "$ISSUE"
             cat "$RUNNER_TEMP/pi-report.md"
           } > "$RUNNER_TEMP/pull-request-body.md"
           gh_title=$(gh issue view "$ISSUE" --json title --jq .title)

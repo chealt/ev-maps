@@ -1,9 +1,9 @@
 {
   "cron": "daily",
-  "prompt": "Audit this repository for security problems: secrets or keys committed in code or config; injection (SQL in the Worker's D1 queries, HTML, URLs, shell); authentication, sessions and passkeys; authorisation of the Worker's and the admin's endpoints; CORS, cookies and security headers; what's trusted from the client or third-party APIs; GitHub Actions workflows (untrusted input in run steps, pull_request_target, token permissions, unpinned third-party actions); and dependencies with known vulnerabilities (bun audit). Report only real, specific problems you can point to in the code, not general advice.",
+  "prompt": "Audit this repository for security problems: secrets or keys committed in code or config; injection (SQL in the Worker's D1 queries, HTML, URLs, shell); authentication, sessions and passkeys; authorisation of the Worker's and the admin's endpoints; CORS, cookies and security headers; what's trusted from the client or third-party APIs; GitHub Actions workflows (untrusted input in run steps, pull_request_target, token permissions, unpinned third-party actions); and dependencies with known vulnerabilities (bun audit). Only real, specific problems you can point to in the code count, not general advice.",
   "model": "claude-opus-5-5",
-  "issues": {
+  "fixes": {
     "labels": ["security"],
-    "priority": "High"
+    "prefix": "Security"
   }
 }

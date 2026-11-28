@@ -57,11 +57,9 @@ jobs:
       - name: Write the pull request's description
         shell: bash
         env:
-          HEADER: "Made by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/upgrade-packages.json:"
           PROMPT: "Check for outdated dependencies in this Bun monorepo and upgrade those whose new version was published more than a week ago. Cover all of them: the npm packages of every workspace (`bun outdated -r`), Bun itself (`packageManager` in the root package.json), and the GitHub Actions the workflows in .github/workflows use (`uses:` versions). The ai-*.yml workflows are generated from packages/ai-action-configs/src/workflows.js, so change the versions there and run `bun run --cwd packages/ai-action-configs generate`. Run the lint, format check and tests after upgrading, and leave out any upgrade that breaks them."
         run: |
           {
-            printf '%s\n\n' "$HEADER"
             printf '%s\n' "$PROMPT" | sed 's/^/> /'
             printf '\n---\n\n'
             cat "$RUNNER_TEMP/pi-report.md"
@@ -74,5 +72,5 @@ jobs:
           branch: ai/upgrade-packages
           delete-branch: true
           title: "AI: upgrade-packages"
-          commit-message: "chore: upgrade-packages (AI action)"
+          commit-message: "chore: upgrade-packages"
           body-path: ${{ runner.temp }}/pull-request-body.md

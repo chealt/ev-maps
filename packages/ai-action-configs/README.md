@@ -25,31 +25,31 @@ on its schedule and opens a pull request with whatever it changed (branch
   rejected.
 - The file name is the config's name: lowercase letters, digits and dashes.
 
-## Findings as issues
+## One fix a run
 
-A config with `issues` files what pi finds as issues instead of opening a
-pull request, e.g. `configs/security-audit.json`, the daily security audit:
+A config with `fixes` has pi fix one problem a run, in a pull request of its
+own, e.g. `configs/security-audit.json`, the daily security audit:
 
 ```json
-"issues": { "labels": ["security"], "priority": "High" }
+"fixes": { "labels": ["security"], "prefix": "Security" }
 ```
 
-pi is told not to change the files and to write its findings to a JSON
-file, `[{ "title": "…", "body": "…" }]`. `scripts/file-issues.js` then
-opens an issue for each new one, with the labels (created if missing) and
-the Priority issue field. A finding is new if no issue, open or closed,
-has its title, so a daily run doesn't file the same problem again, and one
-closed as not a problem stays closed. Its workflow can read the contents
-and write issues, nothing else; pi's final message goes to the job's
-summary.
+pi runs once: it looks for the most serious problem the prompt asks about
+that no open pull request fixes yet (it lists and reads them with `gh`),
+fixes it, and runs the tests, the lint and the format check. Its final
+message's first line becomes the pull request's title, after the prefix,
+and the rest its description; the run opens it on its own branch,
+`ai/{config}/{run id}`, with the labels and the `AI_ACTIONS_TOKEN`, so its
+checks run. When pi changes nothing, no pull request is opened. The next
+run takes the next problem.
 
 ## The pull request's description
 
 Every prompt gets one more instruction: pi's final message becomes the
 description of its pull request, so it reports what it changed and why (for
 an upgrade, each package with the version it went from and to) and what it
-left alone. The description is that report, under a header naming the model
-and the config, with the prompt quoted.
+left alone. The description is the prompt quoted, then that report; the
+pull request's label marks it as an AI's, so nothing in it says so.
 
 ## How the workflows stay in sync
 
