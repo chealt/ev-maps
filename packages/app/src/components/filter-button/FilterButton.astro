@@ -8,23 +8,26 @@ import "./FilterButton.css";
 
 interface Props {
   controls?: string;
+  // Another Filters button on the page (the chargers list's) needs its own.
+  countId?: string;
+  class?: string;
 }
 
-const { controls } = Astro.props;
+const { controls, countId = "active-filter-count", class: className } = Astro.props;
 const { page } = translations(Astro.currentLocale ?? "en");
 ---
 
 <!-- The clear is part of what it clears: with filters on, a compact clear
      half appears attached to the filter button, instead of a separate button
      taking map space. -->
-<ev-filter-button>
+<ev-filter-button class={className}>
   <span class="split">
     <Button
       variant="secondary"
       class="filter-button"
       aria-expanded="false"
       aria-controls={controls}
-      aria-describedby="active-filter-count"
+      aria-describedby={countId}
       aria-keyshortcuts="f"
     >
       <span class="icon-wrapper">
@@ -45,6 +48,6 @@ const { page } = translations(Astro.currentLocale ?? "en");
       <Icon icon={X} />
     </Button>
   </span>
-  <span class="visually-hidden" id="active-filter-count"></span>
+  <span class="visually-hidden" id={countId}></span>
   <script src="./FilterButton.js"></script>
 </ev-filter-button>
