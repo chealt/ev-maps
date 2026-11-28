@@ -28,7 +28,7 @@ on its schedule and opens a pull request with whatever it changed (branch
 ## Findings as issues
 
 A config with `issues` files what pi finds as issues instead of opening a
-pull request, e.g. `configs/security-audit.json`, the daily security audit:
+pull request, e.g. `configs/testing-audit.json`:
 
 ```json
 "issues": { "labels": ["security"], "priority": "High" }
@@ -42,6 +42,27 @@ has its title, so a daily run doesn't file the same problem again, and one
 closed as not a problem stays closed. Its workflow can read the contents
 and write issues, nothing else; pi's final message goes to the job's
 summary.
+
+## Findings fixed in pull requests
+
+A config with `fixes` has pi fix what it finds, a pull request per
+finding, e.g. `configs/security-audit.json`, the daily security audit:
+
+```json
+"fixes": { "labels": ["security"], "prefix": "Security", "limit": 3 }
+```
+
+pi first audits without changing the files and writes its findings to a
+JSON file, `[{ "id": "…", "title": "…", "body": "…" }]`, the id a slug it
+keeps the same each time it finds the problem. `scripts/fix-findings.js`
+then skips every finding an open pull request fixes already: one on its
+branch, `ai/{config}/{id}`, or titled `{prefix}: {title}`. A pull request
+closed without merging doesn't count, so the next run tries again. For each
+of the rest, at most `limit` a run (3 by default), it runs pi on a fresh
+branch from main to fix that finding alone, and when pi changed something,
+commits, pushes and opens the pull request with the labels, its
+description pi's report and the finding. The branches are pushed with the
+`AI_ACTIONS_TOKEN`, so their checks run.
 
 ## The pull request's description
 

@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  issues: write
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: ai-security-audit
@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -46,22 +48,28 @@ jobs:
           RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}
           FINDINGS: ${{ runner.temp }}/findings.json
           PROMPT: "Audit this repository for security problems: secrets or keys committed in code or config; injection (SQL in the Worker's D1 queries, HTML, URLs, shell); authentication, sessions and passkeys; authorisation of the Worker's and the admin's endpoints; CORS, cookies and security headers; what's trusted from the client or third-party APIs; GitHub Actions workflows (untrusted input in run steps, pull_request_target, token permissions, unpinned third-party actions); and dependencies with known vulnerabilities (bun audit). Report only real, specific problems you can point to in the code, not general advice."
-          FINDINGS_INSTRUCTION: "Don't change the repository's files. Write what you found to the JSON file at the path in the FINDINGS environment variable: an array with an object per problem, { \"title\": \"…\", \"body\": \"…\" }. The title names the problem in a short sentence, the same each time you find it: it's how a problem filed already is recognised. The body, in Markdown, says where it is (files and lines), why it's a problem, how it could be exploited or go wrong, and how to fix it. Write an empty array if you found nothing. Your final message is the job's summary: what you checked and what you found."
+          FINDINGS_INSTRUCTION: "Don't change the repository's files. Write what you found to the JSON file at the path in the FINDINGS environment variable: an array with an object per problem, with the string fields id, title and body. The id is a short slug of lowercase letters, digits and dashes (e.g. cors-wildcard-worker), and the title names the problem in a short sentence; keep both the same each time you find it: they're how a problem being fixed already is recognised. The body, in Markdown, says where it is (files and lines), why it's a problem, how it could be exploited or go wrong, and how to fix it. Write an empty array if you found nothing. Your final message is the job's summary: what you checked and what you found."
         run: >-
           pi --print --no-session --no-approve
           --provider radius --model "claude-opus-5-5"
           "$PROMPT"$'\n\n'"$FINDINGS_INSTRUCTION"
           | tee -a "$GITHUB_STEP_SUMMARY"
 
-      # An issue per new finding; one whose title an issue has, open or
-      # closed, was filed already.
-      - name: File the findings as issues
+      # A pull request per finding no open one fixes already (its branch,
+      # ai/security-audit/{id}, or its title), pi fixing it on a fresh branch.
+      - name: Fix the findings in pull requests
         shell: bash
         env:
+          RADIUS_API_KEY: ${{ secrets.RADIUS_API_KEY }}
           GH_TOKEN: ${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          NAME: "security-audit"
+          PREFIX: "Security"
+          LIMIT: "3"
           LABELS: "security"
-          PRIORITY: "High"
-          FOOTER: "Found by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/security-audit.json."
-        run: >-
-          bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"
-          | tee -a "$GITHUB_STEP_SUMMARY"
+          PROVIDER: "radius"
+          MODEL: "claude-opus-5-5"
+          FOOTER: "Made by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/security-audit.json."
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bun packages/ai-action-configs/scripts/fix-findings.js "$RUNNER_TEMP/findings.json" | tee -a "$GITHUB_STEP_SUMMARY"

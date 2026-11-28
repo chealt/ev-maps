@@ -7,6 +7,10 @@
 // files its findings as issues instead of opening a pull request (#427): pi
 // writes them to a JSON file, and scripts/file-issues.js opens an issue for
 // each new one, with the labels and the Priority field.
+// With "fixes": { "labels": ["security"], "prefix": "Security", "limit": 3 },
+// it fixes its findings instead (#450): pi writes them to a JSON file, and
+// scripts/fix-findings.js has pi fix each one no open pull request fixes
+// already, on a branch and in a pull request of its own.
 // `cron` is "hourly", "daily", "weekly" or a five-field cron expression
 // (UTC). Every model is used through Radius (#314), the organization's AI
 // gateway, with its budgets, policies and analytics: `model` is a Radius
@@ -45,7 +49,7 @@ const configErrors = (name, config) => {
   if (!NAME.test(name)) {
     errors.push(`${name}: the file name must be lowercase letters, digits and dashes`);
   }
-  const { cron, prompt, model, provider, issues } = config ?? {};
+  const { cron, prompt, model, provider, issues, fixes } = config ?? {};
   if (provider !== undefined && provider !== PROVIDER) {
     errors.push(`${name}: models are used through Radius only; remove "provider"`);
   }
@@ -64,6 +68,21 @@ const configErrors = (name, config) => {
     }
     if (priority !== undefined && !PRIORITIES.includes(priority)) {
       errors.push(`${name}: issues.priority must be one of ${PRIORITIES.join(", ")}`);
+    }
+  }
+  if (fixes !== undefined) {
+    const { labels = [], prefix, limit } = fixes ?? {};
+    if (issues !== undefined) {
+      errors.push(`${name}: use issues or fixes, not both`);
+    }
+    if (!Array.isArray(labels) || labels.some((label) => typeof label !== "string" || !label)) {
+      errors.push(`${name}: fixes.labels must be a list of label names`);
+    }
+    if (prefix !== undefined && (typeof prefix !== "string" || !prefix.trim())) {
+      errors.push(`${name}: fixes.prefix must be a pull request title prefix`);
+    }
+    if (limit !== undefined && !(Number.isInteger(limit) && limit > 0)) {
+      errors.push(`${name}: fixes.limit must be a positive whole number`);
     }
   }
   return errors;
@@ -88,10 +107,28 @@ const FINDINGS_INSTRUCTION =
   "and how to fix it. Write an empty array if you found nothing. Your final message is the " +
   "job's summary: what you checked and what you found.";
 
+// Added to a prompt whose findings get fixed: where to write them, and in
+// what shape (scripts/fix-findings.js reads them).
+const FIX_FINDINGS_INSTRUCTION =
+  "Don't change the repository's files. Write what you found to the JSON file at the path " +
+  "in the FINDINGS environment variable: an array with an object per problem, with the " +
+  "string fields id, title and body. The id is a short slug of lowercase letters, digits and " +
+  "dashes (e.g. cors-wildcard-worker), and the title names the problem in a short sentence; " +
+  "keep both the same each time you find it: they're how a problem being fixed already is " +
+  "recognised. The body, in Markdown, says where it is (files and lines), why it's a " +
+  "problem, how it could be exploited or go wrong, and how to fix it. Write an empty array " +
+  "if you found nothing. Your final message is the job's summary: what you checked and what " +
+  "you found.";
+
 // JSON strings are YAML double-quoted strings, escapes and all.
 const yamlString = (value) => JSON.stringify(value);
 
-const headOf = (name, cron, permissions) => `${GENERATED_MARKER} from configs/${name}.json.
+const headOf = (
+  name,
+  cron,
+  permissions,
+  checkout = ""
+) => `${GENERATED_MARKER} from configs/${name}.json.
 # Edit the config, not this file: the AI actions workflow regenerates it.
 name: ${yamlString(`AI: ${name}`)}
 
@@ -113,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7${checkout}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -164,6 +201,52 @@ const issuesWorkflowOf = (name, { cron, prompt, model, issues }) =>
           | tee -a "$GITHUB_STEP_SUMMARY"
 `;
 
+// The checkout's token pushes the fixes' branches: the AI actions token, so
+// their pull requests run the checks (github.token's pushes don't).
+const FIXES_CHECKOUT = `
+        with:
+          token: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}`;
+
+const fixesWorkflowOf = (name, { cron, prompt, model, fixes }) =>
+  `${headOf(name, cron, ["contents: write", "pull-requests: write"], FIXES_CHECKOUT)}
+      # The model through Radius, with the organization's key, and only the
+      # prompt's model (--no-approve). pi writes its findings to FINDINGS, and
+      # its final message goes to the job's summary.
+      - name: Run the prompt with pi
+        shell: bash
+        env:
+          ${API_KEY}: \${{ secrets.${API_KEY} }}
+          FINDINGS: \${{ runner.temp }}/findings.json
+          PROMPT: ${yamlString(prompt)}
+          FINDINGS_INSTRUCTION: ${yamlString(FIX_FINDINGS_INSTRUCTION)}
+        run: >-
+          pi --print --no-session --no-approve
+          --provider ${PROVIDER} --model ${yamlString(model)}
+          "$PROMPT"$'\\n\\n'"$FINDINGS_INSTRUCTION"
+          | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # A pull request per finding no open one fixes already (its branch,
+      # ai/${name}/{id}, or its title), pi fixing it on a fresh branch.
+      - name: Fix the findings in pull requests
+        shell: bash
+        env:
+          ${API_KEY}: \${{ secrets.${API_KEY} }}
+          GH_TOKEN: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
+          NAME: ${yamlString(name)}
+          PREFIX: ${yamlString(fixes.prefix ?? "AI")}
+          LIMIT: ${yamlString(String(fixes.limit ?? 3))}
+          LABELS: ${yamlString((fixes.labels ?? []).join(","))}
+          PROVIDER: ${yamlString(PROVIDER)}
+          MODEL: ${yamlString(model)}
+          FOOTER: ${yamlString(
+            `Made by pi (${PROVIDER}/${model}) running packages/ai-action-configs/configs/${name}.json.`
+          )}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bun packages/ai-action-configs/scripts/fix-findings.js "$RUNNER_TEMP/findings.json" | tee -a "$GITHUB_STEP_SUMMARY"
+`;
+
 const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
   `${headOf(name, cron, ["contents: write", "pull-requests: write"])}
       # The model through Radius, with the organization's key.
@@ -209,12 +292,17 @@ const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
           body-path: \${{ runner.temp }}/pull-request-body.md
 `;
 
-const workflowOf = (name, config) =>
-  config.issues ? issuesWorkflowOf(name, config) : pullRequestWorkflowOf(name, config);
+const workflowOf = (name, config) => {
+  if (config.fixes) {
+    return fixesWorkflowOf(name, config);
+  }
+  return config.issues ? issuesWorkflowOf(name, config) : pullRequestWorkflowOf(name, config);
+};
 
 export {
   API_KEY,
   FINDINGS_INSTRUCTION,
+  FIX_FINDINGS_INSTRUCTION,
   GENERATED_MARKER,
   PRIORITIES,
   PROVIDER,
