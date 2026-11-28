@@ -1,6 +1,6 @@
 name: "AI: implement issues"
 
-# Hourly, picks the next issue no one is working on and has pi implement it
+# Daily, picks the next issue no one is working on and has pi implement it
 # (#426). The pick is no AI's: scripts/pick-issue.sh takes the open issues
 # without a linked pull request or assignee, by Priority and oldest first,
 # and assigns it to the token's user so other automation leaves it alone. pi then checks the issue fits one run: if it does, it
@@ -11,7 +11,10 @@ name: "AI: implement issues"
 # AGENTS.md and the docs), its model through Radius like the other AI actions.
 on:
   schedule:
-    - cron: "0 * * * *"
+    # 04:23 UTC: night in the Americas and before the European workday, when
+    # GitHub Actions is least busy, and off the hour, when scheduled runs
+    # crowd and get delayed or dropped.
+    - cron: "23 4 * * *"
   workflow_dispatch:
     inputs:
       issue:
