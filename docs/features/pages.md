@@ -48,3 +48,9 @@ the number of chargers (`countryDescription` in each language's
 Open Graph tags (title, description, address, language and
 `public/og-image.png`, 1200×630, which `bun run icons` renders from the
 logo) and a large-image card for X, so a shared link shows a preview.
+
+Indexable pages also carry structured data (JSON-LD, schema.org;
+`src/lib/structured-data.js`): the `WebSite` and the `Organization` behind
+it on every page, and on a country page a `CollectionPage` listing its 100
+fastest chargers as `EVChargingStation` places (name, address, location,
+operator).
