@@ -5,8 +5,9 @@ import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
 
 // Every page is built in English (/en/), Polish (/pl/), Hungarian (/hu/),
 // Spanish (/es/), German (/de/),
-// French (/fr/), Slovak (/sk/), Czech (/cs/), Norwegian Bokmål (/nb/)
-// Swedish (/sv/) and Portuguese (/pt/).
+// French (/fr/), Slovak (/sk/), Czech (/cs/), Norwegian Bokmål (/nb/),
+// Swedish (/sv/), Portuguese (/pt/)
+// and Italian (/it/).
 
 const fixtureChargers = (count) =>
   Array.from({ length: count }, (_, index) => ({
@@ -161,6 +162,20 @@ test.describe("translations", () => {
 
     await page.goto("/pt/hu/");
     await expect(page).toHaveTitle("EV Maps - Carregadores para veículos elétricos – Hungria");
+  });
+
+  test("shows the map, Google Maps and the country pages in Italian", async ({ page }) => {
+    const mapsRequest = page.waitForRequest("https://maps.googleapis.com/maps/api/js?**");
+    await fakeChargersApi(page, { chargers: fixtureChargers(2) });
+    await page.goto("/it/");
+    expect(new URL((await mapsRequest).url()).searchParams.get("language")).toBe("it");
+    await expect(page).toHaveTitle("EV Maps - Stazioni di ricarica per veicoli elettrici");
+    await expect(page.getByRole("button", { name: "La mia posizione" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Filtri", exact: true })).toBeVisible();
+    await expect(page.getByRole("status")).toHaveText("2 colonnine trovate");
+
+    await page.goto("/it/hu/");
+    await expect(page).toHaveTitle("EV Maps - Colonnine di ricarica – Ungheria");
   });
 
   test("shows a charger's details, Google Maps and sign-in in Hungarian", async ({ page }) => {

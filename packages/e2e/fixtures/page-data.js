@@ -24,7 +24,7 @@ const UNAVAILABILITY_PAGE = /\/admin\/unavailability\/(\?.*)?$/;
 const CHARGER_REPORTS_PAGE = /\/admin\/charger-reports\/(\?.*)?$/;
 
 // The admin overview, /{lang}/admin/, with its dashboard.
-const OVERVIEW_PAGE = /\/(en|pl|hu|es|de|fr|sk|cs|nb|sv|pt)\/admin\/(\?.*)?$/;
+const OVERVIEW_PAGE = /\/(en|pl|hu|es|de|fr|sk|cs|nb|sv|pt|it)\/admin\/(\?.*)?$/;
 
 // The admin charger suggestions page, /{lang}/admin/suggestions/ with any
 // query.
