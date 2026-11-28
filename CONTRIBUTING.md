@@ -46,7 +46,9 @@ gh api 'repos/chealt/ev-maps/issues?state=open&per_page=100' --jq '.[]
 The daily "AI: implement issues" workflow
 (`.github/workflows/implement-issues.yml`) picks issues the same way, with
 `scripts/pick-issue.sh`: unassigned issues without a linked pull request,
-not parents with open sub-issues. It assigns the issue it takes; assign
+not parents with open sub-issues, opened by the repository's owners,
+members or collaborators (anyone can open an issue, and pi runs with write
+tokens). It assigns the issue it takes; assign
 yourself to keep it off an issue.
 
 ## Working with pi

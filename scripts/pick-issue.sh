@@ -4,6 +4,11 @@
 # search does that), minus parents with open sub-issues, by Priority
 # (Urgent, High, Medium, Low, then none) and oldest first. Nothing if none.
 #
+# Only issues the repository's own people opened (owners, members and
+# collaborators): the repository is public, and the workflow hands the issue
+# to pi with write tokens and secrets, so an issue anyone opened could tell it
+# to push code or leak them.
+#
 # A sub-issue without a Priority of its own takes its parent's, so a parent's
 # sub-issues are picked up at the parent's priority (the parent itself waits
 # for them, and may be assigned).
@@ -23,6 +28,7 @@ priorities="$(gh api -X GET search/issues \
 gh api -X GET search/issues \
   -f q="repo:$repo is:issue is:open no:assignee -linked:pr" -f per_page=100 \
   | jq -r --argjson priorities "$priorities" '[.items[]
+      | select(.author_association | IN("OWNER", "MEMBER", "COLLABORATOR"))
       | select((.sub_issues_summary.total // 0) == (.sub_issues_summary.completed // 0))
       | (('"$priority"') // $priorities[(.parent_issue_url // "" | split("/") | last // "")]) as $priority
       | {number, rank: ((["Urgent", "High", "Medium", "Low"] | index($priority)) // 4)}]
