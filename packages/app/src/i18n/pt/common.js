@@ -16,6 +16,10 @@ const common = {
     favorites: "Favoritos",
     signInForFavorites: "Inicie sessão para guardar carregadores como favoritos.",
     admin: "Administração",
+    supportTitle: "Apoie o EV Maps",
+    supportHint:
+      "O EV Maps é gratuito. Se lhe for útil, pode contribuir para os servidores e os dados do mapa.",
+    opensInNewTab: "(abre num novo separador)",
   },
 };
 
