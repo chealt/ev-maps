@@ -211,6 +211,34 @@
     }
   }
 
+  .avatar-wrap {
+    position: relative;
+    display: grid;
+  }
+
+  /* A heart on the avatar's corner for sponsors (#436). */
+  .sponsor-badge {
+    position: absolute;
+    right: calc(-1 * var(--spacing-2xs));
+    bottom: calc(-1 * var(--spacing-2xs));
+    display: grid;
+    place-items: center;
+    padding: var(--spacing-2xs);
+    border: var(--border-width) solid var(--color-surface);
+    border-radius: var(--border-radius-full);
+    background: var(--color-primary);
+    color: var(--color-primary-contrast);
+
+    &[hidden] {
+      display: none;
+    }
+
+    .icon {
+      width: var(--spacing-sm);
+      height: var(--spacing-sm);
+    }
+  }
+
   /* Popovers render in the top layer, so this is positioned against the viewport. */
   .account-menu {
     inset: auto;
@@ -263,6 +291,25 @@
     .email {
       font-size: var(--font-size-sm);
       color: var(--color-text-muted);
+    }
+
+    .sponsor-thanks {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+
+      /* The heart in the brand colour; the text stays the body colour, for
+         contrast. */
+      .icon {
+        color: var(--color-primary);
+      }
+
+      &[hidden] {
+        display: none;
+      }
     }
 
     .sign-in {

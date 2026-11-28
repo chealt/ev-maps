@@ -20,6 +20,8 @@ const common = {
     supportHint:
       "EV Maps är gratis. Om det hjälper dig kan du bidra till dess servrar och kartdata.",
     opensInNewTab: "(öppnas i en ny flik)",
+    sponsorBadge: "Sponsor",
+    sponsorThanks: "Tack för att du stöder EV Maps!",
   },
 };
 

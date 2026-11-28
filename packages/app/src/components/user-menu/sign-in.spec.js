@@ -241,4 +241,29 @@ test.describe("account", () => {
     );
     expect(new Set(tops).size).toBe(1);
   });
+
+  // Sponsors (the Worker says who: /api/sponsor/me) get a heart on their
+  // avatar, in the button's name, and a thank-you in the menu (#436).
+  test("thanks sponsors with a badge and a message", { tag: "@ui" }, async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await page.route("**/api/sponsor/me", (route) => route.fulfill({ json: { sponsor: true } }));
+    await page.goto("/");
+    const button = page.getByRole("button", { name: "Account: Ada Lovelace Sponsor" });
+    await expect(button.getByRole("img", { name: "Sponsor" })).toBeVisible();
+    await button.click();
+    const menu = page.getByRole("dialog", { name: "Account" });
+    await expect(menu.getByText("Thank you for supporting EV Maps!")).toBeVisible();
+    await captureUi(page, testInfo, "account menu of a sponsor");
+  });
+
+  test("shows no badge to someone who isn't a sponsor", async ({ page }) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await page.route("**/api/sponsor/me", (route) => route.fulfill({ json: { sponsor: false } }));
+    await page.goto("/");
+    const button = page.getByRole("button", { name: "Account: Ada Lovelace", exact: true });
+    await expect(button).toBeVisible();
+    await expect(button.getByRole("img", { name: "Sponsor" })).toHaveCount(0);
+    await button.click();
+    await expect(page.getByText("Thank you for supporting EV Maps!")).toBeHidden();
+  });
 });

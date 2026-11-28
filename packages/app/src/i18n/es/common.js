@@ -20,6 +20,8 @@ const common = {
     supportHint:
       "EV Maps es gratis. Si te resulta útil, puedes contribuir a sus servidores y datos de mapas.",
     opensInNewTab: "(se abre en una pestaña nueva)",
+    sponsorBadge: "Patrocinador",
+    sponsorThanks: "¡Gracias por apoyar EV Maps!",
   },
 };
 

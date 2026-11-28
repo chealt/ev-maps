@@ -98,9 +98,17 @@ const { page } = translations(lang);
       <span class="sign-in-label visually-hidden" hidden>
         {page.signIn}
       </span>
-      <span class="avatar" hidden>
-        <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
-        <span class="initials" aria-hidden="true"></span>
+      <!-- The avatar and its sponsor badge, which sits on its corner. -->
+      <span class="avatar-wrap">
+        <span class="avatar" hidden>
+          <img class="picture" alt="" referrerpolicy="no-referrer" hidden />
+          <span class="initials" aria-hidden="true"></span>
+        </span>
+        <!-- On sponsors' avatars (GET /api/sponsor/me); outside the avatar,
+             which clips its picture to a circle. Part of the button's name. -->
+        <span class="sponsor-badge" role="img" aria-label={page.sponsorBadge} hidden>
+          <Icon icon={Heart} size="sm" filled />
+        </span>
       </span>
     </button>
   </div>
@@ -110,6 +118,10 @@ const { page } = translations(lang);
       <p class="label">{page.signedInAs}</p>
       <p class="name"></p>
       <p class="email"></p>
+      <p class="sponsor-thanks" hidden>
+        <Icon icon={Heart} size="sm" />
+        {page.sponsorThanks}
+      </p>
       <!-- Signed in without a passkey yet: offer one, for next time. -->
       <div class="passkey-setup" hidden>
         <Button variant="secondary" size="small" class="add-passkey">
