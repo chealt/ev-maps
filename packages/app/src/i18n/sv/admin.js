@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Inga rader matchar.",
     adminErrors: "Fel",
     adminUsage: "Användning",
+    adminSponsors: "Sponsorer",
   },
   messages: {
     adminSignedInAs: "Inloggad som {email}",

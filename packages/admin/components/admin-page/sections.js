@@ -28,6 +28,7 @@ const ADMIN_GROUPS = [
     label: "adminGroupInsights",
     sections: [
       { id: "performance", path: "performance", label: "adminPerformance", icon: "Gauge" },
+      { id: "sponsors", path: "sponsors", label: "adminSponsors", icon: "HandHeart" },
       {
         id: "usage",
         path: "usage",

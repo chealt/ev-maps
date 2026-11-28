@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Nessuna riga corrispondente.",
     adminErrors: "Errori",
     adminUsage: "Utilizzo",
+    adminSponsors: "Sponsor",
   },
   messages: {
     adminSignedInAs: "Accesso effettuato come {email}",
