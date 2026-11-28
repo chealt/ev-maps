@@ -197,6 +197,21 @@ test.describe("account", () => {
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
 
+  // On a phone the menu spans the screen, less the margin on both sides (#424).
+  test("opens full width on narrow screens", { tag: "@ui" }, async ({ page }, testInfo) => {
+    await fakeAuthApi(page, { signedIn: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.getByRole("button", { name: /Ada Lovelace/ }).click();
+    const menu = page.getByRole("dialog", { name: "Account" });
+    await expect(menu).toBeVisible();
+    const box = await menu.boundingBox();
+    const margin = 390 - (box.x + box.width);
+    expect(margin).toBeGreaterThan(0);
+    expect(Math.round(box.x)).toBe(Math.round(margin));
+    await captureUi(page, testInfo, "account menu narrow screen");
+  });
+
   // On desktop the menu fits the three maps apps in one row of segments,
   // even with Hungarian's, the longest names (#378).
   test("fits the maps apps in one row on desktop, in every language", async ({ page }) => {

@@ -232,6 +232,13 @@
     color: var(--color-text);
     box-shadow: var(--shadow-lg);
 
+    /* Full width on narrow screens (#424): the screen's width less the
+       overlay's margin on both sides, not a box squeezed to one side. */
+    @media (width < 40em) {
+      left: var(--spacing-md);
+      width: auto;
+    }
+
     &:popover-open {
       display: flex;
       flex-direction: column;
