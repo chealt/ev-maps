@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Storico dei prezzi",
+    priceNotEnough: "Uno schema appare dopo qualche giorno di prezzi.",
+    priceByHour: "Prezzo medio per ora del giorno",
     signInToReportChange: "Acceda per segnalare una modifica a questa colonnina.",
     signInToReportUnavailable: "Acceda per segnalare che questa colonnina non è disponibile.",
     mapMenu: "Percorso da o verso qui",
@@ -136,6 +139,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Di solito {price} negli ultimi 30 giorni",
+    priceRange: "Tra {min} e {max}",
+    priceSteady: "Sempre lo stesso prezzo",
+    priceNowHigher: "Ora {price}, il {percent}% più caro del solito",
+    priceNowLower: "Ora {price}, il {percent}% più economico del solito",
+    priceNowUsual: "Ora {price}, come al solito",
+    priceCheaperAt: "Più economico dalle {hours}",
+    pricePricierAt: "Più caro dalle {hours}",
+    priceCheaperOn: "Più economico: {days}",
+    pricePricierOn: "Più caro: {days}",
     power: "{power} kW",
 
     chargersFound: {

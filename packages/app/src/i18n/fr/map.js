@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Historique des prix",
+    priceNotEnough: "Une tendance apparaît après quelques jours de prix.",
+    priceByHour: "Prix moyen par heure de la journée",
     signInToReportChange: "Connecte-toi pour signaler une modification de cette borne.",
     signInToReportUnavailable: "Connecte-toi pour signaler que cette borne est indisponible.",
     mapMenu: "Itinéraire depuis ou vers ici",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Habituellement {price} sur les 30 derniers jours",
+    priceRange: "Entre {min} et {max}",
+    priceSteady: "Le même prix tout du long",
+    priceNowHigher: "Actuellement {price}, {percent} % plus cher que d’habitude",
+    priceNowLower: "Actuellement {price}, {percent} % moins cher que d’habitude",
+    priceNowUsual: "Actuellement {price}, comme d’habitude",
+    priceCheaperAt: "Moins cher de {hours}",
+    pricePricierAt: "Plus cher de {hours}",
+    priceCheaperOn: "Moins cher le {days}",
+    pricePricierOn: "Plus cher le {days}",
     power: "{power} kW",
 
     // French: 0 and 1 are "one".

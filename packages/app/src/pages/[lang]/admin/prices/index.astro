@@ -1,0 +1,20 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import AdminPage from "@ev-maps/admin/components/admin-page/AdminPage.astro";
+import AdminPrices from "@ev-maps/admin/components/admin-prices/AdminPrices.astro";
+import { translations } from "../../../../i18n/index.js";
+import { pageData } from "../../../../lib/page-data.js";
+
+// Rendered on the server, per request: the Worker only serves it to admins,
+// with the price history as its data (packages/worker/src/charger-prices.js).
+export const prerender = false;
+
+const { page, messages } = translations(Astro.currentLocale ?? "en");
+const data = await pageData(Astro, `/api/admin/prices${Astro.url.search}`);
+---
+
+<Layout title={`EV Maps - ${page.adminPrices}`} noindex kind="admin">
+  <AdminPage current="prices" page={page}>
+    <AdminPrices pageData={data} page={page} messages={messages} />
+  </AdminPage>
+</Layout>

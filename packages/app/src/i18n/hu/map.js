@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Árelőzmények",
+    priceNotEnough: "A mintázat néhány napnyi ár után látszik.",
+    priceByHour: "Átlagár a nap óráiban",
     signInToReportChange: "Jelentkezz be, hogy bejelenthesd a töltő változását.",
     signInToReportUnavailable: "Jelentkezz be, hogy bejelenthesd, ha a töltő nem elérhető.",
     mapMenu: "Útvonal innen vagy ide",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Általában {price} az elmúlt 30 napban",
+    priceRange: "{min} és {max} között",
+    priceSteady: "Végig ugyanaz az ár",
+    priceNowHigher: "Most {price}, {percent}%-kal drágább a szokásosnál",
+    priceNowLower: "Most {price}, {percent}%-kal olcsóbb a szokásosnál",
+    priceNowUsual: "Most {price}, a szokásos",
+    priceCheaperAt: "Olcsóbb: {hours}",
+    pricePricierAt: "Drágább: {hours}",
+    priceCheaperOn: "Olcsóbb: {days}",
+    pricePricierOn: "Drágább: {days}",
     power: "{power} kW",
 
     chargersFound: {

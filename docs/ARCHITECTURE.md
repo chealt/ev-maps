@@ -93,6 +93,9 @@ changes to different features don't touch the same file:
   setting and system preference that turn them off
 - [Live availability](features/live-availability.md): live statuses: polling the
   sources, and showing free points and red pins
+- [Price history](features/price-history.md): hourly prices from the sources
+  that publish them, their 30-day pattern in the charger details, and the
+  admin page
 - [Route planner](features/route-planner.md): planning a route and finding the
   chargers along it
 - [Saved places](features/saved-places.md): saved places' pins on the map,

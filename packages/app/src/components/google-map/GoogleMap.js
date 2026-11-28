@@ -7,6 +7,7 @@ import { setMapCenter } from "../../lib/map-center.js";
 import { track } from "../../lib/usage.js";
 import { formatNumber, freeLabel, message, valueLabel } from "../../lib/messages.js";
 import { isSignedIn, onSessionChange, requestSignIn } from "../../lib/session.js";
+import { showPriceHistory } from "./price-history.js";
 import { requestReportChange } from "../report-change-dialog/ReportChangeDialog.js";
 import { requestReportUnavailable } from "../report-unavailable-dialog/ReportUnavailableDialog.js";
 import { chosenCar, onCarChange } from "../../lib/car.js";
@@ -489,6 +490,7 @@ class GoogleMapElement extends HTMLElement {
     onSessionChange(() => {
       if (this.activeCharger && !this.detailsPanel?.hidden) {
         this.showAvailability(this.activeCharger);
+        this.showPriceHistory(this.activeCharger);
       }
     });
     this.detailsPanel
@@ -2356,6 +2358,15 @@ class GoogleMapElement extends HTMLElement {
     this.showFavoriteState();
     this.showRouteStopState(charger);
     this.showAvailability(charger);
+    this.showPriceHistory(charger);
+  }
+
+  // The charger's price history, where a source publishes live prices.
+  showPriceHistory(charger) {
+    return showPriceHistory(this.detailsPanel.querySelector(".price-history"), charger, {
+      signedIn: isSignedIn(),
+      isCurrent: () => this.activeChargerId === charger.id,
+    });
   }
 
   // Whether the open charger is one of the route's stops; without a route,

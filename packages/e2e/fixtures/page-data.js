@@ -43,6 +43,9 @@ const PREFERENCES_PAGE = /\/admin\/usage\/(settings|filters|routes)\/$/;
 // The admin sponsor stats page, /{lang}/admin/sponsors/ with any query.
 const SPONSORS_PAGE = /\/admin\/sponsors\/(\?.*)?$/;
 
+// The admin price history page, /{lang}/admin/prices/ with any query.
+const PRICES_PAGE = /\/admin\/prices\/(\?.*)?$/;
+
 // The admin performance page, /{lang}/admin/performance/ with any query.
 const PERFORMANCE_PAGE = /\/admin\/performance\/(\?.*)?$/;
 
@@ -52,6 +55,7 @@ export {
   OVERVIEW_PAGE,
   PREFERENCES_PAGE,
   PERFORMANCE_PAGE,
+  PRICES_PAGE,
   REPORTS_PAGE,
   SPONSORS_PAGE,
   SUGGESTIONS_PAGE,

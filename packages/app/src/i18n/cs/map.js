@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Historie cen",
+    priceNotEnough: "Vzorec se ukáže po několika dnech cen.",
+    priceByHour: "Průměrná cena podle hodiny",
     signInToReportChange: "Přihlaste se, abyste mohli nahlásit změnu této nabíječky.",
     signInToReportUnavailable:
       "Přihlaste se, abyste mohli nahlásit, že tato nabíječka je nedostupná.",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Obvykle {price} za posledních 30 dní",
+    priceRange: "Od {min} do {max}",
+    priceSteady: "Stále stejná cena",
+    priceNowHigher: "Nyní {price}, o {percent} % dráž než obvykle",
+    priceNowLower: "Nyní {price}, o {percent} % levněji než obvykle",
+    priceNowUsual: "Nyní {price}, jako obvykle",
+    priceCheaperAt: "Levněji v čase {hours}",
+    pricePricierAt: "Dráž v čase {hours}",
+    priceCheaperOn: "Levněji: {days}",
+    pricePricierOn: "Dráž: {days}",
     power: "{power} kW",
 
     chargersFound: {

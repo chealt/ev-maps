@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Price history",
+    priceNotEnough: "A pattern shows once there are a few days of prices.",
+    priceByHour: "Average price by hour of the day",
     signInToReportChange: "Sign in to report a change to this charger.",
     signInToReportUnavailable: "Sign in to report that this charger is unavailable.",
     mapMenu: "Route from or to here",
@@ -135,6 +138,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Usually {price} over the last 30 days",
+    priceRange: "Between {min} and {max}",
+    priceSteady: "The same price all along",
+    priceNowHigher: "Now {price}, {percent}% pricier than usual",
+    priceNowLower: "Now {price}, {percent}% cheaper than usual",
+    priceNowUsual: "Now {price}, as usual",
+    priceCheaperAt: "Cheaper at {hours}",
+    pricePricierAt: "Pricier at {hours}",
+    priceCheaperOn: "Cheaper on {days}",
+    pricePricierOn: "Pricier on {days}",
     power: "{power} kW",
 
     chargersFound: {

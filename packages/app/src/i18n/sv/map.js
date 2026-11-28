@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Prishistorik",
+    priceNotEnough: "Ett mönster syns efter några dagar med priser.",
+    priceByHour: "Genomsnittspris per timme",
     signInToReportChange: "Logga in för att rapportera en ändring av den här laddstationen.",
     signInToReportUnavailable:
       "Logga in för att rapportera att den här laddstationen är otillgänglig.",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Vanligtvis {price} de senaste 30 dagarna",
+    priceRange: "Mellan {min} och {max}",
+    priceSteady: "Samma pris hela tiden",
+    priceNowHigher: "Nu {price}, {percent} % dyrare än vanligt",
+    priceNowLower: "Nu {price}, {percent} % billigare än vanligt",
+    priceNowUsual: "Nu {price}, som vanligt",
+    priceCheaperAt: "Billigare {hours}",
+    pricePricierAt: "Dyrare {hours}",
+    priceCheaperOn: "Billigare på {days}",
+    pricePricierOn: "Dyrare på {days}",
     power: "{power} kW",
 
     chargersFound: {

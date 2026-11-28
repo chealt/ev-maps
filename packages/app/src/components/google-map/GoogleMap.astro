@@ -19,6 +19,7 @@ import {
   Heart,
   Flag,
   Ban,
+  ChartColumn,
   Info,
   List,
   ZoomIn,
@@ -546,6 +547,34 @@ const chargersJson = chargers && JSON.stringify(chargers).replaceAll("<", "\\u00
             {page.signIn}
           </Button>
         </div>
+      </section>
+      <!-- The price history (#463), where a source publishes live prices:
+           the usual price over the last 30 days, the price now, the hours
+           and days it's much cheaper or pricier, and the average by hour
+           (price-history.js). Signed in only, as live availability. -->
+      <section class="section price-history" aria-labelledby="price-history-title" hidden>
+        <h3 class="title" id="price-history-title">
+          <Icon icon={ChartColumn} size="sm" />
+          {page.priceHistory}
+        </h3>
+        <p class="price-usual"></p>
+        <p class="price-range"></p>
+        <p class="price-now" hidden></p>
+        <ul class="price-highlights" hidden></ul>
+        <p class="price-not-enough" hidden>
+          {page.priceNotEnough}
+        </p>
+        <figure class="price-chart" hidden>
+          <ol class="price-bars" aria-labelledby="price-chart-caption"></ol>
+          <p class="price-chart-axis" aria-hidden="true">
+            <span>00</span>
+            <span>06</span>
+            <span>12</span>
+            <span>18</span>
+            <span>24</span>
+          </p>
+          <figcaption id="price-chart-caption">{page.priceByHour}</figcaption>
+        </figure>
       </section>
       <section class="section">
         <h3 class="title">

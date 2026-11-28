@@ -10,6 +10,7 @@ import { sponsorStats } from "./sponsor-stats.js";
 import { performancePage } from "@ev-maps/admin/performance-stats.js";
 import { createTestReports } from "@ev-maps/admin/test-reports.js";
 import { createUsage } from "@ev-maps/admin/usage.js";
+import { chargerParam, listAdminPrices } from "./charger-prices.js";
 import { listAdminFlags } from "./charger-unavailability.js";
 import { listAdminReports } from "./charger-reports.js";
 import { listAdminSuggestions } from "./charger-suggestions.js";
@@ -88,6 +89,11 @@ const admin = createAdminArea({
       // The chargers reported unavailable, rendered on the server (#371).
       path: "unavailability",
       data: (env) => listAdminFlags(env.DB),
+    },
+    {
+      // The price history (#463), with ?charger='s, rendered on the server.
+      path: "prices",
+      data: (env, url) => listAdminPrices(env.DB, chargerParam(url)),
     },
     {
       // The charger reports, rendered on the server: ?status= pending (the

@@ -50,6 +50,7 @@ const PAGE_SECTIONS = {
     "admin-dashboard",
     "admin-errors",
     "admin-performance",
+    "admin-prices",
     "admin-reports",
     "admin-sponsors",
     "admin-suggestions",

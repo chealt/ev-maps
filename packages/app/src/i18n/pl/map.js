@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Historia cen",
+    priceNotEnough: "Wzorzec pojawi się po kilku dniach cen.",
+    priceByHour: "Średnia cena według godziny",
     signInToReportChange: "Zaloguj się, aby zgłosić zmianę tej ładowarki.",
     signInToReportUnavailable: "Zaloguj się, aby zgłosić, że ta ładowarka jest niedostępna.",
     mapMenu: "Trasa stąd lub tutaj",
@@ -135,6 +138,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Zwykle {price} w ostatnich 30 dniach",
+    priceRange: "Od {min} do {max}",
+    priceSteady: "Cały czas ta sama cena",
+    priceNowHigher: "Teraz {price}, o {percent}% drożej niż zwykle",
+    priceNowLower: "Teraz {price}, o {percent}% taniej niż zwykle",
+    priceNowUsual: "Teraz {price}, jak zwykle",
+    priceCheaperAt: "Taniej w godz. {hours}",
+    pricePricierAt: "Drożej w godz. {hours}",
+    priceCheaperOn: "Taniej: {days}",
+    pricePricierOn: "Drożej: {days}",
     power: "{power} kW",
 
     chargersFound: {

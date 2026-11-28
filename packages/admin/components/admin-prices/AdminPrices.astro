@@ -1,0 +1,241 @@
+---
+import { Search } from "lucide-static";
+import Button from "@ev-maps/ui/Button.astro";
+import EmptyState from "@ev-maps/ui/EmptyState.astro";
+import Field from "@ev-maps/ui/Field.astro";
+import Icon from "@ev-maps/ui/Icon.astro";
+import Stat from "@ev-maps/ui/Stat.astro";
+import Table from "@ev-maps/ui/Table.astro";
+import { formatMessage } from "@ev-maps/ui/format.js";
+import "./AdminPrices.css";
+
+// Rendered on the server: the chargers' price history (#463), gathered
+// hourly by the Worker (packages/worker/src/charger-prices.js): what's
+// tracked, the latest changes, and, with ?charger=, a charger's last 30 days.
+interface Props {
+  // { data } or { failed: true } (the host's page data)
+  pageData: { data?: any; failed?: boolean };
+  // The page's strings and runtime message templates (the host's
+  // translations).
+  page: Record<string, any>;
+  messages: Record<string, any>;
+}
+
+const { page, messages } = Astro.props;
+const lang = Astro.currentLocale ?? "en";
+const { data, failed } = Astro.props.pageData;
+const recent: any[] = data?.recent ?? [];
+const runs: any[] = data?.runs ?? [];
+const charger = data?.charger ?? null;
+// A Monday, for the weekdays' names (0 is Monday, as the Worker counts).
+const MONDAY = Date.UTC(2026, 10, 2);
+
+const number = (value: number) => new Intl.NumberFormat(lang).format(value);
+const price = (value: number | null, unit: string | null) =>
+  value === null || value === undefined
+    ? "–"
+    : `${new Intl.NumberFormat(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)}${unit ? ` ${unit}` : ""}`;
+const formatTime = (timestamp: number) =>
+  new Intl.DateTimeFormat(lang, { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(timestamp)
+  );
+const hourLabel = (hour: number) =>
+  new Intl.DateTimeFormat(lang, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(2026, 0, 1, hour)));
+const dayLabel = (day: number) =>
+  new Intl.DateTimeFormat(lang, { weekday: "long", timeZone: "UTC" }).format(
+    new Date(MONDAY + day * 24 * 60 * 60 * 1000)
+  );
+// As the Worker's pattern: 10% from the usual is "much" cheaper or pricier.
+const levelOf = (value: number | null, usual: number) => {
+  if (value === null) {
+    return "none";
+  }
+  if (value >= usual * 1.1) {
+    return "higher";
+  }
+  return value <= usual * 0.9 ? "lower" : "usual";
+};
+const lastRun = runs.length ? Math.max(...runs.map((run) => run.recordedAt)) : null;
+
+const summary = failed
+  ? messages.adminPricesNotLoaded
+  : !lastRun
+    ? messages.adminNoPrices
+    : formatMessage(lang, messages.adminPricesSummary, { count: data.tracked });
+---
+
+<!-- The price history (#463). The charger lookup is a plain form: the page
+     is rendered again with ?charger=. -->
+<ev-admin-prices>
+  <section aria-labelledby="admin-prices-title">
+    <h2 class="section-title" id="admin-prices-title">
+      {page.adminPrices}
+    </h2>
+    <p class="summary" role="status">
+      {summary}
+    </p>
+    {data && (
+      <dl class="totals">
+        <Stat class="tracked" label={page.adminPricesTracked} value={number(data.tracked)} />
+        <Stat
+          class="changed-today"
+          label={page.adminPricesChangedToday}
+          value={number(data.changedToday)}
+        />
+        <Stat
+          class="last-gathered"
+          label={page.adminPricesLastGathered}
+          value={lastRun ? formatTime(lastRun) : "–"}
+        />
+      </dl>
+    )}
+
+    <form class="lookup" method="get" aria-label={page.adminPricesLookup}>
+      <Field label={page.adminPricesChargerId} size="small">
+        <input
+          class="field-control"
+          name="charger"
+          placeholder="eipa:123"
+          value={data?.chargerId ?? ""}
+          required
+        />
+      </Field>
+      <Button type="submit" variant="secondary" size="small">
+        <Icon icon={Search} size="sm" />
+        {page.adminPricesShow}
+      </Button>
+    </form>
+
+    {data?.chargerId && !charger && (
+      <EmptyState class="no-history">
+        {formatMessage(lang, messages.adminPricesNoHistory, { id: data.chargerId })}
+      </EmptyState>
+    )}
+
+    {charger && (
+      <section class="charger-history" aria-labelledby="admin-prices-charger">
+        <h3 class="subtitle" id="admin-prices-charger">
+          {formatMessage(lang, messages.adminPricesChargerTitle, { id: charger.id })}
+        </h3>
+        <dl class="totals">
+          <Stat label={page.adminPricesUsual} value={price(charger.usual, charger.unit)} />
+          <Stat label={page.adminPricesMin} value={price(charger.min, charger.unit)} />
+          <Stat label={page.adminPricesMax} value={price(charger.max, charger.unit)} />
+          <Stat
+            label={page.adminPricesNow}
+            value={price(charger.current, charger.unit)}
+            data-level={charger.currentLevel}
+          />
+        </dl>
+        <div class="patterns">
+          {charger.byHour && (
+            <Table density="compact" class="by-hour">
+              <caption>{page.adminPricesByHour}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{page.adminPricesHourColumn}</th>
+                  <th scope="col" class="number">
+                    {page.adminPricesPriceColumn}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {charger.byHour.map((value: number | null, hour: number) => (
+                  <tr data-level={levelOf(value, charger.usual)}>
+                    <th scope="row">{hourLabel(hour)}</th>
+                    <td class="number">{price(value, null)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+          {charger.byWeekday && (
+            <Table density="compact" class="by-day">
+              <caption>{page.adminPricesByDay}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{page.adminPricesDayColumn}</th>
+                  <th scope="col" class="number">
+                    {page.adminPricesPriceColumn}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {charger.byWeekday.map((value: number | null, day: number) => (
+                  <tr data-level={levelOf(value, charger.usual)}>
+                    <th scope="row">{dayLabel(day)}</th>
+                    <td class="number">{price(value, null)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+          <Table density="compact" class="changes">
+            <caption>{page.adminPricesChanges}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{page.adminPricesTimeColumn}</th>
+                <th scope="col" class="number">
+                  {page.adminPricesPriceColumn}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {charger.changes.toReversed().map((change: any) => (
+                <tr>
+                  <th scope="row">{formatTime(change.recordedAt)}</th>
+                  <td class="number">{price(change.price, charger.unit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      </section>
+    )}
+
+    {data && (
+      <section class="recent" aria-labelledby="admin-prices-recent">
+        <h3 class="subtitle" id="admin-prices-recent">
+          {page.adminPricesRecent}
+        </h3>
+        {recent.length > 0 ? (
+          <Table density="compact">
+            <thead>
+              <tr>
+                <th scope="col">{page.adminPricesChargerColumn}</th>
+                <th scope="col">{page.adminPricesTimeColumn}</th>
+                <th scope="col" class="number">
+                  {page.adminPricesPreviousColumn}
+                </th>
+                <th scope="col" class="number">
+                  {page.adminPricesPriceColumn}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {recent.map((change) => (
+                <tr>
+                  <th scope="row">
+                    <a href={`?charger=${encodeURIComponent(change.chargerId)}`}>
+                      {change.chargerName ?? change.chargerId}
+                    </a>
+                  </th>
+                  <td>{formatTime(change.recordedAt)}</td>
+                  <td class="number">{price(change.previous, change.unit)}</td>
+                  <td class="number">{price(change.price, change.unit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <EmptyState class="empty">{messages.adminNoPrices}</EmptyState>
+        )}
+      </section>
+    )}
+  </section>
+</ev-admin-prices>

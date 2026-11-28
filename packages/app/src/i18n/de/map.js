@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Preisverlauf",
+    priceNotEnough: "Ein Muster zeigt sich nach einigen Tagen mit Preisen.",
+    priceByHour: "Durchschnittspreis nach Tageszeit",
     signInToReportChange: "Melde dich an, um eine Änderung an dieser Ladestation zu melden.",
     signInToReportUnavailable:
       "Melde dich an, um zu melden, dass diese Ladestation nicht verfügbar ist.",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Meist {price} in den letzten 30 Tagen",
+    priceRange: "Zwischen {min} und {max}",
+    priceSteady: "Durchgehend derselbe Preis",
+    priceNowHigher: "Jetzt {price}, {percent} % teurer als üblich",
+    priceNowLower: "Jetzt {price}, {percent} % günstiger als üblich",
+    priceNowUsual: "Jetzt {price}, wie üblich",
+    priceCheaperAt: "Günstiger von {hours}",
+    pricePricierAt: "Teurer von {hours}",
+    priceCheaperOn: "Günstiger am {days}",
+    pricePricierOn: "Teurer am {days}",
     power: "{power} kW",
 
     chargersFound: {

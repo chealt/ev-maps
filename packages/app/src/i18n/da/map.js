@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Prishistorik",
+    priceNotEnough: "Et mønster vises efter nogle dage med priser.",
+    priceByHour: "Gennemsnitspris pr. time",
     signInToReportChange: "Log ind for at rapportere en ændring af denne ladestander.",
     signInToReportUnavailable: "Log ind for at rapportere, at denne ladestander er utilgængelig.",
     mapMenu: "Rute herfra eller hertil",
@@ -136,6 +139,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Normalt {price} de seneste 30 dage",
+    priceRange: "Mellem {min} og {max}",
+    priceSteady: "Samme pris hele tiden",
+    priceNowHigher: "Nu {price}, {percent} % dyrere end normalt",
+    priceNowLower: "Nu {price}, {percent} % billigere end normalt",
+    priceNowUsual: "Nu {price}, som normalt",
+    priceCheaperAt: "Billigere {hours}",
+    pricePricierAt: "Dyrere {hours}",
+    priceCheaperOn: "Billigere om {days}",
+    pricePricierOn: "Dyrere om {days}",
     power: "{power} kW",
 
     chargersFound: {

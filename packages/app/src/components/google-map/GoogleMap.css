@@ -869,6 +869,72 @@ ev-google-map {
     }
   }
 
+  /* The price history: green where the price is much lower than usual,
+     red where it's much higher, and a bar per hour of the day. */
+  .price-history {
+    --price-chart-height: 4rem;
+
+    [data-level="lower"] {
+      color: var(--color-primary-light-text);
+    }
+
+    [data-level="higher"] {
+      color: var(--color-danger-light-text);
+    }
+
+    .price-usual,
+    .price-now {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .price-range,
+    .price-not-enough,
+    figcaption,
+    .price-chart-axis {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+    }
+
+    .price-highlights {
+      list-style: none;
+      margin-top: var(--spacing-xs);
+    }
+
+    .price-chart {
+      margin-top: var(--spacing-sm);
+    }
+
+    .price-bars {
+      list-style: none;
+      display: flex;
+      align-items: flex-end;
+      gap: var(--border-width);
+      height: var(--price-chart-height);
+      border-bottom: var(--border-width) solid var(--color-border-strong);
+    }
+
+    .price-bar {
+      flex: 1;
+      height: calc(var(--share, 0) * 100%);
+      min-height: var(--border-width);
+      border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+      background: var(--color-border-strong);
+
+      &[data-level="lower"] {
+        background: var(--color-primary);
+      }
+
+      &[data-level="higher"] {
+        background: var(--color-danger);
+      }
+    }
+
+    .price-chart-axis {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
   .details {
     list-style: none;
     display: flex;

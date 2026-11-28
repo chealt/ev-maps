@@ -8,6 +8,7 @@
 import { POINT_POOLS_KEY, downloadEipa } from "./import/eipa.js";
 import { PASSES, POINT_STATIONS_KEY, downloadCsv } from "./import/irve.js";
 import { EVERY_5_MINUTES } from "@ev-maps/admin/crons.js";
+import { gatherEipaPrices } from "./charger-prices.js";
 import { recordWorkerError } from "@ev-maps/admin/errors.js";
 import { partOf, splitByPart } from "./partitions.js";
 import { loadSourceMetadata } from "./source-metadata.js";
@@ -91,12 +92,19 @@ const irveStatuses = async (env) => {
   return countIrveStatuses(await downloadCsv(IRVE_DYNAMIC_URL), pointStations);
 };
 
-const eipaStatuses = async (env) => {
+// The same download gives the hourly prices (src/charger-prices.js).
+const eipaStatuses = async (env, scheduledTime) => {
   const pointPools = await loadSourceMetadata(env.DB, "eipa", POINT_POOLS_KEY);
   if (!pointPools) {
     return null;
   }
   const { data } = await downloadEipa(env, "dynamic");
+  try {
+    await gatherEipaPrices(env, data, pointPools, scheduledTime);
+  } catch (error) {
+    console.error("Prices: eipa failed:", error.message);
+    await recordWorkerError(env, error, { context: "prices eipa" });
+  }
   return countEipaStatuses(data, pointPools);
 };
 
@@ -132,7 +140,7 @@ const refreshStatuses = async (env, scheduledTime) => {
       continue;
     }
     try {
-      const statuses = await status.load(env);
+      const statuses = await status.load(env, scheduledTime);
       if (statuses) {
         await saveSnapshot(env, status.source, statuses);
         console.log(`Statuses: ${status.source} ${Object.keys(statuses).length} chargers`);

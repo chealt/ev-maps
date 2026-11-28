@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "História cien",
+    priceNotEnough: "Vzor sa ukáže po niekoľkých dňoch cien.",
+    priceByHour: "Priemerná cena podľa hodiny",
     signInToReportChange: "Prihláste sa, aby ste mohli nahlásiť zmenu tejto nabíjačky.",
     signInToReportUnavailable:
       "Prihláste sa, aby ste mohli nahlásiť, že táto nabíjačka je nedostupná.",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Zvyčajne {price} za posledných 30 dní",
+    priceRange: "Od {min} do {max}",
+    priceSteady: "Stále rovnaká cena",
+    priceNowHigher: "Teraz {price}, o {percent} % drahšie ako zvyčajne",
+    priceNowLower: "Teraz {price}, o {percent} % lacnejšie ako zvyčajne",
+    priceNowUsual: "Teraz {price}, ako zvyčajne",
+    priceCheaperAt: "Lacnejšie v čase {hours}",
+    pricePricierAt: "Drahšie v čase {hours}",
+    priceCheaperOn: "Lacnejšie: {days}",
+    pricePricierOn: "Drahšie: {days}",
     power: "{power} kW",
 
     chargersFound: {

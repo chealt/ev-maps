@@ -3,6 +3,9 @@
 
 const map = {
   page: {
+    priceHistory: "Historial de precios",
+    priceNotEnough: "El patrón aparece tras unos días de precios.",
+    priceByHour: "Precio medio por hora del día",
     signInToReportChange: "Inicia sesión para notificar un cambio en este cargador.",
     signInToReportUnavailable: "Inicia sesión para notificar que este cargador no está disponible.",
     mapMenu: "Ruta desde o hasta aquí",
@@ -137,6 +140,16 @@ const map = {
     },
   },
   messages: {
+    priceUsual: "Normalmente {price} en los últimos 30 días",
+    priceRange: "Entre {min} y {max}",
+    priceSteady: "El mismo precio todo el tiempo",
+    priceNowHigher: "Ahora {price}, un {percent}% más caro de lo habitual",
+    priceNowLower: "Ahora {price}, un {percent}% más barato de lo habitual",
+    priceNowUsual: "Ahora {price}, lo habitual",
+    priceCheaperAt: "Más barato de {hours}",
+    pricePricierAt: "Más caro de {hours}",
+    priceCheaperOn: "Más barato: {days}",
+    pricePricierOn: "Más caro: {days}",
     power: "{power} kW",
 
     chargersFound: {
