@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - nabíjacie stanice pre elektromobily",
     countryTitle: "EV Maps - nabíjačky pre elektromobily – {country}",
+    countryDescription:
+      "Mapa nabíjacích staníc pre elektromobily – {country}: výkon, konektory, ceny a aktuálna dostupnosť. Nabíjačky: {count}.",
     description: "Mapa nabíjacích staníc pre elektromobily",
     subtitle: "Nájdite nabíjacie stanice pre elektromobily vo svojom okolí",
     signIn: "Prihlásiť sa",

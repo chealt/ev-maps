@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - Ladestasjoner for elbiler",
     countryTitle: "EV Maps - Ladestasjoner i {country}",
+    countryDescription:
+      "Kart over ladestasjoner for elbiler – {country}: effekt, kontakter, priser og ledighet nå. Ladestasjoner: {count}.",
     description: "Kart over ladestasjoner for elbiler",
     subtitle: "Finn ladestasjoner for elbil i nærheten",
     signIn: "Logg inn",

@@ -7,9 +7,12 @@ import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal
 import "./global.css";
 import { runtimeTranslations, translations } from "../i18n/index.js";
 import { languages } from "../lib/pages.js";
+import { defaultUrl } from "../lib/sitemap.js";
 
 interface Props {
   title?: string;
+  // The search result's and link preview's text; the site's by default.
+  description?: string;
   // Kept out of search engines, e.g. the admin pages.
   noindex?: boolean;
   // The kind of page, for the copy its scripts get: "map", "legal", "admin".
@@ -18,14 +21,23 @@ interface Props {
 
 const lang = Astro.currentLocale ?? "en";
 const { page } = translations(lang);
-const { title = page.title, noindex = false, kind = "map" } = Astro.props;
+const {
+  title = page.title,
+  description = page.description,
+  noindex = false,
+  kind = "map",
+} = Astro.props;
 
 // The same page in every language, e.g. /pl/hu/ for /en/hu/.
 const pathInLanguage = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
+const site = Astro.site ?? Astro.url;
 const alternates = languages().map((language) => ({
   language,
-  href: new URL(pathInLanguage(language), Astro.site ?? Astro.url).href,
+  href: new URL(pathInLanguage(language), site).href,
 }));
+// The page's path after its language, e.g. "hu/" for /en/hu/.
+const canonical = new URL(Astro.url.pathname, site).href;
+const pagePath = Astro.url.pathname.replace(/^\/[^/]+\/?/, "");
 
 // The scripts' copy (src/lib/messages.js), only this language's and only
 // this kind of page's, baked in at build time: the client loads no i18n.
@@ -42,7 +54,7 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={page.description} />
+    <meta name="description" content={description} />
     <!-- No AI training or reuse; see the terms and public/robots.txt. -->
     <meta
       name="robots"
@@ -59,7 +71,23 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
     {alternates.map(({ language, href }) => (
       <link rel="alternate" hreflang={language} href={href} />
     ))}
-    <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
+    <link rel="alternate" hreflang="x-default" href={defaultUrl(site, pagePath)} />
+    <!-- The page's one address for search engines: without query strings,
+         and not / (which redirects); the sitemap lists the same. -->
+    {!noindex && <link rel="canonical" href={canonical} />}
+    <!-- The preview when a link to the page is shared (Open Graph, which
+         X reads too, with its large-image card). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="EV Maps" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang} />
+    <meta property="og:image" content={new URL("/og-image.png", site).href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={page.subtitle} />
+    <meta name="twitter:card" content="summary_large_image" />
     {hasRuntimeCopy && <script type="application/json" id="messages" set:html={messagesJson} />}
     <!-- Traces the page's API calls and measures its Web Vitals, for the
          admin area; first, so it sees every call. -->

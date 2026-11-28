@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps - Postos de carregamento para veículos elétricos",
     countryTitle: "EV Maps - Carregadores para veículos elétricos – {country}",
+    countryDescription:
+      "Mapa de postos de carregamento para veículos elétricos – {country}: potência, conectores, preços e disponibilidade em tempo real. Carregadores: {count}.",
     description: "Mapa de postos de carregamento para veículos elétricos",
     subtitle: "Encontre postos de carregamento para veículos elétricos perto de si",
     signIn: "Iniciar sessão",

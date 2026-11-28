@@ -17,6 +17,7 @@
     "packages/app/src/i18n/*/common.js",
     "packages/app/src/lib/messages.js",
     "packages/app/src/lib/pages.js",
+    "packages/app/src/lib/sitemap.js",
     "packages/app/src/lib/page-chargers.js",
     "packages/app/src/lib/page-data.js",
     "packages/app/src/components/HomePage.*",
@@ -149,13 +150,18 @@
       "tests": ["suggest-charger", "report-change", "report-unavailable"]
     },
     "legal": {
-      "paths": ["packages/app/src/components/legal-page/**", "packages/app/src/legal/**"],
+      "paths": [
+        "packages/app/src/components/legal-page/**",
+        "packages/app/src/legal/**",
+        "packages/app/public/robots.txt"
+      ],
       "tests": ["legal"]
     },
     "country pages": {
       "paths": [
         "packages/app/src/lib/page-kind.js",
-        "packages/app/tests/fixtures/country-chargers/**"
+        "packages/app/tests/fixtures/country-chargers/**",
+        "packages/app/src/lib/sitemap.test.js"
       ],
       "tests": ["country-page"]
     },
