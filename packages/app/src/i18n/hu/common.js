@@ -6,6 +6,8 @@ const common = {
   page: {
     title: "EV Maps – elektromosautó-töltőállomások",
     countryTitle: "EV Maps – elektromosautó-töltők – {country}",
+    countryDescription:
+      "Elektromosautó-töltőállomások térképe – {country}: teljesítmény, csatlakozók, árak és élő foglaltság. Töltők: {count}.",
     description: "Elektromosautó-töltőállomások térképe",
     subtitle: "Találd meg a közeli elektromosautó-töltőállomásokat",
     signIn: "Bejelentkezés",

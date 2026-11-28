@@ -7,6 +7,8 @@
 // - icon-1024.png: the logo for app listings (e.g. the GitHub App for sign-in)
 // - apple-touch-icon.png: square and opaque; iOS rounds the corners itself and
 //   would fill transparent ones with black
+// - og-image.png: 1200×630, the logo and the name on the brand's background,
+//   for link previews (Layout.astro's og:image)
 
 import { readFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
@@ -40,6 +42,18 @@ try {
     await page.close();
     console.log(`public/${file}: ${size}×${size}`);
   }
+
+  // The link preview: the logo and the name, centred on the light background.
+  const preview = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+  await preview.setContent(`
+    <body style="margin:0;width:1200px;height:630px;display:flex;align-items:center;
+      justify-content:center;gap:48px;background:#f1f5f9;color:#0f172a;
+      font:700 120px/1 system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:-0.03em">
+      ${render(220, true)}<span>EV Maps</span>
+    </body>`);
+  await preview.screenshot({ path: new URL("og-image.png", PUBLIC).pathname });
+  await preview.close();
+  console.log("public/og-image.png: 1200×630");
 } finally {
   await browser.close();
 }

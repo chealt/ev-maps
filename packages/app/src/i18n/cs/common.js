@@ -12,6 +12,8 @@ const common = {
     sponsorThanks: "Děkujeme, že podporujete EV Maps!",
     title: "EV Maps - nabíjecí stanice pro elektromobily",
     countryTitle: "EV Maps - nabíječky pro elektromobily – {country}",
+    countryDescription:
+      "Mapa nabíjecích stanic pro elektromobily – {country}: výkon, konektory, ceny a aktuální dostupnost. Nabíječky: {count}.",
     description: "Mapa nabíjecích stanic pro elektromobily",
     subtitle: "Najděte nabíjecí stanice pro elektromobily ve svém okolí",
     signIn: "Přihlásit se",
