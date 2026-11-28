@@ -115,6 +115,11 @@ namespace_id = "4413"
 simple = { limit = 20, period = 60 }
 
 [[ratelimits]]
+name = "WEBHOOK_LIMITER"
+namespace_id = "4414"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
 name = "EMAIL_LIMITER"
 namespace_id = "4407"
 simple = { limit = 5, period = 60 }
@@ -214,6 +219,11 @@ simple = { limit = 60, period = 60 }
 name = "SUPPORT_LIMITER"
 namespace_id = "4413"
 simple = { limit = 20, period = 60 }
+
+[[env.local.ratelimits]]
+name = "WEBHOOK_LIMITER"
+namespace_id = "4414"
+simple = { limit = 120, period = 60 }
 
 [[env.local.ratelimits]]
 name = "EMAIL_LIMITER"

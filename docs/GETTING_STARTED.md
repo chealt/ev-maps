@@ -71,19 +71,21 @@ The `VITE_` ones (`packages/app/.env.local`) are built into the page, so none
 of them is secret once deployed. The Worker's (`packages/worker/.dev.vars`) stay
 on the server.
 
-| Name                       | Where  | Required | Purpose                                                                       |
-| -------------------------- | ------ | -------- | ----------------------------------------------------------------------------- |
-| `VITE_GOOGLE_MAPS_API_KEY` | Page   | Yes      | Google Maps key with the Maps JavaScript, Places (New) and Routes APIs        |
-| `VITE_GOOGLE_MAPS_MAP_ID`  | Page   | No       | Map ID for advanced markers (defaults to Google's `DEMO_MAP_ID`)              |
-| `OPEN_CHARGE_MAP_API_KEY`  | Worker | Yes      | [Open Charge Map key](https://openchargemap.org/site/develop/api) for imports |
-| `BETTER_AUTH_SECRET`       | Worker | Yes      | Signs the session cookies; any long random value (`openssl rand -base64 32`)  |
-| `GOOGLE_CLIENT_SECRET`     | Worker | No       | The development OAuth client's secret; without it there is no Google sign-in  |
-| `GITHUB_CLIENT_ID`         | Worker | No       | The GitHub App's client ID, for Sign in with GitHub                           |
-| `GITHUB_CLIENT_SECRET`     | Worker | No       | The GitHub App's client secret                                                |
-| `EIPA_TOKEN`               | Worker | No       | Poland's register (EIPA); see [Deployment](DEPLOYMENT.md#eipa-poland)         |
-| `MICROSOFT_CLIENT_SECRET`  | Worker | No       | The development Entra ID app's secret (its ID is in `wrangler.toml`)          |
-| `APPLE_CLIENT_ID`, …       | Worker | No       | Sign in with Apple; production only, see [Deployment](DEPLOYMENT.md#apple)    |
-| `IMPORT_BUDGET_MS`         | Worker | No       | Shortens each import run, e.g. locally                                        |
+| Name                             | Where  | Required | Purpose                                                                                   |
+| -------------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------- |
+| `VITE_GOOGLE_MAPS_API_KEY`       | Page   | Yes      | Google Maps key with the Maps JavaScript, Places (New) and Routes APIs                    |
+| `VITE_GOOGLE_MAPS_MAP_ID`        | Page   | No       | Map ID for advanced markers (defaults to Google's `DEMO_MAP_ID`)                          |
+| `OPEN_CHARGE_MAP_API_KEY`        | Worker | Yes      | [Open Charge Map key](https://openchargemap.org/site/develop/api) for imports             |
+| `BETTER_AUTH_SECRET`             | Worker | Yes      | Signs the session cookies; any long random value (`openssl rand -base64 32`)              |
+| `GOOGLE_CLIENT_SECRET`           | Worker | No       | The development OAuth client's secret; without it there is no Google sign-in              |
+| `GITHUB_CLIENT_ID`               | Worker | No       | The GitHub App's client ID, for Sign in with GitHub                                       |
+| `GITHUB_CLIENT_SECRET`           | Worker | No       | The GitHub App's client secret                                                            |
+| `GITHUB_SPONSORS_WEBHOOK_SECRET` | Worker | No       | Records GitHub sponsorships; see [Supporting](features/support.md#recording-sponsorships) |
+| `KOFI_VERIFICATION_TOKEN`        | Worker | No       | Records Ko-fi payments; see [Supporting](features/support.md#recording-sponsorships)      |
+| `EIPA_TOKEN`                     | Worker | No       | Poland's register (EIPA); see [Deployment](DEPLOYMENT.md#eipa-poland)                     |
+| `MICROSOFT_CLIENT_SECRET`        | Worker | No       | The development Entra ID app's secret (its ID is in `wrangler.toml`)                      |
+| `APPLE_CLIENT_ID`, …             | Worker | No       | Sign in with Apple; production only, see [Deployment](DEPLOYMENT.md#apple)                |
+| `IMPORT_BUDGET_MS`               | Worker | No       | Shortens each import run, e.g. locally                                                    |
 
 For local development, use a Google Maps key restricted to
 `http://localhost:4321/*` and add

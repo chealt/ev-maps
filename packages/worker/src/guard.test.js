@@ -82,6 +82,18 @@ describe("guard", () => {
     expect(response.status).toBe(403);
   });
 
+  test("lets servers call webhooks", async () => {
+    for (const name of ["github sponsors webhook", "ko-fi webhook"]) {
+      expect(
+        await guard(request({ "user-agent": "GitHub-Hookshot/1" }), {}, ROUTE[name], signedOut)
+      ).toEqual({ userId: null, user: null });
+      expect(await guard(request({ "user-agent": "" }), {}, ROUTE[name], signedOut)).toEqual({
+        userId: null,
+        user: null,
+      });
+    }
+  });
+
   test("lets anyone load tiles, limited per IP address", async () => {
     const env = { TILE_LIMITER: limiter() };
     expect(await guard(request(), env, ROUTE.tiles, signedOut)).toEqual({

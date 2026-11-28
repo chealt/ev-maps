@@ -1,6 +1,6 @@
 ---
 title: Polityka prywatności
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 EV Maps (ev.chealt.com, „my”) to mapa stacji ładowania samochodów elektrycznych.
@@ -64,6 +64,16 @@ adres i za pierwszym razem tworzy konto. Jeśli dodasz klucz dostępu,
 przechowujemy jego klucz publiczny, identyfikator i typ (nigdy odcisk palca,
 twarz ani blokadę ekranu, które pozostają na Twoim urządzeniu).
 
+### Gdy wspierasz EV Maps
+
+Gdy wspierasz EV Maps przez GitHub Sponsors lub Ko-fi, platforma informuje nas o
+tym: o dacie, kwocie i walucie, poziomie, o tym, czy wsparcie jest miesięczne lub
+anulowane, oraz o Twojej nazwie użytkownika GitHub lub adresie e-mail podanym w
+Ko-fi. Przechowujemy te dane, aby liczyć wspierających i, jeśli pasują do Twojego
+konta (to samo konto GitHub lub ten sam zweryfikowany adres e-mail), podziękować
+Ci w menu konta. Sama płatność pozostaje na platformie, zgodnie z jej polityką
+prywatności.
+
 ## W jakim celu
 
 Zgodnie z ogólnym rozporządzeniem o ochronie danych (RODO):
@@ -107,6 +117,7 @@ klauzulach umownych Komisji Europejskiej.
   wylogowania.
 - **Logi serwera:** kilka dni w Cloudflare.
 - **Błędy:** 30 dni.
+- **Wsparcie:** do czasu usunięcia konta lub Twojej prośby o ich usunięcie.
 - **Statystyki użycia:** około 13 miesięcy.
 - **Pomiary wydajności:** 14 dni.
 

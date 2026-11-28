@@ -1,6 +1,6 @@
 ---
 title: Adatvédelmi tájékoztató
-updated: 2026-11-24
+updated: 2026-11-28
 ---
 
 Az EV Maps (ev.chealt.com, „mi”) elektromosautó-töltőállomások térképe. Ez a
@@ -65,6 +65,16 @@ hozzá, annak nyilvános kulcsát, azonosítóját és típusát tároljuk (az
 ujjlenyomatodat, arcodat vagy képernyőzáradat soha, azok az eszközödön
 maradnak).
 
+### Amikor támogatod az EV Maps-et
+
+Ha a GitHub Sponsorson vagy a Ko-fin támogatod az EV Maps-et, a platform
+értesít minket róla: a dátumról, az összegről és a pénznemről, a szintről,
+arról, hogy havi vagy lemondott-e, valamint a GitHub-felhasználónevedről vagy a
+Ko-finak megadott e-mail-címedről. Ezeket azért tároljuk, hogy megszámoljuk a
+támogatókat, és ha egyeznek a fiókoddal (ugyanaz a GitHub-fiók vagy ugyanaz az
+ellenőrzött e-mail-cím), megköszönjük a fiókmenüben. Maga a fizetés a
+platformnál marad, annak adatvédelmi szabályai szerint.
+
 ## Milyen célból
 
 Az általános adatvédelmi rendelet (GDPR) alapján:
@@ -107,6 +117,7 @@ adatvédelmi keretrendszeren (Data Privacy Framework) vagy az Európai Bizottsá
   kijelentkezésig.
 - **Szervernaplók:** néhány napig a Cloudflare-nél.
 - **Hibák:** 30 napig.
+- **Támogatások:** amíg nem törlöd a fiókodat, vagy nem kéred a törlésüket.
 - **Használati statisztika:** körülbelül 13 hónapig.
 - **Teljesítménymérések:** 14 napig.
 
