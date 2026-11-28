@@ -121,7 +121,7 @@
         "packages/app/src/lib/support-links.test.js",
         "packages/app/src/i18n/*/account.js"
       ],
-      "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places"]
+      "tests": ["sign-in", "passkeys", "theme", "languages", "saved-places", "charger-details"]
     },
     "favorites": {
       "paths": [
