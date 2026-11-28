@@ -2,6 +2,9 @@
   /* Between the form's parts (From, the stops, To), and around each leg
      between them. */
   --route-form-gap: var(--spacing-lg);
+  /* Around each leg between two points: tighter, so the stops don't drift
+     apart (#464). */
+  --route-leg-gap: var(--spacing-xs);
 
   .body {
     display: flex;
@@ -69,8 +72,10 @@
   .route-stops {
     display: flex;
     flex-direction: column;
-    /* The form's gap, so each leg sits midway between its two points. */
-    gap: var(--route-form-gap);
+    /* The leg gap, so each leg sits midway between its two points; the
+       margins pull From and To in to the same gap. */
+    gap: var(--route-leg-gap);
+    margin-block: calc(var(--route-leg-gap) - var(--route-form-gap));
 
     &[hidden] {
       display: none;
@@ -78,7 +83,7 @@
 
     /* Snug above the first stop, like an input's label. */
     .label {
-      margin-bottom: calc(var(--spacing-xs) - var(--route-form-gap));
+      margin-bottom: calc(var(--spacing-xs) - var(--route-leg-gap));
       font-weight: var(--font-weight-semibold);
       font-size: var(--font-size-sm);
     }
@@ -86,7 +91,7 @@
     .stop-list {
       display: flex;
       flex-direction: column;
-      gap: var(--route-form-gap);
+      gap: var(--route-leg-gap);
       margin: 0;
       padding: 0;
       list-style: none;
@@ -95,7 +100,7 @@
     .stop-item {
       display: flex;
       flex-direction: column;
-      gap: var(--route-form-gap);
+      gap: var(--route-leg-gap);
     }
 
     .stop-chip {
@@ -115,8 +120,6 @@
       overflow-wrap: anywhere;
     }
 
-    /* A leg between two points: a dashed line down from the one above, with
-       its distance. */
     /* A leg between two points, centered between them: its distance on a
        dashed line running from the one above to the one below. */
     .stop-leg {
