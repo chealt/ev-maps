@@ -18,6 +18,8 @@ const SESSION_URL = "/api/auth/get-session";
 const PROVIDERS_URL = "/api/sign-in-providers";
 const SIGN_IN_URL = "/api/auth/sign-in/social";
 const SIGN_OUT_URL = "/api/auth/sign-out";
+// Counts a click on a support link (packages/worker/src/support-clicks.js).
+const SUPPORT_CLICKS_URL = "/api/support-clicks";
 // Added to the page's URL when sign-in fails, so the menu can say so.
 const SIGN_IN_ERROR_PARAM = "sign-in-error";
 
@@ -57,6 +59,18 @@ class UserMenuElement extends HTMLElement {
     );
     for (const provider of this.querySelectorAll("[data-provider]")) {
       provider.addEventListener("click", () => this.signIn(provider.dataset.provider));
+    }
+    // A beacon, so the link opens in its new tab right away; only the
+    // platform is sent.
+    for (const link of this.querySelectorAll("[data-support]")) {
+      link.addEventListener("click", () =>
+        navigator.sendBeacon?.(
+          SUPPORT_CLICKS_URL,
+          new Blob([JSON.stringify({ platform: link.dataset.support })], {
+            type: "application/json",
+          })
+        )
+      );
     }
     this.querySelector(".sign-out").addEventListener("click", () => this.signOut());
     this.querySelector(".favorites-button").addEventListener("click", () => this.showFavorites());

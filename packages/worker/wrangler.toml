@@ -110,6 +110,11 @@ namespace_id = "4412"
 simple = { limit = 60, period = 60 }
 
 [[ratelimits]]
+name = "SUPPORT_LIMITER"
+namespace_id = "4413"
+simple = { limit = 20, period = 60 }
+
+[[ratelimits]]
 name = "EMAIL_LIMITER"
 namespace_id = "4407"
 simple = { limit = 5, period = 60 }
@@ -204,6 +209,11 @@ simple = { limit = 120, period = 60 }
 name = "TELEMETRY_LIMITER"
 namespace_id = "4412"
 simple = { limit = 60, period = 60 }
+
+[[env.local.ratelimits]]
+name = "SUPPORT_LIMITER"
+namespace_id = "4413"
+simple = { limit = 20, period = 60 }
 
 [[env.local.ratelimits]]
 name = "EMAIL_LIMITER"
