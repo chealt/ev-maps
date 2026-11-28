@@ -30,6 +30,14 @@
         );
         this.emit("contextmenu", { latLng, domEvent });
       });
+      // A click on the map itself, not on a marker (that's the marker's
+      // "gmp-click"), is the map's "click".
+      element.addEventListener("click", (domEvent) => {
+        if ([...(this.markers ?? [])].some((marker) => marker.element.contains(domEvent.target))) {
+          return;
+        }
+        this.emit("click", { domEvent });
+      });
       this.emitIdle();
     }
     emit(type, event) {
