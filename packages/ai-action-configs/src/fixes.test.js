@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   branchOf,
+  duplicatesPromptOf,
   findingsToFix,
   fixFindingsErrors,
   fixPromptOf,
+  parseDuplicates,
   pullRequestBodyOf,
   titleOf,
 } from "./fixes.js";
@@ -55,9 +57,36 @@ describe("findingsToFix", () => {
 describe("fixPromptOf and pullRequestBodyOf", () => {
   test("carry the finding", () => {
     expect(fixPromptOf(finding("a"))).toContain("# About a\n\nBody of a");
-    const body = pullRequestBodyOf(finding("a"), "Fixed it.\n", "Made by pi");
+    const body = pullRequestBodyOf(finding("a"), "Fixed it.\n");
     expect(body.startsWith("Fixed it.\n\n<details>")).toBe(true);
     expect(body).toContain("Body of a");
-    expect(body).toEndWith("<sub>Made by pi</sub>\n");
+    expect(body).not.toContain("pi (");
+    expect(body).toEndWith("</details>\n");
+  });
+});
+
+describe("duplicatesPromptOf and parseDuplicates", () => {
+  const findings = [finding("a"), finding("b")];
+  const open = [
+    { number: 12, title: "Lock down CORS", headRefName: "fix/cors", body: "Only our origin" },
+  ];
+
+  test("give pi the findings and the open pull requests", () => {
+    const prompt = duplicatesPromptOf(findings, open);
+    expect(prompt).toContain("## a: About a");
+    expect(prompt).toContain("## #12 Lock down CORS (fix/cors)");
+    expect(prompt).toContain("Only our origin");
+    expect(duplicatesPromptOf(findings, [])).toContain("None.");
+  });
+
+  test("read the ids pi says are fixed, from its answer's JSON", () => {
+    expect([...parseDuplicates('Checked.\n{"a": 12}', findings, open)]).toEqual([["a", 12]]);
+    expect([...parseDuplicates('{"b": "12"}', findings, open)]).toEqual([["b", 12]]);
+  });
+
+  test("ignore unknown ids, pull requests that aren't open, and answers that aren't JSON", () => {
+    expect(parseDuplicates('{"z": 12, "a": 99}', findings, open).size).toBe(0);
+    expect(parseDuplicates("No idea", findings, open).size).toBe(0);
+    expect(parseDuplicates("[1]", findings, open).size).toBe(0);
   });
 });
