@@ -1,4 +1,4 @@
-import { expect, test } from "@ev-maps/e2e/test.js";
+import { captureUi, expect, test } from "@ev-maps/e2e/test.js";
 import { fakeAuthApi } from "@ev-maps/e2e/fixtures/auth-api.js";
 import { fakeGoogleMaps } from "@ev-maps/e2e/fixtures/google.js";
 import { fakeChargersApi } from "@ev-maps/e2e/fixtures/chargers-api.js";
@@ -81,4 +81,29 @@ test.describe("filters", () => {
     await expect(dialog.getByRole("button", { name: "< 50 kW", pressed: false })).toBeVisible();
     await expect(page.getByRole("status")).toHaveText("6 EV chargers found");
   });
+
+  test(
+    "filters from the chargers list, which follows them",
+    { tag: "@ui" },
+    async ({ page }, testInfo) => {
+      await page.getByRole("button", { name: "6 EV chargers found" }).click();
+      const list = page.getByRole("dialog", { name: "6 EV chargers" });
+      await expect(list.getByRole("listitem")).toHaveCount(6);
+      await captureUi(page, testInfo, "the chargers list, open");
+
+      await list.getByRole("button", { name: "Filters", exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "Filters" });
+      await dialog.getByRole("button", { name: "300+ kW" }).click();
+      await dialog.getByRole("button", { name: "Done" }).click();
+
+      const filtered = page.getByRole("dialog", { name: "1 EV charger" });
+      await expect(filtered.getByRole("listitem")).toHaveCount(1);
+      await expect(filtered.getByText("Ultra charger")).toBeVisible();
+      await expect(filtered.getByRole("button", { name: "Clear filters" })).toBeVisible();
+      await captureUi(page, testInfo, "the chargers list, filtered");
+
+      await filtered.getByRole("button", { name: "Clear filters" }).click();
+      await expect(list.getByRole("listitem")).toHaveCount(6);
+    }
+  );
 });

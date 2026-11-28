@@ -1102,6 +1102,15 @@ ev-google-map {
     align-items: flex-start;
   }
 
+  .list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+  }
+
   .sort-basis {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);

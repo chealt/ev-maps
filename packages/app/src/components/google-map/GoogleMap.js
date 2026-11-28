@@ -613,7 +613,9 @@ class GoogleMapElement extends HTMLElement {
     }
     // However the dialog closes (buttons, Escape), the Filters button follows.
     this.filterPanel?.addEventListener("close", () => {
-      this.querySelector(".filter-button")?.setAttribute("aria-expanded", "false");
+      for (const button of this.querySelectorAll(".filter-button")) {
+        button.setAttribute("aria-expanded", "false");
+      }
       // Operators kept in place while the dialog was open can go now.
       this.listOperators(this.loaded?.chargers ?? [], this.availableChargers);
       this.flushAccountSave();
@@ -842,7 +844,9 @@ class GoogleMapElement extends HTMLElement {
     if (!this.filterPanel || this.filterPanel.open) {
       return;
     }
-    this.querySelector(".filter-button")?.setAttribute("aria-expanded", "true");
+    for (const button of this.querySelectorAll(".filter-button")) {
+      button.setAttribute("aria-expanded", "true");
+    }
     openDialog(this.filterPanel);
   }
 
@@ -1000,9 +1004,11 @@ class GoogleMapElement extends HTMLElement {
       (this.hideUnavailable() ? 1 : 0) +
       this.activeAmenities().length;
     const active = count > 0;
-    customElements
-      .whenDefined("ev-filter-button")
-      .then(() => this.querySelector("ev-filter-button")?.showActiveCount(count));
+    customElements.whenDefined("ev-filter-button").then(() => {
+      for (const button of this.querySelectorAll("ev-filter-button")) {
+        button.showActiveCount(count);
+      }
+    });
     for (const button of this.querySelectorAll(".clear-filters")) {
       if (this.filterPanel?.contains(button)) {
         button.disabled = !active;
@@ -1321,6 +1327,10 @@ class GoogleMapElement extends HTMLElement {
     this.listedChargers = chargers;
     if (this.statusButton) {
       this.statusButton.disabled = chargers.length === 0;
+    }
+    // Filtering from the open list updates it in place.
+    if (this.chargerList?.open) {
+      this.renderChargerList();
     }
   }
 
