@@ -7,6 +7,7 @@ import interLatin from "@fontsource-variable/inter/files/inter-latin-wght-normal
 import "./global.css";
 import { runtimeTranslations, translations } from "../i18n/index.js";
 import { languages } from "../lib/pages.js";
+import { defaultUrl } from "../lib/sitemap.js";
 
 interface Props {
   title?: string;
@@ -22,10 +23,13 @@ const { title = page.title, noindex = false, kind = "map" } = Astro.props;
 
 // The same page in every language, e.g. /pl/hu/ for /en/hu/.
 const pathInLanguage = (language) => Astro.url.pathname.replace(/^\/[^/]+\//, `/${language}/`);
+const site = Astro.site ?? Astro.url;
 const alternates = languages().map((language) => ({
   language,
-  href: new URL(pathInLanguage(language), Astro.site ?? Astro.url).href,
+  href: new URL(pathInLanguage(language), site).href,
 }));
+// The page's path after its language, e.g. "hu/" for /en/hu/.
+const pagePath = Astro.url.pathname.replace(/^\/[^/]+\/?/, "");
 
 // The scripts' copy (src/lib/messages.js), only this language's and only
 // this kind of page's, baked in at build time: the client loads no i18n.
@@ -59,7 +63,10 @@ const messagesJson = JSON.stringify(runtime).replaceAll("<", "\\u003c");
     {alternates.map(({ language, href }) => (
       <link rel="alternate" hreflang={language} href={href} />
     ))}
-    <link rel="alternate" hreflang="x-default" href={new URL("/", Astro.site ?? Astro.url).href} />
+    <link rel="alternate" hreflang="x-default" href={defaultUrl(site, pagePath)} />
+    <!-- The page's one address for search engines: without query strings,
+         and not / (which redirects); the sitemap lists the same. -->
+    {!noindex && <link rel="canonical" href={new URL(Astro.url.pathname, site).href} />}
     {hasRuntimeCopy && <script type="application/json" id="messages" set:html={messagesJson} />}
     <!-- Traces the page's API calls and measures its Web Vitals, for the
          admin area; first, so it sees every call. -->

@@ -38,3 +38,6 @@ Disallow: /
 # Everyone else, e.g. search engines: the pages, never the API.
 User-agent: *
 Disallow: /api/
+
+# Every page search engines may index, in every language.
+Sitemap: https://ev.chealt.com/sitemap.xml

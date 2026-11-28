@@ -30,3 +30,14 @@ from `public/favicon.svg` with `bun run icons` in `packages/app`.
 Every color token is defined once with `light-dark()`;
 `<ev-theme-picker>` sets `data-theme` on `<html>` and the map follows with
 Google Maps' color scheme.
+
+## Search engines
+
+`/sitemap.xml` (`src/pages/sitemap.xml.js`, `src/lib/sitemap.js`) lists
+every page search engines may index in every language: the map, each
+country page and the legal pages, each with its other languages as
+`hreflang` alternates. `public/robots.txt` points to it. Every indexable
+page has a canonical link to its own address without query strings, and its
+`x-default` alternate is the English page (`/` for the home page, which the
+Worker sends to the visitor's language and country). Pages with `noindex`
+(admin, saved places, suggestions) are left out of both.
