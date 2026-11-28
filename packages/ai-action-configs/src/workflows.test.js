@@ -156,7 +156,10 @@ describe("workflowOf", () => {
     expect(workflow).toContain(`"$PROMPT"$'\\n\\n'"$REPORT_INSTRUCTION"`);
     expect(workflow).toContain('| tee "$RUNNER_TEMP/pi-report.md"');
     expect(workflow).toContain("shell: bash");
-    // The description: the header, the prompt quoted, then the report.
+    // The description: the prompt quoted, then the report; no "made by"
+    // line, the AI label says it.
+    expect(workflow).not.toContain("Made by");
+    expect(workflow).not.toContain("(AI action)");
     expect(workflow).toContain('cat "$RUNNER_TEMP/pi-report.md"');
     expect(workflow).toContain("body-path: ${{ runner.temp }}/pull-request-body.md");
     expect(workflow).not.toContain("body: ");

@@ -57,11 +57,9 @@ jobs:
       - name: Write the pull request's description
         shell: bash
         env:
-          HEADER: "Made by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/testing-audit.json:"
           PROMPT: "Audit E2E and unit tests and identify potentially misplaced tests that could be sped up by moving from E2E to quick unit tests instead. Audit unit test that they are fast and don't share state or use real clocks."
         run: |
           {
-            printf '%s\n\n' "$HEADER"
             printf '%s\n' "$PROMPT" | sed 's/^/> /'
             printf '\n---\n\n'
             cat "$RUNNER_TEMP/pi-report.md"
@@ -74,5 +72,5 @@ jobs:
           branch: ai/testing-audit
           delete-branch: true
           title: "AI: testing-audit"
-          commit-message: "chore: testing-audit (AI action)"
+          commit-message: "chore: testing-audit"
           body-path: ${{ runner.temp }}/pull-request-body.md

@@ -56,7 +56,11 @@ pi first audits without changing the files and writes its findings to a
 JSON file, `[{ "id": "…", "title": "…", "body": "…" }]`, the id a slug it
 keeps the same each time it finds the problem. `scripts/fix-findings.js`
 then skips every finding an open pull request fixes already: one on its
-branch, `ai/{config}/{id}`, or titled `{prefix}: {title}`. A pull request
+branch, `ai/{config}/{id}`, or titled `{prefix}: {title}`, and then those
+pi, given the rest and the open pull requests (title, branch and the start
+of the description), says fix the same problem, so a finding worded
+differently or fixed by hand isn't fixed twice (if pi fails, the name check
+alone decides). A pull request
 closed without merging doesn't count, so the next run tries again. For each
 of the rest, at most `limit` a run (3 by default), it runs pi on a fresh
 branch from main to fix that finding alone, and when pi changed something,
@@ -69,8 +73,8 @@ description pi's report and the finding. The branches are pushed with the
 Every prompt gets one more instruction: pi's final message becomes the
 description of its pull request, so it reports what it changed and why (for
 an upgrade, each package with the version it went from and to) and what it
-left alone. The description is that report, under a header naming the model
-and the config, with the prompt quoted.
+left alone. The description is the prompt quoted, then that report; the
+pull request's label marks it as an AI's, so nothing in it says so.
 
 ## How the workflows stay in sync
 

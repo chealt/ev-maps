@@ -68,7 +68,6 @@ jobs:
           LABELS: "security"
           PROVIDER: "radius"
           MODEL: "claude-opus-5-5"
-          FOOTER: "Made by pi (radius/claude-opus-5-5) running packages/ai-action-configs/configs/security-audit.json."
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

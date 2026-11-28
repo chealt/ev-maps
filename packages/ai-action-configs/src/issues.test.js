@@ -31,10 +31,7 @@ describe("newFindings", () => {
 });
 
 describe("issueBodyOf", () => {
-  test("ends with who found it", () => {
-    expect(issueBodyOf(finding("A"), "Found by pi")).toBe(
-      "About A\n\n---\n\n<sub>Found by pi</sub>\n"
-    );
+  test("is the finding's body alone", () => {
     expect(issueBodyOf(finding("A"))).toBe("About A\n");
   });
 });

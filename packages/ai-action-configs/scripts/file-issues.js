@@ -3,7 +3,7 @@
 // separated; created if missing) and the PRIORITY issue field. Prints what it
 // filed, for the job's summary.
 //
-//   LABELS=security PRIORITY=High FOOTER="Found by …" \
+//   LABELS=security PRIORITY=High \
 //     bun scripts/file-issues.js findings.json
 //
 // gh does the GitHub calls, with GH_TOKEN, in the repository it's run in.
@@ -68,7 +68,6 @@ const priorityOf = (owner, name) => {
 const [file] = process.argv.slice(2);
 const labels = (process.env.LABELS ?? "").split(",").filter(Boolean);
 const priority = process.env.PRIORITY;
-const footer = process.env.FOOTER;
 
 const text = await readFile(file, "utf8").catch(() => null);
 if (text === null) {
@@ -108,7 +107,7 @@ for (const finding of toFile) {
     "--title",
     finding.title,
     "--body",
-    issueBodyOf(finding, footer),
+    issueBodyOf(finding),
     ...labels.flatMap((label) => ["--label", label])
   );
   if (field) {

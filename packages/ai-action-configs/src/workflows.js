@@ -193,9 +193,6 @@ const issuesWorkflowOf = (name, { cron, prompt, model, issues }) =>
           GH_TOKEN: \${{ secrets.AI_ACTIONS_TOKEN || github.token }}
           LABELS: ${yamlString((issues.labels ?? []).join(","))}
           PRIORITY: ${yamlString(issues.priority ?? "")}
-          FOOTER: ${yamlString(
-            `Found by pi (${PROVIDER}/${model}) running packages/ai-action-configs/configs/${name}.json.`
-          )}
         run: >-
           bun packages/ai-action-configs/scripts/file-issues.js "$RUNNER_TEMP/findings.json"
           | tee -a "$GITHUB_STEP_SUMMARY"
@@ -238,9 +235,6 @@ const fixesWorkflowOf = (name, { cron, prompt, model, fixes }) =>
           LABELS: ${yamlString((fixes.labels ?? []).join(","))}
           PROVIDER: ${yamlString(PROVIDER)}
           MODEL: ${yamlString(model)}
-          FOOTER: ${yamlString(
-            `Made by pi (${PROVIDER}/${model}) running packages/ai-action-configs/configs/${name}.json.`
-          )}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -269,13 +263,9 @@ const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
       - name: Write the pull request's description
         shell: bash
         env:
-          HEADER: ${yamlString(
-            `Made by pi (${PROVIDER}/${model}) running packages/ai-action-configs/configs/${name}.json:`
-          )}
           PROMPT: ${yamlString(prompt)}
         run: |
           {
-            printf '%s\\n\\n' "$HEADER"
             printf '%s\\n' "$PROMPT" | sed 's/^/> /'
             printf '\\n---\\n\\n'
             cat "$RUNNER_TEMP/pi-report.md"
@@ -288,7 +278,7 @@ const pullRequestWorkflowOf = (name, { cron, prompt, model }) =>
           branch: ai/${name}
           delete-branch: true
           title: ${yamlString(`AI: ${name}`)}
-          commit-message: ${yamlString(`chore: ${name} (AI action)`)}
+          commit-message: ${yamlString(`chore: ${name}`)}
           body-path: \${{ runner.temp }}/pull-request-body.md
 `;
 

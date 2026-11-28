@@ -34,7 +34,6 @@ const newFindings = (findings, issueTitles) => {
 };
 
 // The issue's body: the finding's, then who found it.
-const issueBodyOf = (finding, footer) =>
-  footer ? `${finding.body.trim()}\n\n---\n\n<sub>${footer}</sub>\n` : `${finding.body.trim()}\n`;
+const issueBodyOf = (finding) => `${finding.body.trim()}\n`;
 
 export { findingsErrors, issueBodyOf, newFindings };
