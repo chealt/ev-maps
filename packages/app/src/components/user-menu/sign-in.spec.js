@@ -198,7 +198,7 @@ test.describe("account", () => {
   });
 
   // On a phone the menu spans the screen, less the margin on both sides (#424).
-  test("opens full width on narrow screens", async ({ page }) => {
+  test("opens full width on narrow screens", { tag: "@ui" }, async ({ page }, testInfo) => {
     await fakeAuthApi(page, { signedIn: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
@@ -209,6 +209,7 @@ test.describe("account", () => {
     const margin = 390 - (box.x + box.width);
     expect(margin).toBeGreaterThan(0);
     expect(Math.round(box.x)).toBe(Math.round(margin));
+    await captureUi(page, testInfo, "account menu narrow screen");
   });
 
   // On desktop the menu fits the three maps apps in one row of segments,
