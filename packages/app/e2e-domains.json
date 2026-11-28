@@ -31,9 +31,12 @@
         "packages/app/src/components/locate-button/**",
         "packages/app/src/config/**",
         "packages/app/src/lib/charger-name.js",
+        "packages/app/src/lib/charger-name.test.js",
         "packages/app/src/lib/distance.js",
+        "packages/app/src/lib/distance.test.js",
         "packages/app/src/lib/map-center.js",
         "packages/app/src/lib/priciness.js",
+        "packages/app/src/lib/priciness.test.js",
         "packages/app/src/lib/maps-app.js",
         "packages/app/src/components/maps-app-picker/**",
         "packages/app/src/i18n/*/map.js",
@@ -172,6 +175,7 @@
     "distances": {
       "paths": [
         "packages/app/src/lib/distance-unit.js",
+        "packages/app/src/lib/distance.test.js",
         "packages/app/src/lib/account-preference.js",
         "packages/app/src/components/distance-text/**",
         "packages/app/src/components/distance-unit-picker/**",
