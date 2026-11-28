@@ -710,6 +710,17 @@ class GoogleMapElement extends HTMLElement {
     // A right-click, or a long press on touch (Google Maps fires
     // "contextmenu" for both): a menu for a route from or to there.
     this.map.addListener("contextmenu", (event) => this.showMapMenu(event));
+    // A tap on the map (not on a pin: that shows its charger) closes what's
+    // open over it: the account menu, the map's menu and a charger's details.
+    this.map.addListener("click", () => this.closeOverlays());
+  }
+
+  closeOverlays() {
+    document.querySelector("ev-user-menu .account-menu:popover-open")?.hidePopover();
+    this.querySelector(".map-menu:popover-open")?.hidePopover();
+    if (this.detailsPanel && !this.detailsPanel.hidden) {
+      this.closeChargerDetails();
+    }
   }
 
   // The menu where the pointer was, kept inside the window; its first item
