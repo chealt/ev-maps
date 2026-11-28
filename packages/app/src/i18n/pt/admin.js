@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Nenhuma linha corresponde.",
     adminErrors: "Erros",
     adminUsage: "Utilização",
+    adminSponsors: "Patrocinadores",
   },
   messages: {
     adminSignedInAs: "Sessão iniciada como {email}",

@@ -13,6 +13,7 @@ const admin = {
     adminNoMatchingRows: "Žádné řádky nevyhovují.",
     adminErrors: "Chyby",
     adminUsage: "Používání",
+    adminSponsors: "Sponzoři",
   },
   messages: {
     adminSignedInAs: "Přihlášen jako {email}",
